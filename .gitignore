@@ -1,0 +1,7 @@
+.pnpm_store
+storefront.log
+backend.log
+node_modules
+.turbo
+.vscode
+.vite
