@@ -40,6 +40,10 @@ module.exports = defineConfig({
     },
   },
   modules: [
+    // Custom SUPRAMEDS pharma modules
+    { resolve: "./src/modules/pharma" },
+    { resolve: "./src/modules/prescription" },
+    { resolve: "./src/modules/inventoryBatch" },
     {
       resolve: "@medusajs/medusa/file",
       options: {
