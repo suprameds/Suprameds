@@ -1,36 +1,68 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 @config "../../tailwind.config.js";
 @import "./theme.css";
 
 @layer base {
   :root {
-    @apply bg-white text-zinc-900 antialiased;
+    background-color: #F8F6F2;
+    color: #0D1B2A;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 }
 
 @layer components {
-  /* Content container */
   .content-container {
     @apply max-w-[1440px] w-full mx-auto px-6;
+  }
+
+  /* Compliance badge — Rx-only indicator */
+  .badge-rx {
+    background-color: #C0392B;
+    color: #fff;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+
+  /* Pharmacist-approved substitution badge */
+  .badge-pharm {
+    background-color: #d5f0e2;
+    color: #1A7A4A;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+
+  /* Black-box warning — mandatory pharma display */
+  .black-box-warning {
+    border: 2px solid #C0392B;
+    background-color: #fadbd8;
+    padding: 16px;
+    border-radius: 4px;
+  }
+
+  /* Compliance info bar */
+  .compliance-bar {
+    background-color: #0D1B2A;
+    color: rgba(255,255,255,0.85);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
   }
 }
 
 @layer utilities {
-  /* Chrome, Safari and Opera */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar::-webkit-scrollbar-track {
-    background-color: transparent;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar::-webkit-scrollbar-track { background-color: transparent; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   input:not([type="checkbox"]):focus ~ label,
   input:not([type="checkbox"]):not(:placeholder-shown) ~ label {
@@ -41,41 +73,28 @@
     @apply left-0;
   }
 
-  /* input:not([type="checkbox"]):-webkit-autofill,
-  input:not([type="checkbox"]):-webkit-autofill:hover,
-  input:not([type="checkbox"]):-webkit-autofill:focus,
-  textarea:-webkit-autofill,
-  textarea:-webkit-autofill:hover,
-  textarea:-webkit-autofill:focus,
-  select:-webkit-autofill,
-  select:-webkit-autofill:hover,
-  select:-webkit-autofill:focus {
-    border: 1px solid #212121;
-    -webkit-text-fill-color: #212121;
-    -webkit-box-shadow: 0 0 0px 1000px #fff inset;
-    transition: background-color 5000s ease-in-out 0s;
-  } */
+  .font-serif {
+    font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  }
+
+  .text-brand-navy { color: #0D1B2A; }
+  .text-brand-teal { color: #0E7C86; }
+  .text-brand-rx { color: #C0392B; }
+  .text-brand-ok { color: #1A7A4A; }
+  .bg-brand-navy { background-color: #0D1B2A; }
+  .bg-brand-teal { background-color: #0E7C86; }
+  .bg-brand-cream { background-color: #F8F6F2; }
+  .bg-brand-cream-dark { background-color: #EDE9E1; }
+  .border-brand-teal { border-color: #0E7C86; }
 }
 
-/* Navigation menu dropdown animations */
+/* Navigation dropdown animations */
 @keyframes dropdown-open {
-  from {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-1rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
+  from { opacity: 0; transform: translateX(-50%) translateY(-1rem); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 @keyframes dropdown-close {
-  from {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-1rem);
-  }
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(-1rem); }
 }

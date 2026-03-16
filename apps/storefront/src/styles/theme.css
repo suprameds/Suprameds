@@ -1,121 +1,52 @@
-@theme {
-  /* Font Family */
-  --font-sans:
-    Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Ubuntu, sans-serif;
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&display=swap");
 
-  /* Animation */
+@theme {
+  /* ── SUPRAMEDS BRAND COLORS ── */
+  /* Deep Navy — primary brand, trust, clinical authority */
+  --color-brand-navy: #0D1B2A;
+  --color-brand-navy-90: #1a2d42;
+  --color-brand-navy-80: #1e3554;
+  /* Teal — accent, actionable, pharmaceutical */
+  --color-brand-teal: #0E7C86;
+  --color-brand-teal-light: #16a5b0;
+  --color-brand-teal-dark: #0a5f67;
+  /* Warm Cream — background warmth, not stark white */
+  --color-brand-cream: #F8F6F2;
+  --color-brand-cream-dark: #EDE9E1;
+  /* Compliance Red — Rx-only badge, warnings */
+  --color-brand-rx: #C0392B;
+  --color-brand-rx-light: #fadbd8;
+  /* Success Green — in-stock, verified */
+  --color-brand-ok: #1A7A4A;
+  --color-brand-ok-light: #d5f0e2;
+  /* Amber — warnings, caution */
+  --color-brand-warn: #D68910;
+  --color-brand-warn-light: #fdebd0;
+
+  /* ── TYPOGRAPHY ── */
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Fraunces", Georgia, "Times New Roman", serif;
+
+  /* ── ANIMATIONS ── */
   --animation-ring: ring 2.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  --animation-fade-in-right: fade-in-right 0.3s cubic-bezier(0.5, 0, 0.5, 1)
-    forwards;
-  --animation-fade-in-top: fade-in-top 0.2s cubic-bezier(0.5, 0, 0.5, 1)
-    forwards;
-  --animation-fade-out-top: fade-out-top 0.2s cubic-bezier(0.5, 0, 0.5, 1)
-    forwards;
-  --animation-accordion-open: accordion-slide-down 300ms
-    cubic-bezier(0.87, 0, 0.13, 1) forwards;
-  --animation-accordion-close: accordion-slide-up 300ms
-    cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  --animation-fade-in-right: fade-in-right 0.3s cubic-bezier(0.5, 0, 0.5, 1) forwards;
+  --animation-fade-in-top: fade-in-top 0.2s cubic-bezier(0.5, 0, 0.5, 1) forwards;
+  --animation-fade-out-top: fade-out-top 0.2s cubic-bezier(0.5, 0, 0.5, 1) forwards;
+  --animation-accordion-open: accordion-slide-down 300ms cubic-bezier(0.87, 0, 0.13, 1) forwards;
+  --animation-accordion-close: accordion-slide-up 300ms cubic-bezier(0.87, 0, 0.13, 1) forwards;
   --animation-enter: enter 200ms ease-out;
   --animation-slide-in: slide-in 1.2s cubic-bezier(0.41, 0.73, 0.51, 1.02);
   --animation-leave: leave 150ms ease-in forwards;
+  --animation-fade-up: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 
-  /* Keyframes definitions */
-  @keyframes ring {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  @keyframes fade-in-right {
-    0% {
-      opacity: 0;
-      transform: translateX(10px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes fade-in-top {
-    0% {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes fade-out-top {
-    0% {
-      height: 100%;
-    }
-    99% {
-      height: 0;
-    }
-    100% {
-      visibility: hidden;
-    }
-  }
-
-  @keyframes accordion-slide-up {
-    0% {
-      height: var(--radix-accordion-content-height);
-      opacity: 1;
-    }
-    100% {
-      height: 0;
-      opacity: 0;
-    }
-  }
-
-  @keyframes accordion-slide-down {
-    0% {
-      min-height: 0;
-      max-height: 0;
-      opacity: 0;
-    }
-    100% {
-      min-height: var(--radix-accordion-content-height);
-      max-height: none;
-      opacity: 1;
-    }
-  }
-
-  @keyframes enter {
-    0% {
-      transform: scale(0.9);
-      opacity: 0;
-    }
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  @keyframes leave {
-    0% {
-      transform: scale(1);
-      opacity: 1;
-    }
-    100% {
-      transform: scale(0.9);
-      opacity: 0;
-    }
-  }
-
-  @keyframes slide-in {
-    0% {
-      transform: translateY(-100%);
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
+  @keyframes ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  @keyframes fade-in-right { 0% { opacity: 0; transform: translateX(10px); } 100% { opacity: 1; transform: translateX(0); } }
+  @keyframes fade-in-top { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+  @keyframes fade-out-top { 0% { height: 100%; } 99% { height: 0; } 100% { visibility: hidden; } }
+  @keyframes accordion-slide-up { 0% { height: var(--radix-accordion-content-height); opacity: 1; } 100% { height: 0; opacity: 0; } }
+  @keyframes accordion-slide-down { 0% { min-height: 0; max-height: 0; opacity: 0; } 100% { min-height: var(--radix-accordion-content-height); max-height: none; opacity: 1; } }
+  @keyframes enter { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1); } }
+  @keyframes leave { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0; } }
+  @keyframes slide-in { 0% { transform: translateY(-100%); } 100% { transform: translateY(0); } }
+  @keyframes fade-up { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0); } }
 }

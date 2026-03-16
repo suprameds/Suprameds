@@ -9,14 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StoreRouteImport } from './routes/store'
+import { Route as ReturnsRouteImport } from './routes/returns'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PrescriptionPolicyRouteImport } from './routes/prescription-policy'
 import { Route as HealthRouteImport } from './routes/health'
+import { Route as GrievanceRouteImport } from './routes/grievance'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CountryCodeRouteImport } from './routes/$countryCode'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountryCodeIndexRouteImport } from './routes/$countryCode/index'
+import { Route as PharmacyLicensesRouteImport } from './routes/pharmacy/licenses'
 import { Route as CountryCodeStoreRouteImport } from './routes/$countryCode/store'
 import { Route as CountryCodeCheckoutRouteImport } from './routes/$countryCode/checkout'
 import { Route as CountryCodeCartRouteImport } from './routes/$countryCode/cart'
@@ -24,14 +30,39 @@ import { Route as CountryCodeProductsHandleRouteImport } from './routes/$country
 import { Route as CountryCodeCategoriesHandleRouteImport } from './routes/$countryCode/categories/$handle'
 import { Route as CountryCodeOrderOrderIdConfirmedRouteImport } from './routes/$countryCode/order/$orderId/confirmed'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StoreRoute = StoreRouteImport.update({
   id: '/store',
   path: '/store',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReturnsRoute = ReturnsRouteImport.update({
+  id: '/returns',
+  path: '/returns',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrescriptionPolicyRoute = PrescriptionPolicyRouteImport.update({
+  id: '/prescription-policy',
+  path: '/prescription-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HealthRoute = HealthRouteImport.update({
   id: '/health',
   path: '/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GrievanceRoute = GrievanceRouteImport.update({
+  id: '/grievance',
+  path: '/grievance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -63,6 +94,11 @@ const CountryCodeIndexRoute = CountryCodeIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CountryCodeRoute,
+} as any)
+const PharmacyLicensesRoute = PharmacyLicensesRouteImport.update({
+  id: '/pharmacy/licenses',
+  path: '/pharmacy/licenses',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CountryCodeStoreRoute = CountryCodeStoreRouteImport.update({
   id: '/store',
@@ -104,11 +140,17 @@ export interface FileRoutesByFullPath {
   '/$countryCode': typeof CountryCodeRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/prescription-policy': typeof PrescriptionPolicyRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
   '/store': typeof StoreRoute
+  '/terms': typeof TermsRoute
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
+  '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode/': typeof CountryCodeIndexRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
@@ -119,11 +161,17 @@ export interface FileRoutesByTo {
   '/$': typeof SplatRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/prescription-policy': typeof PrescriptionPolicyRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
   '/store': typeof StoreRoute
+  '/terms': typeof TermsRoute
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
+  '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode': typeof CountryCodeIndexRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
@@ -136,11 +184,17 @@ export interface FileRoutesById {
   '/$countryCode': typeof CountryCodeRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/prescription-policy': typeof PrescriptionPolicyRoute
+  '/privacy': typeof PrivacyRoute
+  '/returns': typeof ReturnsRoute
   '/store': typeof StoreRoute
+  '/terms': typeof TermsRoute
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
+  '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode/': typeof CountryCodeIndexRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
@@ -154,11 +208,17 @@ export interface FileRouteTypes {
     | '/$countryCode'
     | '/cart'
     | '/checkout'
+    | '/grievance'
     | '/health'
+    | '/prescription-policy'
+    | '/privacy'
+    | '/returns'
     | '/store'
+    | '/terms'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
     | '/$countryCode/store'
+    | '/pharmacy/licenses'
     | '/$countryCode/'
     | '/$countryCode/categories/$handle'
     | '/$countryCode/products/$handle'
@@ -169,11 +229,17 @@ export interface FileRouteTypes {
     | '/$'
     | '/cart'
     | '/checkout'
+    | '/grievance'
     | '/health'
+    | '/prescription-policy'
+    | '/privacy'
+    | '/returns'
     | '/store'
+    | '/terms'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
     | '/$countryCode/store'
+    | '/pharmacy/licenses'
     | '/$countryCode'
     | '/$countryCode/categories/$handle'
     | '/$countryCode/products/$handle'
@@ -185,11 +251,17 @@ export interface FileRouteTypes {
     | '/$countryCode'
     | '/cart'
     | '/checkout'
+    | '/grievance'
     | '/health'
+    | '/prescription-policy'
+    | '/privacy'
+    | '/returns'
     | '/store'
+    | '/terms'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
     | '/$countryCode/store'
+    | '/pharmacy/licenses'
     | '/$countryCode/'
     | '/$countryCode/categories/$handle'
     | '/$countryCode/products/$handle'
@@ -202,12 +274,25 @@ export interface RootRouteChildren {
   CountryCodeRoute: typeof CountryCodeRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
+  GrievanceRoute: typeof GrievanceRoute
   HealthRoute: typeof HealthRoute
+  PrescriptionPolicyRoute: typeof PrescriptionPolicyRoute
+  PrivacyRoute: typeof PrivacyRoute
+  ReturnsRoute: typeof ReturnsRoute
   StoreRoute: typeof StoreRoute
+  TermsRoute: typeof TermsRoute
+  PharmacyLicensesRoute: typeof PharmacyLicensesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/store': {
       id: '/store'
       path: '/store'
@@ -215,11 +300,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/returns': {
+      id: '/returns'
+      path: '/returns'
+      fullPath: '/returns'
+      preLoaderRoute: typeof ReturnsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prescription-policy': {
+      id: '/prescription-policy'
+      path: '/prescription-policy'
+      fullPath: '/prescription-policy'
+      preLoaderRoute: typeof PrescriptionPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/health': {
       id: '/health'
       path: '/health'
       fullPath: '/health'
       preLoaderRoute: typeof HealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grievance': {
+      id: '/grievance'
+      path: '/grievance'
+      fullPath: '/grievance'
+      preLoaderRoute: typeof GrievanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -263,6 +376,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$countryCode/'
       preLoaderRoute: typeof CountryCodeIndexRouteImport
       parentRoute: typeof CountryCodeRoute
+    }
+    '/pharmacy/licenses': {
+      id: '/pharmacy/licenses'
+      path: '/pharmacy/licenses'
+      fullPath: '/pharmacy/licenses'
+      preLoaderRoute: typeof PharmacyLicensesRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/$countryCode/store': {
       id: '/$countryCode/store'
@@ -339,8 +459,14 @@ const rootRouteChildren: RootRouteChildren = {
   CountryCodeRoute: CountryCodeRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
+  GrievanceRoute: GrievanceRoute,
   HealthRoute: HealthRoute,
+  PrescriptionPolicyRoute: PrescriptionPolicyRoute,
+  PrivacyRoute: PrivacyRoute,
+  ReturnsRoute: ReturnsRoute,
   StoreRoute: StoreRoute,
+  TermsRoute: TermsRoute,
+  PharmacyLicensesRoute: PharmacyLicensesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
