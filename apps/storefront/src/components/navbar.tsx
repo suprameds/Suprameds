@@ -7,6 +7,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
+import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import * as NavigationMenu from "@radix-ui/react-navigation-menu"
@@ -37,9 +38,17 @@ const PillIcon = () => (
   </svg>
 )
 
+const PersonIcon = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="4"/>
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+  </svg>
+)
+
 export const Navbar = () => {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
+  const { data: customer } = useCustomer()
 
   const { data: topLevelCategories } = useCategories({
     fields: "id,name,handle,parent_category_id",
@@ -263,6 +272,21 @@ export const Navbar = () => {
                     {item.label}
                   </a>
                 ))}
+                <div className="px-6 pt-4 pb-2">
+                  <div className="border-t" style={{ borderColor: "#EDE9E1" }} />
+                </div>
+                <DrawerClose asChild>
+                  <Link
+                    to="/$countryCode/account/profile"
+                    params={{ countryCode }}
+                    className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors flex items-center gap-2"
+                    style={{ color: "#0D1B2A" }}
+                  >
+                    <PersonIcon />
+                    {customer ? `${customer.first_name}'s Account` : "Sign in / Register"}
+                  </Link>
+                </DrawerClose>
+
                 <div className="mx-8 mt-4 p-4 rounded-lg" style={{ background: "#F8F6F2" }}>
                   <p className="text-xs leading-relaxed" style={{ color: "#0D1B2A" }}>
                     <span className="font-semibold">Helpline: </span>
@@ -296,8 +320,8 @@ export const Navbar = () => {
             </Link>
           </div>
 
-          {/* Cart */}
-          <div className="flex items-center gap-x-4 h-full justify-end">
+          {/* Right actions */}
+          <div className="flex items-center gap-x-3 h-full justify-end">
             <a
               href="/"
               className="hidden lg:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded transition-all"
@@ -309,6 +333,27 @@ export const Navbar = () => {
               </svg>
               Upload Rx
             </a>
+
+            {/* Account icon */}
+            <Link
+              to="/$countryCode/account/profile"
+              params={{ countryCode }}
+              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-full transition-all hover:bg-gray-100"
+              style={{ color: "#0D1B2A" }}
+              title={customer ? `${customer.first_name} ${customer.last_name}` : "Sign in"}
+            >
+              {customer ? (
+                <span
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                  style={{ background: "#27AE60" }}
+                >
+                  {customer.first_name?.[0]?.toUpperCase() ?? "U"}
+                </span>
+              ) : (
+                <PersonIcon />
+              )}
+            </Link>
+
             <CartDropdown />
           </div>
         </nav>
