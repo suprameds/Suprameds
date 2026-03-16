@@ -1,4 +1,4 @@
-import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import {
   approvePrescriptionWorkflow,
@@ -9,7 +9,7 @@ import {
  * GET /admin/prescriptions/:id
  * Admin: retrieve single prescription detail.
  */
-export async function GET(req: MedusaRequest, res: MedusaResponse) {
+export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { id } = req.params
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
@@ -53,7 +53,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  * Admin: approve or reject a prescription.
  * Body: { action: "approve" | "reject", ... }
  */
-export async function POST(req: MedusaRequest, res: MedusaResponse) {
+export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { id } = req.params
   const body = req.validatedBody as any
   const pharmacistId = req.auth_context?.actor_id
