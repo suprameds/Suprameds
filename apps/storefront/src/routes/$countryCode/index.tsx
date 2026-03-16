@@ -39,8 +39,8 @@ export const Route = createFileRoute("/$countryCode/")({
     }
   },
   head: () => {
-    const title = `Welcome to Medusa Store`
-    const description = `Discover our curated collection of products. Browse our latest featured items and shop with confidence.`
+    const title = `Suprameds — India's Licensed Online Pharmacy`
+    const description = `Buy prescription and OTC medicines online from a CDSCO-registered, LegitScript-certified pharmacy. Pharmacist-dispensed. Speed Post delivery across India.`
 
     return {
       meta: [
