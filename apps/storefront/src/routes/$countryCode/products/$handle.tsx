@@ -36,13 +36,33 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       },
     });
 
+    // Fetch pharma metadata via custom endpoint.
+    const pharma = await fetch(
+      `${import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"}/store/products/pharma?handle=${encodeURIComponent(
+        handle
+      )}`,
+      {
+        headers: {
+          "x-publishable-api-key": import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY,
+        },
+      }
+    ).then(async (r) => {
+      if (!r.ok) return null
+      return (await r.json()) as { drug_product: any }
+    })
+
+    if (pharma?.drug_product) {
+      ;(product as any).drug_product = pharma.drug_product
+    }
+
     // Ensure related products are loaded for SSR to prevent hydration mismatch
     // This ensures consistent rendering between server and client
     await queryClient.ensureQueryData({
       queryKey: queryKeys.products.related(product.id, region.id),
       queryFn: async () => {
         const params: HttpTypes.StoreProductListParams = {
-          fields: "title, handle, *thumbnail, *variants",
+          fields:
+            "title, handle, *thumbnail, *variants, +variants.calculated_price",
           is_giftcard: false,
           limit: 4,
         };

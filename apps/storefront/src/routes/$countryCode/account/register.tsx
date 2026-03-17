@@ -5,11 +5,15 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/register")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+  }),
   component: RegisterPage,
 })
 
 function RegisterPage() {
   const location = useLocation()
+  const { redirectTo } = Route.useSearch()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const navigate = useNavigate()
   const register = useRegister()
@@ -45,6 +49,9 @@ function RegisterPage() {
       return
     }
 
+    const destination =
+      redirectTo && redirectTo.startsWith("/") ? redirectTo : `/${countryCode}/account/profile`
+
     register.mutate(
       {
         email: form.email,
@@ -55,10 +62,7 @@ function RegisterPage() {
       },
       {
         onSuccess: () => {
-          navigate({
-            to: "/$countryCode/account/profile",
-            params: { countryCode },
-          })
+          navigate({ to: destination })
         },
         onError: (err: unknown) => {
           const msg =

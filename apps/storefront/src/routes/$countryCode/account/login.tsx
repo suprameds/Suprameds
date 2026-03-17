@@ -5,11 +5,15 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+  }),
   component: LoginPage,
 })
 
 function LoginPage() {
   const location = useLocation()
+  const { redirectTo } = Route.useSearch()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const navigate = useNavigate()
   const login = useLogin()
@@ -27,14 +31,14 @@ function LoginPage() {
       return
     }
 
+    const destination =
+      redirectTo && redirectTo.startsWith("/") ? redirectTo : `/${countryCode}/account/profile`
+
     login.mutate(
       { email, password },
       {
         onSuccess: () => {
-          navigate({
-            to: "/$countryCode/account/profile",
-            params: { countryCode },
-          })
+          navigate({ to: destination })
         },
         onError: () => {
           setError("Invalid email or password. Please try again.")
@@ -88,13 +92,14 @@ function LoginPage() {
                 <label className="text-sm font-medium" style={{ color: "#374151" }}>
                   Password
                 </label>
-                <a
-                  href="/grievance"
+                <Link
+                  to="/$countryCode/account/forgot-password"
+                  params={{ countryCode }}
                   className="text-xs hover:underline"
                   style={{ color: "#27AE60" }}
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
               <input
                 type="password"

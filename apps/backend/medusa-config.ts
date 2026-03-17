@@ -30,7 +30,8 @@ module.exports = defineConfig({
   },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
-
+    redisUrl: process.env.REDIS_URL,
+    // SSL disabled for Supabase pooler — was causing connection timeouts; re-enable if Supabase enforces it
     http: {
       storeCors: process.env.STORE_CORS!,
       adminCors: process.env.ADMIN_CORS!,
@@ -40,10 +41,24 @@ module.exports = defineConfig({
     },
   },
   modules: [
-    // Custom SUPRAMEDS pharma modules
+    // Custom SUPRAMEDS pharma modules (existing)
     { resolve: "./src/modules/pharma" },
     { resolve: "./src/modules/prescription" },
     { resolve: "./src/modules/inventoryBatch" },
+
+    // Phase 3+ modules (skeleton stubs with models)
+    { resolve: "./src/modules/rbac" },
+    { resolve: "./src/modules/dispense" },
+    { resolve: "./src/modules/orders" },
+    { resolve: "./src/modules/cod" },
+    { resolve: "./src/modules/warehouse" },
+    { resolve: "./src/modules/shipment" },
+    { resolve: "./src/modules/payment" },
+    { resolve: "./src/modules/compliance" },
+    { resolve: "./src/modules/crm" },
+    { resolve: "./src/modules/analytics" },
+    { resolve: "./src/modules/loyalty" },
+    { resolve: "./src/modules/notification" },
     {
       resolve: "@medusajs/medusa/file",
       options: {

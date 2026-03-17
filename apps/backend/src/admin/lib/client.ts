@@ -6,6 +6,6 @@ export const sdk = new Medusa({
   baseUrl: typeof __BACKEND_URL__ !== "undefined" ? __BACKEND_URL__ : "/",
   debug: true,
   auth: {
-    type: (import.meta.env.VITE_ADMIN_AUTH_TYPE || "jwt") as "jwt" | "session",
+    type: ((process.env as any).VITE_ADMIN_AUTH_TYPE || "jwt") as "jwt" | "session",
   },
 });

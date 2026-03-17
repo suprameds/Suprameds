@@ -57,13 +57,13 @@ export const useRegister = () => {
       last_name: string
       phone?: string
     }) => {
-      await sdk.auth.register("customer", "emailpass", { email, password })
-      const { customer } = await sdk.store.customer.create({
-        email,
-        first_name,
-        last_name,
-        phone,
-      })
+      // Get registration token first; /store/customers then requires it in Authorization header
+      const token = await sdk.auth.register("customer", "emailpass", { email, password })
+      const { customer } = await sdk.store.customer.create(
+        { email, first_name, last_name, phone },
+        {},
+        { Authorization: `Bearer ${token}` }
+      )
       return customer
     },
     onSuccess: (customer) => {
@@ -82,6 +82,24 @@ export const useLogout = () => {
     onSuccess: () => {
       queryClient.setQueryData(queryKeys.customer.current(), null)
       queryClient.invalidateQueries({ queryKey: queryKeys.customer.all })
+    },
+  })
+}
+
+/** Request a password reset email. Backend sends token to the given email. */
+export const useForgotPassword = () => {
+  return useMutation({
+    mutationFn: async (email: string) => {
+      await sdk.auth.resetPassword("customer", "emailpass", { identifier: email })
+    },
+  })
+}
+
+/** Set new password using the token from the reset email. */
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: async ({ token, password }: { token: string; password: string }) => {
+      await sdk.auth.updateProvider("customer", "emailpass", { password }, token)
     },
   })
 }
