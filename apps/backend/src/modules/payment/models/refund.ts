@@ -3,7 +3,7 @@ import { model } from "@medusajs/framework/utils"
 /**
  * Refund — SSD enforced: support_agent raises, finance_admin approves.
  */
-const Refund = model.define("refund", {
+const PharmaRefund = model.define("pharma_refund", {
   id: model.id().primaryKey(),
 
   payment_id: model.text(),
@@ -41,4 +41,4 @@ const Refund = model.define("refund", {
   metadata: model.json().nullable(),
 })
 
-export default Refund
+export default PharmaRefund

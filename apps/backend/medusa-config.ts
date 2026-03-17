@@ -4,6 +4,7 @@ loadEnv(process.env.NODE_ENV || "development", process.cwd());
 
 module.exports = defineConfig({
   admin: {
+    disable: process.env.NODE_ENV === "production" ? false : true,
     vite: () => {
       let hmrServer;
       if (process.env.HMR_BIND_HOST) {
@@ -40,26 +41,23 @@ module.exports = defineConfig({
       cookieSecret: process.env.COOKIE_SECRET || "supersecret",
     },
   },
-  modules: [
-    // Custom SUPRAMEDS pharma modules (existing)
-    { resolve: "./src/modules/pharma" },
-    { resolve: "./src/modules/prescription" },
-    { resolve: "./src/modules/inventoryBatch" },
-
-    // Phase 3+ modules (skeleton stubs with models)
-    { resolve: "./src/modules/rbac" },
-    { resolve: "./src/modules/dispense" },
-    { resolve: "./src/modules/orders" },
-    { resolve: "./src/modules/cod" },
-    { resolve: "./src/modules/warehouse" },
-    { resolve: "./src/modules/shipment" },
-    { resolve: "./src/modules/payment" },
-    { resolve: "./src/modules/compliance" },
-    { resolve: "./src/modules/crm" },
-    { resolve: "./src/modules/analytics" },
-    { resolve: "./src/modules/loyalty" },
-    { resolve: "./src/modules/notification" },
-    {
+  modules: {
+    pharmaCore: { resolve: "./src/modules/pharma" },
+    pharmaPrescription: { resolve: "./src/modules/prescription" },
+    pharmaInventoryBatch: { resolve: "./src/modules/inventoryBatch" },
+    pharmaRbac: { resolve: "./src/modules/rbac" },
+    pharmaDispense: { resolve: "./src/modules/dispense" },
+    pharmaOrder: { resolve: "./src/modules/orders" },
+    pharmaCod: { resolve: "./src/modules/cod" },
+    pharmaWarehouse: { resolve: "./src/modules/warehouse" },
+    pharmaShipment: { resolve: "./src/modules/shipment" },
+    pharmaPayment: { resolve: "./src/modules/payment" },
+    pharmaCompliance: { resolve: "./src/modules/compliance" },
+    pharmaCrm: { resolve: "./src/modules/crm" },
+    pharmaAnalytics: { resolve: "./src/modules/analytics" },
+    pharmaLoyalty: { resolve: "./src/modules/loyalty" },
+    pharmaNotification: { resolve: "./src/modules/notification" },
+    file: {
       resolve: "@medusajs/medusa/file",
       options: {
         providers: [
@@ -92,5 +90,5 @@ module.exports = defineConfig({
         ],
       },
     },
-  ],
+  },
 });
