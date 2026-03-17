@@ -1,7 +1,7 @@
 import PharmaModuleService from "./service"
 import { Module } from "@medusajs/framework/utils"
 
-export const PHARMA_MODULE = "pharma"
+export const PHARMA_MODULE = "pharmaCore"
 
 export default Module(PHARMA_MODULE, {
   service: PharmaModuleService,

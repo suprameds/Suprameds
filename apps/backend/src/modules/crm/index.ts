@@ -1,7 +1,7 @@
 import CrmModuleService from "./service"
 import { Module } from "@medusajs/framework/utils"
 
-export const CRM_MODULE = "crm"
+export const CRM_MODULE = "pharmaCrm"
 
 export default Module(CRM_MODULE, {
   service: CrmModuleService,
