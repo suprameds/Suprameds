@@ -54,7 +54,7 @@ apps/backend/src/
 ## Custom Modules (Phase 3+)
 ### pharma
 - Drug metadata: schedule classification (H, H1, X, OTC), GST slab, form, strength, composition
-- Critical: Schedule X drugs CANNOT be sold online (hard constraint enforced in middleware)
+- Critical: Schedule X drugs CANNOT be sold online — enforced in `src/api/middlewares.ts` (store cart line-items POST) and `src/workflows/hooks/schedule-x-block-add-to-cart.ts` (addToCartWorkflow.validate)
 - Critical: Schedule H/H1 require valid prescription (enforced in checkout workflow hook)
 
 ### prescription

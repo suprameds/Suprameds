@@ -29,8 +29,10 @@ import { Route as CountryCodeCartRouteImport } from './routes/$countryCode/cart'
 import { Route as CountryCodeAccountRouteImport } from './routes/$countryCode/account'
 import { Route as CountryCodeProductsHandleRouteImport } from './routes/$countryCode/products/$handle'
 import { Route as CountryCodeCategoriesHandleRouteImport } from './routes/$countryCode/categories/$handle'
+import { Route as CountryCodeAccountResetPasswordRouteImport } from './routes/$countryCode/account/reset-password'
 import { Route as CountryCodeAccountRegisterRouteImport } from './routes/$countryCode/account/register'
 import { Route as CountryCodeAccountLoginRouteImport } from './routes/$countryCode/account/login'
+import { Route as CountryCodeAccountForgotPasswordRouteImport } from './routes/$countryCode/account/forgot-password'
 import { Route as CountryCodeAccountLayoutRouteImport } from './routes/$countryCode/account/_layout'
 import { Route as CountryCodeAccountLayoutIndexRouteImport } from './routes/$countryCode/account/_layout/index'
 import { Route as CountryCodeOrderOrderIdConfirmedRouteImport } from './routes/$countryCode/order/$orderId/confirmed'
@@ -140,6 +142,12 @@ const CountryCodeCategoriesHandleRoute =
     path: '/categories/$handle',
     getParentRoute: () => CountryCodeRoute,
   } as any)
+const CountryCodeAccountResetPasswordRoute =
+  CountryCodeAccountResetPasswordRouteImport.update({
+    id: '/reset-password',
+    path: '/reset-password',
+    getParentRoute: () => CountryCodeAccountRoute,
+  } as any)
 const CountryCodeAccountRegisterRoute =
   CountryCodeAccountRegisterRouteImport.update({
     id: '/register',
@@ -151,6 +159,12 @@ const CountryCodeAccountLoginRoute = CountryCodeAccountLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => CountryCodeAccountRoute,
 } as any)
+const CountryCodeAccountForgotPasswordRoute =
+  CountryCodeAccountForgotPasswordRouteImport.update({
+    id: '/forgot-password',
+    path: '/forgot-password',
+    getParentRoute: () => CountryCodeAccountRoute,
+  } as any)
 const CountryCodeAccountLayoutRoute =
   CountryCodeAccountLayoutRouteImport.update({
     id: '/_layout',
@@ -206,8 +220,10 @@ export interface FileRoutesByFullPath {
   '/$countryCode/store': typeof CountryCodeStoreRoute
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode/': typeof CountryCodeIndexRoute
+  '/$countryCode/account/forgot-password': typeof CountryCodeAccountForgotPasswordRoute
   '/$countryCode/account/login': typeof CountryCodeAccountLoginRoute
   '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
+  '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
@@ -234,8 +250,10 @@ export interface FileRoutesByTo {
   '/$countryCode/store': typeof CountryCodeStoreRoute
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode': typeof CountryCodeIndexRoute
+  '/$countryCode/account/forgot-password': typeof CountryCodeAccountForgotPasswordRoute
   '/$countryCode/account/login': typeof CountryCodeAccountLoginRoute
   '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
+  '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
@@ -264,8 +282,10 @@ export interface FileRoutesById {
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode/': typeof CountryCodeIndexRoute
   '/$countryCode/account/_layout': typeof CountryCodeAccountLayoutRouteWithChildren
+  '/$countryCode/account/forgot-password': typeof CountryCodeAccountForgotPasswordRoute
   '/$countryCode/account/login': typeof CountryCodeAccountLoginRoute
   '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
+  '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/_layout/addresses': typeof CountryCodeAccountLayoutAddressesRoute
@@ -295,8 +315,10 @@ export interface FileRouteTypes {
     | '/$countryCode/store'
     | '/pharmacy/licenses'
     | '/$countryCode/'
+    | '/$countryCode/account/forgot-password'
     | '/$countryCode/account/login'
     | '/$countryCode/account/register'
+    | '/$countryCode/account/reset-password'
     | '/$countryCode/categories/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
@@ -323,8 +345,10 @@ export interface FileRouteTypes {
     | '/$countryCode/store'
     | '/pharmacy/licenses'
     | '/$countryCode'
+    | '/$countryCode/account/forgot-password'
     | '/$countryCode/account/login'
     | '/$countryCode/account/register'
+    | '/$countryCode/account/reset-password'
     | '/$countryCode/categories/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
@@ -352,8 +376,10 @@ export interface FileRouteTypes {
     | '/pharmacy/licenses'
     | '/$countryCode/'
     | '/$countryCode/account/_layout'
+    | '/$countryCode/account/forgot-password'
     | '/$countryCode/account/login'
     | '/$countryCode/account/register'
+    | '/$countryCode/account/reset-password'
     | '/$countryCode/categories/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/_layout/addresses'
@@ -521,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryCodeCategoriesHandleRouteImport
       parentRoute: typeof CountryCodeRoute
     }
+    '/$countryCode/account/reset-password': {
+      id: '/$countryCode/account/reset-password'
+      path: '/reset-password'
+      fullPath: '/$countryCode/account/reset-password'
+      preLoaderRoute: typeof CountryCodeAccountResetPasswordRouteImport
+      parentRoute: typeof CountryCodeAccountRoute
+    }
     '/$countryCode/account/register': {
       id: '/$countryCode/account/register'
       path: '/register'
@@ -533,6 +566,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/$countryCode/account/login'
       preLoaderRoute: typeof CountryCodeAccountLoginRouteImport
+      parentRoute: typeof CountryCodeAccountRoute
+    }
+    '/$countryCode/account/forgot-password': {
+      id: '/$countryCode/account/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/$countryCode/account/forgot-password'
+      preLoaderRoute: typeof CountryCodeAccountForgotPasswordRouteImport
       parentRoute: typeof CountryCodeAccountRoute
     }
     '/$countryCode/account/_layout': {
@@ -603,14 +643,18 @@ const CountryCodeAccountLayoutRouteWithChildren =
 
 interface CountryCodeAccountRouteChildren {
   CountryCodeAccountLayoutRoute: typeof CountryCodeAccountLayoutRouteWithChildren
+  CountryCodeAccountForgotPasswordRoute: typeof CountryCodeAccountForgotPasswordRoute
   CountryCodeAccountLoginRoute: typeof CountryCodeAccountLoginRoute
   CountryCodeAccountRegisterRoute: typeof CountryCodeAccountRegisterRoute
+  CountryCodeAccountResetPasswordRoute: typeof CountryCodeAccountResetPasswordRoute
 }
 
 const CountryCodeAccountRouteChildren: CountryCodeAccountRouteChildren = {
   CountryCodeAccountLayoutRoute: CountryCodeAccountLayoutRouteWithChildren,
+  CountryCodeAccountForgotPasswordRoute: CountryCodeAccountForgotPasswordRoute,
   CountryCodeAccountLoginRoute: CountryCodeAccountLoginRoute,
   CountryCodeAccountRegisterRoute: CountryCodeAccountRegisterRoute,
+  CountryCodeAccountResetPasswordRoute: CountryCodeAccountResetPasswordRoute,
 }
 
 const CountryCodeAccountRouteWithChildren =

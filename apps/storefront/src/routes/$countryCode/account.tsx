@@ -6,7 +6,9 @@ export const Route = createFileRoute("/$countryCode/account")({
     const { countryCode } = params
     const isAuthRoute =
       location.pathname.endsWith("/login") ||
-      location.pathname.endsWith("/register")
+      location.pathname.endsWith("/register") ||
+      location.pathname.endsWith("/forgot-password") ||
+      location.pathname.endsWith("/reset-password")
 
     try {
       await sdk.store.customer.retrieve()

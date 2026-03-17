@@ -17,11 +17,26 @@ export const useProducts = ({
       const _page_param = Math.max(pageParam, 1)
       const offset = _page_param === 1 ? 0 : (_page_param - 1) * limit
 
+      const fields =
+        query_params?.fields ??
+        [
+          "id",
+          "title",
+          "handle",
+          "thumbnail",
+          "*variants",
+          "+variants.calculated_price",
+          "+variants.inventory_quantity",
+          "+variants.manage_inventory",
+          "+variants.allow_backorder",
+        ].join(",")
+
       const response = await sdk.store.product.list({
         limit,
         offset,
         region_id,
         ...query_params,
+        fields,
       })
 
       const next_page = offset + limit < response.count ? _page_param + 1 : null
@@ -55,7 +70,7 @@ export const useProduct = ({
         handle: handle,
         region_id,
         fields: fields ||
-          "*variants, +variants.inventory_quantity, +variants.manage_inventory, +variants.allow_backorder, *images, *options, *options.values, *collection, *tags",
+          "*variants, +variants.inventory_quantity, +variants.manage_inventory, +variants.allow_backorder, +variants.calculated_price, *images, *options, *options.values, *collection, *tags",
       })
 
       if (!products || products.length === 0) {

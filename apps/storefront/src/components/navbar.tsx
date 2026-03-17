@@ -277,7 +277,7 @@ export const Navbar = () => {
                 </div>
                 <DrawerClose asChild>
                   <Link
-                    to="/$countryCode/account/profile"
+                    to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
                     params={{ countryCode }}
                     className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors flex items-center gap-2"
                     style={{ color: "#0D1B2A" }}
@@ -334,17 +334,17 @@ export const Navbar = () => {
               Upload Rx
             </a>
 
-            {/* Account icon */}
+            {/* Account / Sign in — visible label so users can find login */}
             <Link
-              to="/$countryCode/account/profile"
+              to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
               params={{ countryCode }}
-              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-full transition-all hover:bg-gray-100"
+              className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-gray-100"
               style={{ color: "#0D1B2A" }}
-              title={customer ? `${customer.first_name} ${customer.last_name}` : "Sign in"}
+              title={customer ? `${customer.first_name} ${customer.last_name}` : "Sign in or register"}
             >
               {customer ? (
                 <span
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
                   style={{ background: "#27AE60" }}
                 >
                   {customer.first_name?.[0]?.toUpperCase() ?? "U"}
@@ -352,6 +352,9 @@ export const Navbar = () => {
               ) : (
                 <PersonIcon />
               )}
+              <span className="text-sm font-medium">
+                {customer ? "Account" : "Sign in"}
+              </span>
             </Link>
 
             <CartDropdown />

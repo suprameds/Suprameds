@@ -1,9 +1,6 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
-import {
-  approvePrescriptionWorkflow,
-  rejectPrescriptionWorkflow,
-} from "../../../../workflows/review-prescription"
+import { ReviewRxWorkflow } from "../../../../workflows/prescription/review-rx"
 
 /**
  * GET /admin/prescriptions/:id
@@ -56,7 +53,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { id } = req.params
   const body = req.validatedBody as any
-  const pharmacistId = req.auth_context?.actor_id
+  const pharmacistId = req.auth_context?.actor_id || req.auth_context?.auth_identity_id
 
   if (!pharmacistId) {
     throw new MedusaError(MedusaError.Types.UNAUTHORIZED, "Pharmacist authentication required.")
@@ -69,45 +66,39 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
         "At least one prescription line is required for approval."
       )
     }
-
-    const { result } = await approvePrescriptionWorkflow(req.scope).run({
-      input: {
-        prescription_id: id,
-        pharmacist_id: pharmacistId,
-        doctor_name: body.doctor_name,
-        doctor_reg_no: body.doctor_reg_no,
-        patient_name: body.patient_name,
-        prescribed_on: body.prescribed_on,
-        valid_until: body.valid_until,
-        pharmacist_notes: body.pharmacist_notes,
-        lines: body.lines,
-      },
-    })
-
-    return res.json(result)
-  }
-
-  if (body.action === "reject") {
+  } else if (body.action === "reject") {
     if (!body.rejection_reason) {
       throw new MedusaError(
         MedusaError.Types.INVALID_DATA,
         "Rejection reason is required."
       )
     }
-
-    const { result } = await rejectPrescriptionWorkflow(req.scope).run({
-      input: {
-        prescription_id: id,
-        pharmacist_id: pharmacistId,
-        rejection_reason: body.rejection_reason,
-      },
-    })
-
-    return res.json(result)
+  } else {
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      `Unknown action "${body.action}". Use "approve" or "reject".`
+    )
   }
 
-  throw new MedusaError(
-    MedusaError.Types.INVALID_DATA,
-    `Unknown action "${body.action}". Use "approve" or "reject".`
-  )
+  const { result, errors } = await ReviewRxWorkflow(req.scope).run({
+    input: {
+      prescription_id: id,
+      pharmacist_id: pharmacistId as string,
+      action: body.action,
+      rejection_reason: body.rejection_reason,
+      doctor_name: body.doctor_name,
+      doctor_reg_no: body.doctor_reg_no,
+      patient_name: body.patient_name,
+      prescribed_on: body.prescribed_on ? new Date(body.prescribed_on) : undefined,
+      valid_until: body.valid_until ? new Date(body.valid_until) : undefined,
+      pharmacist_notes: body.pharmacist_notes,
+      lines: body.lines,
+    },
+  })
+
+  if (errors && errors.length > 0) {
+    throw new MedusaError(MedusaError.Types.INVALID_DATA, errors[0].error?.message || "Workflow error")
+  }
+
+  return res.json({ result })
 }

@@ -1,94 +1,53 @@
-import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
-import { createPrescriptionWorkflow } from "../../../workflows/create-prescription"
+import { 
+  AuthenticatedMedusaRequest, 
+  MedusaRequest, 
+  MedusaResponse 
+} from "@medusajs/framework/http"
+import { UploadRxWorkflow } from "../../../workflows/prescription/upload-rx"
 
-/**
- * POST /store/prescriptions
- * Create a prescription record. Customer uploads directly to S3 via presigned URL.
- */
-export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
-  const { original_filename, mime_type, file_size_bytes } = req.validatedBody as any
-  const metadata = req.body as any
-
-  const customerId = req.auth_context?.actor_id
-
-  const allowedMimes = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
-  if (mime_type && !allowedMimes.includes(mime_type)) {
-    throw new MedusaError(
-      MedusaError.Types.INVALID_DATA,
-      "Unsupported file type. Please upload JPEG, PNG, WebP, or PDF."
-    )
-  }
-
-  if (file_size_bytes && file_size_bytes > 10 * 1024 * 1024) {
-    throw new MedusaError(
-      MedusaError.Types.INVALID_DATA,
-      "File too large. Maximum size is 10MB."
-    )
-  }
-
-  const timestamp = Date.now()
-  const safeFilename = (original_filename || "prescription").replace(/[^a-zA-Z0-9._-]/g, "_")
-  const fileKey = `prescriptions/${customerId || "guest"}/${timestamp}_${safeFilename}`
-
-  // Presigned URL generation requires S3 file provider — not available in local dev.
-  // We create the prescription record and the client will upload separately.
-  let fileUrl: string | undefined
-
-  const { result } = await createPrescriptionWorkflow(req.scope).run({
-    input: {
-      customer_id: customerId || undefined,
-      guest_phone: (metadata?.guest_phone as string) || undefined,
-      file_key: fileKey,
-      file_url: fileUrl,
-      original_filename,
-      mime_type,
-      file_size_bytes,
-    },
-  })
-
-  return res.status(201).json({
-    prescription: result.prescription,
-    file_key: fileKey,
-  })
+export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
+  res.json({ message: "store/prescriptions GET stub" })
 }
 
-/**
- * GET /store/prescriptions
- * List prescriptions for the authenticated customer.
- */
-export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
-  const customerId = req.auth_context?.actor_id
-
-  if (!customerId) {
-    throw new MedusaError(
-      MedusaError.Types.UNAUTHORIZED,
-      "Authentication required to view prescriptions."
-    )
+export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
+  const { 
+    file_key, 
+    file_url, 
+    original_filename, 
+    mime_type, 
+    file_size_bytes, 
+    guest_phone 
+  } = req.body as any
+  
+  if (!file_key) {
+    res.status(400).json({ error: "file_key is required" })
+    return
   }
 
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+  // Get customer from auth context (Medusa v2 pattern)
+  const customer_id = (req as any).auth_context?.actor_id
 
-  const { data: prescriptions } = await query.graph({
-    entity: "prescription",
-    fields: [
-      "id",
-      "status",
-      "original_filename",
-      "mime_type",
-      "doctor_name",
-      "patient_name",
-      "prescribed_on",
-      "valid_until",
-      "rejection_reason",
-      "fully_dispensed",
-      "created_at",
-      "lines.*",
-    ],
-    filters: {
-      customer_id: customerId,
-    },
+  if (!customer_id && !guest_phone) {
+    res.status(400).json({ error: "Either customer authentication or guest_phone is required" })
+    return
+  }
+
+  const { result, errors } = await UploadRxWorkflow(req.scope).run({
+    input: {
+      customer_id,
+      guest_phone,
+      file_key,
+      file_url,
+      original_filename,
+      mime_type,
+      file_size_bytes
+    } as any
   })
 
-  return res.json({ prescriptions })
+  if (errors && errors.length > 0) {
+    res.status(400).json({ error: errors[0].error?.message || "Internal server error" })
+    return
+  }
+
+  res.status(201).json({ prescription: result })
 }

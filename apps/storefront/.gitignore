@@ -4,9 +4,17 @@ dist
 dist-ssr
 *.local
 .env
+.env.*
+!.env.example
 .nitro/
 .vercel/
 .tanstack/
 .output/
 .netlify
 static-routes.json
+
+# Caches / logs
+.vite/
+.cache/
+.eslintcache
+*.log
