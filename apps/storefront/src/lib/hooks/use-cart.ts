@@ -85,19 +85,49 @@ export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
       const { variant_id, quantity, country_code, fields: requestFields } = variables
       if (!variant_id) throw new Error("Missing variant ID when adding to cart")
 
+      const normalizedCountryCode = country_code.toLowerCase()
+      const { regions } = await sdk.store.region.list({})
+      const targetRegion = regions.find((r) =>
+        r.countries?.some((c) => c.iso_2 === normalizedCountryCode)
+      )
+
+      if (!targetRegion) {
+        throw new Error(`Region not found for country code: ${country_code}`)
+      }
+
       let cartId = getStoredCart()
 
       if (!cartId) {
-        const { regions } = await sdk.store.region.list({})
-        const region = regions.find(r =>
-          r.countries?.some(c => c.iso_2 === country_code.toLowerCase())
-        )
-        if (!region) throw new Error(`Region not found for country code: ${country_code}`)
-        const { cart } = await sdk.store.cart.create({ region_id: region.id }, {
+        const { cart } = await sdk.store.cart.create({ region_id: targetRegion.id }, {
           fields: requestFields || fields || DEFAULT_CART_FIELDS,
         })
         setStoredCart(cart.id)
         cartId = cart.id
+      } else {
+        // If a cart already exists in a different region, create a region-aligned cart.
+        // This prevents Medusa price resolution failures during add-to-cart.
+        try {
+          const { cart: existingCart } = await sdk.store.cart.retrieve(cartId, {
+            fields: "id,region_id",
+          })
+
+          if (existingCart.region_id !== targetRegion.id) {
+            const { cart } = await sdk.store.cart.create(
+              { region_id: targetRegion.id },
+              { fields: requestFields || fields || DEFAULT_CART_FIELDS }
+            )
+            setStoredCart(cart.id)
+            cartId = cart.id
+          }
+        } catch {
+          // Stored cart may be stale/deleted; recreate for current region.
+          const { cart } = await sdk.store.cart.create(
+            { region_id: targetRegion.id },
+            { fields: requestFields || fields || DEFAULT_CART_FIELDS }
+          )
+          setStoredCart(cart.id)
+          cartId = cart.id
+        }
       }
 
       const response = await sdk.store.cart.createLineItem(

@@ -57,13 +57,23 @@ export const useRegister = () => {
       last_name: string
       phone?: string
     }) => {
-      // Get registration token first; /store/customers then requires it in Authorization header
-      const token = await sdk.auth.register("customer", "emailpass", { email, password })
-      const { customer } = await sdk.store.customer.create(
+      /**
+       * Medusa v2 registration is a two-step flow:
+       *  1. /auth/customer/emailpass/register  → returns a registration JWT (actor_id is "")
+       *  2. POST /store/customers with that token → creates the customer record
+       *
+       * The registration token has actor_id="" so /store/customers/me returns 401 with it.
+       * We must explicitly log in after creation to get a real customer JWT.
+       */
+      const registrationToken = await sdk.auth.register("customer", "emailpass", { email, password })
+      await sdk.store.customer.create(
         { email, first_name, last_name, phone },
         {},
-        { Authorization: `Bearer ${token}` }
+        { Authorization: `Bearer ${registrationToken}` }
       )
+      // Swap the registration token for a real customer session token
+      await sdk.auth.login("customer", "emailpass", { email, password })
+      const { customer } = await sdk.store.customer.retrieve()
       return customer
     },
     onSuccess: (customer) => {

@@ -3,10 +3,41 @@ import {
   MedusaRequest, 
   MedusaResponse 
 } from "@medusajs/framework/http"
+import { PRESCRIPTION_MODULE } from "../../../modules/prescription"
 import { UploadRxWorkflow } from "../../../workflows/prescription/upload-rx"
 
-export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
-  res.json({ message: "store/prescriptions GET stub" })
+/**
+ * GET /store/prescriptions
+ *
+ * Returns the authenticated customer's prescriptions.
+ * Accepts optional ?status= filter (e.g. "approved", "pending_review").
+ * Sorted newest-first.
+ */
+export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {
+  const customerId = (req as any).auth_context?.actor_id
+
+  if (!customerId) {
+    return res.status(401).json({ error: "Authentication required" })
+  }
+
+  const prescriptionService = req.scope.resolve(PRESCRIPTION_MODULE) as any
+
+  const filters: Record<string, any> = { customer_id: customerId }
+  const statusParam = req.query.status as string | undefined
+  if (statusParam) {
+    filters.status = statusParam
+  }
+
+  const prescriptions = await prescriptionService.listPrescriptions(
+    filters,
+    {
+      order: { created_at: "DESC" },
+      take: 50,
+      relations: ["lines"],
+    }
+  )
+
+  return res.json({ prescriptions, count: prescriptions.length })
 }
 
 export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

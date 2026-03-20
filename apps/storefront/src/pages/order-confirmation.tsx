@@ -1,18 +1,27 @@
 import { OrderDetails } from "@/components/order"
+import { useOrder } from "@/lib/hooks/use-orders"
 import { useLoaderData } from "@tanstack/react-router"
+import { ORDER_FIELDS } from "@/routes/$countryCode/order/$orderId/confirmed"
 
-/**
- * Order Confirmation Page Pattern
- *
- * Demonstrates:
- * - useLoaderData for SSR-loaded order
- * - Displaying order after successful checkout
- * - OrderDetails component for order information
- */
 const OrderConfirmation = () => {
-  const { order } = useLoaderData({
+  const { orderId } = useLoaderData({
     from: "/$countryCode/order/$orderId/confirmed",
   })
+
+  // Live query — refetches on mount and window focus so fulfillment status
+  // updates appear immediately without needing a full page reload.
+  const { data: order, isLoading } = useOrder({
+    order_id: orderId,
+    fields: ORDER_FIELDS,
+  })
+
+  if (isLoading) {
+    return (
+      <div className="content-container py-6">
+        <p className="text-secondary-text">Loading order details…</p>
+      </div>
+    )
+  }
 
   if (!order) {
     return (

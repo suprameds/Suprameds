@@ -38,8 +38,8 @@ export const Route = createFileRoute("/$countryCode/store")({
   head: ({ loaderData }) => {
     const { region, countryCode } = loaderData || {}
     const regionName = region?.name || countryCode?.toUpperCase()
-    const title = `Shop All Products - ${regionName} | Medusa Store`
-    const description = `Browse our complete collection of products available in ${regionName}. Free shipping and easy returns.`
+    const title = `All Medicines — ${regionName} | Suprameds`
+    const description = `Browse prescription and OTC medicines available in ${regionName}. Pharmacist-dispensed. Speed Post delivery across India.`
 
     return {
       meta: [

@@ -7,9 +7,11 @@ import { useAddToCart } from "@/lib/hooks/use-cart"
 import { getVariantOptionsKeymap, isVariantInStock } from "@/lib/utils/product"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
-import { useLocation } from "@tanstack/react-router"
+import { Link, useLocation } from "@tanstack/react-router"
 import { isEqual } from "lodash-es"
 import { memo, useEffect, useMemo, useState } from "react"
+
+type DrugSchedule = "OTC" | "H" | "H1" | "X"
 
 type ProductActionsProps = {
   product: HttpTypes.StoreProduct;
@@ -101,6 +103,13 @@ const ProductActions = memo(function ProductActions({
     return isVariantInStock(selectedVariant)
   }, [selectedVariant])
 
+  const drugProduct = (product as any)?.drug_product as
+    | { schedule?: DrugSchedule }
+    | undefined
+  const schedule = drugProduct?.schedule
+  const requiresRx = schedule === "H" || schedule === "H1"
+  const isBlocked = schedule === "X"
+
   // add the selected variant to the cart
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
@@ -151,19 +160,74 @@ const ProductActions = memo(function ProductActions({
         </div>
       )}
 
-      <Button
-        onClick={handleAddToCart}
-        disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant}
-        variant="primary"
-        className="w-full"
-        data-testid="add-product-button"
-      >
-        {!selectedVariant
-          ? "Select variant"
-          : !inStock || !isValidVariant
-            ? "Out of stock"
-            : "Add to cart"}
-      </Button>
+      {isBlocked ? (
+        <div
+          className="rounded-lg border p-4 text-center"
+          style={{ borderColor: "#EF4444", background: "rgba(239,68,68,0.06)" }}
+        >
+          <p className="text-sm font-medium" style={{ color: "#B91C1C" }}>
+            This product cannot be sold online
+          </p>
+          <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
+            NDPS Act, 1985 prohibits online sale of Schedule X substances.
+          </p>
+        </div>
+      ) : requiresRx ? (
+        <div className="flex flex-col gap-3">
+          <div
+            className="rounded-lg border p-4"
+            style={{ borderColor: "#F39C12", background: "rgba(243,156,18,0.06)" }}
+          >
+            <p className="text-sm font-medium" style={{ color: "#92400E" }}>
+              Prescription required
+            </p>
+            <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
+              Upload a valid prescription to add this medicine to your cart.
+              A pharmacist will verify it before your order ships.
+            </p>
+          </div>
+          <Link
+            to="/$countryCode/upload-rx"
+            params={{ countryCode }}
+            className="w-full"
+          >
+            <Button
+              variant="primary"
+              className="w-full"
+              style={{ background: "#F39C12" }}
+            >
+              Upload Prescription
+            </Button>
+          </Link>
+          <Button
+            onClick={handleAddToCart}
+            disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant}
+            variant="secondary"
+            className="w-full"
+            data-testid="add-product-button"
+          >
+            {!selectedVariant
+              ? "Select variant"
+              : !inStock || !isValidVariant
+                ? "Out of stock"
+                : "Add to cart (Rx verification at checkout)"}
+          </Button>
+        </div>
+      ) : (
+        <Button
+          onClick={handleAddToCart}
+          disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant}
+          variant="primary"
+          className="w-full"
+          data-testid="add-product-button"
+        >
+          {!selectedVariant
+            ? "Select variant"
+            : !inStock || !isValidVariant
+              ? "Out of stock"
+              : "Add to cart"}
+        </Button>
+      )}
     </div>
   )
 })

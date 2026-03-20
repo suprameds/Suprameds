@@ -1,7 +1,8 @@
-import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router"
 import { useCustomer, useLogout } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useLocation } from "@tanstack/react-router"
+import { useEffect } from "react"
 
 export const Route = createFileRoute("/$countryCode/account/_layout")({
   component: AccountLayout,
@@ -25,6 +26,13 @@ function AccountLayout() {
     })
   }
 
+  // Redirect unauthenticated users to login — must be in useEffect, never during render
+  useEffect(() => {
+    if (!isLoading && !customer) {
+      navigate({ to: "/$countryCode/account/login", params: { countryCode } })
+    }
+  }, [isLoading, customer, countryCode, navigate])
+
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "#FAFAF8" }}>
@@ -34,7 +42,6 @@ function AccountLayout() {
   }
 
   if (!customer) {
-    navigate({ to: "/$countryCode/account/login", params: { countryCode } })
     return null
   }
 

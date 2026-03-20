@@ -52,7 +52,7 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
  */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { id } = req.params
-  const body = req.validatedBody as any
+  const body = req.body as any
   const pharmacistId = req.auth_context?.actor_id || req.auth_context?.auth_identity_id
 
   if (!pharmacistId) {
@@ -60,12 +60,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   }
 
   if (body.action === "approve") {
-    if (!body.lines || !Array.isArray(body.lines) || body.lines.length === 0) {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "At least one prescription line is required for approval."
-      )
-    }
+    // Lines are optional — pharmacist just approves the prescription image
   } else if (body.action === "reject") {
     if (!body.rejection_reason) {
       throw new MedusaError(

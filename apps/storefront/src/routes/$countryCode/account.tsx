@@ -10,14 +10,14 @@ export const Route = createFileRoute("/$countryCode/account")({
       location.pathname.endsWith("/forgot-password") ||
       location.pathname.endsWith("/reset-password")
 
+    // Login/register pages should be reachable without forcing a customer lookup.
+    // This avoids noisy 401s for unauthenticated visitors.
+    if (isAuthRoute) {
+      return {}
+    }
+
     try {
       await sdk.store.customer.retrieve()
-      if (isAuthRoute) {
-        throw redirect({
-          to: "/$countryCode/account/profile",
-          params: { countryCode },
-        })
-      }
       return {}
     } catch (e: unknown) {
       // Re-throw TanStack Router redirects
@@ -28,13 +28,10 @@ export const Route = createFileRoute("/$countryCode/account")({
       ) {
         throw e
       }
-      if (!isAuthRoute) {
-        throw redirect({
-          to: "/$countryCode/account/login",
-          params: { countryCode },
-        })
-      }
-      return {}
+      throw redirect({
+        to: "/$countryCode/account/login",
+        params: { countryCode },
+      })
     }
   },
   component: () => <Outlet />,

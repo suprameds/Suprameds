@@ -38,12 +38,18 @@ export function getCountryCodeFromPath(pathname: string): string | undefined {
 // ============ DEFAULT COUNTRY CODE ============
 
 export default function getDefaultCountryCode(regions: HttpTypes.StoreRegion[]): string | undefined {
-  let defaultCountryCode = undefined
-  regions.some((r) => {
-    defaultCountryCode = r.countries?.[0]?.iso_2
-    return defaultCountryCode !== undefined
-  })
-  return defaultCountryCode
+  // Always prefer India (primary market) if it exists in any region
+  for (const region of regions) {
+    if (region.countries?.some((c) => c.iso_2 === "in")) {
+      return "in"
+    }
+  }
+  // Fallback: first country of first region
+  for (const region of regions) {
+    const code = region.countries?.[0]?.iso_2
+    if (code) return code
+  }
+  return undefined
 }
 
 // Also export as named export for flexibility
