@@ -21,8 +21,8 @@ completeCartWorkflow.hooks.validate(
   async ({ cart }, { container }) => {
     if (!cart.items || cart.items.length === 0) return
 
-    const pharmaService = container.resolve(PHARMA_MODULE)
-    const prescriptionService = container.resolve(PRESCRIPTION_MODULE)
+    const pharmaService: any = container.resolve(PHARMA_MODULE)
+    const prescriptionService: any = container.resolve(PRESCRIPTION_MODULE)
 
     let cartHasRxItem = false
 

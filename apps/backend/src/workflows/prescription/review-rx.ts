@@ -24,7 +24,7 @@ type ReviewRxStepInput = {
 export const reviewPrescriptionStep = createStep(
   "review-prescription-step",
   async (input: ReviewRxStepInput, { container }) => {
-    const prescriptionModuleService = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionModuleService: any = container.resolve(PRESCRIPTION_MODULE)
     
     // Validate prescription exists
     const [existing] = await prescriptionModuleService.listPrescriptions({ id: input.prescription_id })

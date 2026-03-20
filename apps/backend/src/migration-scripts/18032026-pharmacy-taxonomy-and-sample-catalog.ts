@@ -741,7 +741,7 @@ export default async function seed_basic_pharmacy_store({
         create: createLevels,
         update: updateLevels,
         delete: [],
-      },
+      } as any,
     })
   }
 
@@ -786,7 +786,7 @@ export default async function seed_basic_pharmacy_store({
   }
 
   // 8) Create pharma metadata records
-  const pharmaService = container.resolve(PHARMA_MODULE)
+  const pharmaService: any = container.resolve(PHARMA_MODULE)
   await pharmaService.createDrugProducts(
     SAMPLE_PRODUCTS.map((p) => {
       const created = productByHandle.get(p.handle)

@@ -54,8 +54,7 @@ export default async function razorpay_region_providers({
         msg.includes("Payment providers with ids")
       ) {
         logger.warn(
-          "[razorpay-region] Razorpay provider (%s) not found. Ensure medusa-plugin-razorpay-v2 is installed and RAZORPAY_* env vars are set in .env. Run this migration after backend restart.",
-          RAZORPAY_PROVIDER_ID
+          `[razorpay-region] Razorpay provider (${RAZORPAY_PROVIDER_ID}) not found. Ensure medusa-plugin-razorpay-v2 is installed and RAZORPAY_* env vars are set in .env. Run this migration after backend restart.`
         );
         return; // Skip remaining regions
       } else {

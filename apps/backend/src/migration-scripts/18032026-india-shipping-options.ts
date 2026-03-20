@@ -57,12 +57,12 @@ export default async function india_shipping_options({
       })),
       { country_code: "in" as const, type: "country" as const },
     ]
-    await fulfillmentModuleService.updateServiceZones(serviceZone.id, {
+    await (fulfillmentModuleService as any).updateServiceZones({
+      id: serviceZone.id,
       geo_zones: newGeoZones,
     })
     logger.info(
-      "[india-shipping] Added India (in) to service zone %s",
-      serviceZone.id
+      `[india-shipping] Added India (in) to service zone ${serviceZone.id}`
     )
   } else {
     logger.info("[india-shipping] India already in service zone; skipping.")
@@ -103,8 +103,7 @@ export default async function india_shipping_options({
       ],
     })
     logger.info(
-      "[india-shipping] Added INR price (₹0) to shipping option %s",
-      defaultOption.id
+      `[india-shipping] Added INR price (₹0) to shipping option ${defaultOption.id}`
     )
   } catch (err: unknown) {
     // Duplicate currency or already exists — ignore
