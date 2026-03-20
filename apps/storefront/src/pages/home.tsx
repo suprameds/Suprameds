@@ -27,8 +27,8 @@ const Home = () => {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { region } = useLoaderData({ from: "/$countryCode/" })
 
-  const { data: latestProductsData } = useLatestProducts(4, region?.id)
-  const products = latestProductsData?.pages?.[0]?.products ?? []
+  const { data: latestProductsData } = useLatestProducts({ limit: 4, region_id: region?.id })
+  const products = latestProductsData?.products ?? []
 
   return (
     <div style={{ background: "#F8F6F2" }}>
@@ -97,14 +97,15 @@ const Home = () => {
                 Browse Medicines
                 <ArrowRight />
               </Link>
-              <a
-                href="/"
+              <Link
+                to="/$countryCode/upload-rx"
+                params={{ countryCode }}
                 className="flex items-center justify-center gap-2 px-6 py-3 rounded text-sm font-semibold transition-all"
                 style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.15)" }}
               >
                 <UploadIcon />
                 Upload Prescription
-              </a>
+              </Link>
             </div>
 
             {/* Trust marks */}
@@ -440,13 +441,14 @@ const Home = () => {
               </p>
             </div>
             <div className="flex gap-3 flex-shrink-0">
-              <a
-                href="/"
+              <Link
+                to="/$countryCode/account/login"
+                params={{ countryCode }}
                 className="flex items-center gap-2 px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-80"
                 style={{ background: "#0D1B2A", color: "#fff" }}
               >
                 Set up refill reminders
-              </a>
+              </Link>
             </div>
           </div>
         </div>

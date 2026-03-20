@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { useSetCartAddresses } from "@/lib/hooks/use-checkout"
+import { useCustomerAddresses } from "@/lib/hooks/use-customer"
 import { getStoredCountryCode } from "@/lib/utils/region"
 import { AddressFormData } from "@/lib/types/global"
 import { HttpTypes } from "@medusajs/types"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface AddressStepProps {
   cart: HttpTypes.StoreCart;
@@ -20,6 +21,8 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
   const [isShippingAddressValid, setIsShippingAddressValid] = useState(false)
   const [isBillingAddressValid, setIsBillingAddressValid] = useState(false)
   const [email, setEmail] = useState(cart.email || "")
+  const { data: customerAddresses = [] } = useCustomerAddresses()
+  const didAutofillFromSavedAddress = useRef(false)
   const storedCountryCode = getStoredCountryCode()
   const [shippingAddress, setShippingAddress] = useState<AddressFormData>({
     first_name: cart.shipping_address?.first_name || "",
@@ -46,6 +49,16 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
     country_code: cart.billing_address?.country_code || storedCountryCode || "",
     phone: cart.billing_address?.phone || "",
   })
+
+  const hasAnyAddressInput = (address: AddressFormData) =>
+    Boolean(
+      address.first_name?.trim() ||
+        address.last_name?.trim() ||
+        address.address_1?.trim() ||
+        address.city?.trim() ||
+        address.postal_code?.trim() ||
+        address.phone?.trim()
+    )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,6 +128,41 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
       }))
     }
   }, [cart.region, storedCountryCode, shippingAddress.country_code, billingAddress.country_code])
+
+  useEffect(() => {
+    if (didAutofillFromSavedAddress.current) return
+    if (!customerAddresses.length) return
+    if (cart.shipping_address || cart.billing_address) return
+    if (hasAnyAddressInput(shippingAddress) || hasAnyAddressInput(billingAddress))
+      return
+
+    const firstSaved = customerAddresses[0]
+    if (!firstSaved) return
+
+    const mapped: AddressFormData = {
+      first_name: firstSaved.first_name || "",
+      last_name: firstSaved.last_name || "",
+      company: firstSaved.company || "",
+      address_1: firstSaved.address_1 || "",
+      address_2: firstSaved.address_2 || "",
+      city: firstSaved.city || "",
+      postal_code: firstSaved.postal_code || "",
+      province: firstSaved.province || "",
+      country_code: firstSaved.country_code || storedCountryCode || "",
+      phone: firstSaved.phone || "",
+    }
+
+    setShippingAddress(mapped)
+    setBillingAddress(mapped)
+    didAutofillFromSavedAddress.current = true
+  }, [
+    customerAddresses,
+    cart.shipping_address,
+    cart.billing_address,
+    shippingAddress,
+    billingAddress,
+    storedCountryCode,
+  ])
 
   return (
     <div className="flex flex-col gap-8">

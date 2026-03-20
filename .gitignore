@@ -2,10 +2,6 @@
 node_modules/
 **/node_modules/
 
-# pnpm store (some setups create this in-repo)
-.pnpm_store/
-.pnpm-store/
-
 # ---- Build outputs / caches ----
 dist/
 build/

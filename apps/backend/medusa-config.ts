@@ -1,10 +1,16 @@
-import { defineConfig, loadEnv } from "@medusajs/framework/utils";
+import {
+  ContainerRegistrationKeys,
+  Modules,
+  defineConfig,
+  loadEnv,
+} from "@medusajs/framework/utils";
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd());
 
 module.exports = defineConfig({
+  plugins: ["medusa-plugin-razorpay-v2"],
   admin: {
-    disable: process.env.NODE_ENV === "production" ? false : true,
+    // disable: process.env.NODE_ENV === "production" ? false : true,
     vite: () => {
       let hmrServer;
       if (process.env.HMR_BIND_HOST) {
@@ -42,6 +48,27 @@ module.exports = defineConfig({
     },
   },
   modules: {
+    payment: {
+      resolve: "@medusajs/medusa/payment",
+      dependencies: [Modules.PAYMENT, ContainerRegistrationKeys.LOGGER],
+      options: {
+        providers: [
+          {
+            resolve: "./src/providers/payment-razorpay",
+            id: "razorpay",
+            options: {
+              key_id: process.env.RAZORPAY_TEST_KEY_ID ?? process.env.RAZORPAY_KEY_ID,
+              key_secret: process.env.RAZORPAY_TEST_KEY_SECRET ?? process.env.RAZORPAY_KEY_SECRET,
+              razorpay_account: process.env.RAZORPAY_ACCOUNT ?? "",
+              automatic_expiry_period: 30,
+              manual_expiry_period: 20,
+              refund_speed: "normal",
+              webhook_secret: process.env.RAZORPAY_WEBHOOK_SECRET ?? "",
+            },
+          },
+        ],
+      },
+    },
     pharmaCore: { resolve: "./src/modules/pharma" },
     pharmaPrescription: { resolve: "./src/modules/prescription" },
     pharmaInventoryBatch: { resolve: "./src/modules/inventoryBatch" },

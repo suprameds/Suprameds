@@ -1,0 +1,148 @@
+import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+
+/**
+ * GET /store/products/search?q=paracetamol&limit=20&offset=0&category_id=cat_xxx
+ *
+ * PostgreSQL full-text search across product fields (title, subtitle, description, handle)
+ * and pharma drug_product fields (generic_name, composition, strength).
+ *
+ * Results are ranked by ts_rank with product fields weighted higher.
+ * Only returns published, non-deleted products.
+ */
+export async function GET(req: MedusaRequest, res: MedusaResponse) {
+  const q = ((req.query.q as string) ?? "").trim()
+  const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 20, 1), 100)
+  const offset = Math.max(parseInt(req.query.offset as string) || 0, 0)
+  const categoryId = (req.query.category_id as string) ?? ""
+
+  if (!q) {
+    return res.json({ products: [], count: 0 })
+  }
+
+  const pgConnection = req.scope.resolve(
+    ContainerRegistrationKeys.PG_CONNECTION
+  )
+
+  // Build a prefix-matching tsquery from the user's input.
+  // Split on whitespace, sanitize each token, append :* for prefix matching,
+  // and join with & (AND) so all terms must match.
+  const tokens = q
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => t.toLowerCase())
+
+  if (tokens.length === 0) {
+    return res.json({ products: [], count: 0 })
+  }
+
+  const tsqueryString = tokens.map((t) => `${t}:*`).join(" & ")
+
+  // category filter: join through product_category if category_id is provided
+  const categoryJoin = categoryId
+    ? `INNER JOIN "product_category_product" pcp ON pcp."product_id" = p."id" AND pcp."product_category_id" = :categoryId`
+    : ""
+
+  // Main FTS query:
+  // 1. product.search_vector matches product title/subtitle/description/handle
+  // 2. Also search drug_product fields via a separate tsvector built on-the-fly
+  // 3. Combine ranks so pharma matches boost results too
+  const searchQuery = `
+    WITH fts AS (
+      SELECT
+        p."id",
+        p."title",
+        p."handle",
+        p."thumbnail",
+        p."description",
+        p."subtitle",
+        p."status",
+        dp."id"              AS dp_id,
+        dp."schedule",
+        dp."generic_name",
+        dp."dosage_form",
+        dp."strength",
+        dp."composition",
+        dp."gst_rate",
+        dp."manufacturer_license" AS manufacturer,
+        (
+          ts_rank(COALESCE(p."search_vector", ''::tsvector), to_tsquery('english', :tsquery)) * 2.0
+          +
+          ts_rank(
+            setweight(to_tsvector('english', COALESCE(dp."generic_name", '')), 'A') ||
+            setweight(to_tsvector('english', COALESCE(dp."composition", '')), 'B') ||
+            setweight(to_tsvector('english', COALESCE(dp."strength", '')), 'C'),
+            to_tsquery('english', :tsquery)
+          )
+        ) AS rank
+      FROM "product" p
+      LEFT JOIN "drug_product" dp ON dp."product_id" = p."id" AND dp."deleted_at" IS NULL
+      ${categoryJoin}
+      WHERE p."deleted_at" IS NULL
+        AND p."status" = 'published'
+        AND (
+          p."search_vector" @@ to_tsquery('english', :tsquery)
+          OR
+          (
+            setweight(to_tsvector('english', COALESCE(dp."generic_name", '')), 'A') ||
+            setweight(to_tsvector('english', COALESCE(dp."composition", '')), 'B') ||
+            setweight(to_tsvector('english', COALESCE(dp."strength", '')), 'C')
+          ) @@ to_tsquery('english', :tsquery)
+        )
+    )
+    SELECT *, COUNT(*) OVER() AS total_count
+    FROM fts
+    ORDER BY rank DESC, title ASC
+    LIMIT :limit
+    OFFSET :offset
+  `
+
+  const bindings: Record<string, unknown> = {
+    tsquery: tsqueryString,
+    limit,
+    offset,
+  }
+  if (categoryId) {
+    bindings.categoryId = categoryId
+  }
+
+  try {
+    const result = await pgConnection.raw(searchQuery, bindings)
+
+    const rows = result?.rows ?? result?.[0] ?? []
+    const totalCount = rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0
+
+    const products = rows.map((row: Record<string, unknown>) => ({
+      id: row.id,
+      title: row.title,
+      handle: row.handle,
+      thumbnail: row.thumbnail,
+      description: row.description,
+      subtitle: row.subtitle,
+      status: row.status,
+      drug_product: row.dp_id
+        ? {
+            id: row.dp_id,
+            schedule: row.schedule,
+            generic_name: row.generic_name,
+            dosage_form: row.dosage_form,
+            strength: row.strength,
+            composition: row.composition,
+            gst_rate: row.gst_rate,
+            manufacturer: row.manufacturer,
+          }
+        : null,
+    }))
+
+    return res.json({ products, count: totalCount })
+  } catch (error) {
+    req.scope
+      .resolve(ContainerRegistrationKeys.LOGGER)
+      .error("[search] FTS query failed:", error)
+
+    return res.status(500).json({
+      message: "Search failed. Please try a different search term.",
+    })
+  }
+}

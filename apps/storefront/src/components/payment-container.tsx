@@ -31,9 +31,16 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-x-4">
           <Radio checked={isSelected} readOnly />
-          <p className="text-base font-medium">
-            {paymentMethodsData[paymentProviderId]?.title || paymentProviderId}
-          </p>
+          <div>
+            <p className="text-base font-medium">
+              {paymentMethodsData[paymentProviderId]?.title || paymentProviderId}
+            </p>
+            {paymentMethodsData[paymentProviderId]?.description && (
+              <p className="text-xs text-zinc-500 mt-0.5">
+                {paymentMethodsData[paymentProviderId].description}
+              </p>
+            )}
+          </div>
         </div>
         <span className="justify-self-end text-zinc-900">
           {paymentMethodsData[paymentProviderId]?.icon}

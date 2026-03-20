@@ -1,6 +1,5 @@
 import ErrorFallback from "@/components/error-fallback"
 import { Component, ReactNode } from "react"
-import { terminal } from "virtual:terminal"
 
 interface Props {
   children: ReactNode;
@@ -27,14 +26,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError && this.state.error) {
-      const structuredError = {
+      console.error("[ErrorBoundary]", {
         message: this.state.error.message,
         stack: this.state.error.stack,
         name: this.state.error.name,
-        cause: this.state.error.cause,
-      }
-
-      terminal.error(structuredError)
+      })
 
       if (this.props.fallback) {
         return this.props.fallback

@@ -1,3 +1,4 @@
+import { ConsentBanner } from "@/components/consent-banner"
 import ErrorBoundary from "@/components/error-boundary"
 import Footer from "@/components/footer"
 import { Navbar } from "@/components/navbar"
@@ -19,6 +20,7 @@ const Layout = () => {
           </main>
 
           <Footer />
+          <ConsentBanner />
         </div>
       </CartProvider>
     </ToastProvider>

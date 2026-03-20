@@ -9,6 +9,9 @@ export const useCustomerOrders = ({ fields }: { fields?: string } = {}) => {
       const { orders } = await sdk.store.order.list({ fields })
       return orders
     },
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -26,5 +29,10 @@ export const useOrder = ({
       return order
     },
     enabled: !!order_id,
+    // Always refetch on mount and window focus so status/fulfillment
+    // changes made in the admin panel are reflected immediately.
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   })
 }

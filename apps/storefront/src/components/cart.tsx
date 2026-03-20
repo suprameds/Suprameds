@@ -221,6 +221,9 @@ export const CartLineItem = ({
     return <DisplayCartLineItem item={item} cart={cart} className={className} />
   }
 
+  const schedule = (item as any).metadata?.schedule_classification as string | undefined
+  const isRx = schedule === "H" || schedule === "H1"
+
   return (
     <div className="flex items-center gap-6 py-4">
       <div className="flex-shrink-0">
@@ -229,9 +232,23 @@ export const CartLineItem = ({
 
       <div className="flex-1 min-w-0 flex flex-col gap-y-1">
         <span className="text-zinc-900 text-base font-semibold">{item.product_title}</span>
-        {item.variant_title && item.variant_title !== "Default Variant" && (
-          <span className="text-zinc-600 text-sm">{item.variant_title}</span>
-        )}
+        <div className="flex items-center gap-2">
+          {item.variant_title && item.variant_title !== "Default Variant" && (
+            <span className="text-zinc-600 text-sm">{item.variant_title}</span>
+          )}
+          {isRx && (
+            <span
+              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+              style={{
+                borderColor: "#F39C12",
+                color: "#A16207",
+                background: "rgba(243,156,18,0.10)",
+              }}
+            >
+              Rx
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
@@ -384,7 +401,7 @@ export const CartPromo = ({ cart }: CartPromoProps) => {
 
 export const CartEmpty = () => {
   const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "us"
+  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   return (
     <div className="text-center py-16 flex flex-col items-center justify-center gap-4">
@@ -408,7 +425,7 @@ export const CartDropdown = () => {
     fields: DEFAULT_CART_DROPDOWN_FIELDS,
   })
   const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "us"
+  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   const sortedItems = sortCartItems(cart?.items || [])
   const itemCount = sortedItems?.reduce((total, item) => total + item.quantity, 0) || 0

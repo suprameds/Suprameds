@@ -50,7 +50,7 @@ function GrievancePage() {
                   { label: "WhatsApp", value: "+91 800 800 1234" },
                   { label: "Response SLA", value: "48 business hours" },
                   { label: "Working Hours", value: "9 AM – 9 PM · Mon–Sat" },
-                ].map(([label, value]) => (
+                ].map(({ label, value }) => (
                   <div key={label}>
                     <p className="text-xs font-medium mb-0.5" style={{ color: "#999" }}>{label}</p>
                     <p className="font-medium" style={{ color: "#0D1B2A" }}>{value}</p>

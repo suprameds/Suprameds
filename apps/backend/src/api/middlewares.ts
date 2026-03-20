@@ -1,5 +1,5 @@
 import type { MedusaRequest, MedusaResponse, MedusaNextFunction } from "@medusajs/framework/http"
-import { defineMiddlewares } from "@medusajs/framework/http"
+import { authenticate, defineMiddlewares } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { PHARMA_MODULE } from "../modules/pharma"
 
@@ -66,6 +66,32 @@ export default defineMiddlewares({
       matcher: "/store/carts/:id/line-items",
       method: "POST",
       middlewares: [scheduleXBlockAddToCart],
+    },
+    {
+      matcher: "/webhooks/razorpay",
+      method: "POST",
+      bodyParser: { preserveRawBody: true },
+    },
+    // Prescription upload needs a larger body limit for base64 image data
+    {
+      matcher: "/store/prescriptions",
+      method: "POST",
+      bodyParser: { sizeLimit: "15mb" },
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    {
+      matcher: "/store/prescriptions",
+      method: "GET",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    {
+      matcher: "/store/prescriptions/:id",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // Cart prescription endpoint — auth optional (GET works for anyone, POST needs customer)
+    {
+      matcher: "/store/carts/:id/prescription",
+      middlewares: [authenticate("customer", ["bearer", "session"], { allowUnauthenticated: true })],
     },
   ],
 })

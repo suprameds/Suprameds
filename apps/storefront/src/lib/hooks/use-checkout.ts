@@ -140,8 +140,11 @@ export const useInitiateCartPaymentSession = () => {
       const cartId = getStoredCart()
       if (!cartId) throw new Error("No cart found")
 
+      // Must include payment_collection so the SDK knows an existing collection
+      // is already present and skips trying to create a second one (which would
+      // throw "Cart already has a payment collection" → 500).
       const { cart } = await sdk.store.cart.retrieve(cartId, {
-        fields: DEFAULT_CART_FIELDS,
+        fields: DEFAULT_CART_FIELDS + ", *payment_collection.payment_sessions",
       })
       if (!cart) throw new Error("Cart not found")
 

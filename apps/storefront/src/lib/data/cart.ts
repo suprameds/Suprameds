@@ -164,16 +164,31 @@ export const addToCart = async ({
     throw new Error("Missing variant ID when adding to cart")
   }
 
+  const normalizedCountryCode = country_code.toLowerCase()
+  const region = await getRegion({ country_code: normalizedCountryCode })
+  if (!region) {
+    throw new Error(`Region not found for country code: ${country_code}`)
+  }
+
   let cartId = getStoredCart()
 
   if (!cartId) {
-    const region = await getRegion({ country_code })
-  
-    if (!region) {
-      throw new Error(`Region not found for country code: ${country_code}`)
-    }
-    // Create new cart
+    // Create new cart for selected country region.
     cartId = (await createCart({ region_id: region.id })).id
+  } else {
+    // Ensure existing cart belongs to same region as the selected country.
+    try {
+      const existingCart = await retrieveCart({
+        cart_id: cartId,
+        fields: "id,region_id",
+      })
+
+      if (!existingCart || existingCart.region_id !== region.id) {
+        cartId = (await createCart({ region_id: region.id })).id
+      }
+    } catch {
+      cartId = (await createCart({ region_id: region.id })).id
+    }
   }
 
   if (!cartId) {
