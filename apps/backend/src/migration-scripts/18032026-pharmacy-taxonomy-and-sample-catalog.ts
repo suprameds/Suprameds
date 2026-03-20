@@ -439,7 +439,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
 async function ensureDefaultSalesChannel(container: MedusaContainer) {
   const salesChannelModuleService = container.resolve(
     ModuleRegistrationName.SALES_CHANNEL
-  )
+  ) as any
   const [defaultSalesChannel] = await salesChannelModuleService.listSalesChannels({
     name: "Default Sales Channel",
   })
@@ -463,7 +463,7 @@ export default async function seed_basic_pharmacy_store({
     return
   }
 
-  const fulfillmentModuleService = container.resolve(ModuleRegistrationName.FULFILLMENT)
+  const fulfillmentModuleService = container.resolve(ModuleRegistrationName.FULFILLMENT) as any
   const [shippingProfile] = await fulfillmentModuleService.listShippingProfiles({
     type: "default",
   })
@@ -738,9 +738,9 @@ export default async function seed_basic_pharmacy_store({
   if (createLevels.length || updateLevels.length) {
     await batchInventoryItemLevelsWorkflow(container).run({
       input: {
-        create: createLevels,
-        update: updateLevels,
-        delete: [],
+        creates: createLevels,
+        updates: updateLevels,
+        deletes: [],
       } as any,
     })
   }
@@ -786,7 +786,7 @@ export default async function seed_basic_pharmacy_store({
   }
 
   // 8) Create pharma metadata records
-  const pharmaService: any = container.resolve(PHARMA_MODULE)
+  const pharmaService = container.resolve(PHARMA_MODULE) as any
   await pharmaService.createDrugProducts(
     SAMPLE_PRODUCTS.map((p) => {
       const created = productByHandle.get(p.handle)

@@ -24,7 +24,7 @@ type ReviewRxStepInput = {
 export const reviewPrescriptionStep = createStep(
   "review-prescription-step",
   async (input: ReviewRxStepInput, { container }) => {
-    const prescriptionModuleService: any = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionModuleService = container.resolve(PRESCRIPTION_MODULE) as any
     
     // Validate prescription exists
     const [existing] = await prescriptionModuleService.listPrescriptions({ id: input.prescription_id })
@@ -74,7 +74,7 @@ export const reviewPrescriptionStep = createStep(
 export const emitReviewEventStep = createStep(
   "emit-review-event-step",
   async (data: { action: "approve" | "reject", prescription: any }, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS)
+    const eventBus = container.resolve(Modules.EVENT_BUS) as any
     const eventName = data.action === "approve" ? "prescription.fully-approved" : "prescription.rejected"
     
     await eventBus.emit({

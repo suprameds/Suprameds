@@ -21,7 +21,7 @@ async function scheduleXBlockAddToCart(
   if (!variantId) return next()
 
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-  const pharmaService: any = req.scope.resolve(PHARMA_MODULE)
+  const pharmaService = req.scope.resolve(PHARMA_MODULE) as any
 
   const { data: variants } = await query.graph({
     entity: "variants",
@@ -92,6 +92,11 @@ export default defineMiddlewares({
     {
       matcher: "/store/carts/:id/prescription",
       middlewares: [authenticate("customer", ["bearer", "session"], { allowUnauthenticated: true })],
+    },
+    {
+      matcher: "/store/push/*",
+      method: "POST",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
     },
   ],
 })

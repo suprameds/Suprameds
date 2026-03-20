@@ -24,11 +24,11 @@ export default async function migration_25022026_initial_seed({
     const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
     const link = container.resolve(ContainerRegistrationKeys.LINK);
     const query = container.resolve(ContainerRegistrationKeys.QUERY);
-    const storeModuleService = container.resolve(ModuleRegistrationName.STORE);
-    const salesChannelModuleService = container.resolve(ModuleRegistrationName.SALES_CHANNEL);
+    const storeModuleService = container.resolve(ModuleRegistrationName.STORE) as any;
+    const salesChannelModuleService = container.resolve(ModuleRegistrationName.SALES_CHANNEL) as any;
     const fulfillmentModuleService = container.resolve(
         ModuleRegistrationName.FULFILLMENT
-    );
+    ) as any;
 
     const { data: existingProductsAtStartup } = await query.graph({
         entity: "product",

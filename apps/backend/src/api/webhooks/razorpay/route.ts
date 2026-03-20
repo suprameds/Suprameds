@@ -81,7 +81,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     )
   } catch (error) {
     const err = error as Error
-    logger.error(`${LOG} Processing error: ${err.message}`, err)
+    logger.error(`${LOG} Processing error: ${err.message} – ${err.stack ?? ""}`)
   }
 
   // Always 200 — Razorpay retries on non-2xx responses

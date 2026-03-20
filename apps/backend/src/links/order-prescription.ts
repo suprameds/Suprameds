@@ -13,7 +13,8 @@ import PrescriptionModule from "../modules/prescription"
  */
 export default defineLink(
   {
-    linkable: OrderModule.linkable.order,
+    linkable: ((OrderModule as any)?.linkable?.order ??
+      (OrderModule as any)?.default?.linkable?.order) as any,
     isList: true,
   },
   {

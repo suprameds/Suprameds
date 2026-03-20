@@ -16,6 +16,7 @@ export default defineLink(
     linkable: PharmaModule.linkable.drugProduct,
     field: "product_id",
   },
-  ProductModule.linkable.product,
+  ((ProductModule as any)?.linkable?.product ??
+    (ProductModule as any)?.default?.linkable?.product) as any,
   { readOnly: true }
 )

@@ -20,7 +20,7 @@ type CreatePrescriptionInput = {
 const createPrescriptionStep = createStep(
   "create-prescription",
   async (input: CreatePrescriptionInput, { container }) => {
-    const prescriptionService: any = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionService = container.resolve(PRESCRIPTION_MODULE) as any
 
     const prescription = await prescriptionService.createPrescriptions({
       customer_id: input.customer_id ?? null,
@@ -36,7 +36,7 @@ const createPrescriptionStep = createStep(
     return new StepResponse(prescription, prescription.id)
   },
   async (prescriptionId: string, { container }) => {
-    const prescriptionService: any = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionService = container.resolve(PRESCRIPTION_MODULE) as any
     await prescriptionService.deletePrescriptions(prescriptionId)
   }
 )
