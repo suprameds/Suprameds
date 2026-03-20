@@ -21,7 +21,7 @@ async function scheduleXBlockAddToCart(
   if (!variantId) return next()
 
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-  const pharmaService = req.scope.resolve(PHARMA_MODULE)
+  const pharmaService: any = req.scope.resolve(PHARMA_MODULE)
 
   const { data: variants } = await query.graph({
     entity: "variants",

@@ -501,7 +501,7 @@ export default async function migration_17032026_supracyn_products({
     },
   })
 
-  const pharmaService = container.resolve(PHARMA_MODULE)
+  const pharmaService: any = container.resolve(PHARMA_MODULE)
 
   await pharmaService.createDrugProducts(
     created.map((product) => {

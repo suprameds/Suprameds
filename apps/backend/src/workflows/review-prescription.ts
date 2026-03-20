@@ -34,7 +34,7 @@ type RejectPrescriptionInput = {
 const approvePrescriptionStep = createStep(
   "approve-prescription",
   async (input: ApprovePrescriptionInput, { container }) => {
-    const prescriptionService = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionService: any = container.resolve(PRESCRIPTION_MODULE)
 
     const existing = await prescriptionService.retrievePrescription(
       input.prescription_id
@@ -76,7 +76,7 @@ const approvePrescriptionStep = createStep(
     return new StepResponse({ prescription: updated }, input.prescription_id)
   },
   async (prescriptionId: string, { container }) => {
-    const prescriptionService = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionService: any = container.resolve(PRESCRIPTION_MODULE)
     // Revert to pending_review on rollback
     await prescriptionService.updatePrescriptions({
       id: prescriptionId,
@@ -90,7 +90,7 @@ const approvePrescriptionStep = createStep(
 const rejectPrescriptionStep = createStep(
   "reject-prescription",
   async (input: RejectPrescriptionInput, { container }) => {
-    const prescriptionService = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionService: any = container.resolve(PRESCRIPTION_MODULE)
 
     const existing = await prescriptionService.retrievePrescription(
       input.prescription_id
@@ -116,7 +116,7 @@ const rejectPrescriptionStep = createStep(
     return new StepResponse({ prescription: updated }, input.prescription_id)
   },
   async (prescriptionId: string, { container }) => {
-    const prescriptionService = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionService: any = container.resolve(PRESCRIPTION_MODULE)
     await prescriptionService.updatePrescriptions({
       id: prescriptionId,
       status: "pending_review",
