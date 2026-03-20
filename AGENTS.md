@@ -9,7 +9,7 @@ SUPRAMEDS (suprameds.in) — Production-ready Indian pharmaceutical eCommerce pl
 ## Tech Stack
 - **Backend**: Medusa.js v2 (`apps/backend/`)
 - **Storefront**: TanStack Start (React) (`apps/storefront/`) — NOT Next.js
-- **Package Manager**: npm workspaces monorepo
+- **Package Manager**: pnpm workspaces monorepo (pnpm@10.8.0)
 
 ## Design System — "Clinical-Clean Precision"
 - **Colors** (theme.css): `--suprameds-navy` (#1E2D5A), `--suprameds-green` (#27AE60), `--suprameds-amber` (#F39C12), `--suprameds-cream` (#FAFAF8), `--suprameds-charcoal` (#2C3E50)
