@@ -22,7 +22,7 @@ function scheduleLabel(schedule: DrugProduct["schedule"]) {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "us"
+  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const drug = (product as any)?.drug_product as DrugProduct | undefined
   const sched = drug?.schedule
   const strength = drug?.strength ?? null

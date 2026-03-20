@@ -23,7 +23,9 @@ import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CountryCodeIndexRouteImport } from './routes/$countryCode/index'
 import { Route as PharmacyLicensesRouteImport } from './routes/pharmacy/licenses'
+import { Route as CountryCodeUploadRxRouteImport } from './routes/$countryCode/upload-rx'
 import { Route as CountryCodeStoreRouteImport } from './routes/$countryCode/store'
+import { Route as CountryCodeSearchRouteImport } from './routes/$countryCode/search'
 import { Route as CountryCodeCheckoutRouteImport } from './routes/$countryCode/checkout'
 import { Route as CountryCodeCartRouteImport } from './routes/$countryCode/cart'
 import { Route as CountryCodeAccountRouteImport } from './routes/$countryCode/account'
@@ -110,9 +112,19 @@ const PharmacyLicensesRoute = PharmacyLicensesRouteImport.update({
   path: '/pharmacy/licenses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CountryCodeUploadRxRoute = CountryCodeUploadRxRouteImport.update({
+  id: '/upload-rx',
+  path: '/upload-rx',
+  getParentRoute: () => CountryCodeRoute,
+} as any)
 const CountryCodeStoreRoute = CountryCodeStoreRouteImport.update({
   id: '/store',
   path: '/store',
+  getParentRoute: () => CountryCodeRoute,
+} as any)
+const CountryCodeSearchRoute = CountryCodeSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => CountryCodeRoute,
 } as any)
 const CountryCodeCheckoutRoute = CountryCodeCheckoutRouteImport.update({
@@ -217,7 +229,9 @@ export interface FileRoutesByFullPath {
   '/$countryCode/account': typeof CountryCodeAccountLayoutRouteWithChildren
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
+  '/$countryCode/search': typeof CountryCodeSearchRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
+  '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode/': typeof CountryCodeIndexRoute
   '/$countryCode/account/forgot-password': typeof CountryCodeAccountForgotPasswordRoute
@@ -247,7 +261,9 @@ export interface FileRoutesByTo {
   '/$countryCode/account': typeof CountryCodeAccountLayoutIndexRoute
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
+  '/$countryCode/search': typeof CountryCodeSearchRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
+  '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode': typeof CountryCodeIndexRoute
   '/$countryCode/account/forgot-password': typeof CountryCodeAccountForgotPasswordRoute
@@ -278,7 +294,9 @@ export interface FileRoutesById {
   '/$countryCode/account': typeof CountryCodeAccountRouteWithChildren
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
+  '/$countryCode/search': typeof CountryCodeSearchRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
+  '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/$countryCode/': typeof CountryCodeIndexRoute
   '/$countryCode/account/_layout': typeof CountryCodeAccountLayoutRouteWithChildren
@@ -312,7 +330,9 @@ export interface FileRouteTypes {
     | '/$countryCode/account'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
+    | '/$countryCode/search'
     | '/$countryCode/store'
+    | '/$countryCode/upload-rx'
     | '/pharmacy/licenses'
     | '/$countryCode/'
     | '/$countryCode/account/forgot-password'
@@ -342,7 +362,9 @@ export interface FileRouteTypes {
     | '/$countryCode/account'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
+    | '/$countryCode/search'
     | '/$countryCode/store'
+    | '/$countryCode/upload-rx'
     | '/pharmacy/licenses'
     | '/$countryCode'
     | '/$countryCode/account/forgot-password'
@@ -372,7 +394,9 @@ export interface FileRouteTypes {
     | '/$countryCode/account'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
+    | '/$countryCode/search'
     | '/$countryCode/store'
+    | '/$countryCode/upload-rx'
     | '/pharmacy/licenses'
     | '/$countryCode/'
     | '/$countryCode/account/_layout'
@@ -505,11 +529,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PharmacyLicensesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$countryCode/upload-rx': {
+      id: '/$countryCode/upload-rx'
+      path: '/upload-rx'
+      fullPath: '/$countryCode/upload-rx'
+      preLoaderRoute: typeof CountryCodeUploadRxRouteImport
+      parentRoute: typeof CountryCodeRoute
+    }
     '/$countryCode/store': {
       id: '/$countryCode/store'
       path: '/store'
       fullPath: '/$countryCode/store'
       preLoaderRoute: typeof CountryCodeStoreRouteImport
+      parentRoute: typeof CountryCodeRoute
+    }
+    '/$countryCode/search': {
+      id: '/$countryCode/search'
+      path: '/search'
+      fullPath: '/$countryCode/search'
+      preLoaderRoute: typeof CountryCodeSearchRouteImport
       parentRoute: typeof CountryCodeRoute
     }
     '/$countryCode/checkout': {
@@ -664,7 +702,9 @@ interface CountryCodeRouteChildren {
   CountryCodeAccountRoute: typeof CountryCodeAccountRouteWithChildren
   CountryCodeCartRoute: typeof CountryCodeCartRoute
   CountryCodeCheckoutRoute: typeof CountryCodeCheckoutRoute
+  CountryCodeSearchRoute: typeof CountryCodeSearchRoute
   CountryCodeStoreRoute: typeof CountryCodeStoreRoute
+  CountryCodeUploadRxRoute: typeof CountryCodeUploadRxRoute
   CountryCodeIndexRoute: typeof CountryCodeIndexRoute
   CountryCodeCategoriesHandleRoute: typeof CountryCodeCategoriesHandleRoute
   CountryCodeProductsHandleRoute: typeof CountryCodeProductsHandleRoute
@@ -675,7 +715,9 @@ const CountryCodeRouteChildren: CountryCodeRouteChildren = {
   CountryCodeAccountRoute: CountryCodeAccountRouteWithChildren,
   CountryCodeCartRoute: CountryCodeCartRoute,
   CountryCodeCheckoutRoute: CountryCodeCheckoutRoute,
+  CountryCodeSearchRoute: CountryCodeSearchRoute,
   CountryCodeStoreRoute: CountryCodeStoreRoute,
+  CountryCodeUploadRxRoute: CountryCodeUploadRxRoute,
   CountryCodeIndexRoute: CountryCodeIndexRoute,
   CountryCodeCategoriesHandleRoute: CountryCodeCategoriesHandleRoute,
   CountryCodeProductsHandleRoute: CountryCodeProductsHandleRoute,

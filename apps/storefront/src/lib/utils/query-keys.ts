@@ -51,6 +51,20 @@ export const queryKeys = {
     ...createDomainKeys("categories"),
   },
 
+  search: {
+    ...createDomainKeys("search"),
+    fts: (q: string, limit?: number, offset?: number) =>
+      createDynamicKey("search", "fts", q, limit, offset),
+  },
+
+  prescriptions: {
+    ...createDomainKeys("prescriptions"),
+    forCustomer: (status?: string) =>
+      createDynamicKey("prescriptions", "customer", status),
+    cartRxStatus: (cartId: string) =>
+      createDynamicKey("prescriptions", "cartRx", cartId),
+  },
+
   payments: {
     ...createDomainKeys("payments"),
     forCart: (cartId: string) => createDynamicKey("payments", "forCart", cartId),

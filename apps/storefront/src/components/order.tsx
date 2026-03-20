@@ -10,7 +10,75 @@ type OrderInfoProps = {
   order: HttpTypes.StoreOrder
 }
 
+const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
+  pending:            { label: "Pending",           color: "#92400E", bg: "#FEF3C7" },
+  processing:         { label: "Processing",         color: "#1E40AF", bg: "#DBEAFE" },
+  completed:          { label: "Completed",          color: "#065F46", bg: "#ECFDF5" },
+  cancelled:          { label: "Cancelled",          color: "#991B1B", bg: "#FEF2F2" },
+  requires_action:    { label: "Action needed",      color: "#7C3AED", bg: "#EDE9FE" },
+  not_fulfilled:      { label: "Not shipped",        color: "#6B7280", bg: "#F3F4F6" },
+  partially_fulfilled:{ label: "Partially shipped",  color: "#92400E", bg: "#FEF3C7" },
+  fulfilled:          { label: "Shipped",            color: "#065F46", bg: "#ECFDF5" },
+  partially_shipped:  { label: "Partially shipped",  color: "#92400E", bg: "#FEF3C7" },
+  shipped:            { label: "Shipped",            color: "#065F46", bg: "#ECFDF5" },
+  partially_returned: { label: "Partially returned", color: "#7C3AED", bg: "#EDE9FE" },
+  returned:           { label: "Returned",           color: "#991B1B", bg: "#FEF2F2" },
+  delivered:          { label: "Delivered",          color: "#065F46", bg: "#ECFDF5" },
+}
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const s = STATUS_LABELS[status] ?? { label: status, color: "#374151", bg: "#F3F4F6" }
+  return (
+    <span
+      className="text-xs font-medium px-2.5 py-0.5 rounded-full"
+      style={{ color: s.color, background: s.bg }}
+    >
+      {s.label}
+    </span>
+  )
+}
+
+/** Medusa v2: tracking may live on tracking_links or fulfillment labels */
+function collectTrackingEntries(fulfillments: any[] | undefined): { key: string; number: string; url?: string }[] {
+  if (!fulfillments?.length) return []
+  const out: { key: string; number: string; url?: string }[] = []
+  for (const f of fulfillments) {
+    for (const t of f.tracking_links ?? []) {
+      if (t?.tracking_number) {
+        out.push({
+          key: `tl-${f.id ?? "f"}-${t.tracking_number}`,
+          number: t.tracking_number,
+          url: t.url ?? undefined,
+        })
+      }
+    }
+    for (const lab of f.labels ?? []) {
+      const num = lab.tracking_number ?? lab.trackingNumber
+      if (num) {
+        out.push({
+          key: `lb-${f.id ?? "f"}-${num}`,
+          number: String(num),
+          url: lab.tracking_url ?? lab.trackingUrl ?? undefined,
+        })
+      }
+    }
+  }
+  return out
+}
+
 export const OrderInfo = ({ order }: OrderInfoProps) => {
+  const fulfillmentStatus = (order as any).fulfillment_status as string | undefined
+  const fulfillments = (order as any).fulfillments as any[] | undefined
+  const trackingEntries = collectTrackingEntries(fulfillments)
+
+  // Medusa: `status` is the order lifecycle (pending / completed / canceled / …).
+  // `fulfillment_status` is packing → shipped → delivered. They are updated by different workflows.
+  const showPendingExplainer =
+    order.status === "pending" &&
+    fulfillmentStatus &&
+    fulfillmentStatus !== "not_fulfilled" &&
+    fulfillmentStatus !== "canceled"
+
   return (
     <div className="flex flex-col gap-4">
       <h3 className="font-semibold">Order Details</h3>
@@ -30,10 +98,68 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
           })}
         </span>
       </div>
-      <div className="flex gap-2 items-center">
-        <span className="text-base font-semibold text-zinc-900">Order Status:</span>
-        <span className="text-sm text-zinc-600">{order.status}</span>
+
+      {/* What customers care about first */}
+      {fulfillmentStatus && (
+        <div className="flex flex-col gap-1">
+          <div className="flex gap-2 items-center flex-wrap">
+            <span className="text-base font-semibold text-zinc-900">Delivery status:</span>
+            <StatusBadge status={fulfillmentStatus} />
+          </div>
+          <p className="text-xs text-zinc-500 max-w-xl">
+            This follows your shipment in Admin (packed → shipped → delivered).
+          </p>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-1">
+        <div className="flex gap-2 items-center flex-wrap">
+          <span className="text-base font-semibold text-zinc-900">Order record:</span>
+          <StatusBadge status={order.status} />
+        </div>
+        <p className="text-xs text-zinc-500 max-w-xl">
+          In Medusa, <strong>Pending</strong> means the order record is still open. It becomes{" "}
+          <strong>Completed</strong> when the backend runs the complete-order workflow (this project auto-runs it once
+          the whole order&apos;s <strong>delivery status</strong> is <strong>Delivered</strong>, or staff can complete
+          manually in Admin.)
+        </p>
+        {showPendingExplainer && (
+          <p className="text-xs rounded-md border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 max-w-xl mt-1">
+            If you still see <strong>Pending</strong> with <strong>Delivered</strong> here, wait a few seconds and
+            refresh—the subscriber may still be processing. If it persists, use{" "}
+            <strong>Admin → Orders → Complete order</strong>, or check that every fulfillment for this order is marked
+            delivered (partial deliveries keep the record pending until all are delivered).
+          </p>
+        )}
       </div>
+
+      <div className="flex flex-col gap-1">
+        <span className="text-base font-semibold text-zinc-900">Tracking:</span>
+        {trackingEntries.length > 0 ? (
+          trackingEntries.map((t) => (
+            <span key={t.key} className="text-sm text-zinc-600">
+              {t.url ? (
+                <a
+                  href={t.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline text-blue-600 hover:text-blue-800"
+                >
+                  {t.number}
+                </a>
+              ) : (
+                t.number
+              )}
+            </span>
+          ))
+        ) : (
+          <span className="text-sm text-zinc-500">
+            No tracking number in this order yet. If you shipped from Admin without a tracking label, this stays
+            empty.
+          </span>
+        )}
+      </div>
+
       <div className="flex gap-2 items-center">
         <span className="text-base font-semibold text-zinc-900">Order Email:</span>
         <span className="text-sm text-zinc-600">

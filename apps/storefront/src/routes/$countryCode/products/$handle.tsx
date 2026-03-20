@@ -55,32 +55,37 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       ;(product as any).drug_product = pharma.drug_product
     }
 
-    // Ensure related products are loaded for SSR to prevent hydration mismatch
-    // This ensures consistent rendering between server and client
+    // Pre-fetch related products for SSR hydration consistency.
+    // Medusa v2: collection_id alone can 500 for some collections; tag_id is more reliable.
+    // Use tag_id when available, else collection_id, else no filter. try/catch keeps page from crashing.
     await queryClient.ensureQueryData({
       queryKey: queryKeys.products.related(product.id, region.id),
       queryFn: async () => {
-        const params: HttpTypes.StoreProductListParams = {
-          fields:
-            "title, handle, *thumbnail, *variants, +variants.calculated_price",
-          is_giftcard: false,
-          limit: 4,
-        };
+        try {
+          const baseParams: HttpTypes.StoreProductListParams = {
+            // `+variants.calculated_price` can break list endpoint parsing in Medusa v2.
+            // Keep fields simple for related-products prefetch to avoid 500 responses.
+            fields: "title, handle, *thumbnail, *variants",
+            is_giftcard: false,
+            limit: 4,
+          }
 
-        if (product.collection_id) {
-          params.collection_id = [product.collection_id];
+          const filterParams: HttpTypes.StoreProductListParams =
+            product.tags && product.tags.length > 0
+              ? { ...baseParams, tag_id: product.tags.map((t) => t.id) }
+              : product.collection_id
+                ? { ...baseParams, collection_id: [product.collection_id] }
+                : baseParams
+
+          const { products } = await listProducts({
+            query_params: filterParams,
+            region_id: region.id,
+          })
+
+          return products.filter((p) => p.id !== product.id)
+        } catch {
+          return []
         }
-
-        if (product.tags && product.tags.length > 0) {
-          params.tag_id = product.tags.map((tag) => tag.id);
-        }
-
-        const { products } = await listProducts({
-          query_params: params,
-          region_id: region.id,
-        });
-
-        return products.filter((p) => p.id !== product.id);
       },
     });
 

@@ -5,7 +5,7 @@ Indian pharmaceutical eCommerce platform built with **Medusa.js v2** (from [Bloo
 ## Prerequisites
 
 - **Node.js** ≥ 18 (backend recommends ≥ 20)
-- **pnpm** 10.x (`npm install -g pnpm`, or use `npx pnpm` from the project root)
+- **npm** (workspaces; comes with Node.js)
 - **Supabase** account (database)
 - **Docker** (for Redis via Docker Compose)
 
@@ -16,7 +16,7 @@ Indian pharmaceutical eCommerce platform built with **Medusa.js v2** (from [Bloo
 From the project root:
 
 ```bash
-pnpm install
+npm install
 ```
 
 ### 2. Supabase (database)
@@ -58,13 +58,13 @@ npx medusa db:migrate
 **Option A — From root (both apps):**
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 **Option B — Separate terminals:**
 
-- Backend: `pnpm backend:dev` or `cd apps/backend && pnpm dev`
-- Storefront: `pnpm storefront:dev` or `cd apps/storefront && pnpm dev`
+- Backend: `npm run backend:dev` or `cd apps/backend && npm run dev`
+- Storefront: `npm run storefront:dev` or `cd apps/storefront && npm run dev`
 
 - **Backend (Medusa + Admin):** http://localhost:9000  
 - **Storefront:** http://localhost:5176 (or port in `apps/storefront/.env`)
@@ -80,11 +80,11 @@ pnpm dev
 
 | Command | Description |
 |--------|-------------|
-| `pnpm dev` | Run backend + storefront in dev |
-| `pnpm build` | Build all apps |
-| `pnpm start` | Run built apps |
-| `pnpm backend:dev` | Backend only (Medusa develop) |
-| `pnpm storefront:dev` | Storefront only (Vite) |
+| `npm run dev` | Run backend + storefront in dev |
+| `npm run build` | Build all apps |
+| `npm run start` | Run built apps |
+| `npm run backend:dev` | Backend only (Medusa develop) |
+| `npm run storefront:dev` | Storefront only (Vite) |
 
 ## Project layout
 

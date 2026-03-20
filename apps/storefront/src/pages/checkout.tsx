@@ -2,6 +2,7 @@ import { CartEmpty } from "@/components/cart"
 import CheckoutProgress from "@/components/checkout-progress"
 import { Loading } from "@/components/ui/loading"
 import { useCart } from "@/lib/hooks/use-cart"
+import { useCartRxStatus } from "@/lib/hooks/use-prescriptions"
 import { type CheckoutStep, CheckoutStepKey } from "@/lib/types/global"
 import {
   useLoaderData,
@@ -12,6 +13,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo } from "react"
 
 const DeliveryStep = lazy(() => import("@/components/checkout-delivery-step"))
 const AddressStep = lazy(() => import("@/components/checkout-address-step"))
+const PrescriptionStep = lazy(() => import("@/components/checkout-prescription-step"))
 const PaymentStep = lazy(() => import("@/components/checkout-payment-step"))
 const ReviewStep = lazy(() => import("@/components/checkout-review-step"))
 const CheckoutSummary = lazy(() => import("@/components/checkout-summary"))
@@ -24,8 +26,12 @@ const Checkout = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
+  // Check whether the cart contains Rx items (determines prescription step)
+  const { data: rxStatus } = useCartRxStatus(cart?.id)
+  const hasRxItems = rxStatus?.has_rx_items ?? false
+
   const steps: CheckoutStep[] = useMemo(() => {
-    return [
+    const base: CheckoutStep[] = [
       {
         key: CheckoutStepKey.ADDRESSES,
         title: "Addresses",
@@ -38,6 +44,23 @@ const Checkout = () => {
         description: "Select a shipping method.",
         completed: !!cart?.shipping_methods?.length,
       },
+    ]
+
+    // Conditionally insert Prescription step when cart has Rx (H/H1) items
+    if (hasRxItems) {
+      const prescriptionAttached = !!(
+        (cart?.metadata as Record<string, any> | undefined)?.prescription_id
+      )
+      base.push({
+        key: CheckoutStepKey.PRESCRIPTION,
+        title: "Prescription",
+        description:
+          "Attach a valid prescription for your Rx medicines. One prescription covers all items.",
+        completed: prescriptionAttached,
+      })
+    }
+
+    base.push(
       {
         key: CheckoutStepKey.PAYMENT,
         title: "Payment",
@@ -50,58 +73,40 @@ const Checkout = () => {
         title: "Review",
         description: "Review your order details before placing your order.",
         completed: false,
-      },
-    ]
-  }, [cart])
+      }
+    )
+
+    return base
+  }, [cart, hasRxItems])
 
   const currentStepIndex = useMemo(
     () => steps.findIndex((s) => s.key === step),
     [step, steps]
   )
 
-  const goToStep = useCallback((step: CheckoutStepKey) => {
-    navigate({
-      to: `${location.pathname}?step=${step}`,
-      replace: true,
-    })
-  }, [location.pathname, navigate])
+  const goToStep = useCallback(
+    (step: CheckoutStepKey) => {
+      navigate({
+        to: `${location.pathname}?step=${step}`,
+        replace: true,
+      })
+    },
+    [location.pathname, navigate]
+  )
 
   useEffect(() => {
-    // Determine which step to show based on cart state
-    if (!cart) {
-      return
-    }
+    if (!cart) return
 
-    if (
-      step !== CheckoutStepKey.ADDRESSES &&
-      currentStepIndex >= 0 &&
-      steps[0] &&
-      !steps[0].completed
-    ) {
-      goToStep(CheckoutStepKey.ADDRESSES)
-      return
+    // Walk through steps sequentially — redirect back if any prior step isn't done
+    for (let i = 0; i < steps.length; i++) {
+      const s = steps[i]
+      if (s.key === step) break
+      if (!s.completed && step !== s.key) {
+        goToStep(s.key)
+        return
+      }
     }
-
-    if (
-      step !== CheckoutStepKey.DELIVERY &&
-      currentStepIndex >= 1 &&
-      steps[1] &&
-      !steps[1].completed
-    ) {
-      goToStep(CheckoutStepKey.DELIVERY)
-      return
-    }
-
-    if (
-      step !== CheckoutStepKey.PAYMENT &&
-      currentStepIndex >= 2 &&
-      steps[2] &&
-      !steps[2].completed
-    ) {
-      goToStep(CheckoutStepKey.PAYMENT)
-      return
-    }
-  }, [cart, steps, location, currentStepIndex, step, goToStep])
+  }, [cart, steps, step, goToStep])
 
   const handleNext = () => {
     const nextIndex = currentStepIndex + 1
@@ -145,12 +150,10 @@ const Checkout = () => {
             {cartLoading && <Loading />}
             {cart && (
               <>
-                {/* Address Step */}
                 {step === CheckoutStepKey.ADDRESSES && (
                   <AddressStep cart={cart} onNext={handleNext} />
                 )}
 
-                {/* Delivery Step */}
                 {step === CheckoutStepKey.DELIVERY && (
                   <DeliveryStep
                     cart={cart}
@@ -159,7 +162,14 @@ const Checkout = () => {
                   />
                 )}
 
-                {/* Payment Step */}
+                {step === CheckoutStepKey.PRESCRIPTION && (
+                  <PrescriptionStep
+                    cart={cart}
+                    onNext={handleNext}
+                    onBack={handleBack}
+                  />
+                )}
+
                 {step === CheckoutStepKey.PAYMENT && (
                   <PaymentStep
                     cart={cart}
@@ -168,7 +178,6 @@ const Checkout = () => {
                   />
                 )}
 
-                {/* Review Step */}
                 {step === CheckoutStepKey.REVIEW && (
                   <ReviewStep cart={cart} onBack={handleBack} />
                 )}

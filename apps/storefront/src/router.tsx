@@ -10,14 +10,10 @@ export function createRouter() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        // Optimize for SSR - shorter stale time for fresh data
-        staleTime: 1000 * 60, // 1 minute
-        // Enable refetch on window focus for fresh data
-        refetchOnWindowFocus: true,
-        // Enable refetch on reconnect
+        staleTime: 1000 * 60 * 5, // 5 minutes — reduces background chatter in SSR
+        refetchOnWindowFocus: false, // avoid hammering the backend on every tab-switch
         refetchOnReconnect: true,
-        // Retry failed requests
-        retry: 1,
+        retry: false, // network errors are surfaced immediately; auth errors shouldn't be retried
       },
     },
   })
