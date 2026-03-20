@@ -31,14 +31,15 @@ function LoginPage() {
       return
     }
 
-    const destination =
-      redirectTo && redirectTo.startsWith("/") ? redirectTo : `/${countryCode}/account/profile`
-
     login.mutate(
       { email, password },
       {
         onSuccess: () => {
-          navigate({ to: destination })
+          if (redirectTo && redirectTo.startsWith("/")) {
+            navigate({ to: redirectTo as never })
+          } else {
+            navigate({ to: "/$countryCode/account/profile", params: { countryCode } })
+          }
         },
         onError: () => {
           setError("Invalid email or password. Please try again.")

@@ -1,29 +1,46 @@
 import { Button } from "@/components/ui/button"
 import { useCompleteCartOrder } from "@/lib/hooks/use-checkout"
-import { isManual, isStripe } from "@/lib/utils/checkout"
+import {
+  getActivePaymentSession,
+  isManual,
+  isRazorpay,
+  isStripe,
+} from "@/lib/utils/checkout"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
 import { useLocation, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
+import { RazorpayPaymentButton } from "./razorpay-payment-button"
 
 type PaymentButtonProps = {
   cart: HttpTypes.StoreCart;
   className?: string;
+  disabled?: boolean;
 };
 
-const PaymentButton = ({ cart, className }: PaymentButtonProps) => {
+const PaymentButton = ({ cart, className, disabled }: PaymentButtonProps) => {
   const notReady =
+    disabled ||
     !cart ||
     !cart.shipping_address ||
     !cart.billing_address ||
     !cart.email ||
     (cart.shipping_methods?.length ?? 0) < 1
 
-  const paymentSession = cart.payment_collection?.payment_sessions?.[0]
+  const paymentSession = getActivePaymentSession(cart)
 
   switch (true) {
     case isStripe(paymentSession?.provider_id):
       return <StripePaymentButton notReady={notReady} className={className} />
+    case isRazorpay(paymentSession?.provider_id):
+      return (
+        <RazorpayPaymentButton
+          cart={cart}
+          session={paymentSession}
+          notReady={notReady}
+          className={className}
+        />
+      )
     case isManual(paymentSession?.provider_id):
       return <ManualPaymentButton notReady={notReady} className={className} />
     default:
@@ -102,7 +119,6 @@ const ManualPaymentButton = ({
     try {
       const order = await completeOrderMutation.mutateAsync()
 
-      // Navigate to order confirmation
       navigate({
         to: `/${countryCode}/order/${order.id}/confirmed`,
         replace: true,
@@ -117,19 +133,27 @@ const ManualPaymentButton = ({
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-3">
+      <div
+        className="p-3 rounded-lg border text-sm"
+        style={{ background: "#FFFBEB", borderColor: "#F59E0B", color: "#92400E" }}
+      >
+        <strong>Cash on Delivery</strong> — Pay in cash when your order arrives.
+        Please keep the exact amount ready for a smooth handover.
+      </div>
+
       <Button
         disabled={notReady || submitting}
         onClick={handlePayment}
         data-testid="place-order-button"
         className={className}
       >
-        Place Order
+        {submitting ? "Processing…" : "Place COD Order"}
       </Button>
       {errorMessage && (
         <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
       )}
-    </>
+    </div>
   )
 }
 

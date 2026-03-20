@@ -4,7 +4,7 @@
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "module": "esnext",
-    "types": ["vite/client", "vite-plugin-terminal/client"],
+    "types": ["vite/client"],
     "moduleResolution": "Bundler",
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "skipLibCheck": true,

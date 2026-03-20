@@ -10,8 +10,8 @@ import {
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import * as NavigationMenu from "@radix-ui/react-navigation-menu"
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link, useLocation, useNavigate } from "@tanstack/react-router"
+import { useState } from "react"
 
 const ShieldIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -45,10 +45,31 @@ const PersonIcon = () => (
   </svg>
 )
 
+const SearchIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+)
+
 export const Navbar = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data: customer } = useCustomer()
+  const [searchQuery, setSearchQuery] = useState("")
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = searchQuery.trim()
+    if (trimmed) {
+      navigate({
+        to: "/$countryCode/search",
+        params: { countryCode },
+        search: { q: trimmed },
+      })
+      setSearchQuery("")
+    }
+  }
 
   const { data: topLevelCategories } = useCategories({
     fields: "id,name,handle,parent_category_id",
@@ -87,134 +108,79 @@ export const Navbar = () => {
       <header className="relative mx-auto border-b" style={{ background: "#fff", borderColor: "#EDE9E1" }}>
         <nav className="content-container flex items-center justify-between w-full h-16">
 
-          {/* Desktop Navigation */}
-          <NavigationMenu.Root className="hidden lg:flex items-center h-full">
-            <NavigationMenu.List className="flex items-center gap-x-8 h-full">
-              <NavigationMenu.Item className="h-full flex items-center">
-                <NavigationMenu.Trigger
-                  className="h-full flex items-center gap-1 text-sm font-medium select-none transition-colors"
-                  style={{ color: "#0D1B2A" }}
-                >
-                  Medicines
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginTop: 1 }}>
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </NavigationMenu.Trigger>
-                <NavigationMenu.Content className="content-container py-10">
-                  <div className="grid grid-cols-3 gap-10">
-                    <div className="flex flex-col gap-5">
-                      <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#0E7C86" }}>
-                        Browse by Type
-                      </h3>
-                      <div className="flex flex-col gap-2.5">
-                        <NavigationMenu.Link asChild>
-                          <Link
-                            to="/$countryCode/store"
-                            params={{ countryCode }}
-                            className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
-                            style={{ color: "#0D1B2A" }}
-                          >
-                            All Medicines
-                          </Link>
-                        </NavigationMenu.Link>
-                        {categoryLinks.map((link) => (
-                          <NavigationMenu.Link key={link.id} asChild>
-                            <Link
-                              to="/$countryCode/categories/$handle"
-                              params={{ countryCode, handle: link.handle }}
-                              className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
-                              style={{ color: "#0D1B2A" }}
-                            >
-                              {link.name}
-                            </Link>
-                          </NavigationMenu.Link>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-5">
-                      <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#0E7C86" }}>
-                        Services
-                      </h3>
-                      <div className="flex flex-col gap-2.5">
-                        {[
-                          { label: "Upload Prescription", href: "/" },
-                          { label: "Chronic Reorder", href: "/" },
-                          { label: "Pharmacist Helpline", href: "/" },
-                          { label: "Track Order", href: "/" },
-                        ].map((item) => (
-                          <a
-                            key={item.label}
-                            href={item.href}
-                            className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
-                            style={{ color: "#0D1B2A" }}
-                          >
-                            {item.label}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                    <div
-                      className="rounded-lg p-5 flex flex-col gap-3 justify-between"
-                      style={{ background: "#0D1B2A" }}
-                    >
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <PillIcon />
-                          <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#16a5b0" }}>
-                            Verified Pharmacy
-                          </span>
-                        </div>
-                        <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.75)" }}>
-                          Licensed by CDSCO · Form 18AA registered · LegitScript certified · Pharmacist-dispensed
-                        </p>
-                      </div>
-                      <a
-                        href="/pharmacy/licenses"
-                        className="text-xs font-semibold underline transition-opacity hover:opacity-80"
-                        style={{ color: "#16a5b0" }}
-                      >
-                        View our licenses →
-                      </a>
-                    </div>
-                  </div>
-                </NavigationMenu.Content>
-              </NavigationMenu.Item>
-
-              <NavigationMenu.Item>
+          {/* Desktop Navigation (plain links to avoid Radix NavigationMenu render loop in React 19) */}
+          <div className="hidden lg:flex items-center gap-x-8 h-full">
+            <details className="group relative">
+              <summary
+                className="list-none flex items-center gap-1 text-sm font-medium cursor-pointer"
+                style={{ color: "#0D1B2A" }}
+              >
+                Medicines
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginTop: 1 }}>
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </summary>
+              <div
+                className="absolute left-0 mt-2 w-64 rounded-lg border bg-white shadow-lg p-3 z-50"
+                style={{ borderColor: "#EDE9E1" }}
+              >
                 <Link
                   to="/$countryCode/store"
                   params={{ countryCode }}
-                  className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
+                  className="block px-2 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded"
                   style={{ color: "#0D1B2A" }}
                 >
-                  OTC Products
+                  All Medicines
                 </Link>
-              </NavigationMenu.Item>
+                {categoryLinks.map((link) => (
+                  <a
+                    key={link.id}
+                    href={`/${countryCode}/categories/${link.handle}`}
+                    className="block px-2 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded"
+                    style={{ color: "#0D1B2A" }}
+                  >
+                    {link.name}
+                  </a>
+                ))}
+              </div>
+            </details>
 
-              <NavigationMenu.Item>
-                <a
-                  href="/prescription-policy"
-                  className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
+            <Link
+              to="/$countryCode/store"
+              params={{ countryCode }}
+              className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
+              style={{ color: "#0D1B2A" }}
+            >
+              OTC Products
+            </Link>
+
+            <a
+              href="/prescription-policy"
+              className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
+              style={{ color: "#0D1B2A" }}
+            >
+              Prescription Policy
+            </a>
+
+            <form onSubmit={handleSearch} className="flex items-center ml-2">
+              <div
+                className="flex items-center rounded-lg overflow-hidden"
+                style={{ background: "#F8F6F2", border: "1px solid #EDE9E1" }}
+              >
+                <div className="pl-2.5" style={{ color: "#999" }}>
+                  <SearchIcon />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search medicines..."
+                  className="px-2 py-1.5 text-xs outline-none bg-transparent w-36 xl:w-48"
                   style={{ color: "#0D1B2A" }}
-                >
-                  Prescription Policy
-                </a>
-              </NavigationMenu.Item>
-            </NavigationMenu.List>
-
-            <NavigationMenu.Viewport
-              className="absolute top-full border-b shadow-lg overflow-hidden
-                data-[state=open]:animate-[dropdown-open_300ms_ease-out]
-                data-[state=closed]:animate-[dropdown-close_300ms_ease-out]"
-              style={{
-                left: "50%",
-                transform: "translateX(-50%)",
-                width: "100vw",
-                background: "#fff",
-                borderColor: "#EDE9E1",
-              }}
-            />
-          </NavigationMenu.Root>
+                />
+              </div>
+            </form>
+          </div>
 
           {/* Mobile menu */}
           <Drawer>
@@ -322,8 +288,9 @@ export const Navbar = () => {
 
           {/* Right actions */}
           <div className="flex items-center gap-x-3 h-full justify-end">
-            <a
-              href="/"
+            <Link
+              to="/$countryCode/upload-rx"
+              params={{ countryCode }}
               className="hidden lg:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded transition-all"
               style={{ color: "#0E7C86", background: "#d5f0e2" }}
             >
@@ -332,7 +299,7 @@ export const Navbar = () => {
                 <polyline points="14 2 14 8 20 8"/>
               </svg>
               Upload Rx
-            </a>
+            </Link>
 
             {/* Account / Sign in — visible label so users can find login */}
             <Link

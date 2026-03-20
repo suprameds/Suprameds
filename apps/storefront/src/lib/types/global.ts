@@ -26,6 +26,7 @@ export type StoreFreeShippingPrice = StorePrice & {
 export enum CheckoutStepKey {
   ADDRESSES = "addresses",
   DELIVERY = "delivery",
+  PRESCRIPTION = "prescription",
   PAYMENT = "payment",
   REVIEW = "review",
 }

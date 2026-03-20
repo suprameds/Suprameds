@@ -4,13 +4,18 @@ import { PHARMA_MODULE } from "../../modules/pharma"
 import { PRESCRIPTION_MODULE } from "../../modules/prescription"
 
 /**
- * Compliance hook: validates all Rx drugs in the cart have approved prescriptions
- * before the order can be completed.
+ * Compliance hook: validates Rx drugs in the cart have a prescription attached.
  *
- * Rules enforced:
+ * Flow: customer uploads prescription → places order → pharmacist reviews
+ * the prescription post-order and either fulfils, modifies, or cancels.
+ *
+ * At checkout we only enforce:
  * 1. Schedule X drugs → ABSOLUTE PROHIBITION (NDPS Act, 1985)
- * 2. Schedule H/H1 drugs → require approved, non-expired prescription
- * 3. No promotions on Rx drugs (Drugs & Magic Remedies Act, 1954)
+ * 2. Schedule H/H1 drugs → must have a prescription attached (approved OR pending_review)
+ * 3. Rejected / expired prescriptions are blocked — customer must re-upload
+ *
+ * The pharmacist verifies the prescription validity AFTER the order is placed,
+ * before fulfilment (enforced via admin workflow, not here).
  */
 completeCartWorkflow.hooks.validate(
   async ({ cart }, { container }) => {
@@ -19,10 +24,11 @@ completeCartWorkflow.hooks.validate(
     const pharmaService = container.resolve(PHARMA_MODULE)
     const prescriptionService = container.resolve(PRESCRIPTION_MODULE)
 
+    let cartHasRxItem = false
+
     for (const item of cart.items) {
       if (!item.product_id) continue
 
-      // Look up drug metadata for this product
       let drugProducts: any[]
       try {
         drugProducts = await pharmaService.listDrugProducts({
@@ -51,44 +57,54 @@ completeCartWorkflow.hooks.validate(
         )
       }
 
-      // Rx validation: Schedule H and H1 require an approved prescription
       if (drug.schedule === "H" || drug.schedule === "H1") {
-        const customerId = cart.customer_id
-        const metadata = cart.metadata as Record<string, any> | null
-
-        if (!customerId && !metadata?.guest_phone) {
-          throw new MedusaError(
-            MedusaError.Types.NOT_ALLOWED,
-            `A valid prescription is required to purchase ${item.title || "this medication"}. Please upload your prescription.`
-          )
-        }
-
-        // Check for approved prescription covering this product
-        const filters: Record<string, any> = {
-          status: "approved",
-        }
-        if (customerId) {
-          filters.customer_id = customerId
-        } else {
-          filters.guest_phone = metadata?.guest_phone
-        }
-
-        const prescriptions =
-          await prescriptionService.listPrescriptions(filters)
-
-        const now = new Date()
-        const validPrescription = prescriptions.find((rx: any) => {
-          if (!rx.valid_until) return false
-          return new Date(rx.valid_until) > now
-        })
-
-        if (!validPrescription) {
-          throw new MedusaError(
-            MedusaError.Types.NOT_ALLOWED,
-            `No valid prescription found for ${item.title || "this medication"}. Please upload a valid prescription to continue.`
-          )
-        }
+        cartHasRxItem = true
       }
+    }
+
+    if (!cartHasRxItem) return
+
+    // ── Validate a prescription is attached ──────────────────────────
+
+    const metadata = cart.metadata as Record<string, any> | null
+    const prescriptionId = metadata?.prescription_id
+
+    if (!prescriptionId) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        "Your cart contains prescription medicines. Please attach a valid prescription during checkout."
+      )
+    }
+
+    const [prescription] = await prescriptionService.listPrescriptions({
+      id: prescriptionId,
+    })
+
+    if (!prescription) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        "The attached prescription could not be found. Please re-attach a valid prescription."
+      )
+    }
+
+    // Allow "approved" and "pending_review" — pharmacist verifies post-order.
+    // Block "rejected", "expired", "used" — customer must upload a new one.
+    const blockedStatuses = ["rejected", "expired"]
+    if (blockedStatuses.includes(prescription.status)) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        `Your prescription has been ${prescription.status}. Please upload a new, valid prescription.`
+      )
+    }
+
+    if (
+      prescription.valid_until &&
+      new Date(prescription.valid_until) < new Date()
+    ) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        "Your prescription has expired. Please upload a new, valid prescription."
+      )
     }
   }
 )

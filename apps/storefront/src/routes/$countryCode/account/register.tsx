@@ -49,9 +49,6 @@ function RegisterPage() {
       return
     }
 
-    const destination =
-      redirectTo && redirectTo.startsWith("/") ? redirectTo : `/${countryCode}/account/profile`
-
     register.mutate(
       {
         email: form.email,
@@ -62,7 +59,11 @@ function RegisterPage() {
       },
       {
         onSuccess: () => {
-          navigate({ to: destination })
+          if (redirectTo && redirectTo.startsWith("/")) {
+            navigate({ to: redirectTo as never })
+          } else {
+            navigate({ to: "/$countryCode/account/profile", params: { countryCode } })
+          }
         },
         onError: (err: unknown) => {
           const msg =

@@ -12,6 +12,10 @@ export const isManual = (providerId?: string) => {
   return providerId?.startsWith("pp_system_default") || providerId === "manual"
 }
 
+export const isRazorpay = (providerId?: string) => {
+  return providerId?.startsWith("pp_razorpay_") || providerId === "razorpay"
+}
+
 // ============ ACTIVE PAYMENT SESSION ============
 
 export const getActivePaymentSession = (cart: HttpTypes.StoreCart): HttpTypes.StorePaymentSession | undefined => {

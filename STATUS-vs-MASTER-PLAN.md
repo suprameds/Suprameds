@@ -17,7 +17,7 @@ This document maps what’s **done** in the repo vs the **suprameds-master-promp
 ## DONE (implemented)
 
 ### Infrastructure & setup
-- [x] Medusa v2 backend + monorepo (pnpm, turbo)
+- [x] Medusa v2 backend + monorepo (npm workspaces, turbo)
 - [x] PostgreSQL via **Supabase** (connection pooler, no SSL timeout)
 - [x] Redis via **Docker Compose** (`docker-compose.yml`)
 - [x] Backend env: CORS (storefront 5173/5176), AUTH_CORS, REDIS_URL, DATABASE_URL
@@ -144,3 +144,39 @@ This document maps what’s **done** in the repo vs the **suprameds-master-promp
 | **Plan phases** | Slivers of Phase 1, 3, 9 | Most of Phase 1–8, rest of 9, all of 10 |
 
 **Rough completion vs full plan:** ~15–20% (foundation + one slice of storefront and backend). The master plan is a full production/compliance build; the repo is a working Bloom-style base with India/compliance wiring and custom pharma/prescription/inventory modules, ready for the next phases above.
+
+---
+
+## Recent Fixes (March 2025 — pnpm → npm migration)
+
+The project migrated from **pnpm** to **npm workspaces**. This introduced several regressions that have been resolved:
+
+| Issue | Root Cause | Fix |
+|-------|-----------|-----|
+| **SSR crash**: "Objects are not valid as a React child" | Dual React instances — backend had `react@18.3.1`, storefront had `react@19.1.1` (pnpm overrides were lost) | Added `overrides` in root `package.json` to force `react@19.1.1` across all workspaces; updated backend devDeps to React 19 |
+| **Backend admin**: `react-router-dom` import error | `apps/backend/src/admin/routes/prescriptions/[id]/page.tsx` imported from `react-router-dom` (frontend lib) | Replaced with Medusa Admin SDK's `defineRouteConfig` |
+| **CSS warning**: `@import must precede all other statements` | Google Fonts `@import` inside `theme.css` placed after Tailwind CSS rules after bundling | Moved font loading to `<link>` tags in `__root.tsx` `<head>` for correct ordering and better performance |
+| **Backend admin**: `date-fns` resolution errors | `date-fns@3.6.0` has missing `.mjs` barrel files (`index.mjs`, `locale.mjs`) — known upstream packaging bug | Non-blocking for store API/storefront; admin dashboard dep-pre-bundle warnings only |
+| **Redis**: `ioredis` connection errors | Redis not running locally (Docker Compose not started) | Non-blocking — Medusa falls back to in-memory event bus; start Redis via `docker compose up -d` when needed |
+
+### Current working state
+- **Backend** (port 9000): Store API responding 200 ✅, Admin UI at `/app` (date-fns warnings but functional)
+- **Storefront** (port 5173): Full SSR rendering ✅, 49KB HTML payload with SEO meta tags
+- **Package manager**: npm workspaces with React 19.1.1 unified across all packages
+- **Design system**: Clinical-Clean Precision aesthetic with DM Sans + Fraunces fonts
+
+## Recent P1 Implementation (March 20, 2026)
+
+### Completed in this session
+
+| Feature | Files | Description |
+|---------|-------|-------------|
+| **Razorpay payment working** | `storefront/.env` | Fixed `VITE_RAZORPAY_KEY_ID` env var naming for Vite exposure |
+| **Order details live updates** | `pages/order-confirmation.tsx`, `routes/.../confirmed.tsx`, `hooks/use-orders.ts`, `components/order.tsx` | Order page uses `useOrder` hook with `staleTime: 0` + fulfillment status badges + tracking numbers |
+| **Razorpay webhook handler** | `api/webhooks/razorpay/route.ts`, `api/middlewares.ts` | Full webhook with signature verification, forwards to Medusa payment module; raw body preserved for HMAC |
+| **Order placed subscriber** | `subscribers/order-placed.ts` | Retrieves full order, sends email notification, creates OrderExtension + state history, internal pharmacy notification |
+| **Payment captured subscriber** | `subscribers/order-payment-captured.ts` | Updates OrderExtension status, records state history, triggers FEFO allocation, sends payment confirmation |
+| **PostgreSQL Full-Text Search** | `migration-scripts/20032026-fts-search-vector.ts`, `api/store/products/search/route.ts` | tsvector + GIN index on products; searches product fields + drug_product (generic_name, composition, strength); prefix matching; ranked results |
+| **FTS storefront search** | `hooks/use-search.ts`, `pages/search.tsx`, `utils/query-keys.ts` | Debounced as-you-type search, FTS API integration, load more pagination |
+| **COD label fix** | `lib/constants/payment-methods.tsx`, `components/payment-container.tsx` | `pp_system_default` now labeled "Cash on Delivery" with descriptions for all payment methods |
+| **Rx gate on PDP** | `components/product-actions.tsx` | Schedule X products: blocked with NDPS Act message. Schedule H/H1: prescription required notice + Upload Rx button + secondary "Add to cart (Rx verification at checkout)" |

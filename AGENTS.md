@@ -9,7 +9,7 @@ SUPRAMEDS (suprameds.in) — Production-ready Indian pharmaceutical eCommerce pl
 ## Tech Stack
 - **Backend**: Medusa.js v2 (`apps/backend/`)
 - **Storefront**: TanStack Start (React) (`apps/storefront/`) — NOT Next.js
-- **Package Manager**: pnpm monorepo
+- **Package Manager**: npm workspaces monorepo
 
 ## Design System — "Clinical-Clean Precision"
 - **Colors** (theme.css): `--suprameds-navy` (#1E2D5A), `--suprameds-green` (#27AE60), `--suprameds-amber` (#F39C12), `--suprameds-cream` (#FAFAF8), `--suprameds-charcoal` (#2C3E50)
@@ -97,3 +97,4 @@ apps/backend/src/
 - INR has 2 decimal places but paise are rarely used; display as ₹XX
 - `MedusaService` returns single object when passed single object (not array)
 - Module names in `Module()` must NOT contain hyphens — use camelCase
+- **Payment session 400**: `POST .../payment-sessions` can return "Account holder with provider_id: pp_system_default, external_id: cus_xxx, already exists". The default payment provider creates an account holder per customer; if one already exists (e.g. from a previous session), the workflow must reuse it instead of creating again. Check Medusa payment provider / workflow for idempotent account-holder handling.
