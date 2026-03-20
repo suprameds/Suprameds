@@ -78,6 +78,9 @@ importers:
       '@eslint/js':
         specifier: 9.33.0
         version: 9.33.0
+      '@medusajs-ai/tags':
+        specifier: next
+        version: 0.0.2-next-20251118141357(vite@7.1.2(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.20.5))
       '@medusajs/types':
         specifier: 2.13.4
         version: 2.13.4(ioredis@5.7.0)(vite@7.1.2(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.20.5))
@@ -542,6 +545,11 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.30':
     resolution: {integrity: sha512-GQ7Nw5G2lTu/BtHTKfXhKHok2WGetd4XYcVKGx00SjAk8GMwgJM3zr6zORiPGuOE+/vkc90KtTosSSvaCjKb2Q==}
+
+  '@medusajs-ai/tags@0.0.2-next-20251118141357':
+    resolution: {integrity: sha512-idyZGsB64is9sayC4GI3IT9U1rF7CvKS+lHKD4Dfwp0FCrMlcM5CXN4sPIH9R9v5tv5v2zDdXBanKQReNKcGmg==}
+    peerDependencies:
+      vite: '>=4.0.0'
 
   '@medusajs/icons@2.13.4':
     resolution: {integrity: sha512-oqNE8aAXnZaQ1+mAL2FzSsZIbrf7uxihW5TRaLGF/G+zYylx7OxG93XGX6wCqztuQJJoUrICYaaBilyFRzriXg==}
@@ -1783,6 +1791,9 @@ packages:
 
   estree-walker@2.0.2:
     resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
+
+  estree-walker@3.0.3:
+    resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
   esutils@2.0.3:
     resolution: {integrity: sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==}
@@ -3059,6 +3070,15 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@medusajs-ai/tags@0.0.2-next-20251118141357(vite@7.1.2(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.20.5))':
+    dependencies:
+      '@babel/parser': 7.29.2
+      '@babel/types': 7.29.0
+      estree-walker: 3.0.3
+      fast-glob: 3.3.3
+      magic-string: 0.30.21
+      vite: 7.1.2(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.20.5)
 
   '@medusajs/icons@2.13.4(react@19.1.1)':
     dependencies:
@@ -4347,6 +4367,10 @@ snapshots:
   estraverse@5.3.0: {}
 
   estree-walker@2.0.2: {}
+
+  estree-walker@3.0.3:
+    dependencies:
+      '@types/estree': 1.0.8
 
   esutils@2.0.3: {}
 
