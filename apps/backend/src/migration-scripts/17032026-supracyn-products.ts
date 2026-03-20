@@ -373,7 +373,7 @@ export default async function migration_17032026_supracyn_products({
   // Resolve default sales channel (used for product visibility).
   const salesChannelModuleService = container.resolve(
     ModuleRegistrationName.SALES_CHANNEL
-  )
+  ) as any
   const [defaultSalesChannel] =
     await salesChannelModuleService.listSalesChannels({
       name: "Default Sales Channel",
@@ -387,7 +387,7 @@ export default async function migration_17032026_supracyn_products({
 
   const fulfillmentModuleService = container.resolve(
     ModuleRegistrationName.FULFILLMENT
-  )
+  ) as any
   const [shippingProfile] = await fulfillmentModuleService.listShippingProfiles({
     type: "default",
   })
@@ -501,7 +501,7 @@ export default async function migration_17032026_supracyn_products({
     },
   })
 
-  const pharmaService: any = container.resolve(PHARMA_MODULE)
+  const pharmaService = container.resolve(PHARMA_MODULE) as any
 
   await pharmaService.createDrugProducts(
     created.map((product) => {

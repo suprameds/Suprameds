@@ -21,7 +21,7 @@ addToCartWorkflow.hooks.validate(async ({ input }, { container }) => {
   if (variantIds.length === 0) return
 
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
-  const pharmaService: any = container.resolve(PHARMA_MODULE)
+  const pharmaService = container.resolve(PHARMA_MODULE) as any
 
   // Resolve variant_id → product_id via query
   const { data: variants } = await query.graph({

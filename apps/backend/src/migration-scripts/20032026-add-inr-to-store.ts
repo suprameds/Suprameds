@@ -20,7 +20,7 @@ export default async function add_inr_to_store({
   container: MedusaContainer;
 }) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER);
-  const storeModule = container.resolve(ModuleRegistrationName.STORE);
+  const storeModule = container.resolve(ModuleRegistrationName.STORE) as any;
 
   const [store] = await storeModule.listStores();
   if (!store) {

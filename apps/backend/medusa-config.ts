@@ -5,9 +5,9 @@ import {
   loadEnv,
 } from "@medusajs/framework/utils";
 
-loadEnv(process.env.NODE_ENV || "development", process.cwd());
+loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
-module.exports = defineConfig({
+export default defineConfig({
   plugins: ["medusa-plugin-razorpay-v2"],
   admin: {
     // disable: process.env.NODE_ENV === "production" ? false : true,
@@ -118,4 +118,4 @@ module.exports = defineConfig({
       },
     },
   },
-});
+})

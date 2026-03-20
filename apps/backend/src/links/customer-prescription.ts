@@ -17,6 +17,7 @@ export default defineLink(
     field: "customer_id",
     isList: false,
   },
-  CustomerModule.linkable.customer,
+  ((CustomerModule as any)?.linkable?.customer ??
+    (CustomerModule as any)?.default?.linkable?.customer) as any,
   { readOnly: true }
 )

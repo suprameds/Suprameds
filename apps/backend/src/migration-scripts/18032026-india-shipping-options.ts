@@ -23,10 +23,10 @@ export default async function india_shipping_options({
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
   const fulfillmentModuleService = container.resolve(
     ModuleRegistrationName.FULFILLMENT
-  )
+  ) as any
   const pricingModuleService = container.resolve(
     ModuleRegistrationName.PRICING
-  )
+  ) as any
 
   // --- 1. Add India to the default fulfillment set's service zone ---
   const fulfillmentSets = await fulfillmentModuleService.listFulfillmentSets(

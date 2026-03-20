@@ -15,12 +15,12 @@ type UploadRxStepInput = {
 export const createPrescriptionStep = createStep(
   "create-prescription-step",
   async (input: UploadRxStepInput, { container }) => {
-    const prescriptionModuleService: any = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionModuleService = container.resolve(PRESCRIPTION_MODULE) as any
     const prescription = await prescriptionModuleService.createPrescriptions(input)
     return new StepResponse(prescription, prescription.id)
   },
   async (prescriptionId: string, { container }) => {
-    const prescriptionModuleService: any = container.resolve(PRESCRIPTION_MODULE)
+    const prescriptionModuleService = container.resolve(PRESCRIPTION_MODULE) as any
     await prescriptionModuleService.deletePrescriptions([prescriptionId])
   }
 )
@@ -28,7 +28,7 @@ export const createPrescriptionStep = createStep(
 export const emitPrescriptionUploadedEventStep = createStep(
   "emit-prescription-uploaded-event",
   async (prescriptionId: string, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS)
+    const eventBus = container.resolve(Modules.EVENT_BUS) as any
     await eventBus.emit({
       name: "prescription.uploaded",
       data: { id: prescriptionId },
