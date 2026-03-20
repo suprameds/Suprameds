@@ -2,9 +2,6 @@
   "name": "ai-template",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
@@ -18,14 +15,16 @@
     "turbo": "^2.0.14",
     "prettier": "^3.2.5"
   },
-  "packageManager": "npm@10.0.0",
+  "packageManager": "pnpm@10.8.0",
   "engines": {
     "node": ">=18"
   },
-  "overrides": {
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
-    "@types/react": "19.1.1",
-    "@types/react-dom": "19.1.1"
+  "pnpm": {
+    "overrides": {
+      "react": "19.1.1",
+      "react-dom": "19.1.1",
+      "@types/react": "19.1.1",
+      "@types/react-dom": "19.1.1"
+    }
   }
 }
