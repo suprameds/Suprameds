@@ -75,16 +75,47 @@ const Home = () => {
             </div>
 
             <h1
-              className="text-4xl lg:text-5xl font-semibold leading-tight mb-5"
+              className="text-4xl lg:text-5xl font-semibold leading-tight mb-3"
               style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif", letterSpacing: "-0.02em" }}
             >
-              India's trusted online<br />
-              <span style={{ color: "#16a5b0", fontStyle: "italic" }}>licensed pharmacy</span>
+              Generic Medicines at<br />
+              <span style={{ color: "#27AE60", fontStyle: "italic" }}>50–80% Off</span>
             </h1>
+            <p
+              className="text-base lg:text-lg font-medium mb-5"
+              style={{ color: "rgba(255,255,255,0.75)" }}
+            >
+              India's trusted CDSCO-licensed online pharmacy
+            </p>
 
-            <p className="text-base lg:text-lg leading-relaxed mb-8 max-w-lg" style={{ color: "rgba(255,255,255,0.65)" }}>
-              Prescription and OTC medicines dispensed by registered pharmacists.
-              Delivered to all India pincodes via Speed Post.
+            <div className="flex flex-wrap gap-2 mb-6">
+              {[
+                { icon: "truck", text: "FREE Delivery above ₹300" },
+                { icon: "clock", text: "2-Day Delivery in T.S. & A.P." },
+                { icon: "india", text: "Pan-India Speed Post" },
+              ].map((pill) => (
+                <span
+                  key={pill.text}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                  style={{ background: "rgba(39,174,96,0.15)", color: "#68D89B", border: "1px solid rgba(39,174,96,0.2)" }}
+                >
+                  {pill.icon === "truck" && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  )}
+                  {pill.icon === "clock" && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  )}
+                  {pill.icon === "india" && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  )}
+                  {pill.text}
+                </span>
+              ))}
+            </div>
+
+            <p className="text-sm leading-relaxed mb-6 max-w-lg" style={{ color: "rgba(255,255,255,0.55)" }}>
+              Same composition, same efficacy — dispensed by registered pharmacists.
+              Prescription and OTC medicines delivered to all India pincodes.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3">
@@ -130,10 +161,10 @@ const Home = () => {
           <div className="content-container py-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { value: "3+", label: "Years Licensed" },
-                { value: "350+", label: "Monthly Orders" },
+                { value: "50–80%", label: "Savings on Generics" },
+                { value: "₹300+", label: "Free Delivery" },
                 { value: "5000+", label: "Medicines" },
-                { value: "All India", label: "Delivery Coverage" },
+                { value: "All India", label: "Speed Post Delivery" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <p className="text-xl font-semibold" style={{ color: "#16a5b0", fontFamily: "Fraunces, Georgia, serif" }}>
@@ -263,7 +294,7 @@ const Home = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               {products.map((product) => {
-                const { cheapestPrice } = getProductPrice({ product, region })
+                const { cheapestPrice } = getProductPrice({ product })
                 const isRx = (product as any).metadata?.requires_prescription
                 const scheduleClass = (product as any).metadata?.schedule_classification
 
@@ -444,6 +475,7 @@ const Home = () => {
               <Link
                 to="/$countryCode/account/login"
                 params={{ countryCode }}
+                search={{ redirectTo: undefined }}
                 className="flex items-center gap-2 px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-80"
                 style={{ background: "#0D1B2A", color: "#fff" }}
               >

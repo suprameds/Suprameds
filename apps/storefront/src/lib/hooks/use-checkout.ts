@@ -53,7 +53,10 @@ export const useSetCartAddresses = () => {
 
       return cart
     },
-    onSuccess: () => {
+    onSuccess: (cart) => {
+      // Set cache immediately so checkout step guards see the updated cart
+      // before the background refetch completes.
+      queryClient.setQueriesData({ predicate: queryKeys.cart.predicate }, cart)
       queryClient.invalidateQueries({ predicate: queryKeys.cart.predicate })
     },
   })
@@ -97,6 +100,7 @@ export const useSetCartShippingMethod = () => {
       return cart
     },
     onSuccess: async (cart) => {
+      queryClient.setQueriesData({ predicate: queryKeys.cart.predicate }, cart)
       queryClient.invalidateQueries({ predicate: queryKeys.cart.predicate })
       queryClient.invalidateQueries({ queryKey: queryKeys.shipping.options(cart.id) })
     },
@@ -140,19 +144,42 @@ export const useInitiateCartPaymentSession = () => {
       const cartId = getStoredCart()
       if (!cartId) throw new Error("No cart found")
 
-      // Must include payment_collection so the SDK knows an existing collection
-      // is already present and skips trying to create a second one (which would
-      // throw "Cart already has a payment collection" → 500).
+      // Retrieve cart with payment_collection so the SDK can reuse an existing
+      // collection instead of creating a duplicate (which would 500).
       const { cart } = await sdk.store.cart.retrieve(cartId, {
-        fields: DEFAULT_CART_FIELDS + ", *payment_collection.payment_sessions",
+        fields: "+payment_collection.payment_sessions",
       })
       if (!cart) throw new Error("Cart not found")
 
-      const { payment_collection } = await sdk.store.payment.initiatePaymentSession(
-        cart,
-        { provider_id, data }
-      )
-      return payment_collection
+      try {
+        const { payment_collection } = await sdk.store.payment.initiatePaymentSession(
+          cart,
+          { provider_id, data }
+        )
+        return payment_collection
+      } catch (err: unknown) {
+        // Race condition: two calls fire before the first completes, or the user
+        // navigated back and the collection already exists. Fall back to directly
+        // creating a session on the existing collection.
+        const msg = err instanceof Error ? err.message : String(err)
+        if (msg.includes("already has a payment collection")) {
+          // Re-fetch to get the now-existing payment_collection id
+          const { cart: freshCart } = await sdk.store.cart.retrieve(cartId, {
+            fields: "+payment_collection.payment_sessions",
+          })
+          const collectionId = freshCart?.payment_collection?.id
+          if (!collectionId) throw err
+
+          const result = await sdk.client.fetch<{
+            payment_collection: Record<string, unknown>
+          }>(
+            `/store/payment-collections/${collectionId}/payment-sessions`,
+            { method: "POST", body: { provider_id, data } }
+          )
+          return result.payment_collection
+        }
+        throw err
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ predicate: queryKeys.cart.predicate })

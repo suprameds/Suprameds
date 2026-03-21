@@ -51,8 +51,9 @@ export function PushNotificationManager() {
 
         window.localStorage.setItem(TOKEN_CACHE_KEY, token)
       } catch (err) {
-        // Push should never block checkout/auth flows.
-        console.warn("[push] registration failed", err)
+        if (import.meta.env.DEV) {
+          console.warn("[push] registration failed", err)
+        }
       }
     }
 

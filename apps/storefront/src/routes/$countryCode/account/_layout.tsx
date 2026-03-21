@@ -21,6 +21,7 @@ function AccountLayout() {
         navigate({
           to: "/$countryCode/account/login",
           params: { countryCode },
+          search: { redirectTo: location.pathname },
         })
       },
     })
@@ -29,7 +30,7 @@ function AccountLayout() {
   // Redirect unauthenticated users to login — must be in useEffect, never during render
   useEffect(() => {
     if (!isLoading && !customer) {
-      navigate({ to: "/$countryCode/account/login", params: { countryCode } })
+      navigate({ to: "/$countryCode/account/login", params: { countryCode }, search: { redirectTo: location.pathname } })
     }
   }, [isLoading, customer, countryCode, navigate])
 

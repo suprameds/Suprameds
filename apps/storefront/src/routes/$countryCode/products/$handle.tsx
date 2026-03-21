@@ -1,6 +1,7 @@
 import { listProducts, retrieveProduct } from "@/lib/data/products";
 import { getRegion } from "@/lib/data/regions";
 import { queryKeys } from "@/lib/utils/query-keys";
+import { sdk } from "@/lib/utils/sdk";
 import ProductDetails from "@/pages/product";
 import { HttpTypes } from "@medusajs/types";
 import { createFileRoute, notFound } from "@tanstack/react-router";
@@ -36,20 +37,16 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       },
     });
 
-    // Fetch pharma metadata via custom endpoint.
-    const pharma = await fetch(
-      `${import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"}/store/products/pharma?handle=${encodeURIComponent(
-        handle
-      )}`,
-      {
-        headers: {
-          "x-publishable-api-key": import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY,
-        },
-      }
-    ).then(async (r) => {
-      if (!r.ok) return null
-      return (await r.json()) as { drug_product: any }
-    })
+    // Fetch pharma metadata via custom endpoint using SDK (auto-includes publishable key + auth)
+    let pharma: { drug_product: any } | null = null
+    try {
+      pharma = await sdk.client.fetch<{ drug_product: any }>(
+        `/store/products/pharma?handle=${encodeURIComponent(handle)}`,
+        { method: "GET" }
+      )
+    } catch {
+      // pharma metadata unavailable — non-pharma product or module not loaded
+    }
 
     if (pharma?.drug_product) {
       ;(product as any).drug_product = pharma.drug_product
@@ -102,7 +99,7 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       return {
         meta: [
           {
-            title: "Product Not Found | Medusa Store",
+            title: "Product Not Found | Suprameds",
           },
         ],
       };
@@ -117,7 +114,7 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       image: product.images?.map((img) => img.url).filter(Boolean) || [],
       brand: {
         "@type": "Brand",
-        name: "Medusa Store",
+        name: "Suprameds",
       },
       offers: {
         "@type": "Offer",
@@ -135,7 +132,7 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
     return {
       meta: [
         {
-          title: `${product.title} | Medusa Store`,
+          title: `${product.title} | Suprameds`,
         },
         {
           name: "description",
@@ -143,12 +140,12 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
         },
         {
           property: "og:title",
-          content: `${product.title} | Medusa Store`,
+          content: `${product.title} | Suprameds`,
         },
         {
           property: "og:description",
           content:
-            product.description || "Check out this product on Medusa Store",
+            product.description || "Check out this product on Suprameds",
         },
         {
           property: "og:image",

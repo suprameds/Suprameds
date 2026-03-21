@@ -7,8 +7,10 @@ import {
   useUploadPrescription,
   type PrescriptionSummary,
 } from "@/lib/hooks/use-prescriptions"
+import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
-import { useCallback, useRef, useState } from "react"
+import { Link, useLocation } from "@tanstack/react-router"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 // ── Icons ──────────────────────────────────────────────────────────
 
@@ -92,6 +94,8 @@ interface PrescriptionStepProps {
 }
 
 const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
+  const location = useLocation()
+  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data: customer } = useCustomer()
   const isAuthenticated = !!customer
 
@@ -117,10 +121,12 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
   const [dragOver, setDragOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Sync selectedId when rxStatus loads
-  if (rxStatus?.prescription_id && selectedId === null) {
-    setSelectedId(rxStatus.prescription_id)
-  }
+  // Sync selectedId when rxStatus loads (must be in useEffect, not during render)
+  useEffect(() => {
+    if (rxStatus?.prescription_id && selectedId === null) {
+      setSelectedId(rxStatus.prescription_id)
+    }
+  }, [rxStatus?.prescription_id, selectedId])
 
   // ── Attach handler ──────────────────────────────────────────────
 
@@ -261,13 +267,15 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
           <p className="text-xs mb-5" style={{ color: "#6B7280" }}>
             Prescriptions are linked to your account for traceability, pharmacist review, and reordering.
           </p>
-          <a
-            href={`/in/account/login?redirectTo=${encodeURIComponent(window.location.pathname + window.location.search)}`}
+          <Link
+            to="/$countryCode/account/login"
+            params={{ countryCode }}
+            search={{ redirectTo: location.href }}
             className="inline-flex px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ background: "#0E7C86", color: "#fff" }}
           >
             Sign in to continue
-          </a>
+          </Link>
         </div>
 
         <div className="flex items-center gap-4 pt-2">

@@ -13,6 +13,48 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { Link, useLocation, useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 
+const ANNOUNCEMENT_DISMISSED_KEY = "suprameds_announce_dismissed"
+
+function AnnouncementBar() {
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return true
+    return window.localStorage.getItem(ANNOUNCEMENT_DISMISSED_KEY) === "1"
+  })
+
+  if (dismissed) return null
+
+  return (
+    <div
+      className="relative overflow-hidden text-center py-2 px-4 text-xs font-medium tracking-wide"
+      style={{ background: "linear-gradient(90deg, #0E7C86, #1A9A5C)", color: "#fff" }}
+    >
+      <div className="content-container flex items-center justify-center gap-x-2 sm:gap-x-4 flex-wrap gap-y-1">
+        <span className="flex items-center gap-1">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          Save 50–80% on Generic Medicines
+        </span>
+        <span className="hidden sm:inline opacity-60">|</span>
+        <span className="flex items-center gap-1">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          FREE Delivery above ₹300
+        </span>
+        <span className="hidden sm:inline opacity-60">|</span>
+        <span className="hidden sm:flex items-center gap-1">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          2-Day Delivery in T.S. & A.P.
+        </span>
+      </div>
+      <button
+        onClick={() => { setDismissed(true); window.localStorage.setItem(ANNOUNCEMENT_DISMISSED_KEY, "1") }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 opacity-70 hover:opacity-100 transition-opacity"
+        aria-label="Dismiss announcement"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  )
+}
+
 const ShieldIcon = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -84,6 +126,7 @@ export const Navbar = () => {
 
   return (
     <div className="sticky top-0 inset-x-0 z-40">
+      <AnnouncementBar />
       {/* Compliance top bar — LegitScript & CDSCO crawlable */}
       <div className="compliance-bar w-full">
         <div className="content-container flex items-center justify-between py-1.5">
@@ -114,9 +157,10 @@ export const Navbar = () => {
               <summary
                 className="list-none flex items-center gap-1 text-sm font-medium cursor-pointer"
                 style={{ color: "#0D1B2A" }}
+                aria-label="Medicines menu"
               >
                 Medicines
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginTop: 1 }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginTop: 1 }} aria-hidden="true">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </summary>
@@ -133,14 +177,15 @@ export const Navbar = () => {
                   All Medicines
                 </Link>
                 {categoryLinks.map((link) => (
-                  <a
+                  <Link
                     key={link.id}
-                    href={`/${countryCode}/categories/${link.handle}`}
+                    to="/$countryCode/categories/$handle"
+                    params={{ countryCode, handle: link.handle }}
                     className="block px-2 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded"
                     style={{ color: "#0D1B2A" }}
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 ))}
               </div>
             </details>
@@ -154,15 +199,15 @@ export const Navbar = () => {
               OTC Products
             </Link>
 
-            <a
-              href="/prescription-policy"
+            <Link
+              to="/prescription-policy"
               className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
               style={{ color: "#0D1B2A" }}
             >
               Prescription Policy
-            </a>
+            </Link>
 
-            <form onSubmit={handleSearch} className="flex items-center ml-2">
+            <form onSubmit={handleSearch} className="flex items-center ml-2" role="search" aria-label="Search medicines">
               <div
                 className="flex items-center rounded-lg overflow-hidden"
                 style={{ background: "#F8F6F2", border: "1px solid #EDE9E1" }}
@@ -229,14 +274,15 @@ export const Navbar = () => {
                   { label: "Our Licenses", href: "/pharmacy/licenses" },
                   { label: "Grievance Officer", href: "/grievance" },
                 ].map((item) => (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors"
-                    style={{ color: "#0D1B2A" }}
-                  >
-                    {item.label}
-                  </a>
+                  <DrawerClose key={item.label} asChild>
+                    <Link
+                      to={item.href}
+                      className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors"
+                      style={{ color: "#0D1B2A" }}
+                    >
+                      {item.label}
+                    </Link>
+                  </DrawerClose>
                 ))}
                 <div className="px-6 pt-4 pb-2">
                   <div className="border-t" style={{ borderColor: "#EDE9E1" }} />
@@ -245,6 +291,7 @@ export const Navbar = () => {
                   <Link
                     to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
                     params={{ countryCode }}
+                    search={{ redirectTo: undefined } as any}
                     className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors flex items-center gap-2"
                     style={{ color: "#0D1B2A" }}
                   >
@@ -305,6 +352,7 @@ export const Navbar = () => {
             <Link
               to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
               params={{ countryCode }}
+              search={{ redirectTo: undefined } as any}
               className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-gray-100"
               style={{ color: "#0D1B2A" }}
               title={customer ? `${customer.first_name} ${customer.last_name}` : "Sign in or register"}

@@ -31,6 +31,7 @@ export const Route = createFileRoute("/$countryCode/account")({
       throw redirect({
         to: "/$countryCode/account/login",
         params: { countryCode },
+        search: { redirectTo: location.pathname },
       })
     }
   },

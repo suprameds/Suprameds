@@ -6,7 +6,7 @@ import { queryKeys } from "@/lib/utils/query-keys"
 const ORDER_FIELDS =
   "id, display_id, created_at, currency_code, status, fulfillment_status, email, " +
   "*items, *shipping_address, *billing_address, *shipping_methods, " +
-  "*payment_collections, " +
+  "*payment_collections, *payment_collections.payment_sessions, " +
   "*fulfillments, *fulfillments.labels, *fulfillments.items, " +
   "subtotal, shipping_total, discount_total, tax_total, total"
 

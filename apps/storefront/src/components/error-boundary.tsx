@@ -26,11 +26,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError && this.state.error) {
-      console.error("[ErrorBoundary]", {
-        message: this.state.error.message,
-        stack: this.state.error.stack,
-        name: this.state.error.name,
-      })
+      if (import.meta.env.DEV) {
+        console.error("[ErrorBoundary]", {
+          message: this.state.error.message,
+          stack: this.state.error.stack,
+          name: this.state.error.name,
+        })
+      }
 
       if (this.props.fallback) {
         return this.props.fallback

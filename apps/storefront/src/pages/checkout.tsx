@@ -3,6 +3,7 @@ import CheckoutProgress from "@/components/checkout-progress"
 import { Loading } from "@/components/ui/loading"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useCartRxStatus } from "@/lib/hooks/use-prescriptions"
+import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { type CheckoutStep, CheckoutStepKey } from "@/lib/types/global"
 import {
   useLoaderData,
@@ -25,6 +26,7 @@ const Checkout = () => {
   const { data: cart, isLoading: cartLoading } = useCart()
   const location = useLocation()
   const navigate = useNavigate()
+  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   // Check whether the cart contains Rx items (determines prescription step)
   const { data: rxStatus } = useCartRxStatus(cart?.id)
@@ -85,14 +87,24 @@ const Checkout = () => {
   )
 
   const goToStep = useCallback(
-    (step: CheckoutStepKey) => {
+    (nextStep: CheckoutStepKey) => {
       navigate({
-        to: `${location.pathname}?step=${step}`,
+        to: "/$countryCode/checkout",
+        params: { countryCode },
+        search: { step: nextStep },
         replace: true,
       })
     },
-    [location.pathname, navigate]
+    [navigate, countryCode]
   )
+
+  // Redirect to cart page if cart is empty or missing (e.g. after order completion)
+  useEffect(() => {
+    if (cartLoading) return
+    if (!cart || !cart.items?.length) {
+      navigate({ to: "/$countryCode/cart", params: { countryCode } })
+    }
+  }, [cart, cartLoading, navigate, countryCode])
 
   useEffect(() => {
     if (!cart) return

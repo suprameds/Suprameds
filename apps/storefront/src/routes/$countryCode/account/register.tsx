@@ -240,6 +240,7 @@ function RegisterPage() {
               <Link
                 to="/$countryCode/account/login"
                 params={{ countryCode }}
+                search={{ redirectTo: undefined }}
                 className="font-medium hover:underline"
                 style={{ color: "#27AE60" }}
               >
