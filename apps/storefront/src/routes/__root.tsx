@@ -57,7 +57,17 @@ export const Route = createRootRouteWithContext<{
           "Suprameds — CDSCO-registered online pharmacy. Pharmacist-dispensed prescription medicines and OTC products delivered across India.",
       },
     ],
-    scripts: [],
+    scripts: [
+      // Google Analytics 4 — async loader
+      {
+        src: "https://www.googletagmanager.com/gtag/js?id=G-RDYLD3PM8D",
+        async: true,
+      },
+      // GA4 inline initialisation
+      {
+        children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-RDYLD3PM8D');`,
+      },
+    ],
   }),
   notFoundComponent: NotFound,
   component: RootComponent,
