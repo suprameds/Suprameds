@@ -20,6 +20,7 @@ startTransition(() => {
   hydrateRoot(
     document,
     <StrictMode>
+      {/* @ts-expect-error TanStack Start internal prop typing */}
       <StartClient router={router} />
     </StrictMode>,
   )

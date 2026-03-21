@@ -12,10 +12,16 @@ const Layout = () => {
     <ToastProvider>
       <CartProvider>
         <div className="min-h-screen flex flex-col">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-zinc-900 focus:shadow-lg focus:border focus:border-zinc-300"
+          >
+            Skip to main content
+          </a>
           <PushNotificationManager />
           <Navbar />
 
-          <main className="relative flex-1">
+          <main id="main-content" className="relative flex-1">
             <ErrorBoundary>
               <Outlet />
             </ErrorBoundary>

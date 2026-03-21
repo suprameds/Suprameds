@@ -29,6 +29,38 @@ import { clsx } from "clsx"
 import { useState } from "react"
 
 
+const FREE_DELIVERY_THRESHOLD = 300
+
+export const FreeDeliveryBar = ({ subtotal, currencyCode }: { subtotal: number; currencyCode: string }) => {
+  const remaining = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotal)
+  const progress = Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)
+  const qualified = remaining <= 0
+
+  return (
+    <div
+      className="rounded-lg px-3 py-2.5"
+      style={{ background: qualified ? "rgba(39,174,96,0.08)" : "#F8F6F2", border: `1px solid ${qualified ? "rgba(39,174,96,0.25)" : "#EDE9E1"}` }}
+    >
+      <div className="flex items-center gap-2 text-xs font-medium mb-1.5">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={qualified ? "#27AE60" : "#0E7C86"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        {qualified ? (
+          <span style={{ color: "#1A7A4A" }}>You qualify for FREE delivery!</span>
+        ) : (
+          <span style={{ color: "#0D1B2A" }}>Add ₹{remaining.toFixed(0)} more for <strong>FREE delivery</strong></span>
+        )}
+      </div>
+      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "#EDE9E1" }}>
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${progress}%`, background: qualified ? "#27AE60" : "#0E7C86" }}
+        />
+      </div>
+    </div>
+  )
+}
+
 type LineItemPriceProps = {
   item: HttpTypes.StoreCartLineItem | HttpTypes.StoreOrderLineItem
   currencyCode: string
@@ -93,6 +125,7 @@ export const CartItemQuantitySelector = ({
 }: CartItemQuantitySelectorProps) => {
   const updateLineItemMutation = useUpdateLineItem({ fields })
   const deleteLineItemMutation = useDeleteLineItem({ fields })
+  const isMutating = updateLineItemMutation.isPending || deleteLineItemMutation.isPending
 
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity === 0) {
@@ -106,9 +139,10 @@ export const CartItemQuantitySelector = ({
   }
 
   return (
-    <div className="flex items-center">
+    <div className={clsx("flex items-center", isMutating && "opacity-60 pointer-events-none")}>
       <Button
         onClick={() => handleQuantityChange(item.quantity - 1)}
+        disabled={isMutating}
         className={clsx(
           type === "compact" &&
             "text-zinc-600 hover:text-zinc-500 transition-colors p-1 ml-2"
@@ -129,6 +163,7 @@ export const CartItemQuantitySelector = ({
       </span>
       <Button
         onClick={() => handleQuantityChange(item.quantity + 1)}
+        disabled={isMutating}
         className={clsx(
           type === "compact" &&
             "text-zinc-600 hover:text-zinc-500 transition-colors p-1 ml-2"
@@ -275,51 +310,37 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
   }
   return (
     <div className="space-y-4">
+      <FreeDeliveryBar subtotal={cart.subtotal ?? 0} currencyCode={cart.currency_code} />
+
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Subtotal</span>
-          <Price
-            price={cart.subtotal}
-            currencyCode={cart.currency_code}
-            className="text-zinc-600"
-          />
+          <span style={{ color: "#2C3E50" }}>Subtotal</span>
+          <Price price={cart.subtotal} currencyCode={cart.currency_code} />
         </div>
-
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Shipping</span>
-          <Price
-            price={cart.shipping_total}
-            currencyCode={cart.currency_code}
-            className="text-zinc-600"
-          />
+          <span style={{ color: "#2C3E50" }}>Shipping</span>
+          <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
         </div>
-
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Discount</span>
-          <Price
-            price={cart.discount_total}
-            currencyCode={cart.currency_code}
-            type="discount"
-            className="text-zinc-600"
-          />
+          <span style={{ color: "#2C3E50" }}>Discount</span>
+          <Price price={cart.discount_total} currencyCode={cart.currency_code} type="discount" />
         </div>
-
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Tax</span>
-          <Price
-            price={cart.tax_total}
-            currencyCode={cart.currency_code}
-            className="text-zinc-600"
-          />
+          <span style={{ color: "#2C3E50" }}>Tax</span>
+          <Price price={cart.tax_total} currencyCode={cart.currency_code} />
         </div>
       </div>
 
-      <hr className="bg-zinc-200" />
+      <hr style={{ borderColor: "#EDE9E1" }} />
 
-      <div className="flex justify-between text-sm">
-        <span className="text-zinc-900">Total</span>
-        <Price price={cart.total} currencyCode={cart.currency_code} className="text-zinc-900" />
+      <div className="flex justify-between text-sm font-semibold">
+        <span style={{ color: "#0D1B2A" }}>Total</span>
+        <Price price={cart.total} currencyCode={cart.currency_code} />
       </div>
+
+      <p className="text-xs" style={{ color: "#999" }}>
+        Estimated delivery: 2 days (T.S. & A.P.) · 5–7 days (rest of India)
+      </p>
     </div>
   )
 }
@@ -339,7 +360,10 @@ export const CartPromo = ({ cart }: CartPromoProps) => {
     removePromoCodeMutation.mutate({ code })
   }
 
+  const [promoError, setPromoError] = useState<string | null>(null)
+
   const handleApply = () => {
+    setPromoError(null)
     applyPromoCodeMutation.mutate(
       { code: promoCode },
       {
@@ -347,12 +371,17 @@ export const CartPromo = ({ cart }: CartPromoProps) => {
           setShowInput(false)
           setPromoCode("")
         },
+        onError: (error) => {
+          setPromoError(
+            error instanceof Error ? error.message : "Invalid promo code"
+          )
+        },
       }
     )
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col gap-2">
       {cart.promotions.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {cart.promotions.map((promotion) => (
@@ -379,19 +408,32 @@ export const CartPromo = ({ cart }: CartPromoProps) => {
       )}
 
       {showInput && (
-        <div className="flex gap-2">
-          <Input
-            placeholder="Enter promo code"
-            name="promoCode"
-            value={promoCode}
-            onChange={(e) => setPromoCode(e.target.value)}
-          />
-          <Button onClick={handleApply} variant="primary" size="fit">
-            Apply
-          </Button>
-          <Button onClick={() => setShowInput(false)} variant="secondary" size="fit">
-            Cancel
-          </Button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <Input
+              placeholder="Enter promo code"
+              name="promoCode"
+              value={promoCode}
+              onChange={(e) => {
+                setPromoCode(e.target.value)
+                setPromoError(null)
+              }}
+            />
+            <Button
+              onClick={handleApply}
+              variant="primary"
+              size="fit"
+              disabled={applyPromoCodeMutation.isPending || !promoCode.trim()}
+            >
+              {applyPromoCodeMutation.isPending ? "Applying…" : "Apply"}
+            </Button>
+            <Button onClick={() => { setShowInput(false); setPromoError(null) }} variant="secondary" size="fit">
+              Cancel
+            </Button>
+          </div>
+          {promoError && (
+            <p className="text-sm text-red-600">{promoError}</p>
+          )}
         </div>
       )}
     </div>
@@ -405,11 +447,15 @@ export const CartEmpty = () => {
 
   return (
     <div className="text-center py-16 flex flex-col items-center justify-center gap-4">
-      <h2 className="text-lg font-bold text-zinc-900">Your cart is empty</h2>
-      <p className="text-zinc-600 text-base font-medium">Start by adding some products</p>
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EDE9E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+      </svg>
+      <h2 className="text-lg font-bold" style={{ color: "#0D1B2A" }}>Your cart is empty</h2>
+      <p className="text-sm" style={{ color: "#666" }}>Browse our medicines and add items to your cart</p>
       <Link to="/$countryCode/store" params={{ countryCode }}>
         <Button variant="primary" size="fit">
-          Continue shopping
+          Browse Medicines
         </Button>
       </Link>
     </div>
@@ -421,7 +467,7 @@ export const DEFAULT_CART_DROPDOWN_FIELDS = "id, *items, total, currency_code, i
 
 export const CartDropdown = () => {
   const { isOpen, openCart, closeCart } = useCartDrawer()
-  const { data: cart } = useCart({
+  const { data: cart, isLoading: isCartLoading } = useCart({
     fields: DEFAULT_CART_DROPDOWN_FIELDS,
   })
   const location = useLocation()
@@ -443,8 +489,13 @@ export const CartDropdown = () => {
           <DrawerTitle>Shopping Cart</DrawerTitle>
         </DrawerHeader>
 
-        {/* Empty Cart */}
-        {(!cart || itemCount === 0) && (
+        {isCartLoading && (
+          <div className="flex items-center justify-center flex-1 p-6">
+            <span className="text-sm text-zinc-500 animate-pulse">Loading cart…</span>
+          </div>
+        )}
+
+        {!isCartLoading && (!cart || itemCount === 0) && (
           <div className="flex flex-col items-center justify-center flex-1 p-6">
             <span className="text-base font-medium text-zinc-600 mb-4">
               Your cart is empty
@@ -473,8 +524,9 @@ export const CartDropdown = () => {
             </div>
 
             <DrawerFooter>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-base font-medium text-zinc-600">Subtotal</span>
+              <FreeDeliveryBar subtotal={cart.item_subtotal ?? 0} currencyCode={cart.currency_code} />
+              <div className="flex items-center justify-between mb-4 mt-3">
+                <span className="text-base font-medium" style={{ color: "#2C3E50" }}>Subtotal</span>
                 <Price price={cart.item_subtotal} currencyCode={cart.currency_code} />
               </div>
 

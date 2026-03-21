@@ -7,7 +7,10 @@
     "dev": "vite dev",
     "build": "vite build",
     "serve": "vite preview",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@medusajs/icons": "2.13.4",
@@ -39,6 +42,9 @@
     "@medusajs/types": "2.13.4",
     "@tailwindcss/vite": "4.2.1",
     "@tanstack/react-router-devtools": "^1.144.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/lodash-es": "4.17.12",
     "@types/react": "19.1.1",
     "@types/react-dom": "19.1.1",
@@ -48,9 +54,11 @@
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-react-refresh": "0.4.20",
     "globals": "16.3.0",
+    "jsdom": "^29.0.1",
     "typescript": "5.8.3",
     "typescript-eslint": "8.39.1",
     "vite": "7.1.2",
-    "vite-plugin-terminal": "1.4.0"
+    "vite-plugin-terminal": "1.4.0",
+    "vitest": "^4.1.0"
   }
 }

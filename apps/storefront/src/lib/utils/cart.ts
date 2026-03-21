@@ -7,15 +7,26 @@ import { queryKeys } from "@/lib/utils/query-keys"
 const CART_KEY = "medusa_cart"
 
 export const getStoredCart = (): string | undefined => {
-  return localStorage.getItem(CART_KEY) || undefined
+  if (typeof window === "undefined") return undefined
+  try {
+    return localStorage.getItem(CART_KEY) || undefined
+  } catch {
+    return undefined
+  }
 }
 
 export const setStoredCart = (cart: string): void => {
-  localStorage.setItem(CART_KEY, cart)
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(CART_KEY, cart)
+  } catch { /* quota exceeded or restricted */ }
 }
 
 export const removeStoredCart = (): void => {
-  localStorage.removeItem(CART_KEY)
+  if (typeof window === "undefined") return
+  try {
+    localStorage.removeItem(CART_KEY)
+  } catch { /* restricted environment */ }
 }
 
 // ============ SORT CART ITEMS ============

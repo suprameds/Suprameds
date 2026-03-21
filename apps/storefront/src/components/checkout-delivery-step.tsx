@@ -20,6 +20,7 @@ const DeliveryStep = ({ cart, onNext, onBack }: DeliveryStepProps) => {
     cart.shipping_methods?.[0]?.shipping_option_id || ""
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const hasAutoSelected = useRef(false)
 
   useEffect(() => {
@@ -34,27 +35,35 @@ const DeliveryStep = ({ cart, onNext, onBack }: DeliveryStepProps) => {
     if (!selectedOptionId || isSubmitting) return
 
     setIsSubmitting(true)
-    await setShippingMethodMutation.mutateAsync(
-      {
+    setSubmitError(null)
+
+    try {
+      await setShippingMethodMutation.mutateAsync({
         shipping_option_id: selectedOptionId,
-      },
-      {
-        onSuccess: () => {
-          onNext()
-        },
-        onSettled: () => {
-          setIsSubmitting(false)
-        },
-        onError: () => {
-          // Error is handled by mutation state
-        },
-      }
-    )
+      })
+      onNext()
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Failed to set shipping method. Please try again."
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
+        {!shippingOptions && (
+          <p className="text-sm text-zinc-500 animate-pulse">Loading shipping options…</p>
+        )}
+
+        {shippingOptions && shippingOptions.length === 0 && (
+          <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+            No shipping options available for your address. Please go back and check your address details.
+          </div>
+        )}
+
         {shippingOptions?.map((option) => (
           <ShippingItemSelector
             key={option.id}
@@ -66,6 +75,16 @@ const DeliveryStep = ({ cart, onNext, onBack }: DeliveryStepProps) => {
         ))}
       </div>
 
+      {submitError && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+          {submitError}
+        </div>
+      )}
+
+      <p className="text-xs" style={{ color: "#666" }}>
+        Estimated delivery: 2 days in Telangana & A.P. · 5–7 days rest of India
+      </p>
+
       <div className="flex items-center gap-4">
         <Button variant="secondary" onClick={onBack} disabled={isSubmitting}>
           Back
@@ -74,7 +93,7 @@ const DeliveryStep = ({ cart, onNext, onBack }: DeliveryStepProps) => {
           onClick={handleSubmit}
           disabled={!selectedOptionId || isSubmitting}
         >
-          Next
+          {isSubmitting ? "Saving…" : "Next"}
         </Button>
       </div>
     </div>

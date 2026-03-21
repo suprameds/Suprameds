@@ -45,7 +45,7 @@ export const useSearch = ({
   categoryId?: string
 }) => {
   return useQuery<SearchResponse>({
-    queryKey: queryKeys.search.fts(q, limit, offset),
+    queryKey: queryKeys.search.fts(q, limit, offset, categoryId),
     queryFn: async () => {
       const params = new URLSearchParams({ q, limit: String(limit), offset: String(offset) })
       if (categoryId) params.set("category_id", categoryId)

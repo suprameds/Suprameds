@@ -74,7 +74,7 @@ export function RazorpayPaymentButton({
     const options = {
       key: keyId,
       amount: amountInPaise,
-      currency: (cart.currency_code ?? "INR").toUpperCase(),
+      currency: (cart.currency_code ?? "INR").toUpperCase() as any,
       order_id: razorpayOrderId,
       name: "Suprameds",
       description: `Order payment`,

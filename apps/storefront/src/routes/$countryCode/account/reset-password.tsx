@@ -74,6 +74,7 @@ function ResetPasswordPage() {
             <Link
               to="/$countryCode/account/login"
               params={{ countryCode }}
+              search={{ redirectTo: undefined }}
               className="block w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-center text-white transition-all hover:opacity-90"
               style={{ background: "#0D1B2A" }}
             >
@@ -182,6 +183,7 @@ function ResetPasswordPage() {
             <Link
               to="/$countryCode/account/login"
               params={{ countryCode }}
+              search={{ redirectTo: undefined }}
               className="text-sm font-medium hover:underline"
               style={{ color: "#27AE60" }}
             >

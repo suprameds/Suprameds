@@ -10,33 +10,291 @@ type OrderInfoProps = {
   order: HttpTypes.StoreOrder
 }
 
-const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
-  pending:            { label: "Pending",           color: "#92400E", bg: "#FEF3C7" },
-  processing:         { label: "Processing",         color: "#1E40AF", bg: "#DBEAFE" },
-  completed:          { label: "Completed",          color: "#065F46", bg: "#ECFDF5" },
-  cancelled:          { label: "Cancelled",          color: "#991B1B", bg: "#FEF2F2" },
-  requires_action:    { label: "Action needed",      color: "#7C3AED", bg: "#EDE9FE" },
-  not_fulfilled:      { label: "Not shipped",        color: "#6B7280", bg: "#F3F4F6" },
-  partially_fulfilled:{ label: "Partially shipped",  color: "#92400E", bg: "#FEF3C7" },
-  fulfilled:          { label: "Shipped",            color: "#065F46", bg: "#ECFDF5" },
-  partially_shipped:  { label: "Partially shipped",  color: "#92400E", bg: "#FEF3C7" },
-  shipped:            { label: "Shipped",            color: "#065F46", bg: "#ECFDF5" },
-  partially_returned: { label: "Partially returned", color: "#7C3AED", bg: "#EDE9FE" },
-  returned:           { label: "Returned",           color: "#991B1B", bg: "#FEF2F2" },
-  delivered:          { label: "Delivered",          color: "#065F46", bg: "#ECFDF5" },
+// ============ ORDER PROGRESS DERIVATION ============
+
+type ProgressStep = {
+  key: string
+  label: string
+  description: string
+  status: "completed" | "active" | "upcoming"
+  timestamp?: string | Date
 }
 
-const StatusBadge = ({ status }: { status: string }) => {
-  const s = STATUS_LABELS[status] ?? { label: status, color: "#374151", bg: "#F3F4F6" }
+/**
+ * Derives a customer-friendly progress timeline from Medusa's order +
+ * fulfillment + payment statuses. Returns exactly the steps that apply.
+ */
+export function deriveOrderProgress(order: HttpTypes.StoreOrder): {
+  steps: ProgressStep[]
+  summaryLabel: string
+  summaryColor: string
+  summaryBg: string
+  isCanceled: boolean
+} {
+  const fulfillmentStatus = (order as any).fulfillment_status as string | undefined
+  const paymentSessions = order.payment_collections?.[0]?.payment_sessions
+  const paymentStatus = paymentSessions?.[0]?.status
+  const providerId = paymentSessions?.[0]?.provider_id ?? ""
+  const isCOD = providerId.includes("system_default") || providerId === "manual"
+
+  const isCanceled = order.status === "canceled" || order.status === "cancelled"
+
+  if (isCanceled) {
+    return {
+      steps: [
+        { key: "placed", label: "Order Placed", description: "Your order was received", status: "completed", timestamp: order.created_at },
+        { key: "cancelled", label: "Order Cancelled", description: "This order has been cancelled", status: "active" },
+      ],
+      summaryLabel: "Cancelled",
+      summaryColor: "#991B1B",
+      summaryBg: "#FEF2F2",
+      isCanceled: true,
+    }
+  }
+
+  const paymentConfirmed =
+    isCOD ||
+    paymentStatus === "authorized" ||
+    paymentStatus === "captured"
+
+  const isShipped =
+    fulfillmentStatus === "shipped" ||
+    fulfillmentStatus === "fulfilled" ||
+    fulfillmentStatus === "partially_shipped" ||
+    fulfillmentStatus === "partially_fulfilled"
+
+  const isDelivered =
+    fulfillmentStatus === "delivered" ||
+    order.status === "completed"
+
+  const steps: ProgressStep[] = [
+    {
+      key: "placed",
+      label: "Order Placed",
+      description: "Your order has been received",
+      status: "completed",
+      timestamp: order.created_at,
+    },
+    {
+      key: "payment",
+      label: isCOD ? "COD Confirmed" : "Payment Received",
+      description: isCOD
+        ? "Pay when your order arrives"
+        : "Payment has been processed",
+      status: paymentConfirmed ? "completed" : "active",
+    },
+    {
+      key: "processing",
+      label: "Processing",
+      description: "Our pharmacy team is preparing your order",
+      status: paymentConfirmed
+        ? (isShipped || isDelivered ? "completed" : "active")
+        : "upcoming",
+    },
+    {
+      key: "shipped",
+      label: "Shipped",
+      description: "Your order is on its way",
+      status: isShipped
+        ? (isDelivered ? "completed" : "active")
+        : "upcoming",
+    },
+    {
+      key: "delivered",
+      label: "Delivered",
+      description: "Order delivered successfully",
+      status: isDelivered ? "completed" : "upcoming",
+    },
+  ]
+
+  let summaryLabel = "Order Placed"
+  let summaryColor = "#92400E"
+  let summaryBg = "#FEF3C7"
+
+  if (isDelivered) {
+    summaryLabel = "Delivered"
+    summaryColor = "#065F46"
+    summaryBg = "#ECFDF5"
+  } else if (isShipped) {
+    summaryLabel = "Shipped"
+    summaryColor = "#1E40AF"
+    summaryBg = "#DBEAFE"
+  } else if (paymentConfirmed) {
+    summaryLabel = "Processing"
+    summaryColor = "#92400E"
+    summaryBg = "#FEF3C7"
+  }
+
+  return { steps, summaryLabel, summaryColor, summaryBg, isCanceled }
+}
+
+// ============ PROGRESS TRACKER COMPONENT ============
+
+export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder }) => {
+  const { steps, isCanceled } = deriveOrderProgress(order)
+
   return (
-    <span
-      className="text-xs font-medium px-2.5 py-0.5 rounded-full"
-      style={{ color: s.color, background: s.bg }}
-    >
-      {s.label}
-    </span>
+    <div className="w-full">
+      {/* Desktop: horizontal stepper */}
+      <div className="hidden sm:flex items-start justify-between relative">
+        {steps.map((step, i) => {
+          const isLast = i === steps.length - 1
+          return (
+            <div key={step.key} className="flex flex-col items-center flex-1 relative">
+              {/* Connector line */}
+              {!isLast && (
+                <div
+                  className="absolute top-3.5 h-0.5 z-0"
+                  style={{
+                    left: "50%",
+                    right: "-50%",
+                    background: step.status === "completed" && steps[i + 1]?.status !== "upcoming"
+                      ? "#27AE60"
+                      : "#E5E7EB",
+                  }}
+                />
+              )}
+
+              {/* Step circle */}
+              <div
+                className="relative z-10 flex items-center justify-center w-7 h-7 rounded-full border-2 transition-all"
+                style={{
+                  borderColor:
+                    step.status === "completed" ? "#27AE60"
+                    : step.status === "active" ? (isCanceled ? "#DC2626" : "#F59E0B")
+                    : "#D1D5DB",
+                  background:
+                    step.status === "completed" ? "#27AE60"
+                    : step.status === "active" ? (isCanceled ? "#FEF2F2" : "#FFFBEB")
+                    : "#fff",
+                }}
+              >
+                {step.status === "completed" ? (
+                  <CheckIcon />
+                ) : step.status === "active" ? (
+                  isCanceled
+                    ? <XIcon />
+                    : <div className="w-2 h-2 rounded-full" style={{ background: "#F59E0B" }} />
+                ) : (
+                  <div className="w-2 h-2 rounded-full" style={{ background: "#D1D5DB" }} />
+                )}
+              </div>
+
+              {/* Label */}
+              <p
+                className="text-xs font-semibold mt-2 text-center"
+                style={{
+                  color:
+                    step.status === "completed" ? "#065F46"
+                    : step.status === "active" ? (isCanceled ? "#991B1B" : "#92400E")
+                    : "#9CA3AF",
+                }}
+              >
+                {step.label}
+              </p>
+              <p
+                className="text-[10px] mt-0.5 text-center max-w-[110px] leading-tight"
+                style={{ color: step.status === "upcoming" ? "#D1D5DB" : "#9CA3AF" }}
+              >
+                {step.description}
+              </p>
+              {step.timestamp && step.status === "completed" && (
+                <p className="text-[10px] mt-0.5" style={{ color: "#9CA3AF" }}>
+                  {new Date(step.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                </p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Mobile: vertical stepper */}
+      <div className="sm:hidden flex flex-col gap-0">
+        {steps.map((step, i) => {
+          const isLast = i === steps.length - 1
+          return (
+            <div key={step.key} className="flex gap-3">
+              {/* Track column */}
+              <div className="flex flex-col items-center">
+                <div
+                  className="flex items-center justify-center w-6 h-6 rounded-full border-2 flex-shrink-0"
+                  style={{
+                    borderColor:
+                      step.status === "completed" ? "#27AE60"
+                      : step.status === "active" ? (isCanceled ? "#DC2626" : "#F59E0B")
+                      : "#D1D5DB",
+                    background:
+                      step.status === "completed" ? "#27AE60"
+                      : step.status === "active" ? (isCanceled ? "#FEF2F2" : "#FFFBEB")
+                      : "#fff",
+                  }}
+                >
+                  {step.status === "completed" ? (
+                    <CheckIcon size={12} />
+                  ) : step.status === "active" ? (
+                    isCanceled
+                      ? <XIcon size={10} />
+                      : <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#F59E0B" }} />
+                  ) : (
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#D1D5DB" }} />
+                  )}
+                </div>
+                {!isLast && (
+                  <div
+                    className="w-0.5 flex-1 min-h-[24px]"
+                    style={{
+                      background: step.status === "completed" && steps[i + 1]?.status !== "upcoming"
+                        ? "#27AE60"
+                        : "#E5E7EB",
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* Text column */}
+              <div className="pb-4 -mt-0.5">
+                <p
+                  className="text-sm font-semibold"
+                  style={{
+                    color:
+                      step.status === "completed" ? "#065F46"
+                      : step.status === "active" ? (isCanceled ? "#991B1B" : "#92400E")
+                      : "#9CA3AF",
+                  }}
+                >
+                  {step.label}
+                </p>
+                <p className="text-xs" style={{ color: step.status === "upcoming" ? "#D1D5DB" : "#9CA3AF" }}>
+                  {step.description}
+                </p>
+                {step.timestamp && step.status === "completed" && (
+                  <p className="text-[10px] mt-0.5" style={{ color: "#9CA3AF" }}>
+                    {new Date(step.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  </p>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
+
+const CheckIcon = ({ size = 14 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+
+const XIcon = ({ size = 12 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+// ============ TRACKING INFO ============
 
 /** Medusa v2: tracking may live on tracking_links or fulfillment labels */
 function collectTrackingEntries(fulfillments: any[] | undefined): { key: string; number: string; url?: string }[] {
@@ -66,84 +324,54 @@ function collectTrackingEntries(fulfillments: any[] | undefined): { key: string;
   return out
 }
 
+// ============ ORDER INFO ============
+
 export const OrderInfo = ({ order }: OrderInfoProps) => {
-  const fulfillmentStatus = (order as any).fulfillment_status as string | undefined
   const fulfillments = (order as any).fulfillments as any[] | undefined
   const trackingEntries = collectTrackingEntries(fulfillments)
 
-  // Medusa: `status` is the order lifecycle (pending / completed / canceled / …).
-  // `fulfillment_status` is packing → shipped → delivered. They are updated by different workflows.
-  const showPendingExplainer =
-    order.status === "pending" &&
-    fulfillmentStatus &&
-    fulfillmentStatus !== "not_fulfilled" &&
-    fulfillmentStatus !== "canceled"
-
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="font-semibold">Order Details</h3>
-      <div className="flex gap-2 items-center">
-        <span className="text-base font-semibold text-zinc-900">Order ID:</span>
-        <span className="text-sm text-zinc-600">
-          {formatOrderId(String(order.display_id ?? order.id ?? ""))}
-        </span>
-      </div>
-      <div className="flex gap-2 items-center">
-        <span className="text-base font-semibold text-zinc-900">Order Date:</span>
-        <span className="text-sm text-zinc-600">
-          {new Date(order.created_at!).toLocaleDateString("en-US", {
-            month: "short",
+    <div className="flex flex-col gap-5">
+      {/* Header row */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
+        <div className="flex gap-2 items-center">
+          <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+            Order #{order.display_id ?? order.id}
+          </span>
+        </div>
+        <span className="text-xs" style={{ color: "#9CA3AF" }}>
+          Placed on{" "}
+          {new Date(order.created_at!).toLocaleDateString("en-IN", {
             day: "numeric",
+            month: "short",
             year: "numeric",
           })}
         </span>
       </div>
 
-      {/* What customers care about first */}
-      {fulfillmentStatus && (
-        <div className="flex flex-col gap-1">
-          <div className="flex gap-2 items-center flex-wrap">
-            <span className="text-base font-semibold text-zinc-900">Delivery status:</span>
-            <StatusBadge status={fulfillmentStatus} />
-          </div>
-          <p className="text-xs text-zinc-500 max-w-xl">
-            This follows your shipment in Admin (packed → shipped → delivered).
-          </p>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-1">
-        <div className="flex gap-2 items-center flex-wrap">
-          <span className="text-base font-semibold text-zinc-900">Order record:</span>
-          <StatusBadge status={order.status} />
-        </div>
-        <p className="text-xs text-zinc-500 max-w-xl">
-          In Medusa, <strong>Pending</strong> means the order record is still open. It becomes{" "}
-          <strong>Completed</strong> when the backend runs the complete-order workflow (this project auto-runs it once
-          the whole order&apos;s <strong>delivery status</strong> is <strong>Delivered</strong>, or staff can complete
-          manually in Admin.)
-        </p>
-        {showPendingExplainer && (
-          <p className="text-xs rounded-md border border-amber-200 bg-amber-50 text-amber-900 px-3 py-2 max-w-xl mt-1">
-            If you still see <strong>Pending</strong> with <strong>Delivered</strong> here, wait a few seconds and
-            refresh—the subscriber may still be processing. If it persists, use{" "}
-            <strong>Admin → Orders → Complete order</strong>, or check that every fulfillment for this order is marked
-            delivered (partial deliveries keep the record pending until all are delivered).
-          </p>
-        )}
+      {/* Progress tracker */}
+      <div
+        className="rounded-xl border p-5"
+        style={{ borderColor: "#EDE9E1", background: "#FAFAF8" }}
+      >
+        <OrderProgressTracker order={order} />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <span className="text-base font-semibold text-zinc-900">Tracking:</span>
-        {trackingEntries.length > 0 ? (
-          trackingEntries.map((t) => (
-            <span key={t.key} className="text-sm text-zinc-600">
+      {/* Tracking */}
+      {trackingEntries.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+            Tracking Number
+          </span>
+          {trackingEntries.map((t) => (
+            <span key={t.key} className="text-sm" style={{ color: "#6B7280" }}>
               {t.url ? (
                 <a
                   href={t.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline text-blue-600 hover:text-blue-800"
+                  className="underline"
+                  style={{ color: "#0E7C86" }}
                 >
                   {t.number}
                 </a>
@@ -151,18 +379,14 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
                 t.number
               )}
             </span>
-          ))
-        ) : (
-          <span className="text-sm text-zinc-500">
-            No tracking number in this order yet. If you shipped from Admin without a tracking label, this stays
-            empty.
-          </span>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
+      {/* Contact info */}
       <div className="flex gap-2 items-center">
-        <span className="text-base font-semibold text-zinc-900">Order Email:</span>
-        <span className="text-sm text-zinc-600">
+        <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>Email:</span>
+        <span className="text-sm" style={{ color: "#6B7280" }}>
           {order.customer?.email ?? order.email ?? "N/A"}
         </span>
       </div>

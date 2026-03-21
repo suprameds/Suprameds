@@ -28,7 +28,7 @@ const ProductActions = memo(function ProductActions({
     Record<string, string | undefined>
   >({})
   const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "dk"
+  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   const addToCartMutation = useAddToCart({
     fields: DEFAULT_CART_DROPDOWN_FIELDS,
@@ -114,21 +114,19 @@ const ProductActions = memo(function ProductActions({
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
 
-    addToCartMutation.mutateAsync(
-      {
+    try {
+      await addToCartMutation.mutateAsync({
         variant_id: selectedVariant.id,
         quantity: 1,
         country_code: countryCode,
         product,
         variant: selectedVariant,
         region,
-      },
-      {
-        onSuccess: () => {
-          openCart()
-        },
-      }
-    )
+      })
+      openCart()
+    } catch {
+      // Optimistic rollback is handled by the hook; no extra action needed.
+    }
   }
 
   return (
@@ -201,31 +199,37 @@ const ProductActions = memo(function ProductActions({
           </Link>
           <Button
             onClick={handleAddToCart}
-            disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant}
+            disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant || addToCartMutation.isPending}
+            loading={addToCartMutation.isPending}
             variant="secondary"
             className="w-full"
             data-testid="add-product-button"
           >
-            {!selectedVariant
-              ? "Select variant"
-              : !inStock || !isValidVariant
-                ? "Out of stock"
-                : "Add to cart (Rx verification at checkout)"}
+            {addToCartMutation.isPending
+              ? "Adding…"
+              : !selectedVariant
+                ? "Select variant"
+                : !inStock || !isValidVariant
+                  ? "Out of stock"
+                  : "Add to cart (Rx verification at checkout)"}
           </Button>
         </div>
       ) : (
         <Button
           onClick={handleAddToCart}
-          disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant}
+          disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant || addToCartMutation.isPending}
+          loading={addToCartMutation.isPending}
           variant="primary"
           className="w-full"
           data-testid="add-product-button"
         >
-          {!selectedVariant
-            ? "Select variant"
-            : !inStock || !isValidVariant
-              ? "Out of stock"
-              : "Add to cart"}
+          {addToCartMutation.isPending
+            ? "Adding…"
+            : !selectedVariant
+              ? "Select variant"
+              : !inStock || !isValidVariant
+                ? "Out of stock"
+                : "Add to cart"}
         </Button>
       )}
     </div>

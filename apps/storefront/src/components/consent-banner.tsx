@@ -48,6 +48,8 @@ export const ConsentBanner = () => {
 
   return (
     <div
+      role="dialog"
+      aria-label="Cookie consent"
       className="fixed bottom-0 inset-x-0 z-50 border-t shadow-lg"
       style={{ background: "#fff", borderColor: "#EDE9E1" }}
     >

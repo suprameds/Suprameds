@@ -5,6 +5,7 @@ import {
   Modules,
 } from "@medusajs/framework/utils"
 import { completeOrderWorkflow } from "@medusajs/medusa/core-flows"
+import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 
 const LOG = "[subscriber:complete-order-on-delivery]"
 
@@ -19,8 +20,7 @@ type DeliveryCreatedPayload = { id: string }
  * - Medusa has set `fulfillment_status` to `delivered` (entire order delivered —
  *   safe for multi-fulfillment: we wait until aggregate status is delivered)
  *
- * This keeps the storefront "Order record" badge in sync with delivery without
- * manual Admin → Complete on every order.
+ * Also sends a push notification to the customer.
  */
 export default async function completeOrderOnDeliveryHandler({
   event: { data },
@@ -37,20 +37,48 @@ export default async function completeOrderOnDeliveryHandler({
 
     const { data: rows } = await query.graph({
       entity: "fulfillment",
-      fields: ["id", "order.id", "order.status", "order.fulfillment_status"],
+      fields: ["id", "order.id", "order.status", "order.fulfillment_status", "order.customer_id", "order.display_id"],
       filters: { id: fulfillmentId },
     })
 
-    const order = (rows as { order?: { id: string; status: string; fulfillment_status?: string } }[])?.[0]
-      ?.order
+    const order = (rows as { order?: {
+      id: string
+      status: string
+      fulfillment_status?: string
+      customer_id?: string
+      display_id?: number
+    } }[])?.[0]?.order
 
     if (!order?.id) {
       console.warn(`${LOG} Could not resolve order for fulfillment ${fulfillmentId}`)
       return
     }
 
-    const { id: orderId, status, fulfillment_status } = order
+    const { id: orderId, status, fulfillment_status, customer_id, display_id } = order
 
+    // --- Push notification (fire regardless of auto-complete eligibility) ---
+    if (customer_id && fulfillment_status === "delivered") {
+      try {
+        const result = await sendPushToCustomerTopic(customer_id, {
+          title: "Order Delivered",
+          body: `Your order #${display_id ?? orderId} has been delivered. Thank you for choosing Suprameds!`,
+          data: {
+            type: "order_delivered",
+            order_id: orderId,
+            url: `/in/order/${orderId}/confirmed`,
+          },
+        })
+        if (result.ok) {
+          console.info(`${LOG} Push sent for order ${orderId} delivery`)
+        } else {
+          console.warn(`${LOG} Push skipped for order ${orderId} (${result.reason})`)
+        }
+      } catch (pushErr) {
+        console.warn(`${LOG} Push failed for order ${orderId}: ${(pushErr as Error).message}`)
+      }
+    }
+
+    // --- Auto-complete order ---
     if (status !== "pending") {
       console.info(
         `${LOG} Order ${orderId} status is "${status}" — skip auto-complete (only pending is updated)`

@@ -15,6 +15,10 @@
   "scripts": {
     "build": "medusa build",
     "seed": "medusa exec ./src/scripts/seed.ts",
+    "db:migrate": "medusa db:migrate",
+    "db:seed": "medusa exec ./src/scripts/run-migrations.ts",
+    "db:setup": "medusa db:migrate && medusa exec ./src/scripts/run-migrations.ts",
+    "db:setup:prod": "medusa db:migrate && SKIP_PRODUCT_SEED=true medusa exec ./src/scripts/run-migrations.ts",
     "start": "medusa start",
     "dev": "medusa develop",
     "dev:tee": "medusa develop 2>&1 | tee -a ../backend.log",

@@ -115,14 +115,12 @@ const Footer = () => {
             <ul className="space-y-2.5">
               {[
                 { label: "All Medicines", href: `/${countryCode}/store` },
-                { label: "OTC Products", href: `/${countryCode}/store` },
-                { label: "Vitamins & Supplements", href: `/${countryCode}/store` },
                 ...(categories?.map(c => ({ label: c.name, href: `/${countryCode}/categories/${c.handle}` })) ?? []),
               ].map((item) => (
                 <li key={item.label}>
-                  <a href={item.href} className="text-sm transition-colors hover:text-[#16a5b0]" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  <Link to={item.href} className="text-sm transition-colors hover:text-[#16a5b0]" style={{ color: "rgba(255,255,255,0.6)" }}>
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -135,17 +133,14 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2.5">
               {[
-                { label: "Upload Prescription", href: "/" },
-                { label: "Track My Order", href: "/" },
-                { label: "Refill Reminders", href: "/" },
-                { label: "Pharmacist Q&A", href: "/" },
-                { label: "My Account", href: "/" },
-                { label: "My Prescriptions", href: "/" },
+                { label: "Upload Prescription", href: `/${countryCode}/upload-rx` },
+                { label: "My Account", href: `/${countryCode}/account` },
+                { label: "My Orders", href: `/${countryCode}/account/orders` },
               ].map((item) => (
                 <li key={item.label}>
-                  <a href={item.href} className="text-sm transition-colors hover:text-[#16a5b0]" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  <Link to={item.href} className="text-sm transition-colors hover:text-[#16a5b0]" style={{ color: "rgba(255,255,255,0.6)" }}>
                     {item.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -162,17 +157,17 @@ const Footer = () => {
                 { label: "Prescription Policy", href: "/prescription-policy" },
                 { label: "Privacy Policy (DPDP)", href: "/privacy" },
                 { label: "Terms of Service", href: "/terms" },
-                { label: "Returns &amp; Refunds", href: "/returns" },
+                { label: "Returns & Refunds", href: "/returns" },
                 { label: "Grievance Officer", href: "/grievance" },
-                { label: "Legal Notices", href: "/about/legal" },
               ].map((item) => (
                 <li key={item.label}>
-                  <a
-                    href={item.href}
+                  <Link
+                    to={item.href}
                     className="text-sm transition-colors hover:text-[#16a5b0]"
                     style={{ color: "rgba(255,255,255,0.6)" }}
-                    dangerouslySetInnerHTML={{ __html: item.label }}
-                  />
+                  >
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>

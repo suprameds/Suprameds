@@ -7,7 +7,7 @@ import {
 } from "@/lib/hooks/use-checkout"
 import { isStripe as isStripeFunc, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
 import { HttpTypes } from "@medusajs/types"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 interface PaymentStepProps {
   cart: HttpTypes.StoreCart;
@@ -32,18 +32,22 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
   const paidByGiftcard = isPaidWithGiftCard(cart)
 
+  const initiatingRef = useRef(false)
   const initiatePaymentSession = useCallback(
     async (method: string) => {
-      initiatePaymentSessionMutation.mutateAsync(
-        { provider_id: method },
-        {
-          onError: (error) => {
-            setError(
-              error instanceof Error ? error.message : "An error occurred"
-            )
-          },
-        }
-      )
+      if (initiatingRef.current) return
+      initiatingRef.current = true
+      try {
+        await initiatePaymentSessionMutation.mutateAsync(
+          { provider_id: method },
+        )
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "An error occurred"
+        )
+      } finally {
+        initiatingRef.current = false
+      }
     },
     [initiatePaymentSessionMutation]
   )
@@ -53,41 +57,52 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
       setError(null)
       setSelectedPaymentMethod(method)
 
-      initiatePaymentSession(method)
+      await initiatePaymentSession(method)
     },
     [initiatePaymentSession]
   )
 
-  // Update selected payment method when payment methods are loaded
+  // Auto-select + initiate the first payment method when list loads
+  const didAutoInitRef = useRef(false)
   useEffect(() => {
-    if (!selectedPaymentMethod && availablePaymentMethods?.length > 0) {
-      const firstMethod = availablePaymentMethods[0]
-      if (firstMethod) {
-        setSelectedPaymentMethod(firstMethod.id)
-        handlePaymentMethodChange(firstMethod.id)
-      }
+    if (didAutoInitRef.current) return
+    if (!availablePaymentMethods?.length) return
+    if (selectedPaymentMethod) return
+
+    didAutoInitRef.current = true
+    const firstMethod = availablePaymentMethods[0]
+    if (firstMethod) {
+      setSelectedPaymentMethod(firstMethod.id)
+      initiatePaymentSession(firstMethod.id)
     }
-  }, [availablePaymentMethods, selectedPaymentMethod, handlePaymentMethodChange])
+  }, [availablePaymentMethods, selectedPaymentMethod, initiatePaymentSession])
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = useCallback(async () => {
-    if (!selectedPaymentMethod) return
+    if (!selectedPaymentMethod || isSubmitting) return
 
-    if (!activeSession) {
-      await initiatePaymentSession(selectedPaymentMethod)
+    setIsSubmitting(true)
+    try {
+      if (!activeSession) {
+        await initiatePaymentSession(selectedPaymentMethod)
+      }
+      onNext()
+    } finally {
+      setIsSubmitting(false)
     }
-
-    onNext()
-  }, [selectedPaymentMethod, activeSession, onNext, initiatePaymentSession])
+  }, [selectedPaymentMethod, activeSession, onNext, initiatePaymentSession, isSubmitting])
 
   return (
     <div className="flex flex-col gap-8">
-      {!paidByGiftcard && (availablePaymentMethods?.length ?? 0) > 0 && (
+      {!paidByGiftcard && availablePaymentMethods.length === 0 && (
+        <p className="text-sm text-zinc-500 animate-pulse">
+          Loading payment methods…
+        </p>
+      )}
+
+      {!paidByGiftcard && availablePaymentMethods.length > 0 && (
         <>
-          {availablePaymentMethods.length === 0 && (
-            <p className="text-base font-medium text-zinc-600">
-              No payment methods available
-            </p>
-          )}
           {availablePaymentMethods.map((paymentMethod) => (
             <div key={paymentMethod.id}>
               <PaymentContainer
@@ -126,7 +141,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
       {error && (
         <div
-          className="text-rose-900 text-sm"
+          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2"
           data-testid="payment-method-error-message"
         >
           {error}
@@ -137,7 +152,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
         <Button
           variant="secondary"
           onClick={onBack}
-          disabled={initiatePaymentSessionMutation.isPending}
+          disabled={isSubmitting || initiatePaymentSessionMutation.isPending}
         >
           Back
         </Button>
@@ -146,13 +161,17 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
           disabled={
             (isStripe && !activeSession) ||
             (!selectedPaymentMethod && !paidByGiftcard) ||
+            isSubmitting ||
             initiatePaymentSessionMutation.isPending
           }
+          loading={isSubmitting}
           data-testid="submit-payment-button"
         >
-          {!activeSession && isStripeFunc(selectedPaymentMethod)
-            ? "Enter card details"
-            : "Next"}
+          {isSubmitting
+            ? "Setting up payment…"
+            : !activeSession && isStripeFunc(selectedPaymentMethod)
+              ? "Enter card details"
+              : "Next"}
         </Button>
       </div>
     </div>

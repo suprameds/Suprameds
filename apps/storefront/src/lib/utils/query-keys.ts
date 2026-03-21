@@ -53,8 +53,8 @@ export const queryKeys = {
 
   search: {
     ...createDomainKeys("search"),
-    fts: (q: string, limit?: number, offset?: number) =>
-      createDynamicKey("search", "fts", q, limit, offset),
+    fts: (q: string, limit?: number, offset?: number, categoryId?: string) =>
+      createDynamicKey("search", "fts", q, limit, offset, categoryId),
   },
 
   prescriptions: {

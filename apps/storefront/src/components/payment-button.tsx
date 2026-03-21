@@ -36,7 +36,7 @@ const PaymentButton = ({ cart, className, disabled }: PaymentButtonProps) => {
       return (
         <RazorpayPaymentButton
           cart={cart}
-          session={paymentSession}
+          session={paymentSession!}
           notReady={notReady}
           className={className}
         />
@@ -55,6 +55,7 @@ const StripePaymentButton = ({
   notReady: boolean;
   className?: string;
 }) => {
+  const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -62,14 +63,13 @@ const StripePaymentButton = ({
   const completeOrderMutation = useCompleteCartOrder()
 
   const handlePayment = async () => {
+    if (submitting) return
+    setSubmitting(true)
     setErrorMessage(null)
 
     try {
-      // For demo purposes, we'll complete the order directly
-      // In production, you'd integrate with Stripe's confirmCardPayment
       const order = await completeOrderMutation.mutateAsync()
 
-      // Navigate to order confirmation
       navigate({
         to: `/${countryCode}/order/${order.id}/confirmed`,
         replace: true,
@@ -78,21 +78,23 @@ const StripePaymentButton = ({
       setErrorMessage(
         error instanceof Error ? error.message : "Payment failed"
       )
+    } finally {
+      setSubmitting(false)
     }
   }
 
   return (
     <>
       <Button
-        disabled={notReady || completeOrderMutation.isPending}
+        disabled={notReady || submitting || completeOrderMutation.isPending}
         onClick={handlePayment}
         data-testid="place-order-button"
         className={className}
       >
-        Place Order
+        {submitting ? "Processing…" : "Place Order"}
       </Button>
       {errorMessage && (
-        <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 mt-2">{errorMessage}</div>
       )}
     </>
   )
@@ -113,6 +115,7 @@ const ManualPaymentButton = ({
   const completeOrderMutation = useCompleteCartOrder()
 
   const handlePayment = async () => {
+    if (submitting) return
     setSubmitting(true)
     setErrorMessage(null)
 
@@ -143,7 +146,8 @@ const ManualPaymentButton = ({
       </div>
 
       <Button
-        disabled={notReady || submitting}
+        disabled={notReady || submitting || completeOrderMutation.isPending}
+        loading={submitting}
         onClick={handlePayment}
         data-testid="place-order-button"
         className={className}
@@ -151,7 +155,7 @@ const ManualPaymentButton = ({
         {submitting ? "Processing…" : "Place COD Order"}
       </Button>
       {errorMessage && (
-        <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 mt-2">{errorMessage}</div>
       )}
     </div>
   )

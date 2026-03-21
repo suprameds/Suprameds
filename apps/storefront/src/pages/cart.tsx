@@ -14,10 +14,6 @@ import { useMemo } from "react"
 const DEFAULT_CART_FIELDS =
   "id, *items, total, currency_code, subtotal, shipping_total, discount_total, tax_total, *promotions"
 
-/**
- * Checks product metadata for Rx schedule classification.
- * Products with schedule H or H1 require a prescription.
- */
 function itemRequiresRx(item: { metadata?: Record<string, unknown> | null }): boolean {
   const schedule = item.metadata?.schedule_classification as string | undefined
   return schedule === "H" || schedule === "H1"
@@ -80,64 +76,81 @@ const Cart = () => {
   )
 
   return (
-    <div className="content-container py-12">
-      {cartLoading ? (
-        <Loading />
-      ) : cartItems.length === 0 ? (
-        <CartEmpty />
-      ) : (
-        <div className="flex flex-col md:flex-row gap-8">
-          <div className="space-y-6 w-full md:w-2/3">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-zinc-900 text-xl">Cart</h1>
-              {cartItems.length > 0 && (
+    <div style={{ background: "#FAFAF8", minHeight: "80vh" }}>
+      <div className="content-container py-10 lg:py-12">
+        {cartLoading ? (
+          <Loading />
+        ) : cartItems.length === 0 ? (
+          <CartEmpty />
+        ) : (
+          <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
+            {/* Cart items */}
+            <div className="w-full md:w-2/3">
+              <div className="flex items-center justify-between mb-6">
+                <h1
+                  className="text-xl lg:text-2xl font-semibold"
+                  style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+                >
+                  Your Cart
+                </h1>
                 <Link
                   to="/$countryCode/store"
                   params={{ countryCode }}
-                  className="text-zinc-600 hover:text-zinc-500 text-sm underline"
+                  className="text-sm font-medium transition-colors hover:opacity-70"
+                  style={{ color: "#0E7C86" }}
                 >
                   Continue shopping
                 </Link>
-              )}
+              </div>
+
+              {hasRxItems && <RxBanner countryCode={countryCode} />}
+
+              <div className="space-y-0">
+                {cartItems.map((item, index) => (
+                  <div key={item.id}>
+                    <CartLineItem
+                      item={item}
+                      cart={cart!}
+                      fields={DEFAULT_CART_FIELDS}
+                    />
+                    {index < cartItems.length - 1 && (
+                      <hr style={{ borderColor: "#EDE9E1" }} />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {hasRxItems && <RxBanner countryCode={countryCode} />}
+            {/* Summary sidebar */}
+            {cart && (
+              <div className="w-full md:w-1/3">
+                <div
+                  className="rounded-xl p-6 sticky top-32"
+                  style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+                >
+                  <h2
+                    className="text-lg font-semibold mb-5"
+                    style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+                  >
+                    Order Summary
+                  </h2>
 
-            {cartItems.map((item, index) => (
-              <div key={item.id}>
-                <CartLineItem
-                  item={item}
-                  cart={cart!}
-                  fields={DEFAULT_CART_FIELDS}
-                />
-                {index < cartItems.length - 1 && (
-                  <hr className="bg-zinc-200 mt-6" />
-                )}
+                  <div className="flex flex-col gap-y-4">
+                    <CartSummary cart={cart} />
+                    <CartPromo cart={cart} />
+                  </div>
+
+                  <div className="mt-5">
+                    <Link to="/$countryCode/checkout" params={{ countryCode }} search={{ step: "addresses" }}>
+                      <Button className="w-full">Proceed to Checkout</Button>
+                    </Link>
+                  </div>
+                </div>
               </div>
-            ))}
+            )}
           </div>
-
-          {cart && (
-            <div className="flex flex-col gap-y-8 w-full md:w-1/3">
-              <div>
-                <h2 className="text-zinc-900 text-xl">
-                  Cart Summary
-                </h2>
-              </div>
-
-              <div className="flex flex-col gap-y-4">
-                <CartSummary cart={cart} />
-
-                <CartPromo cart={cart} />
-              </div>
-
-              <Link to="/$countryCode/checkout" params={{ countryCode }}>
-                <Button className="w-full">Checkout</Button>
-              </Link>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }

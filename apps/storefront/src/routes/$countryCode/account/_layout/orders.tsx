@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { useCustomerOrders } from "@/lib/hooks/use-orders"
+import { deriveOrderProgress } from "@/components/order"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useLocation } from "@tanstack/react-router"
+import { HttpTypes } from "@medusajs/types"
 
 export const Route = createFileRoute("/$countryCode/account/_layout/orders")({
   component: OrdersPage,
@@ -12,7 +14,9 @@ function OrdersPage() {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   const { data: orders, isLoading } = useCustomerOrders({
-    fields: "id,display_id,status,created_at,total,currency_code,items",
+    fields:
+      "id,display_id,status,fulfillment_status,created_at,total,currency_code," +
+      "items,*payment_collections.payment_sessions",
   })
 
   return (
@@ -55,71 +59,61 @@ function OrdersPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {orders.map((order) => (
-            <div
-              key={order.id}
-              className="bg-white border rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              style={{ borderColor: "#EDE9E1" }}
-            >
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold" style={{ color: "#111827" }}>
-                    Order #{order.display_id}
-                  </span>
-                  <StatusBadge status={order.status} />
-                </div>
-                <p className="text-xs" style={{ color: "#9CA3AF" }}>
-                  Placed on {new Date(order.created_at).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
-                {order.items && (
-                  <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
-                    {order.items.length} item{order.items.length !== 1 ? "s" : ""}
+          {orders.map((order) => {
+            const { summaryLabel, summaryColor, summaryBg } = deriveOrderProgress(
+              order as unknown as HttpTypes.StoreOrder
+            )
+            return (
+              <div
+                key={order.id}
+                className="bg-white border rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                style={{ borderColor: "#EDE9E1" }}
+              >
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold" style={{ color: "#111827" }}>
+                      Order #{order.display_id}
+                    </span>
+                    <span
+                      className="text-xs font-medium px-2.5 py-0.5 rounded-full"
+                      style={{ color: summaryColor, background: summaryBg }}
+                    >
+                      {summaryLabel}
+                    </span>
+                  </div>
+                  <p className="text-xs" style={{ color: "#9CA3AF" }}>
+                    Placed on {new Date(order.created_at).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </p>
-                )}
-              </div>
+                  {order.items && (
+                    <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+                      {order.items.length} item{order.items.length !== 1 ? "s" : ""}
+                    </p>
+                  )}
+                </div>
 
-              <div className="flex items-center gap-4">
-                <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
-                  {formatPrice(order.total, order.currency_code)}
-                </span>
-                <Link
-                  to="/$countryCode/order/$orderId/confirmed"
-                  params={{ countryCode, orderId: order.id }}
-                  className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-gray-50"
-                  style={{ color: "#0D1B2A", borderColor: "#D1D5DB" }}
-                >
-                  View details
-                </Link>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+                    {formatPrice(order.total, order.currency_code)}
+                  </span>
+                  <Link
+                    to="/$countryCode/order/$orderId/confirmed"
+                    params={{ countryCode, orderId: order.id }}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-gray-50"
+                    style={{ color: "#0D1B2A", borderColor: "#D1D5DB" }}
+                  >
+                    View details
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
-  )
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const styles: Record<string, { color: string; bg: string; label: string }> = {
-    pending: { color: "#92400E", bg: "#FEF3C7", label: "Pending" },
-    processing: { color: "#1E40AF", bg: "#DBEAFE", label: "Processing" },
-    completed: { color: "#065F46", bg: "#ECFDF5", label: "Completed" },
-    cancelled: { color: "#991B1B", bg: "#FEF2F2", label: "Cancelled" },
-    requires_action: { color: "#7C3AED", bg: "#EDE9FE", label: "Action needed" },
-  }
-  const s = styles[status] ?? { color: "#374151", bg: "#F3F4F6", label: status }
-
-  return (
-    <span
-      className="text-xs font-medium px-2 py-0.5 rounded-full"
-      style={{ color: s.color, background: s.bg }}
-    >
-      {s.label}
-    </span>
   )
 }
 
