@@ -11,66 +11,7 @@ import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { Link, useLocation, useNavigate } from "@tanstack/react-router"
-import { useState, useEffect } from "react"
-
-const ANNOUNCEMENT_DISMISSED_KEY = "suprameds_announce_dismissed"
-
-function AnnouncementBar() {
-  // Start visible on both server and client to avoid hydration mismatch,
-  // then hide after mount if the user previously dismissed it.
-  const [dismissed, setDismissed] = useState(false)
-
-  useEffect(() => {
-    if (window.localStorage.getItem(ANNOUNCEMENT_DISMISSED_KEY) === "1") {
-      setDismissed(true)
-    }
-  }, [])
-
-  if (dismissed) return null
-
-  return (
-    <div
-      className="relative overflow-hidden text-center py-2 px-4 text-xs font-medium tracking-wide"
-      style={{ background: "linear-gradient(90deg, #0E7C86, #1A9A5C)", color: "#fff" }}
-    >
-      <div className="content-container flex items-center justify-center gap-x-2 sm:gap-x-4 flex-wrap gap-y-1">
-        <span className="flex items-center gap-1">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-          Save 50–80% on Generic Medicines
-        </span>
-        <span className="hidden sm:inline opacity-60">|</span>
-        <span className="flex items-center gap-1">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-          FREE Delivery above ₹300
-        </span>
-        <span className="hidden sm:inline opacity-60">|</span>
-        <span className="hidden sm:flex items-center gap-1">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          2-Day Delivery in T.S. & A.P.
-        </span>
-      </div>
-      <button
-        onClick={() => { setDismissed(true); window.localStorage.setItem(ANNOUNCEMENT_DISMISSED_KEY, "1") }}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 opacity-70 hover:opacity-100 transition-opacity"
-        aria-label="Dismiss announcement"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-  )
-}
-
-const ShieldIcon = () => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-  </svg>
-)
-
-const PhoneIcon = () => (
-  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.69l3.2-.01a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 10.09a16 16 0 0 0 6 6l1.56-1.56a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.04z" />
-  </svg>
-)
+import { useState } from "react"
 
 const MenuIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-5 h-5">
@@ -131,26 +72,6 @@ export const Navbar = () => {
 
   return (
     <div className="sticky top-0 inset-x-0 z-40">
-      <AnnouncementBar />
-      {/* Compliance top bar — LegitScript & CDSCO crawlable */}
-      <div className="compliance-bar w-full">
-        <div className="content-container flex items-center justify-between py-1.5">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5 text-white/70">
-              <ShieldIcon />
-              <span>Lic. No. KA/DL-2024-0187 &nbsp;|&nbsp; Regd. Pharmacist: B. Venkat Kumar (RPh #KA/2019/4821)</span>
-            </span>
-          </div>
-          <div className="flex items-center gap-4">
-            <a href="tel:+918008001234" className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors">
-              <PhoneIcon />
-              <span>+91 800 800 1234</span>
-            </a>
-            <span className="text-white/40">|</span>
-            <span className="text-white/60">9 AM–9 PM Mon–Sat</span>
-          </div>
-        </div>
-      </div>
 
       {/* Main navigation */}
       <header className="relative mx-auto border-b" style={{ background: "#fff", borderColor: "#EDE9E1" }}>
@@ -244,6 +165,29 @@ export const Navbar = () => {
                 </DrawerTitle>
               </DrawerHeader>
               <div className="flex flex-col py-4">
+                {/* Mobile search */}
+                <form
+                  onSubmit={(e) => { handleSearch(e); document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" })) }}
+                  className="px-6 pb-4"
+                  role="search"
+                >
+                  <div
+                    className="flex items-center rounded-lg overflow-hidden"
+                    style={{ background: "#F8F6F2", border: "1px solid #EDE9E1" }}
+                  >
+                    <div className="pl-3" style={{ color: "#999" }}>
+                      <SearchIcon />
+                    </div>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search medicines..."
+                      className="px-2.5 py-2.5 text-sm outline-none bg-transparent flex-1"
+                      style={{ color: "#0D1B2A" }}
+                    />
+                  </div>
+                </form>
                 <div className="px-6 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: "#0E7C86" }}>
                   Medicines
                 </div>

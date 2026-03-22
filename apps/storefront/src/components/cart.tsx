@@ -262,36 +262,38 @@ export const CartLineItem = ({
   const isRx = schedule === "H" || schedule === "H1"
 
   return (
-    <div className="flex items-center gap-6 py-4">
-      <div className="flex-shrink-0">
-        <Thumbnail thumbnail={item.thumbnail} alt={item.product_title || item.title} />
-      </div>
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 py-4">
+      <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+        <div className="flex-shrink-0">
+          <Thumbnail thumbnail={item.thumbnail} alt={item.product_title || item.title} />
+        </div>
 
-      <div className="flex-1 min-w-0 flex flex-col gap-y-1">
-        <span className="text-zinc-900 text-base font-semibold">{item.product_title}</span>
-        <div className="flex items-center gap-2">
-          {item.variant_title && item.variant_title !== "Default Variant" && (
-            <span className="text-zinc-600 text-sm">{item.variant_title}</span>
-          )}
-          {isRx && (
-            <span
-              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
-              style={{
-                borderColor: "#F39C12",
-                color: "#A16207",
-                background: "rgba(243,156,18,0.10)",
-              }}
-            >
-              Rx
-            </span>
-          )}
+        <div className="flex-1 min-w-0 flex flex-col gap-y-1">
+          <span className="text-zinc-900 text-sm sm:text-base font-semibold line-clamp-2">{item.product_title}</span>
+          <div className="flex items-center gap-2">
+            {item.variant_title && item.variant_title !== "Default Variant" && (
+              <span className="text-zinc-600 text-xs sm:text-sm">{item.variant_title}</span>
+            )}
+            {isRx && (
+              <span
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+                style={{
+                  borderColor: "#F39C12",
+                  color: "#A16207",
+                  background: "rgba(243,156,18,0.10)",
+                }}
+              >
+                Rx
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-0 sm:pl-0">
         <CartItemQuantitySelector item={item} fields={fields} />
 
-        <div className="text-right">
+        <div className="text-right min-w-[60px]">
           <LineItemPrice item={item} currencyCode={cart.currency_code} />
         </div>
 
