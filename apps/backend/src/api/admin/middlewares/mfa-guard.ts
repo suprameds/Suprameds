@@ -58,6 +58,13 @@ export function requireMfa() {
         return next()
       }
 
+      // Only enforce MFA if the user has actually completed setup.
+      // Without this, newly-assigned roles would be locked out immediately.
+      const hasMfaSetup: boolean = await rbacService.userHasMfaSetup(userId)
+      if (!hasMfaSetup) {
+        return next()
+      }
+
       const cookieValue = getCookie(req, MFA_COOKIE_NAME)
       if (!cookieValue) {
         return res.status(403).json({
