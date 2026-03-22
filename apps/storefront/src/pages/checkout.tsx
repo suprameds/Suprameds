@@ -251,7 +251,7 @@ const Checkout = () => {
   }
 
   return (
-    <div className="content-container py-8 flex flex-col gap-8">
+    <div className="content-container py-4 sm:py-8 flex flex-col gap-4 sm:gap-6">
       {/* Guest checkout banner — shown when user is not authenticated and hasn't opted for guest */}
       {showGuestBanner && (
         <GuestCheckoutBanner
@@ -267,22 +267,19 @@ const Checkout = () => {
         currentStepIndex={currentStepIndex}
         handleStepChange={goToStep}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-24">
-        <div className="flex flex-col gap-1 lg:col-span-2">
-          <h2 className="text-zinc-900 text-xl">
-            {steps[currentStepIndex]?.title}
-          </h2>
-          <p className="text-base font-medium text-zinc-600">
-            {steps[currentStepIndex]?.description}
-          </p>
-        </div>
-        <div className="flex flex-col gap-1">
-          <h2 className="text-zinc-900 text-xl">Order Summary</h2>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-24">
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-12">
         {/* Left Column - Checkout Steps */}
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-4 sm:space-y-6 lg:col-span-2">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-zinc-900 text-lg sm:text-xl font-semibold">
+              {steps[currentStepIndex]?.title}
+            </h2>
+            <p className="text-sm sm:text-base font-medium text-zinc-600">
+              {steps[currentStepIndex]?.description}
+            </p>
+          </div>
+
           <Suspense fallback={<Loading />}>
             {cartLoading && <Loading />}
             {cart && (
@@ -324,11 +321,14 @@ const Checkout = () => {
         </div>
 
         {/* Right Column - Order Summary */}
-        <Suspense fallback={<Loading />}>
-          {cartLoading && <Loading />}
-          {cart && <CheckoutSummary cart={cart} />}
-          {!cart && !cartLoading && <CartEmpty />}
-        </Suspense>
+        <div>
+          <h2 className="text-zinc-900 text-lg sm:text-xl font-semibold mb-4">Order Summary</h2>
+          <Suspense fallback={<Loading />}>
+            {cartLoading && <Loading />}
+            {cart && <CheckoutSummary cart={cart} />}
+            {!cart && !cartLoading && <CartEmpty />}
+          </Suspense>
+        </div>
       </div>
     </div>
   )

@@ -15,7 +15,7 @@
 
 @layer components {
   .content-container {
-    @apply max-w-[1440px] w-full mx-auto px-6;
+    @apply max-w-[1440px] w-full mx-auto px-4 sm:px-6;
   }
 
   /* Compliance badge — Rx-only indicator */
@@ -50,13 +50,6 @@
     border-radius: 4px;
   }
 
-  /* Compliance info bar */
-  .compliance-bar {
-    background-color: #0D1B2A;
-    color: rgba(255,255,255,0.85);
-    font-size: 0.7rem;
-    letter-spacing: 0.04em;
-  }
 }
 
 @layer utilities {

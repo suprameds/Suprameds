@@ -77,26 +77,26 @@ const Cart = () => {
 
   return (
     <div style={{ background: "#FAFAF8", minHeight: "80vh" }}>
-      <div className="content-container py-10 lg:py-12">
+      <div className="content-container py-6 sm:py-10 lg:py-12 pb-28 md:pb-10 lg:pb-12">
         {cartLoading ? (
           <Loading />
         ) : cartItems.length === 0 ? (
           <CartEmpty />
         ) : (
-          <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
+          <div className="flex flex-col md:flex-row gap-6 sm:gap-8 lg:gap-12">
             {/* Cart items */}
             <div className="w-full md:w-2/3">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <h1
-                  className="text-xl lg:text-2xl font-semibold"
+                  className="text-lg sm:text-xl lg:text-2xl font-semibold"
                   style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
                 >
-                  Your Cart
+                  Your Cart ({cartItems.reduce((sum, i) => sum + i.quantity, 0)})
                 </h1>
                 <Link
                   to="/$countryCode/store"
                   params={{ countryCode }}
-                  className="text-sm font-medium transition-colors hover:opacity-70"
+                  className="text-xs sm:text-sm font-medium transition-colors hover:opacity-70"
                   style={{ color: "#0E7C86" }}
                 >
                   Continue shopping
@@ -125,11 +125,11 @@ const Cart = () => {
             {cart && (
               <div className="w-full md:w-1/3">
                 <div
-                  className="rounded-xl p-6 sticky top-32"
+                  className="rounded-xl p-4 sm:p-6 sticky top-32"
                   style={{ background: "#fff", border: "1px solid #EDE9E1" }}
                 >
                   <h2
-                    className="text-lg font-semibold mb-5"
+                    className="text-lg font-semibold mb-4 sm:mb-5"
                     style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
                   >
                     Order Summary
@@ -140,7 +140,7 @@ const Cart = () => {
                     <CartPromo cart={cart} />
                   </div>
 
-                  <div className="mt-5">
+                  <div className="mt-5 hidden md:block">
                     <Link to="/$countryCode/checkout" params={{ countryCode }} search={{ step: "addresses" }}>
                       <Button className="w-full">Proceed to Checkout</Button>
                     </Link>
@@ -151,6 +151,26 @@ const Cart = () => {
           </div>
         )}
       </div>
+
+      {/* Mobile sticky checkout bar */}
+      {!cartLoading && cart && cartItems.length > 0 && (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-30 md:hidden border-t"
+          style={{ background: "#fff", borderColor: "#EDE9E1" }}
+        >
+          <div className="content-container flex items-center justify-between py-3">
+            <div>
+              <span className="text-xs" style={{ color: "#666" }}>Total</span>
+              <p className="text-base font-bold" style={{ color: "#0D1B2A" }}>
+                ₹{(cart.total ?? 0).toLocaleString("en-IN")}
+              </p>
+            </div>
+            <Link to="/$countryCode/checkout" params={{ countryCode }} search={{ step: "addresses" }}>
+              <Button>Proceed to Checkout</Button>
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

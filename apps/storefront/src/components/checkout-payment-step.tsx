@@ -5,8 +5,10 @@ import {
   useCartPaymentMethods,
   useInitiateCartPaymentSession,
 } from "@/lib/hooks/use-checkout"
+import { queryKeys } from "@/lib/utils/query-keys"
 import { isStripe as isStripeFunc, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
 import { HttpTypes } from "@medusajs/types"
+import { useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 interface PaymentStepProps {
@@ -16,6 +18,7 @@ interface PaymentStepProps {
 }
 
 const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
+  const queryClient = useQueryClient()
   const { data: availablePaymentMethods = [] } = useCartPaymentMethods({
     region_id: cart.region?.id,
   })
@@ -84,14 +87,23 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
     setIsSubmitting(true)
     try {
-      if (!activeSession) {
+      // Always ensure the active session matches the user's selection.
+      // Without this, switching from Razorpay→COD leaves the old session
+      // as "active" because the cart data hasn't refreshed yet.
+      const needsNewSession =
+        !activeSession || activeSession.provider_id !== selectedPaymentMethod
+
+      if (needsNewSession) {
         await initiatePaymentSession(selectedPaymentMethod)
+        // Wait for cart cache to refresh with the new payment session
+        // so the Review step sees the correct provider
+        await queryClient.refetchQueries({ predicate: queryKeys.cart.predicate })
       }
       onNext()
     } finally {
       setIsSubmitting(false)
     }
-  }, [selectedPaymentMethod, activeSession, onNext, initiatePaymentSession, isSubmitting])
+  }, [selectedPaymentMethod, activeSession, onNext, initiatePaymentSession, isSubmitting, queryClient])
 
   return (
     <div className="flex flex-col gap-8">
