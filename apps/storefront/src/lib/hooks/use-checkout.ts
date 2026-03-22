@@ -206,23 +206,14 @@ export const useCompleteCartOrder = () => {
       removeStoredCart()
       return cartRes.order
     },
-    onSuccess: async (order) => {
-      // Immediately set cart data to null to clear the UI
-      queryClient.setQueriesData({
-        predicate: queryKeys.cart.predicate,
-      }, null)
-
-      // Clear payment methods cache
+    onSuccess: async () => {
+      // Remove (don't null-out) cart cache so useCart transitions to
+      // isLoading=true. This prevents checkout's "empty cart → redirect
+      // to cart" guard from racing the payment button's navigation to
+      // the order confirmation page.
+      queryClient.removeQueries({ predicate: queryKeys.cart.predicate })
       queryClient.removeQueries({ predicate: queryKeys.payments.predicate })
-
-      // Clear shipping options cache
       queryClient.removeQueries({ predicate: queryKeys.shipping.predicate })
-
-      // Invalidate cart queries to trigger a fresh fetch with no cart ID
-      queryClient.invalidateQueries({ predicate: queryKeys.cart.predicate })
-      await queryClient.refetchQueries({ predicate: queryKeys.cart.predicate })
-
-      return order
     },
   })
 }

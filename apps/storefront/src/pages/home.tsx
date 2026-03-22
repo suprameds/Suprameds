@@ -1,18 +1,18 @@
+import type React from "react"
 import { useLatestProducts } from "@/lib/hooks/use-products"
+import { useCategories } from "@/lib/hooks/use-categories"
 import { getProductPrice } from "@/lib/utils/price"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { Link, useLocation, useLoaderData } from "@tanstack/react-router"
+import ProductCard from "@/components/product-card"
+import { Link, useLocation, useLoaderData, useNavigate } from "@tanstack/react-router"
 import { Route } from "@/routes/$countryCode/index"
+import { useState } from "react"
 
-const UploadIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-  </svg>
-)
+/* ── Inline SVG icons (tree-shakeable, no icon lib) ── */
 
-const CheckIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
+const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 )
 
@@ -22,48 +22,111 @@ const ArrowRight = () => (
   </svg>
 )
 
+const ChevronDown = ({ open }: { open: boolean }) => (
+  <svg
+    width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+    strokeLinecap="round" strokeLinejoin="round"
+    className={`flex-shrink-0 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+)
+
+/* ── Category icon map ── */
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  tablets: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg>,
+  capsules: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>,
+  syrups: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 2h8v4H8z"/><path d="M6 6h12v16H6z"/><path d="M10 12h4"/></svg>,
+  default: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>,
+}
+
+function getCategoryIcon(handle: string): React.ReactNode {
+  const lower = handle.toLowerCase()
+  if (lower.includes("tablet")) return CATEGORY_ICONS.tablets
+  if (lower.includes("capsule")) return CATEGORY_ICONS.capsules
+  if (lower.includes("syrup") || lower.includes("liquid")) return CATEGORY_ICONS.syrups
+  return CATEGORY_ICONS.default
+}
+
+/* ── FAQ data ── */
+const FAQ_ITEMS = [
+  {
+    q: "Do I need a prescription to buy medicines on Suprameds?",
+    a: "OTC (over-the-counter) medicines can be purchased without a prescription. For Schedule H and H1 medicines, you must upload a valid prescription from a registered medical practitioner. Our pharmacist verifies every prescription before dispensing.",
+  },
+  {
+    q: "How do I know the medicines are genuine?",
+    a: "We source directly from licensed pharmaceutical manufacturers and distributors. Every batch is tracked with lot number, manufacturing date, and expiry date. Our operations are governed by the Drugs & Cosmetics Act 1940.",
+  },
+  {
+    q: "What are generic medicines? Are they safe?",
+    a: "Generic medicines contain the same active ingredient, dosage, and efficacy as branded drugs — they just cost less because the patent has expired. They are approved by the CDSCO (India's drug regulator) and must meet the same quality standards.",
+  },
+  {
+    q: "How long does delivery take?",
+    a: "Within Telangana & Andhra Pradesh: 1–2 business days. Rest of India: 5–7 business days via India Post Speed Post. Orders above ₹300 get free delivery.",
+  },
+  {
+    q: "Can I return or cancel an order?",
+    a: "Due to pharmaceutical regulations, medicines cannot be returned once dispatched. However, you can cancel before dispatch. If you receive a damaged or incorrect product, we'll arrange a replacement or refund within 48 hours.",
+  },
+  {
+    q: "Is my personal and medical data safe?",
+    a: "Absolutely. We comply with the Digital Personal Data Protection Act 2023 (DPDP). Your prescription records are encrypted and stored securely. We never share medical data with third parties.",
+  },
+]
+
+/* ── Main component ── */
+
 const Home = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { region } = useLoaderData({ from: "/$countryCode/" })
 
-  const { data: latestProductsData } = useLatestProducts({ limit: 4, region_id: region?.id })
+  const { data: latestProductsData } = useLatestProducts({ limit: 8, region_id: region?.id })
   const products = latestProductsData?.products ?? []
+
+  const { data: categories } = useCategories({
+    fields: "id,name,handle,parent_category_id",
+    queryParams: { parent_category_id: "null" } as any,
+  })
+
+  const [searchQuery, setSearchQuery] = useState("")
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = searchQuery.trim()
+    if (trimmed) {
+      navigate({
+        to: "/$countryCode/search",
+        params: { countryCode },
+        search: { q: trimmed },
+      })
+    }
+  }
 
   return (
     <div style={{ background: "#F8F6F2" }}>
 
-      {/* ── HERO ── */}
-      <section
-        className="relative overflow-hidden"
-        style={{
-          background: "#0D1B2A",
-          minHeight: "560px",
-        }}
-      >
-        {/* Background pattern */}
+      {/* ════════════════════════════════════════════
+          HERO — dark navy, search bar, value props
+         ════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden" style={{ background: "#0D1B2A" }}>
         <div
-          className="absolute inset-0 opacity-5"
+          className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage: `radial-gradient(circle at 25px 25px, #0E7C86 1px, transparent 0)`,
             backgroundSize: "50px 50px",
           }}
         />
-        {/* Accent glow */}
-        <div
-          className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #0E7C86, transparent)" }}
-        />
-        <div
-          className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full opacity-5"
-          style={{ background: "radial-gradient(circle, #16a5b0, transparent)" }}
-        />
+        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #0E7C86, transparent)" }} />
 
-        <div className="content-container relative z-10 py-20 lg:py-28">
+        <div className="content-container relative z-10 py-16 lg:py-24">
           <div className="max-w-2xl">
-            {/* Verified badge */}
-            <div className="flex items-center gap-2 mb-6">
-              <div
+            <div className="flex items-center gap-2 mb-5">
+              <span
                 className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
                 style={{ background: "rgba(14,124,134,0.2)", color: "#16a5b0", border: "1px solid rgba(14,124,134,0.3)" }}
               >
@@ -71,22 +134,44 @@ const Home = () => {
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
                 </svg>
                 CDSCO Licensed · LegitScript Certified
-              </div>
+              </span>
             </div>
 
             <h1
-              className="text-4xl lg:text-5xl font-semibold leading-tight mb-3"
+              className="text-3xl sm:text-4xl lg:text-5xl font-semibold leading-[1.15] mb-3"
               style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif", letterSpacing: "-0.02em" }}
             >
-              Generic Medicines at<br />
+              Generic Medicines at{" "}
               <span style={{ color: "#27AE60", fontStyle: "italic" }}>50–80% Off</span>
             </h1>
-            <p
-              className="text-base lg:text-lg font-medium mb-5"
-              style={{ color: "rgba(255,255,255,0.75)" }}
-            >
-              India's trusted CDSCO-licensed online pharmacy
+            <p className="text-base lg:text-lg mb-6" style={{ color: "rgba(255,255,255,0.7)" }}>
+              Same composition, same efficacy — dispensed by registered pharmacists across India.
             </p>
+
+            {/* Search bar */}
+            <form onSubmit={handleSearch} className="mb-6">
+              <div
+                className="flex items-center rounded-lg overflow-hidden max-w-xl"
+                style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+              >
+                <div className="pl-4" style={{ color: "rgba(255,255,255,0.4)" }}><SearchIcon /></div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search for medicines, e.g. Metformin, Amlodipine..."
+                  className="flex-1 px-3 py-3.5 text-sm bg-transparent outline-none placeholder:text-white/30"
+                  style={{ color: "#fff" }}
+                />
+                <button
+                  type="submit"
+                  className="px-5 py-3.5 text-sm font-semibold transition-opacity hover:opacity-90 flex-shrink-0"
+                  style={{ background: "#0E7C86", color: "#fff" }}
+                >
+                  Search
+                </button>
+              </div>
+            </form>
 
             <div className="flex flex-wrap gap-2 mb-6">
               {[
@@ -96,81 +181,52 @@ const Home = () => {
               ].map((pill) => (
                 <span
                   key={pill.text}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-                  style={{ background: "rgba(39,174,96,0.15)", color: "#68D89B", border: "1px solid rgba(39,174,96,0.2)" }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+                  style={{ background: "rgba(39,174,96,0.12)", color: "#68D89B", border: "1px solid rgba(39,174,96,0.18)" }}
                 >
-                  {pill.icon === "truck" && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                  )}
-                  {pill.icon === "clock" && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  )}
-                  {pill.icon === "india" && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  )}
+                  {pill.icon === "truck" && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>}
+                  {pill.icon === "clock" && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>}
+                  {pill.icon === "india" && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>}
                   {pill.text}
                 </span>
               ))}
             </div>
 
-            <p className="text-sm leading-relaxed mb-6 max-w-lg" style={{ color: "rgba(255,255,255,0.55)" }}>
-              Same composition, same efficacy — dispensed by registered pharmacists.
-              Prescription and OTC medicines delivered to all India pincodes.
-            </p>
-
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 to="/$countryCode/store"
                 params={{ countryCode }}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded text-sm font-semibold transition-all hover:opacity-90"
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
                 style={{ background: "#0E7C86", color: "#fff" }}
               >
-                Browse Medicines
-                <ArrowRight />
+                Browse All Medicines <ArrowRight />
               </Link>
               <Link
                 to="/$countryCode/upload-rx"
                 params={{ countryCode }}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded text-sm font-semibold transition-all"
-                style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.15)" }}
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.12)" }}
               >
-                <UploadIcon />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Upload Prescription
               </Link>
-            </div>
-
-            {/* Trust marks */}
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-8">
-              {[
-                "Pharmacist verified dispensing",
-                "5-year prescription records",
-                "DPDP compliant data privacy",
-                "Nationwide Speed Post delivery",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-1.5 text-xs" style={{ color: "rgba(255,255,255,0.5)" }}>
-                  <CheckIcon />
-                  {item}
-                </div>
-              ))}
             </div>
           </div>
         </div>
 
-        {/* Hero bottom stat bar */}
-        <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.2)" }}>
-          <div className="content-container py-5">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {/* Hero stat bar */}
+        <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.15)" }}>
+          <div className="content-container py-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { value: "50–80%", label: "Savings on Generics" },
                 { value: "₹300+", label: "Free Delivery" },
-                { value: "5000+", label: "Medicines" },
+                { value: "5,000+", label: "Medicines" },
                 { value: "All India", label: "Speed Post Delivery" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <p className="text-xl font-semibold" style={{ color: "#16a5b0", fontFamily: "Fraunces, Georgia, serif" }}>
-                    {stat.value}
-                  </p>
-                  <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.45)" }}>{stat.label}</p>
+                  <p className="text-lg font-semibold" style={{ color: "#16a5b0", fontFamily: "Fraunces, Georgia, serif" }}>{stat.value}</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -178,310 +234,336 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section className="content-container py-16 lg:py-20">
-        <div className="text-center mb-12">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#0E7C86" }}>
-            The Suprameds Process
-          </p>
-          <h2
-            className="text-2xl lg:text-3xl font-semibold"
-            style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
-          >
+      {/* ════════════════════════════════════════════
+          HOW IT WORKS — 4-step process
+         ════════════════════════════════════════════ */}
+      <section className="content-container py-14 lg:py-18">
+        <div className="text-center mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#0E7C86" }}>How It Works</p>
+          <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}>
             Pharmacy-grade care, delivered home
           </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
-            {
-              step: "01",
-              title: "Upload Prescription",
-              body: "Photograph your doctor's prescription. We accept PDF, JPG, or WhatsApp photo uploads.",
-              icon: (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                </svg>
-              ),
-            },
-            {
-              step: "02",
-              title: "Pharmacist Reviews",
-              body: "Our registered pharmacist (RPh) reviews your prescription within 4 hours and approves dispensing.",
-              icon: (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>
-                </svg>
-              ),
-            },
-            {
-              step: "03",
-              title: "Payment & Dispatch",
-              body: "Pay by UPI, card, netbanking, or COD. We dispatch the same day for orders before 2 PM.",
-              icon: (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
-                </svg>
-              ),
-            },
-            {
-              step: "04",
-              title: "Tracked Delivery",
-              body: "India Post Speed Post to your door. Live AfterShip tracking. OTP confirmation for Rx orders.",
-              icon: (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-                </svg>
-              ),
-            },
-          ].map((item, i) => (
-            <div
-              key={item.step}
-              className="p-6 rounded-xl flex flex-col gap-4"
-              style={{ background: "#fff", border: "1px solid #EDE9E1" }}
-            >
+            { step: "01", title: "Search or Upload Rx", body: "Find your medicine by name or upload a doctor's prescription. We accept PDF, JPG, or photo uploads.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> },
+            { step: "02", title: "Pharmacist Reviews", body: "Our registered pharmacist (RPh) reviews your order and verifies prescriptions within 4 hours.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg> },
+            { step: "03", title: "Pay Your Way", body: "UPI, debit/credit card, netbanking, or Cash on Delivery. Orders before 2 PM ship same day.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
+            { step: "04", title: "Tracked Delivery", body: "India Post Speed Post to your door with live tracking. OTP confirmation for Rx orders.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
+          ].map((item) => (
+            <div key={item.step} className="p-5 rounded-xl flex flex-col gap-3" style={{ background: "#fff", border: "1px solid #EDE9E1" }}>
               <div className="flex items-start justify-between">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ background: "#F8F6F2", color: "#0E7C86" }}
-                >
-                  {item.icon}
-                </div>
-                <span
-                  className="text-3xl font-light"
-                  style={{ color: "#EDE9E1", fontFamily: "Fraunces, Georgia, serif" }}
-                >
-                  {item.step}
-                </span>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#F0FDFA", color: "#0E7C86" }}>{item.icon}</div>
+                <span className="text-2xl font-light" style={{ color: "#EDE9E1", fontFamily: "Fraunces, Georgia, serif" }}>{item.step}</span>
               </div>
-              <div>
-                <h3 className="text-sm font-semibold mb-1.5" style={{ color: "#0D1B2A" }}>
-                  {item.title}
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#666" }}>
-                  {item.body}
-                </p>
-              </div>
+              <h3 className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>{item.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#666" }}>{item.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── FEATURED PRODUCTS ── */}
-      {products.length > 0 && (
+      {/* ════════════════════════════════════════════
+          SHOP BY CATEGORY
+         ════════════════════════════════════════════ */}
+      {categories && categories.length > 0 && (
         <section style={{ background: "#fff", borderTop: "1px solid #EDE9E1", borderBottom: "1px solid #EDE9E1" }}>
-          <div className="content-container py-16 lg:py-20">
-            <div className="flex items-end justify-between mb-10">
+          <div className="content-container py-14 lg:py-18">
+            <div className="flex items-end justify-between mb-8">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#0E7C86" }}>
-                  Available Now
-                </p>
-                <h2
-                  className="text-2xl lg:text-3xl font-semibold"
-                  style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
-                >
-                  Latest in our catalog
-                </h2>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#0E7C86" }}>Browse</p>
+                <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}>Shop by Category</h2>
               </div>
               <Link
                 to="/$countryCode/store"
                 params={{ countryCode }}
-                className="hidden md:flex items-center gap-1.5 text-sm font-medium transition-colors hover:opacity-70"
+                className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity"
                 style={{ color: "#0E7C86" }}
               >
-                View all medicines <ArrowRight />
+                View all <ArrowRight />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {products.map((product) => {
-                const { cheapestPrice } = getProductPrice({ product })
-                const isRx = (product as any).metadata?.requires_prescription
-                const scheduleClass = (product as any).metadata?.schedule_classification
-
-                return (
-                  <Link
-                    key={product.id ?? product.handle}
-                    to="/$countryCode/products/$handle"
-                    params={{ countryCode, handle: product.handle ?? "" }}
-                    className="group flex flex-col rounded-xl overflow-hidden transition-all hover:shadow-lg"
-                    style={{ background: "#F8F6F2", border: "1px solid #EDE9E1" }}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  to="/$countryCode/categories/$handle"
+                  params={{ countryCode, handle: cat.handle }}
+                  className="group flex flex-col items-center gap-3 p-5 rounded-xl text-center transition-all hover:shadow-md hover:-translate-y-0.5"
+                  style={{ background: "#F8F6F2", border: "1px solid #EDE9E1" }}
+                >
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[#E0F7FA]"
+                    style={{ background: "#E8F5E9", color: "#0E7C86" }}
                   >
-                    {/* Image */}
-                    <div className="relative aspect-square overflow-hidden" style={{ background: "#fff" }}>
-                      {product.thumbnail ? (
-                        <img
-                          src={product.thumbnail}
-                          alt={product.title ?? ""}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EDE9E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
-                            <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
-                          </svg>
-                        </div>
-                      )}
-                      {/* Badges */}
-                      <div className="absolute top-2.5 left-2.5 flex gap-1.5">
-                        {isRx && <span className="badge-rx">Rx Only</span>}
-                        {scheduleClass && scheduleClass !== "OTC" && (
-                          <span className="badge-rx" style={{ background: "#D68910" }}>Sch. {scheduleClass}</span>
-                        )}
-                      </div>
-                    </div>
+                    {getCategoryIcon(cat.handle)}
+                  </div>
+                  <span className="text-sm font-medium" style={{ color: "#0D1B2A" }}>{cat.name}</span>
+                </Link>
+              ))}
 
-                    {/* Info */}
-                    <div className="p-4 flex flex-col gap-2 flex-1">
-                      <div>
-                        <p className="text-xs uppercase tracking-wide mb-1" style={{ color: "#999" }}>
-                          {(product as any).metadata?.manufacturer ?? (product as any).metadata?.drug_class ?? "Medicine"}
-                        </p>
-                        <h3 className="text-sm font-semibold leading-snug line-clamp-2" style={{ color: "#0D1B2A" }}>
-                          {product.title}
-                        </h3>
-                        {(product as any).metadata?.generic_name && (
-                          <p className="text-xs mt-0.5" style={{ color: "#888" }}>
-                            {(product as any).metadata.generic_name}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between mt-auto pt-2">
-                        <div>
-                          {cheapestPrice ? (
-                            <div className="flex items-baseline gap-1.5">
-                              <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
-                                {cheapestPrice.calculated_price}
-                              </span>
-                              {cheapestPrice.original_price !== cheapestPrice.calculated_price && (
-                                <span className="text-xs line-through" style={{ color: "#bbb" }}>
-                                  {cheapestPrice.original_price}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-xs" style={{ color: "#999" }}>See price</span>
-                          )}
-                          {(product as any).metadata?.mrp && (
-                            <p className="text-xs" style={{ color: "#aaa" }}>
-                              MRP ₹{(product as any).metadata.mrp}
-                            </p>
-                          )}
-                        </div>
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center transition-all group-hover:scale-110"
-                          style={{ background: "#0E7C86", color: "#fff" }}
-                        >
-                          <ArrowRight />
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-
-            <div className="mt-6 md:hidden text-center">
+              {/* Always-visible "All Medicines" card */}
               <Link
                 to="/$countryCode/store"
                 params={{ countryCode }}
-                className="inline-flex items-center gap-1.5 text-sm font-medium"
-                style={{ color: "#0E7C86" }}
+                className="group flex flex-col items-center gap-3 p-5 rounded-xl text-center transition-all hover:shadow-md hover:-translate-y-0.5"
+                style={{ background: "#0D1B2A" }}
               >
-                View all medicines <ArrowRight />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(14,124,134,0.2)", color: "#16a5b0" }}>
+                  <ArrowRight />
+                </div>
+                <span className="text-sm font-medium" style={{ color: "#fff" }}>All Medicines</span>
               </Link>
             </div>
           </div>
         </section>
       )}
 
-      {/* ── COMPLIANCE CALLOUT ── */}
-      <section className="content-container py-16 lg:py-20">
-        <div
-          className="rounded-2xl p-8 lg:p-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center"
-          style={{ background: "#0D1B2A" }}
-        >
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#16a5b0" }}>
-              Legal &amp; Compliant
-            </p>
-            <h2
-              className="text-2xl lg:text-3xl font-semibold mb-4 leading-tight"
-              style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}
-            >
-              Every dispensing follows<br />Indian pharmacy law
-            </h2>
-            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-              Suprameds operates under the Drugs &amp; Cosmetics Act 1940, Pharmacy Act 1948, and CDSCO's Draft E-Pharmacy Rules 2018.
-              No Schedule X or NDPS drugs are sold online. Rx dispensing only by registered pharmacists.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <a href="/pharmacy/licenses" className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-opacity hover:opacity-80" style={{ background: "#0E7C86", color: "#fff" }}>
-                View our licenses
-              </a>
-              <a href="/prescription-policy" className="flex items-center gap-1.5 px-4 py-2 rounded text-sm font-medium transition-opacity hover:opacity-80" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.8)", border: "1px solid rgba(255,255,255,0.15)" }}>
-                Prescription policy
-              </a>
+      {/* ════════════════════════════════════════════
+          FEATURED PRODUCTS
+         ════════════════════════════════════════════ */}
+      {products.length > 0 && (
+        <section className="content-container py-14 lg:py-18">
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#0E7C86" }}>Popular</p>
+              <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}>
+                Best-selling medicines
+              </h2>
             </div>
+            <Link
+              to="/$countryCode/store"
+              params={{ countryCode }}
+              className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity"
+              style={{ color: "#0E7C86" }}
+            >
+              View all <ArrowRight />
+            </Link>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { label: "Drugs & Cosmetics Act, 1940", status: "Compliant" },
-              { label: "Pharmacy Act, 1948", status: "Compliant" },
-              { label: "CDSCO Form 18AA", status: "Registered" },
-              { label: "DPDP Act, 2023", status: "Compliant" },
-              { label: "LegitScript Category B", status: "Certified" },
-              { label: "Consumer Protection Rules 2020", status: "Compliant" },
-            ].map((item) => (
-              <div
-                key={item.label}
-                className="flex items-start gap-2 p-3 rounded-lg"
-                style={{ background: "rgba(255,255,255,0.05)" }}
-              >
-                <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: "rgba(14,124,134,0.2)" }}
-                >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a5b0" strokeWidth="3">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-medium leading-snug" style={{ color: "rgba(255,255,255,0.8)" }}>{item.label}</p>
-                  <p className="text-xs mt-0.5" style={{ color: "#16a5b0" }}>{item.status}</p>
-                </div>
-              </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+            {products.slice(0, 8).map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
+          </div>
+
+          <div className="mt-6 md:hidden text-center">
+            <Link
+              to="/$countryCode/store"
+              params={{ countryCode }}
+              className="inline-flex items-center gap-1.5 text-sm font-medium"
+              style={{ color: "#0E7C86" }}
+            >
+              View all medicines <ArrowRight />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* ════════════════════════════════════════════
+          PRESCRIPTION CTA — mid-page conversion
+         ════════════════════════════════════════════ */}
+      <section style={{ background: "#0D1B2A" }}>
+        <div className="content-container py-14 lg:py-18">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#16a5b0" }}>Prescription Medicines</p>
+              <h2 className="text-2xl lg:text-3xl font-semibold leading-tight mb-4" style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}>
+                Have a doctor's prescription?
+              </h2>
+              <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
+                Upload your prescription and our pharmacist will prepare your order. We'll confirm availability, apply generic savings, and dispatch within hours.
+              </p>
+
+              <div className="space-y-3 mb-8">
+                {[
+                  "Upload a photo or PDF of your prescription",
+                  "Pharmacist reviews within 4 hours",
+                  "Generic alternatives suggested for maximum savings",
+                  "Secure, encrypted prescription storage",
+                ].map((item) => (
+                  <div key={item} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(39,174,96,0.2)" }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#27AE60" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Link
+                to="/$countryCode/upload-rx"
+                params={{ countryCode }}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
+                style={{ background: "#27AE60", color: "#fff" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload Prescription Now
+              </Link>
+            </div>
+
+            {/* Right: compliance grid */}
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Drugs & Cosmetics Act, 1940", status: "Compliant" },
+                { label: "Pharmacy Act, 1948", status: "Compliant" },
+                { label: "CDSCO Form 18AA", status: "Registered" },
+                { label: "DPDP Act, 2023", status: "Compliant" },
+                { label: "LegitScript Category B", status: "Certified" },
+                { label: "Consumer Protection Rules", status: "Compliant" },
+              ].map((item) => (
+                <div key={item.label} className="flex items-start gap-2 p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(14,124,134,0.2)" }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#16a5b0" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium leading-snug" style={{ color: "rgba(255,255,255,0.8)" }}>{item.label}</p>
+                    <p className="text-[11px] mt-0.5" style={{ color: "#16a5b0" }}>{item.status}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── CHRONIC REORDER CTA ── */}
+      {/* ════════════════════════════════════════════
+          WHY SUPRAMEDS — trust signals
+         ════════════════════════════════════════════ */}
+      <section className="content-container py-14 lg:py-18">
+        <div className="text-center mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#0E7C86" }}>Trust</p>
+          <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}>
+            Why choose Suprameds
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[
+            {
+              title: "CDSCO Registered",
+              body: "Licensed under Form 18AA with Central Drugs Standard Control Organisation. Every transaction is legally compliant.",
+              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+              color: "#0E7C86",
+              bg: "#E0F7FA",
+            },
+            {
+              title: "50–80% Lower Prices",
+              body: "Generic medicines with the same composition and efficacy as branded drugs. No middlemen — direct from manufacturers.",
+              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+              color: "#27AE60",
+              bg: "#E8F5E9",
+            },
+            {
+              title: "Pharmacist Verified",
+              body: "RPh B. Venkat Kumar (Reg #KA/2019/4821) reviews and approves every prescription before dispensing.",
+              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><path d="M9 12l2 2 4-4"/></svg>,
+              color: "#6366F1",
+              bg: "#EEF2FF",
+            },
+            {
+              title: "Nationwide Delivery",
+              body: "India Post Speed Post to all serviceable pincodes. Free delivery on orders above ₹300. 2-day delivery in T.S. & A.P.",
+              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
+              color: "#D97706",
+              bg: "#FEF3C7",
+            },
+            {
+              title: "Batch Tracked",
+              body: "Every medicine tracked by batch number, manufacturing and expiry date. First-expiry-first-out (FEFO) allocation.",
+              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
+              color: "#EC4899",
+              bg: "#FDF2F8",
+            },
+            {
+              title: "Data Privacy",
+              body: "DPDP Act 2023 compliant. Encrypted prescription storage. Your medical data is never shared with third parties.",
+              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
+              color: "#0D1B2A",
+              bg: "#F1F5F9",
+            },
+          ].map((card) => (
+            <div
+              key={card.title}
+              className="p-6 rounded-xl flex flex-col gap-4 transition-all hover:shadow-md"
+              style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+            >
+              <div className="w-11 h-11 rounded-lg flex items-center justify-center" style={{ background: card.bg, color: card.color }}>
+                {card.icon}
+              </div>
+              <h3 className="text-sm font-bold" style={{ color: "#0D1B2A" }}>{card.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#666" }}>{card.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════
+          FAQ
+         ════════════════════════════════════════════ */}
       <section style={{ background: "#fff", borderTop: "1px solid #EDE9E1" }}>
-        <div className="content-container py-12 lg:py-16">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="content-container py-14 lg:py-18">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-10">
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#0E7C86" }}>Support</p>
+              <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}>
+                Frequently asked questions
+              </h2>
+            </div>
+
+            <div className="space-y-3">
+              {FAQ_ITEMS.map((item, i) => {
+                const isOpen = openFaq === i
+                return (
+                  <div key={i} className="rounded-xl overflow-hidden" style={{ border: "1px solid #EDE9E1" }}>
+                    <button
+                      onClick={() => setOpenFaq(isOpen ? null : i)}
+                      className="w-full flex items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-[#FAFAF8]"
+                      style={{ background: isOpen ? "#FAFAF8" : "#fff" }}
+                      aria-expanded={isOpen}
+                    >
+                      <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>{item.q}</span>
+                      <ChevronDown open={isOpen} />
+                    </button>
+                    {isOpen && (
+                      <div className="px-5 pb-5">
+                        <p className="text-sm leading-relaxed" style={{ color: "#666" }}>{item.a}</p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════
+          CHRONIC REORDER CTA
+         ════════════════════════════════════════════ */}
+      <section style={{ borderTop: "1px solid #EDE9E1" }}>
+        <div className="content-container py-10 lg:py-14">
+          <div
+            className="flex flex-col md:flex-row items-center justify-between gap-6 p-8 rounded-xl"
+            style={{ background: "#0D1B2A" }}
+          >
             <div>
-              <h3
-                className="text-xl lg:text-2xl font-semibold mb-2"
-                style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
-              >
+              <h3 className="text-lg lg:text-xl font-semibold mb-1" style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}>
                 On chronic medication?
               </h3>
-              <p className="text-sm" style={{ color: "#666" }}>
-                Set up monthly refill reminders. We'll WhatsApp you before you run out.
+              <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+                Set up monthly refill reminders. We'll notify you before you run out.
               </p>
             </div>
-            <div className="flex gap-3 flex-shrink-0">
-              <Link
-                to="/$countryCode/account/login"
-                params={{ countryCode }}
-                search={{ redirectTo: undefined }}
-                className="flex items-center gap-2 px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-80"
-                style={{ background: "#0D1B2A", color: "#fff" }}
-              >
-                Set up refill reminders
-              </Link>
-            </div>
+            <Link
+              to="/$countryCode/account/reminders"
+              params={{ countryCode }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 flex-shrink-0"
+              style={{ background: "#0E7C86", color: "#fff" }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Set up reminders
+            </Link>
           </div>
         </div>
       </section>

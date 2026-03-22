@@ -1,6 +1,6 @@
 # Suprameds — Status vs Master Plan (V10)
 
-This document maps what's **done** in the repo vs the **suprameds-master-prompt-V10-FINAL.md** plan and what's **left** to do.
+Updated: **March 22, 2026**
 
 ---
 
@@ -8,199 +8,409 @@ This document maps what's **done** in the repo vs the **suprameds-master-prompt-
 
 | Plan (doc) | Current repo |
 |------------|--------------|
-| Medusa Bloom (Next.js 14) | **TanStack Start** (Vite + React) — Bloom-derived, different stack |
-| Medusa Cloud (PostgreSQL + Redis + S3) | **Supabase** (PostgreSQL) + **Docker Compose** (Redis) + **Medusa Cloud** (deployment) |
-| AWS S3, Mumbai | S3/R2 config in medusa-config (optional) |
-| pnpm monorepo | **pnpm@10.8.0** workspaces monorepo (reverted from npm) |
+| Medusa Bloom (Next.js 14) | **TanStack Start** (Vite + React) — functionally equivalent |
+| Medusa Cloud (PostgreSQL + Redis + S3) | **Supabase** (dev PostgreSQL) + **Medusa Cloud Neon** (prod) + **Docker** (Redis) |
+| AWS S3, Mumbai | Medusa Cloud R2 (auto-provisioned) |
+| pnpm monorepo | **pnpm@10.8.0** workspaces monorepo + turbo |
+| SendGrid + SES email | **Resend** (transactional emails from support@supracynpharma.com) |
+| Twilio / Gupshup WhatsApp | **Meta Cloud API** (WhatsApp Business) |
+| MeiliSearch | **PostgreSQL FTS** (tsvector + GIN — ₹0/month) |
 
 ---
 
-## DONE (implemented)
+## Completion Summary
 
-### Infrastructure & setup
-- [x] Medusa v2 backend + monorepo (pnpm workspaces, turbo)
-- [x] PostgreSQL via **Supabase** (connection pooler, no SSL timeout)
-- [x] Redis via **Docker Compose** (`docker-compose.yml`)
-- [x] Backend env: CORS (storefront 5173/5176), AUTH_CORS, REDIS_URL, DATABASE_URL
-- [x] Storefront env: VITE_MEDUSA_BACKEND_URL, VITE_MEDUSA_PUBLISHABLE_KEY, VITE_PORT=5173
-- [x] Database migrations run (Medusa + custom modules)
-- [x] First admin user creatable via `npx medusa user -e ... -p ...`
-- [x] **Medusa Cloud deployment pipeline** — builds passing (pnpm + turbo prune)
-- [x] **Migration scripts**: India shipping options, Razorpay region providers, INR store currency, FTS search vector, pharmacy taxonomy catalog, COD region provider
+| Category | Master Plan Items | Done | Partial | Not Started |
+|----------|:-:|:-:|:-:|:-:|
+| **Infrastructure** | 12 | 9 | 2 | 1 |
+| **Custom Modules** | 15 | 15 | — | — |
+| **API Routes** | ~50 | ~50 | — | — |
+| **Workflows** | 15 | 14 | 1 | — |
+| **Subscribers** | 26 | 26 | — | — |
+| **Scheduled Jobs** | 17 | 17 | — | — |
+| **Admin UI** | 10 sidebar pages + sub-routes + 7 widgets | 10 + 7 | — | — |
+| **Storefront** | ~25 routes/features | ~24 | 1 | — |
+| **Compliance** | 20 LegitScript items | 17 | 2 | 1 |
+| **RBAC** | 25 roles + 8 SSD | 25 roles + 8 SSD + middleware + admin UI | — | MFA |
 
-### Backend — custom modules (Phase 3 style)
-- [x] **pharma** — drug metadata (schedule H/H1/X/OTC), GST, form, strength, composition; Schedule X block in workflow + middleware
-- [x] **prescription** — models, service, migrations; prescription uploads (base64 → stored as data URL); status flow (pending_review → approved/rejected/expired)
-- [x] **inventoryBatch** — lot/expiry, FEFO, batch deductions
-- [x] Links: product–drug, order–prescription, customer–prescription
-- [x] Workflows: upload-rx, review-rx; cart validate hooks (Rx compliance + Schedule X block)
-- [x] API: store prescriptions (CRUD), admin prescriptions (list + detail + approve/reject), cart prescription attach/detach, pharma batch lookup, product search (FTS)
-- [x] Email template: order-confirmation
-- [x] Subscribers: order-placed, order-payment-captured, order-delivered, prescription-uploaded, prescription-fully-approved, prescription-rejected
+**Overall estimate: ~75–80% of master plan** (up from ~60–65% at last update)
 
-### Storefront — compliance & layout
-- [x] Design system: theme.css (Clinical-Clean Precision), navbar, footer
-- [x] India region + country-prefixed routes (e.g. `/in/...`)
-- [x] Compliance pages (no country prefix): `/pharmacy/licenses`, `/prescription-policy`, `/grievance`, `/privacy`, `/terms`, `/returns`
-- [x] Homepage: hero, categories, features, trust signals
-- [x] DPDP consent banner (basic)
+---
 
-### Storefront — catalog & account
-- [x] Product listing: `/$countryCode/store`, categories `/$countryCode/categories/$handle`
-- [x] PDP: `/$countryCode/products/$handle` with Rx gate (Schedule X blocked, H/H1 shows prescription notice)
-- [x] Cart: `/$countryCode/cart`
-- [x] Checkout: `/$countryCode/checkout` — address → delivery → prescription (conditional) → payment → review
-- [x] Order confirmation: `/$countryCode/order/$orderId/confirmed`
-- [x] **Auth**: login, register; Bearer token fix; redirect after login (`?redirectTo=`)
-- [x] **Account**: profile, orders, addresses, logout
-- [x] **Search**: PostgreSQL FTS with debounced as-you-type, prefix matching, ranked results
-- [x] **Prescription upload page**: standalone `/in/upload-rx` route
+## Recent Changes (this session)
+
+### Admin Sidebar Consolidation
+- **Removed** standalone "Rx Queue" page — Dispense already has Rx Queue as its first tab
+- **Merged** "Overrides" into Compliance as a 4th tab ("Override Requests")
+- **Merged** "Goods Receipt (GRN)" into Purchases → renamed to "Procurement" with two tabs
+- **Net result**: 3 fewer sidebar items, cleaner admin navigation
+
+### Previous Session Work
+- Conditional shipping: free above ₹300, ₹50 below (custom fulfillment provider)
+- Homepage redesign: hero + search, Shop by Category, trust signals, FAQ
+- Refill Reminders: backend API + customer "My Reminders" page
+- Error handling: connection/auth/generic error categories, retry logic
+- Post-login redirects: proper `redirectTo` handling across login/register flows
+- Delivery estimate fix: proper pincode serviceability check
+- Hydration fix: SSR-safe announcement bar
+- Post-order redirect fix: race condition resolved
+- RBAC: full implementation (service + seeds + middleware + admin UI)
+- Invoice downloads on storefront
+- Pincode import with chunked progress
+- MRP/discount percentage display on product cards
+
+---
+
+## DONE — Fully Implemented
+
+### Infrastructure & Deployment
+- [x] Medusa v2 backend + pnpm workspaces monorepo + turbo
+- [x] PostgreSQL via Supabase (local dev) + Medusa Cloud Neon (production)
+- [x] Redis via Docker Compose
+- [x] Medusa Cloud deployment pipeline — builds passing
+- [x] 12+ migration scripts (India region, shipping, Razorpay, INR, FTS, taxonomy, COD, conditional shipping)
+- [x] Environment variable management (.env.example for both apps)
+- [x] Sentry error tracking (storefront)
+- [x] Google Analytics 4 integration
+- [x] Firebase Cloud Messaging (push notifications)
+
+### Custom Modules (15/15 — all functional)
+- [x] **pharma** — drug metadata, schedule classification, GST, form, strength, composition, MRP
+- [x] **prescription** — upload, status flow, approval, attachment to cart/order
+- [x] **inventoryBatch** — lot/expiry tracking, FEFO allocation, batch deductions
+- [x] **cod** — COD orders, confirmation workflow, customer scoring, RTO handling
+- [x] **orders** — order extensions (GST, prescription links, metadata)
+- [x] **warehouse** — GRN, tasks, pick lists, zones, returns inspection
+- [x] **shipment** — shipment creation, AWB, carrier, AfterShip integration
+- [x] **compliance** — override requests, PHI audit, DPDP consents, pharmacy licenses
+- [x] **dispense** — pharmacist decisions, pre-dispatch sign-off, H1 register
+- [x] **loyalty** — accounts, transactions, tiers, points award/expire
+- [x] **crm** — chronic reorder patterns, customer lifecycle, abandoned cart, refill reminders
+- [x] **analytics** — dashboard, revenue, products, customers
+- [x] **notification** — internal notifications, templates
+- [x] **payment** — Razorpay, COD provider
+- [x] **rbac** — 25 roles, ~65 permissions, 8 SSD rules, service + seeds + admin UI
+
+### RBAC — Fully Implemented
+- [x] 25 roles across 5 tiers (super_admin, pharmacist, warehouse_manager, etc.)
+- [x] ~65 granular permissions (`resource:action` format)
+- [x] Service: `assignRole()`, `revokeRole()`, `checkPermission()`, `validateSsd()`, `seedRolesAndPermissions()`
+- [x] 8 SSD constraints (Rx submitter ≠ approver, GRN creator ≠ inspector, etc.)
+- [x] `authorize(resource, action)` middleware on 15+ admin routes
+- [x] `enforceSsd(rule, getRelatedUserId)` middleware on 3 critical routes
+- [x] Admin UI: Roles page with 4 tabs (Roles Overview, Invite User, User Roles, Audit Log)
+- [x] Seed endpoint: `POST /admin/rbac/seed`
+- [x] Invite flow with role pre-assignment
+- [x] Default role assignment on invite accept
+- [x] Role audit logging
+- [ ] **Missing: MFA enforcement** (TOTP for clinical roles, FIDO2 for super_admin)
+
+### API Routes (~50 endpoints)
+
+**Admin (32+)**
+- [x] Analytics: dashboard, revenue trends, product performance, customer analytics
+- [x] Prescriptions: list, detail, approve/reject
+- [x] Pharma: drug products, batches, low-stock, recall, import/export
+- [x] Purchases: PO CRUD, line items, receive/GRN
+- [x] Invoices: GST invoice data, PDF generation
+- [x] Shipments: create, detail, AfterShip
+- [x] Dispense: decisions, pre-dispatch sign-off, H1 register export
+- [x] Warehouse: GRN, pick lists
+- [x] Loyalty: dashboard, per-customer data
+- [x] Compliance: override requests, PHI logs, DPDP consents, pharmacy licenses
+- [x] Reports: sales tax
+- [x] Orders: CS-place, returns
+- [x] RBAC: seed, roles, assign/revoke, invite with role
+- [x] Pincodes: import (chunked), check, list
+
+**Store (20+)**
+- [x] Prescriptions: CRUD, attach/detach from cart
+- [x] Products: search (FTS), pharma metadata, batch lookup, interactions, substitutes
+- [x] Delivery estimate + pincode serviceability check
+- [x] Orders: COD confirm, guest sessions, GSTIN
+- [x] OTP: send (SMS + Email), verify (SMS + Email)
+- [x] Push: register, unregister
+- [x] Shipments: tracking
+- [x] Invoices: customer PDF download
+- [x] Reminders: list, create, update, delete (refill reminders)
+
+**Webhooks (5)**
+- [x] Razorpay (HMAC-verified)
+- [x] AfterShip (HMAC-verified)
+- [x] WhatsApp (Meta verification)
+- [x] MSG91 (delivery reports)
+- [x] Stripe (placeholder)
+
+### Workflows (14 implemented)
+- [x] Prescription: upload-rx, review-rx
+- [x] Checkout: complete-cart (with Rx compliance hooks)
+- [x] Order: confirm-cod
+- [x] Fulfillment: create-shipment, fefo-allocation
+- [x] Inventory: recall-batch
+- [x] Dispense: pharmacist-decision, pre-dispatch-check
+- [x] Warehouse: approve-grn, inspect-return
+- [x] Loyalty: award-points
+- [x] Customer: merge-guest-cart
+- [x] Compliance: request-override
+
+**Workflow Hooks (3)**
+- [x] Schedule X + cold chain + drug interaction block (addToCart.validate)
+- [x] Rx compliance check (completeCart.validate)
+- [x] FEFO + MRP check on fulfillment
+
+### Subscribers (26)
+- [x] Order lifecycle: placed, updated, canceled, delivered, dispatched, payment-captured, payment-failed
+- [x] Prescription: uploaded, fully-approved, partially-approved, rejected, expired
+- [x] COD: unconfirmed-timeout
+- [x] Warehouse: GRN approved, return requested, return received
+- [x] Inventory: low stock, batch MRP conflict
+- [x] Loyalty: points earned, points redeemed
+- [x] Dispense: decision made, H1 register updated
+- [x] Customer: created, password reset
+- [x] Shipment: NDR reported, RTO initiated
+- [x] WhatsApp: unified order/Rx updates
+
+### Scheduled Jobs (17)
+- [x] cancel-unconfirmed-cod (15-min)
+- [x] check-low-stock (6-hourly)
+- [x] flag-near-expiry-batches (daily)
+- [x] remind-abandoned-carts (2-hourly, Rx-compliant)
+- [x] identify-chronic-reorders (daily)
+- [x] send-chronic-refill-reminders (6-hourly)
+- [x] expire-loyalty-points (daily)
+- [x] purge-expired-prescriptions (daily)
+- [x] generate-h1-report (daily)
+- [x] generate-sales-tax-report (monthly)
+- [x] verify-dlt-templates (daily)
+- [x] sync-aftership-status (hourly)
+- [x] release-expired-guest-sessions (hourly)
+- [x] auto-allocate-fefo (hourly)
+- [x] sync-inventory-to-storefront (hourly)
+- [x] update-delivery-days (weekly)
+- [x] clear-phi-audit-logs (monthly — archive, not delete)
+
+### Admin UI (10 sidebar pages + sub-routes + 7 widgets)
+
+**Sidebar Pages (consolidated):**
+- [x] Analytics dashboard (KPIs, revenue trend, status distribution)
+- [x] Dispense (Rx queue + decisions log + pre-dispatch sign-offs — 3 tabs)
+- [x] Prescriptions detail (`/prescriptions/:id` — approve/reject individual Rx)
+- [x] Products → Create Medicine (pharma-specific form)
+- [x] Procurement (Purchase Orders tab + Goods Receipt/GRN tab — 2 tabs)
+- [x] H1 Register (filterable, exportable)
+- [x] Warehouse (overview, tasks, pick lists)
+- [x] Loyalty (dashboard, tier distribution, accounts)
+- [x] Compliance (PHI logs + DPDP consents + licenses + Override Requests — 4 tabs)
+- [x] Roles (Roles overview + Invite user + User roles + Audit log — 4 tabs)
+- [x] Pincodes (import/export, serviceability management)
+
+**Widgets (7):**
+- [x] Product pharma info (on product detail)
+- [x] Order Rx review (on order detail)
+- [x] COD verification status (on order detail)
+- [x] Customer loyalty (on customer detail)
+- [x] Batch selector (on inventory)
+- [x] Prescription upload (on order detail)
+- [x] Pharmacist adjustment (on product detail)
+
+### Storefront (~24 routes/features)
+- [x] Design system: theme.css, navbar, footer, branding overhaul ("Clinical-Clean Precision")
+- [x] India region + country-prefixed routes
+- [x] Homepage: hero with search, Shop by Category, trust signals, discount messaging, FAQ
+- [x] Product listing + product detail page (MRP, discount %, Rx badge, substitutes)
+- [x] Cart: drug interaction warnings, delivery estimates, free delivery badge, conditional shipping
+- [x] Checkout: address (saved address selector) → delivery → prescription → payment → review
+- [x] Payment: Razorpay + COD with proper session handling
+- [x] Order confirmation: COD confirm banner, invoice download, GSTIN input, order tracker
+- [x] Auth: login (email/password + phone OTP + email OTP), register, proper redirectTo handling
+- [x] Account: profile, orders, addresses, refill reminders
+- [x] Search: PostgreSQL FTS with debounced as-you-type
+- [x] Prescription upload: standalone page + checkout integration
+- [x] Compliance pages: /pharmacy/licenses, /prescription-policy, /grievance, /privacy, /terms, /returns
+- [x] DPDP consent banner
+- [x] Product cards: % off badge, Rx badge
+- [x] Shipment tracking (timeline + carrier info)
+- [x] Therapeutic substitutes on PDP
+- [x] Error boundaries: connection/auth/generic error categories + retry logic + loading states
+- [x] Sentry + GA4 + Firebase push
+- [x] Invoice download on orders
+- [x] Delivery estimate with pincode serviceability
+- [x] Conditional shipping display (FREE badge when ≥₹300)
 
 ### Payment
-- [x] **Razorpay**: integration via `medusa-plugin-razorpay-v2`, webhook handler with HMAC verification
-- [x] **Cash on Delivery (COD)**: `pp_system_default` added to all regions, no restrictions, COD-specific UX in checkout
-- [x] Payment session creation with duplicate detection
+- [x] Razorpay: UPI, cards, netbanking, EMI via medusa-plugin-razorpay-v2
+- [x] Cash on Delivery: unrestricted, confirmation workflow, admin dashboard
+- [x] Webhook handlers with HMAC verification
+- [x] Payment session duplicate detection
 
-### Prescription flow
-- [x] Single prescription covers entire cart (not per-item)
-- [x] Upload new or select from previously stored prescriptions during checkout
-- [x] "Order first, verify later" — customers can place orders with `pending_review` prescriptions
-- [x] Admin pharmacist queue: list + detail + approve/reject with form fields
-- [x] Cart metadata (`prescription_id`) links prescription to cart
+### Notifications (4 channels)
+- [x] **Email** (Resend): order confirmation, Rx updates — branded templates
+- [x] **Push** (Firebase FCM): order shipped, delivered, cancelled, payment failed, Rx approved/rejected, abandoned cart, loyalty
+- [x] **WhatsApp** (Meta Cloud API): order placed/shipped/delivered, Rx approved/rejected
+- [x] **SMS** (MSG91): OTP delivery
 
-### Compliance rules (from plan, partially enforced)
-- [x] Schedule X: no online sale (workflow/cart validation + middleware)
-- [x] Schedule H/H1: prescription required (checkout hook — allows pending_review)
+### External Service Resilience
+- [x] MSG91: graceful 502/503 with "use email OTP" fallback
+- [x] Firebase: all FCM calls wrapped in try/catch, never blocks orders
+- [x] Resend: subscribers catch errors, orders proceed
+- [x] AfterShip: returns null/[], shipment created regardless
+- [x] WhatsApp: safeSend wrapper, never blocks flows
+- [x] Rate limiting on OTP, prescription, and push endpoints
+
+### Compliance Rules Enforced
+- [x] Schedule X: absolute block (workflow + middleware + cart validation)
+- [x] NDPS: absolute block
+- [x] Schedule H/H1: prescription required (allows pending_review for "order first, verify later")
 - [x] No Rx promotions (completeCart validate hook)
-- [x] No lifestyle images on products (AGENTS.md rule)
-- [x] Pharmacist sign-off / prescription approval flow (workflows + admin)
+- [x] No lifestyle images (AGENTS.md rule)
+- [x] Pharmacist sign-off flow (dispense decisions + pre-dispatch)
+- [x] H1 register (transactional entries for H1 dispenses)
+- [x] GST invoice generation (PDF, INR, HSN, CGST/SGST/IGST)
+- [x] Drug interaction checker (24 common pairs)
+- [x] Near-expiry batch flagging
+- [x] Batch recall workflow
+- [x] Pincode serviceability check
+- [x] DLT template verification job
+- [x] MRP compliance: never sell above printed MRP; highest MRP across dispatched batches
+- [x] RBAC: 25 roles, 65 permissions, 8 SSD constraints enforced via middleware
+- [x] Conditional shipping: ₹50 below ₹300, free above
 
 ---
 
-## CRITIQUE — What Needs Improvement
+## PARTIAL — Started But Needs More Work
 
-### Critical Issues
+### MFA for Admin/Clinical Roles
+**Status:** RBAC roles have `requires_mfa: true` flag stored. No actual TOTP/FIDO2 enforcement.
+**Missing:**
+- [ ] TOTP enrollment flow (QR code generation, secret storage)
+- [ ] TOTP verification middleware for clinical roles
+- [ ] FIDO2/WebAuthn for super_admin (optional, high-value)
 
-| # | Issue | Severity | Impact |
-|---|-------|----------|--------|
-| 1 | **Base64 prescription uploads** — files converted to data URLs and stored in DB | HIGH | 10MB image → 13MB payload; DB bloat; timeouts; memory pressure. Must move to S3 presigned upload. |
-| 2 | **Orphan workflow files** — `create-prescription.ts` and `review-prescription.ts` are unused duplicates of `prescription/upload-rx.ts` and `prescription/review-rx.ts` | MEDIUM | Confusion; maintenance burden; dead code deployed to production |
-| 3 | **50+ TODO stubs** — jobs, subscribers, modules, admin routes with `// TODO: Implement` | LOW | Expected for phased development, but clutters the codebase and will fail silently if events fire |
-| 4 | **Fallback secrets in medusa-config.ts** — `JWT_SECRET || "supersecret"` | HIGH | If env vars are missing in production, app runs with insecure defaults |
-| 5 | **Hardcoded pharmacist email** — `pharmacist@suprameds.in` in subscriber | MEDIUM | Should be configurable via env var |
+### Signup / Registration
+**Status:** Storefront has email+password registration. Phone OTP and Email OTP create accounts automatically on first login.
+**Missing:**
+- [ ] Email verification step (user can register with any email — account is immediately active)
+- [ ] Phone verification during registration (only at login currently)
+- [ ] Customer merge logic (email registration + phone OTP = two separate accounts)
 
-### Code Quality Issues
+### S3 Presigned Upload for Prescriptions
+**Status:** Prescriptions currently uploaded as base64 data URLs stored in DB.
+**Missing:**
+- [ ] S3 presigned PUT URL generation
+- [ ] Direct browser-to-S3 upload
+- [ ] Store only S3 key in prescription record
+- [ ] Admin: presigned GET URL for pharmacist viewing
 
-| # | Issue | Files affected |
-|---|-------|----------------|
-| 1 | **Pervasive `as any` type casts** (~20+ backend files, 12+ storefront files) | Workflows, API routes, subscribers, migration scripts, components |
-| 2 | **Silent error swallowing** in checkout address/delivery steps | `checkout-address-step.tsx`, `checkout-delivery-step.tsx` |
-| 3 | **Missing try/catch** in prescription subscribers | `prescription-uploaded.ts`, `prescription-fully-approved.ts`, `prescription-rejected.ts` |
-| 4 | **Schedule X logic duplicated in 3 places** | `middlewares.ts`, `schedule-x-block-add-to-cart.ts`, `validate-cart-rx-compliance.ts` |
-| 5 | **Missing loading states** for checkout address and delivery steps | No spinner/skeleton while data loads |
-
-### Architecture Concerns
-
-| # | Concern | Recommendation |
-|---|---------|----------------|
-| 1 | Prescription images stored as base64 data URLs in DB | Implement S3 presigned upload flow; store only the S3 key |
-| 2 | No proper TypeScript module augmentation for custom modules | Create `@types/medusa-modules.d.ts` so `container.resolve()` returns typed services |
-| 3 | No automated tests | Add at least integration tests for critical paths (Schedule X block, Rx compliance, payment) |
-| 4 | No CI/CD pipeline | GitHub Actions for lint, type-check, build on every PR |
-| 5 | No rate limiting on public API routes | Store routes are unprotected against abuse |
-
----
-
-## NOT DONE / LEFT TO DO (from master plan)
-
-### Phase 1 — Foundation (plan items 1–5)
-- [ ] **RBAC**: 25 roles, permissions, SSD constraints (plan Part 14, 24)
-- [ ] **Middleware stack**: mfa-verified, authorize, ssd-check, phi-access, session-expiry, rate-limit
-- [ ] **Audit**: phi_audit_log, audit_logs, order_state_history
-- [ ] **Catalog**: molecule, substitution_mappings, stock_alert tables
-- [ ] **PgBouncer** in Docker (plan Part 23)
-
-### Phase 2 — Clinical backbone (plan items 6–8)
-- [ ] **Prescription**: full drug-line extraction workspace, dispense_decisions, H1 register (transactional)
-- [ ] **S3 presigned upload** for prescriptions (replace base64)
-- [ ] Pre-dispatch pharmacist sign-off (plan Part 16)
-
-### Phase 3 — Orders + inventory (plan items 9–13)
-- [ ] **Orders**: full state machine, guest order, CS-placed order
-- [ ] **Inventory**: batch ledger, stock_movements, order_item_batch_allocations
-- [ ] **COD module**: confirmation workflow, scoring, remittance reconciliation (plan Part 6)
-
-### Phase 4 — Warehouse (plan items 14–18)
-- [ ] Warehouse zones/bins, GRN, pick/pack, pre-dispatch sign-off, returns inspection
-
-### Phase 5 — Fulfillment (plan items 19–24)
-- [ ] Shipment: India Post Speed Post / EZ Shipment + AfterShip
-- [ ] Pincode serviceability + delivery estimate
-- [ ] OTP delivery for Rx, NDR, supply memo, batch recall
-
-### Phase 6 — Compliance + overrides (plan items 25–28)
-- [ ] LegitScript compliance module + 20-item checklist
-- [ ] Override engine (14 types + emergency)
-- [ ] Full DPDP consent management + cookie management
-- [ ] Google Ads feed (OTC only)
-
-### Phase 7 — Growth + operations (plan items 29–37)
-- [ ] CRM: customer 360, lifecycle, abandoned cart (OTC), chronic reorder
-- [ ] Analytics, loyalty/referral (OTC), reviews, grievance ticketing
-- [ ] SMS DLT (MSG91), WhatsApp WABA templates
-- [ ] In-app notifications (Redis pub/sub)
-
-### Phase 8 — Admin extensions (plan items 38–46)
-- [ ] Dispense decision ledger, warehouse task board, COD dashboard
-- [ ] Finance/reconciliation, compliance inspection, override panel
-
-### Phase 9 — Storefront (remaining)
-- [ ] Session 3 (full): Drug info on PDP, Rx gate improvements
-- [ ] Session 4: Guest checkout, pincode check, delivery estimate
-- [ ] Session 5: Pharmacist portal, warehouse portal, mobile pharmacist view
-
-### Phase 10 — Infrastructure + validation
-- [ ] Docker + Nginx + PgBouncer (prod)
-- [ ] GitHub Actions: ci.yml, deploy.yml, compliance-cron.yml
-- [ ] Playwright E2E tests, Lighthouse, OWASP ZAP
-- [ ] DLT + WABA templates registered; LegitScript application
+### CI/CD Pipeline
+**Status:** No automated pipeline. Builds verified manually with `npx tsc --noEmit`.
+**Missing:**
+- [ ] GitHub Actions: tsc, build, lint on every PR
+- [ ] Deploy pipeline on merge to main
+- [ ] Compliance cron (weekly checks)
 
 ---
 
-## Summary
+## NOT STARTED — Remaining from Master Plan
 
-| Category | Done | Left |
-|----------|------|------|
-| **Infra & deployment** | Medusa Cloud deploying, Supabase + Redis, pnpm monorepo | PgBouncer, CI/CD, monitoring |
-| **Backend modules** | pharma, prescription, inventoryBatch + links/workflows/APIs | RBAC, full dispense/H1, S3 upload, warehouse, fulfillment |
-| **Storefront** | Full checkout flow, Rx/COD, search, account/auth | Guest checkout, delivery estimate, pharmacist/warehouse portals |
-| **Payments** | Razorpay + COD working | Payment links, refund flows |
-| **Compliance** | Schedule X/H/H1 rules, Rx flow, consent banner | DPDP full, LegitScript, audit/override/SSD |
-| **Plan phases** | P0 complete, slivers of P1–P3 | Most of P1–P8, rest of P9, all of P10 |
+### High Priority (should do before production launch)
 
-**Rough completion vs full plan:** ~25–30% (working storefront prototype with payments, prescriptions, COD, search, and cloud deployment). The master plan is a full production/compliance build; the repo has a solid functional base ready for hardening and the next phases.
+| # | Item | Plan Ref | Why | Effort |
+|---|------|----------|-----|--------|
+| 1 | **Email verification on registration** | Part 11 | Prevent fake accounts | S |
+| 2 | **S3 presigned upload for Rx** | Part 3 | Base64 images cause DB bloat | M |
+| 3 | **CI/CD (GitHub Actions)** | Part 31 | Manual builds are error-prone | M |
+| 4 | **TOTP 2FA for admin/clinical** | Part 24, 28 | Required by compliance | M |
+| 5 | **PHI encryption at rest** | Part 28 | AES-256 for Rx images, DOB, H1 register | M |
+
+### Medium Priority (needed for scaling / compliance certification)
+
+| # | Item | Plan Reference |
+|---|------|----------------|
+| 6 | Full DPDP consent management (data download, deletion, granular consent) | Part 7 |
+| 7 | LegitScript pre-certification (20-item checklist, seal in footer) | Part 26 |
+| 8 | Google Ads OTC feed generator | Part 26 |
+| 9 | Supplier portal (PO status, CoA upload) | Part 24 Tier 5 |
+| 10 | Full order state machine with transitions | Part 9 |
+| 11 | Refund workflows (Rx rejection, returns, COD non-delivery) | Part 6 |
+| 12 | Payment links for failed payments | Part 8 |
+| 13 | OTP-based delivery for Rx orders | Part 19 |
+
+### Lower Priority (growth / polish)
+
+| # | Item | Plan Reference |
+|---|------|----------------|
+| 14 | Pharmacist portal (standalone /pharmacy routes) | Session 5 |
+| 15 | Warehouse portal (standalone /warehouse routes) | Session 5 |
+| 16 | Customer family profiles | Part 4 |
+| 17 | Wishlist + price alerts | Part 27 |
+| 18 | Reviews / Q&A (pharmacist answers) | Part 27 |
+| 19 | Blog CMS | Part 27 |
+| 20 | In-app notifications (Redis pub/sub) | Part 7 |
+| 21 | PgBouncer | Part 29 |
+| 22 | Playwright E2E tests | Part 31 |
+| 23 | Load testing (10K orders/month) | Part 29 |
+| 24 | OWASP ZAP security audit | Part 31 |
+| 25 | Production Docker (Nginx + PgBouncer) | Part 29 |
+| 26 | COD surcharge line item | Part 8 |
+| 27 | Google Shopping structured data (JSON-LD) | Session 3 |
+| 28 | Mobile pharmacist view | Session 5 |
 
 ---
 
-## Recent Work (March 20, 2026)
+## Production Readiness Assessment
 
-### Prescription Flow
-- Single prescription per cart, upload or select from stored
-- "Order first, verify later" — pending_review prescriptions allowed at checkout
-- Admin pharmacist queue with approve/reject
+### Can Launch Now (with caveats)
+The platform is **functionally complete for a soft launch** at ~350 orders/month:
 
-### Payments
-- Razorpay integration with webhook handler
-- Cash on Delivery (COD) with no restrictions
-- Payment session duplicate detection fix
+**What works end-to-end:**
+- Customer browsing, search, product pages with MRP/discount
+- Cart with drug interaction warnings + conditional shipping
+- Full checkout flow (address → delivery → Rx upload → payment → confirmation)
+- Razorpay + COD payments
+- Prescription upload and pharmacist review workflow
+- Order tracking with AfterShip
+- Customer account (orders, addresses, reminders)
+- Admin: full pharmacy operations (dispense, compliance, procurement, warehouse)
+- RBAC with 25 roles and SSD enforcement
+- 4-channel notifications (email, SMS, push, WhatsApp)
+- Indian compliance: Schedule X block, H/H1 Rx requirement, H1 register, GST invoices
 
-### Deployment
-- Migrated back from npm to pnpm (Medusa Cloud compatibility)
-- Fixed all TypeScript build errors (TS18046, TS2345, TS2554, TS2353)
-- Added react-router-dom for admin page resolution
-- Backend + frontend compiling and deploying on Medusa Cloud
+### Blockers for Full Production (must-fix before scaling)
 
-### Search
-- PostgreSQL Full-Text Search with tsvector + GIN index
-- Searches across product fields + drug_product metadata
-- Debounced as-you-type storefront search
+| Blocker | Risk if skipped | Effort |
+|---------|----------------|--------|
+| **Email verification** | Fake accounts, spam orders | 1–2 days |
+| **S3 Rx uploads** | DB bloat — base64 images in PostgreSQL | 2–3 days |
+| **CI/CD** | Manual builds, risk of deploying broken code | 1–2 days |
+| **MFA for clinical roles** | Compliance audit failure | 2–3 days |
+| **PHI encryption** | Data breach liability | 2–3 days |
+
+### Recommendation
+
+**For soft launch (≤500 orders/month):** Ready to go. The compliance framework (Schedule X/H/H1 blocks, RBAC, H1 register, pharmacist sign-off) is in place. The main operational flows work.
+
+**For production scaling (1000+ orders/month):** Complete the 5 high-priority items above (~8–12 dev days). Then address medium-priority items (refund workflows, order state machine, LegitScript) as volume grows.
+
+---
+
+## Summary Comparison
+
+| Area | Master Plan (V10) | Implemented | Gap |
+|------|:--:|:--:|:--:|
+| **Custom modules** | 15 | 15 | — |
+| **API endpoints** | ~50 | ~50 | — |
+| **Workflows** | 15 | 14 | Override engine |
+| **Admin pages** | ~13 (now 10 consolidated) | 10 | — |
+| **Subscribers** | ~26 | 26 | — |
+| **Jobs** | ~17 | 17 | — |
+| **Storefront features** | ~25 | ~24 | Pharmacist/warehouse portals |
+| **Payment gateways** | 2 (Razorpay + COD) | 2 | Stripe (international, future) |
+| **Notification channels** | 4 | 4 | — |
+| **Compliance rules** | 20 LegitScript items | 17 | MFA, PHI encryption, LegitScript seal |
+| **RBAC** | 25 roles, 8 SSD | 25 roles, 8 SSD, middleware, admin UI | MFA enforcement |
+| **CI/CD** | 3 pipelines | 0 | All needed |
+| **Testing** | Unit + Integration + E2E | 0 | All needed |
+
+**Rough completion: ~75–80% of master plan**
+
+The biggest jump since last update: RBAC went from "models only" to fully implemented (service, seeds, middleware, admin UI). Admin pages consolidated for better UX. Storefront gained reminders, better error handling, conditional shipping, and homepage redesign.

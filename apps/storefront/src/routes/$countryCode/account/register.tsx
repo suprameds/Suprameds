@@ -62,7 +62,7 @@ function RegisterPage() {
           if (redirectTo && redirectTo.startsWith("/")) {
             navigate({ to: redirectTo as never })
           } else {
-            navigate({ to: "/$countryCode/account/profile", params: { countryCode } })
+            navigate({ to: "/$countryCode", params: { countryCode } })
           }
         },
         onError: (err: unknown) => {
@@ -240,7 +240,7 @@ function RegisterPage() {
               <Link
                 to="/$countryCode/account/login"
                 params={{ countryCode }}
-                search={{ redirectTo: undefined }}
+                search={{ redirectTo }}
                 className="font-medium hover:underline"
                 style={{ color: "#27AE60" }}
               >

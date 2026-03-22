@@ -1,3 +1,4 @@
+import { DeliveryEstimate } from "@/components/delivery-estimate"
 import ShippingItemSelector from "@/components/shipping-item-selector"
 import { Button } from "@/components/ui/button"
 import {
@@ -81,9 +82,10 @@ const DeliveryStep = ({ cart, onNext, onBack }: DeliveryStepProps) => {
         </div>
       )}
 
-      <p className="text-xs" style={{ color: "#666" }}>
-        Estimated delivery: 2 days in Telangana & A.P. · 5–7 days rest of India
-      </p>
+      <DeliveryEstimate
+        state={cart.shipping_address?.province ?? undefined}
+        pincode={cart.shipping_address?.postal_code ?? undefined}
+      />
 
       <div className="flex items-center gap-4">
         <Button variant="secondary" onClick={onBack} disabled={isSubmitting}>

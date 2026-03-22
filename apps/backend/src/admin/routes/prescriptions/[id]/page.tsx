@@ -11,6 +11,7 @@ import {
 import { ArrowLeftMini } from "@medusajs/icons"
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
+import { sdk } from "../../../lib/client"
 
 type PrescriptionDetail = {
   id: string
@@ -95,11 +96,9 @@ const PrescriptionDetailPage = () => {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch(`/admin/prescriptions/${prescriptionId}`, {
-        credentials: "include",
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = await res.json()
+      const data = await sdk.client.fetch<{ prescription: PrescriptionDetail }>(
+        `/admin/prescriptions/${prescriptionId}`
+      )
       const p = data.prescription
       setRx(p)
       // Pre-fill form with existing data
@@ -126,24 +125,21 @@ const PrescriptionDetailPage = () => {
     setSubmitting(true)
     setActionResult(null)
     try {
-      const res = await fetch(`/admin/prescriptions/${prescriptionId}`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "approve",
-          doctor_name: doctorName || undefined,
-          doctor_reg_no: doctorRegNo || undefined,
-          patient_name: patientName || undefined,
-          prescribed_on: prescribedOn || undefined,
-          valid_until: validUntil || undefined,
-          pharmacist_notes: pharmacistNotes || undefined,
-        }),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.message || `HTTP ${res.status}`)
-      }
+      await sdk.client.fetch<{ prescription: PrescriptionDetail }>(
+        `/admin/prescriptions/${prescriptionId}`,
+        {
+          method: "POST",
+          body: {
+            action: "approve",
+            doctor_name: doctorName || undefined,
+            doctor_reg_no: doctorRegNo || undefined,
+            patient_name: patientName || undefined,
+            prescribed_on: prescribedOn || undefined,
+            valid_until: validUntil || undefined,
+            pharmacist_notes: pharmacistNotes || undefined,
+          },
+        }
+      )
       setActionResult({
         type: "success",
         message: "Prescription APPROVED successfully.",
@@ -170,20 +166,17 @@ const PrescriptionDetailPage = () => {
     setSubmitting(true)
     setActionResult(null)
     try {
-      const res = await fetch(`/admin/prescriptions/${prescriptionId}`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "reject",
-          rejection_reason: rejectionReason,
-          pharmacist_notes: pharmacistNotes || undefined,
-        }),
-      })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.message || `HTTP ${res.status}`)
-      }
+      await sdk.client.fetch<{ prescription: PrescriptionDetail }>(
+        `/admin/prescriptions/${prescriptionId}`,
+        {
+          method: "POST",
+          body: {
+            action: "reject",
+            rejection_reason: rejectionReason,
+            pharmacist_notes: pharmacistNotes || undefined,
+          },
+        }
+      )
       setActionResult({
         type: "success",
         message: "Prescription REJECTED.",

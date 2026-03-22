@@ -11,15 +11,20 @@ import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { Link, useLocation, useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const ANNOUNCEMENT_DISMISSED_KEY = "suprameds_announce_dismissed"
 
 function AnnouncementBar() {
-  const [dismissed, setDismissed] = useState(() => {
-    if (typeof window === "undefined") return true
-    return window.localStorage.getItem(ANNOUNCEMENT_DISMISSED_KEY) === "1"
-  })
+  // Start visible on both server and client to avoid hydration mismatch,
+  // then hide after mount if the user previously dismissed it.
+  const [dismissed, setDismissed] = useState(false)
+
+  useEffect(() => {
+    if (window.localStorage.getItem(ANNOUNCEMENT_DISMISSED_KEY) === "1") {
+      setDismissed(true)
+    }
+  }, [])
 
   if (dismissed) return null
 
@@ -291,7 +296,7 @@ export const Navbar = () => {
                   <Link
                     to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
                     params={{ countryCode }}
-                    search={{ redirectTo: undefined } as any}
+                    search={customer ? {} as any : { redirectTo: location.pathname } as any}
                     className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors flex items-center gap-2"
                     style={{ color: "#0D1B2A" }}
                   >
@@ -352,7 +357,7 @@ export const Navbar = () => {
             <Link
               to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
               params={{ countryCode }}
-              search={{ redirectTo: undefined } as any}
+              search={customer ? {} as any : { redirectTo: location.pathname } as any}
               className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-gray-100"
               style={{ color: "#0D1B2A" }}
               title={customer ? `${customer.first_name} ${customer.last_name}` : "Sign in or register"}

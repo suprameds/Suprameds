@@ -93,33 +93,11 @@ export default async function paymentCapturedHandler({
       )
     }
 
-    // ── 3. Trigger FEFO inventory allocation ────────────────────────
-    try {
-      const { FefoAllocationWorkflow } = await import(
-        "../workflows/fulfillment/fefo-allocation.js"
-      )
+    // FEFO allocation is handled at fulfillment time via the
+    // createOrderFulfillmentWorkflow.hooks.fulfillmentCreated hook.
+    // See: src/workflows/hooks/fulfillment-fefo-mrp-check.ts
 
-      await FefoAllocationWorkflow(container).run({
-        input: {
-          order_id: orderId,
-          items: order.items?.map((item) => ({
-            variant_id: item.variant_id,
-            quantity: item.quantity,
-            title: item.title,
-          })),
-        },
-      })
-
-      console.info(`${LOG_PREFIX} FEFO allocation workflow triggered for order ${orderId}`)
-    } catch (fefoError) {
-      // FEFO workflow may not be fully implemented yet — log and continue
-      console.warn(
-        `${LOG_PREFIX} FEFO allocation workflow failed for ${orderId}:`,
-        (fefoError as Error).message
-      )
-    }
-
-    // ── 4. Send payment confirmation notification ───────────────────
+    // ── 3. Send payment confirmation notification ───────────────────
     try {
       const notificationService = container.resolve(Modules.NOTIFICATION) as any
 

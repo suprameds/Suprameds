@@ -63,6 +63,9 @@ const OrderExtension = model.define("order_extension", {
 
   cancellation_reason: model.text().nullable(),
 
+  // B2B invoicing — optional GSTIN provided by customer during checkout
+  gstin: model.text().nullable(),
+
   metadata: model.json().nullable(),
 })
 

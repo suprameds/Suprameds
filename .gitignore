@@ -37,5 +37,15 @@ yarn-error.log*
 Thumbs.db
 Desktop.ini
 
+# ---- Large data files ----
+*.csv
+!templates/*.csv
+
+# ---- Build logs ----
+build_log.txt
+
+# ---- Medusa generated ----
+.medusa/
+
 # ---- Scratch ----
 tmp/

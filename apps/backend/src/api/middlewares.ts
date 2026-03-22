@@ -2,6 +2,10 @@ import type { MedusaRequest, MedusaResponse, MedusaNextFunction } from "@medusaj
 import { authenticate, defineMiddlewares } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { PHARMA_MODULE } from "../modules/pharma"
+import { createRateLimiter } from "./rate-limiter"
+import { authorize, enforceSsd } from "./rbac-authorize"
+import { getPrescriptionUploader, getGrnCreator, getPoRaiser } from "./rbac-ssd-helpers"
+import { requireMfa } from "./admin/middlewares/mfa-guard"
 
 /**
  * Schedule X block — stateless API middleware.
@@ -79,6 +83,19 @@ export default defineMiddlewares({
       bodyParser: { sizeLimit: "15mb" },
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
+    // Prescription file upload to S3/R2 via file module (base64 in JSON body)
+    {
+      matcher: "/store/prescriptions/upload-file",
+      method: "POST",
+      bodyParser: { sizeLimit: "15mb" },
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // Pincode CSV import — large payload (up to 30MB for 165K+ rows)
+    {
+      matcher: "/admin/pincodes/import",
+      method: "POST",
+      bodyParser: { sizeLimit: "30mb" },
+    },
     {
       matcher: "/store/prescriptions",
       method: "GET",
@@ -97,6 +114,204 @@ export default defineMiddlewares({
       matcher: "/store/push/*",
       method: "POST",
       middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // Shipment tracking — authenticated customers only
+    {
+      matcher: "/store/shipments",
+      method: "GET",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // Customer invoice PDF download — authenticated customers only
+    {
+      matcher: "/store/invoices/:orderId/pdf",
+      method: "GET",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // Refill reminders — authenticated customers only
+    {
+      matcher: "/store/reminders",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    {
+      matcher: "/store/reminders/:id",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // AfterShip webhook — preserve raw body for HMAC signature verification
+    {
+      matcher: "/webhooks/aftership",
+      method: "POST",
+      bodyParser: { preserveRawBody: true },
+    },
+    // ── Rate limiting ────────────────────────────────────────────────
+    // OTP send: 3 requests per 10 minutes per IP
+    {
+      matcher: "/store/otp/send",
+      method: "POST",
+      middlewares: [
+        createRateLimiter({ windowMs: 10 * 60 * 1000, maxRequests: 3 }),
+      ],
+    },
+    // OTP verify: 10 requests per 10 minutes per IP
+    {
+      matcher: "/store/otp/verify",
+      method: "POST",
+      middlewares: [
+        createRateLimiter({ windowMs: 10 * 60 * 1000, maxRequests: 10 }),
+      ],
+    },
+    // Prescription upload: 5 requests per minute per IP
+    {
+      matcher: "/store/prescriptions",
+      method: "POST",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 5 }),
+      ],
+    },
+    // Prescription file upload: 5 requests per minute per IP
+    {
+      matcher: "/store/prescriptions/upload-file",
+      method: "POST",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 5 }),
+      ],
+    },
+    // MSG91 webhook — no auth, but preserve body
+    {
+      matcher: "/webhooks/msg91",
+      method: "POST",
+      bodyParser: { preserveRawBody: true },
+    },
+
+    // ── MFA enforcement for admin routes (after session auth, before RBAC) ──
+    {
+      matcher: "/admin/*",
+      middlewares: [requireMfa()],
+    },
+
+    // ── RBAC authorization for admin routes ───────────────────────────
+
+    // Prescriptions — approve/reject requires permission + SSD-01
+    {
+      matcher: "/admin/prescriptions/:id",
+      method: "POST",
+      middlewares: [
+        authorize("prescription", "approve"),
+        enforceSsd("SSD-01", getPrescriptionUploader),
+      ],
+    },
+
+    // Pharma batches — recall requires permission
+    {
+      matcher: "/admin/pharma/batches/:id/recall",
+      method: "POST",
+      middlewares: [authorize("batch", "update")],
+    },
+
+    // GRN — approve requires permission + SSD-02
+    {
+      matcher: "/admin/warehouse/grn",
+      method: "POST",
+      middlewares: [
+        authorize("grn", "approve"),
+        enforceSsd("SSD-02", getGrnCreator),
+      ],
+    },
+
+    // Purchase orders — receive requires permission + SSD-03
+    {
+      matcher: "/admin/pharma/purchases/:id/receive",
+      method: "POST",
+      middlewares: [
+        authorize("purchase_order", "approve"),
+        enforceSsd("SSD-03", getPoRaiser),
+      ],
+    },
+
+    // Orders — returns require permission
+    {
+      matcher: "/admin/orders/returns",
+      method: "POST",
+      middlewares: [authorize("order", "update")],
+    },
+
+    // Shipments — create requires permission
+    {
+      matcher: "/admin/shipments",
+      method: "POST",
+      middlewares: [authorize("shipment", "create")],
+    },
+
+    // Dispense — decisions require clinical permission
+    {
+      matcher: "/admin/dispense/decisions",
+      method: "POST",
+      middlewares: [authorize("dispense", "create")],
+    },
+
+    // Dispense — pre-dispatch sign-off requires pharmacist permission
+    {
+      matcher: "/admin/dispense/pre-dispatch",
+      method: "POST",
+      middlewares: [authorize("dispense", "approve")],
+    },
+
+    // Override requests — approval requires compliance permission
+    {
+      matcher: "/admin/compliance/override-requests",
+      method: "POST",
+      middlewares: [authorize("override", "approve")],
+    },
+
+    // RBAC management — role assignment requires role:create permission
+    {
+      matcher: "/admin/rbac/assign",
+      method: "POST",
+      middlewares: [authorize("role", "create")],
+    },
+    {
+      matcher: "/admin/rbac/revoke",
+      method: "POST",
+      middlewares: [authorize("role", "delete")],
+    },
+
+    // Analytics — read requires permission
+    {
+      matcher: "/admin/analytics/*",
+      method: "GET",
+      middlewares: [authorize("analytics", "read")],
+    },
+
+    // Loyalty — management requires permission
+    {
+      matcher: "/admin/loyalty",
+      method: "GET",
+      middlewares: [authorize("loyalty", "read")],
+    },
+
+    // H1 Register — export requires permission
+    {
+      matcher: "/admin/dispense/h1-register/export",
+      method: "GET",
+      middlewares: [authorize("h1_register", "export")],
+    },
+
+    // Reports — requires permission
+    {
+      matcher: "/admin/reports/*",
+      method: "GET",
+      middlewares: [authorize("report", "read")],
+    },
+
+    // Product import/export requires permission
+    {
+      matcher: "/admin/pharma/import",
+      method: "POST",
+      middlewares: [authorize("product", "import")],
+    },
+    {
+      matcher: "/admin/pharma/export",
+      method: "GET",
+      middlewares: [authorize("product", "export")],
     },
   ],
 })

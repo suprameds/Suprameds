@@ -8,6 +8,7 @@ import {
   type PrescriptionSummary,
 } from "@/lib/hooks/use-prescriptions"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { sdk } from "@/lib/utils/sdk"
 import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -172,20 +173,35 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
     setUploadError("")
 
     try {
-      const fileKey = `rx/${Date.now()}-${uploadFile.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`
-
-      // Convert file to base64 data URL so the admin can preview it.
-      // In production, replace with presigned S3 upload.
-      const fileUrl = await new Promise<string>((resolve, reject) => {
+      // Read file as base64 (strip the data URL prefix)
+      const base64Content = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader()
-        reader.onload = () => resolve(reader.result as string)
+        reader.onload = () => {
+          const result = reader.result as string
+          const base64 = result.includes(",") ? result.split(",")[1] : result
+          resolve(base64)
+        }
         reader.onerror = () => reject(new Error("Failed to read file"))
         reader.readAsDataURL(uploadFile)
       })
 
+      // Upload to S3/R2 via the backend file module
+      const uploadResult = await sdk.client.fetch<{
+        file_key: string
+        file_url: string
+      }>("/store/prescriptions/upload-file", {
+        method: "POST",
+        body: {
+          filename: uploadFile.name,
+          content_type: uploadFile.type,
+          content: base64Content,
+        },
+      })
+
+      // Create the prescription record pointing at the S3 file
       const { prescription } = await uploadMutation.mutateAsync({
-        file_key: fileKey,
-        file_url: fileUrl,
+        file_key: uploadResult.file_key,
+        file_url: uploadResult.file_url,
         original_filename: uploadFile.name,
         mime_type: uploadFile.type,
         file_size_bytes: uploadFile.size,

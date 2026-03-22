@@ -27,6 +27,18 @@ const CodOrder = model.define("cod_order", {
     "cancelled",
   ]).default("pending_confirmation"),
 
+  // Timestamp when customer confirmed via IVR / SMS link / manual call
+  confirmed_at: model.dateTime().nullable(),
+
+  // Whether phone verification was done (IVR callback / OTP on call)
+  phone_verified: model.boolean().default(false),
+
+  // Customer phone used for confirmation call
+  customer_phone: model.text().nullable(),
+
+  // Number of confirmation attempts made by CS team
+  confirmation_attempts: model.number().default(0),
+
   metadata: model.json().nullable(),
 })
 

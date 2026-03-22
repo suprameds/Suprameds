@@ -19,6 +19,7 @@
     "db:seed": "medusa exec ./src/scripts/run-migrations.ts",
     "db:setup": "medusa db:migrate && medusa exec ./src/scripts/run-migrations.ts",
     "db:setup:prod": "medusa db:migrate && SKIP_PRODUCT_SEED=true medusa exec ./src/scripts/run-migrations.ts",
+    "import:products": "medusa exec ./src/scripts/import-products.ts",
     "start": "medusa start",
     "dev": "medusa develop",
     "dev:tee": "medusa develop 2>&1 | tee -a ../backend.log",
@@ -45,7 +46,9 @@
     "@tanstack/react-query": "5.64.2",
     "date-fns": "^4.1.0",
     "firebase-admin": "^13.7.0",
-    "medusa-plugin-razorpay-v2": "^0.1.4"
+    "medusa-plugin-razorpay-v2": "^0.1.4",
+    "pdfkit": "^0.18.0",
+    "resend": "^6.9.4"
   },
   "devDependencies": {
     "@medusajs/test-utils": "2.13.4",
@@ -53,6 +56,7 @@
     "@swc/jest": "^0.2.36",
     "@types/jest": "29.5.13",
     "@types/node": "20.0.0",
+    "@types/pdfkit": "^0.17.5",
     "@types/react": "19.1.1",
     "@types/react-dom": "19.1.1",
     "jest": "29.7.0",

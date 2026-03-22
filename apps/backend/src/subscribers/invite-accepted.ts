@@ -1,0 +1,62 @@
+import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
+import { Modules } from "@medusajs/framework/utils"
+import { RBAC_MODULE } from "../modules/rbac"
+
+const LOG_PREFIX = "[subscriber:invite-accepted]"
+
+/**
+ * When a new admin user is created (typically via invite acceptance),
+ * auto-assign the RBAC role that was selected at invite time.
+ * Falls back to "viewer" if no role was pre-selected.
+ */
+export default async function userCreatedHandler({
+  event: { data },
+  container,
+}: SubscriberArgs<{ id: string }>) {
+  const userId = data.id
+  console.info(`${LOG_PREFIX} New user created: ${userId}`)
+
+  try {
+    const rbacService = container.resolve(RBAC_MODULE) as any
+    const userService = container.resolve(Modules.USER) as any
+
+    // Retrieve the user to get their email
+    let user: any
+    try {
+      user = await userService.retrieveUser(userId)
+    } catch {
+      console.warn(`${LOG_PREFIX} Could not retrieve user ${userId} — skipping role assignment`)
+      return
+    }
+
+    if (!user?.email) {
+      console.warn(`${LOG_PREFIX} User ${userId} has no email — skipping role assignment`)
+      return
+    }
+
+    // Check if this user already has roles (e.g., created via CLI, not invite)
+    const existingRoles = await rbacService.getUserRoles(userId)
+    if (existingRoles.length > 0) {
+      console.info(
+        `${LOG_PREFIX} User ${userId} already has roles [${existingRoles.join(", ")}] — skipping`
+      )
+      return
+    }
+
+    // Auto-assign: consumes InviteRole mapping or defaults to "viewer"
+    const assignedRole = await rbacService.assignDefaultRole(userId, user.email)
+    console.info(
+      `${LOG_PREFIX} Auto-assigned role "${assignedRole}" to user ${userId} (${user.email})`
+    )
+  } catch (error) {
+    // Never let subscriber failures break user creation
+    console.error(
+      `${LOG_PREFIX} Failed to assign role for user ${userId}:`,
+      (error as Error).message
+    )
+  }
+}
+
+export const config: SubscriberConfig = {
+  event: "user.created",
+}

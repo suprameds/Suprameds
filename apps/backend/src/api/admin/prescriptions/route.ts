@@ -1,9 +1,11 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { decryptPhiArray, PRESCRIPTION_PHI_FIELDS, isPhiEncryptionEnabled } from "../../../lib/phi-crypto"
 
 /**
  * GET /admin/prescriptions
  * Admin: list prescriptions with filtering by status (for pharmacist queue).
+ * PHI fields are decrypted before returning.
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -41,5 +43,9 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     filters,
   })
 
-  return res.json({ prescriptions, count: prescriptions.length })
+  const result = isPhiEncryptionEnabled()
+    ? decryptPhiArray(prescriptions as any[], PRESCRIPTION_PHI_FIELDS)
+    : prescriptions
+
+  return res.json({ prescriptions: result, count: result.length })
 }

@@ -1,10 +1,87 @@
 import Address from "@/components/address"
 import PaymentMethodInfo from "@/components/payment-method-info"
+import { ShipmentTracker } from "@/components/shipment-tracker"
 import { Price } from "@/components/ui/price"
 import { Thumbnail } from "@/components/ui/thumbnail"
 import { isPaidWithGiftCard } from "@/lib/utils/checkout"
 import { formatOrderId } from "@/lib/utils/order"
 import { HttpTypes } from "@medusajs/types"
+import { useCallback, useState } from "react"
+
+const BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"
+const PUBLISHABLE_KEY = import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY ?? ""
+
+// ============ INVOICE DOWNLOAD BUTTON ============
+
+/**
+ * Fetches the invoice PDF as a blob with proper auth headers
+ * and triggers a browser download.
+ */
+export const InvoiceDownloadButton = ({ orderId }: { orderId: string }) => {
+  const [downloading, setDownloading] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleDownload = useCallback(async () => {
+    setDownloading(true)
+    setError("")
+    try {
+      const headers: Record<string, string> = {}
+      if (PUBLISHABLE_KEY) {
+        headers["x-publishable-api-key"] = PUBLISHABLE_KEY
+      }
+
+      const res = await fetch(`${BACKEND_URL}/store/invoices/${orderId}/pdf`, {
+        credentials: "include",
+        headers,
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ message: `HTTP ${res.status}` }))
+        throw new Error(body.message || `Download failed (${res.status})`)
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `invoice-${orderId}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err: any) {
+      console.error("[invoice]", err)
+      setError(err.message || "Download failed")
+    } finally {
+      setDownloading(false)
+    }
+  }, [orderId])
+
+  return (
+    <div className="inline-flex flex-col">
+      <button
+        onClick={handleDownload}
+        disabled={downloading}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+        style={{ color: "#0E7C86", borderColor: "#0E7C86", background: "#F0FDFA" }}
+      >
+        <DownloadIcon />
+        {downloading ? "Downloading…" : "Download Invoice"}
+      </button>
+      {error && (
+        <span className="text-xs mt-1" style={{ color: "#EF4444" }}>{error}</span>
+      )}
+    </div>
+  )
+}
+
+const DownloadIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+    <polyline points="7 10 12 15 17 10" />
+    <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+)
 
 type OrderInfoProps = {
   order: HttpTypes.StoreOrder
@@ -329,6 +406,7 @@ function collectTrackingEntries(fulfillments: any[] | undefined): { key: string;
 export const OrderInfo = ({ order }: OrderInfoProps) => {
   const fulfillments = (order as any).fulfillments as any[] | undefined
   const trackingEntries = collectTrackingEntries(fulfillments)
+  const isCancelled = order.status === "canceled" || order.status === "cancelled"
 
   return (
     <div className="flex flex-col gap-5">
@@ -347,6 +425,8 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
             year: "numeric",
           })}
         </span>
+        {/* Invoice download — shown for non-cancelled orders */}
+        {!isCancelled && <InvoiceDownloadButton orderId={order.id} />}
       </div>
 
       {/* Progress tracker */}
@@ -357,7 +437,10 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
         <OrderProgressTracker order={order} />
       </div>
 
-      {/* Tracking */}
+      {/* Rich shipment tracking (fetches from custom /store/shipments endpoint) */}
+      <ShipmentTracker orderId={order.id} />
+
+      {/* Fallback: Medusa fulfillment tracking links (shown only if present) */}
       {trackingEntries.length > 0 && (
         <div className="flex flex-col gap-1">
           <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>

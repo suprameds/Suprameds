@@ -2,14 +2,45 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { sdk } from "@/lib/utils/sdk"
 import { queryKeys } from "@/lib/utils/query-keys"
 
+/** localStorage key for the OTP JWT token (bearer auth fallback) */
+const OTP_JWT_KEY = "_suprameds_otp_jwt"
+
+export function getStoredOtpToken(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem(OTP_JWT_KEY)
+}
+
+export function setStoredOtpToken(token: string) {
+  localStorage.setItem(OTP_JWT_KEY, token)
+}
+
+export function clearStoredOtpToken() {
+  localStorage.removeItem(OTP_JWT_KEY)
+}
+
 export const useCustomer = () => {
   return useQuery({
     queryKey: queryKeys.customer.current(),
     queryFn: async () => {
+      // Try session-based auth first (email/password login)
       try {
         const { customer } = await sdk.store.customer.retrieve()
         return customer
       } catch {
+        // Fallback: try stored OTP JWT for phone-based login
+        const otpToken = getStoredOtpToken()
+        if (otpToken) {
+          try {
+            const { customer } = await sdk.client.fetch<{ customer: any }>(
+              "/store/customers/me",
+              { headers: { Authorization: `Bearer ${otpToken}` } }
+            )
+            return customer
+          } catch {
+            clearStoredOtpToken()
+            return null
+          }
+        }
         return null
       }
     },
@@ -90,7 +121,94 @@ export const useLogout = () => {
       await sdk.auth.logout()
     },
     onSuccess: () => {
+      clearStoredOtpToken()
       queryClient.setQueryData(queryKeys.customer.current(), null)
+      queryClient.invalidateQueries({ queryKey: queryKeys.customer.all })
+    },
+  })
+}
+
+// ============ OTP LOGIN (Phone SMS + Email) ============
+
+type OtpChannel = "sms" | "email"
+
+interface OtpSendResponse {
+  success: boolean
+  channel: OtpChannel
+  message: string
+  fallback_channel?: OtpChannel
+}
+
+interface OtpVerifyResponse {
+  success: boolean
+  token: string
+  customer_id: string
+}
+
+/**
+ * Send a 6-digit OTP via SMS or Email.
+ * - For SMS: pass { phone, channel: "sms" }
+ * - For Email: pass { email, channel: "email" }
+ */
+export const useOtpSend = () => {
+  return useMutation({
+    mutationFn: async (
+      params:
+        | { phone: string; country_code?: string; channel?: "sms" }
+        | { email: string; channel: "email" }
+    ) => {
+      const body =
+        "email" in params
+          ? { email: params.email, channel: "email" as const }
+          : { phone: params.phone, country_code: (params as any).country_code ?? "91", channel: "sms" as const }
+
+      const response = await sdk.client.fetch<OtpSendResponse>(
+        "/store/otp/send",
+        { method: "POST", body }
+      )
+      return response
+    },
+  })
+}
+
+/**
+ * Verify OTP, store the JWT, and load the customer into cache.
+ * Works for both phone and email OTP.
+ */
+export const useOtpVerify = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (
+      params:
+        | { phone: string; otp: string; country_code?: string; channel?: "sms" }
+        | { email: string; otp: string; channel: "email" }
+    ) => {
+      const body =
+        "email" in params
+          ? { email: params.email, otp: params.otp, channel: "email" as const }
+          : { phone: params.phone, otp: params.otp, country_code: (params as any).country_code ?? "91", channel: "sms" as const }
+
+      const response = await sdk.client.fetch<OtpVerifyResponse>(
+        "/store/otp/verify",
+        { method: "POST", body }
+      )
+
+      if (!response.success || !response.token) {
+        throw new Error("OTP verification failed")
+      }
+
+      setStoredOtpToken(response.token)
+
+      const { customer } = await sdk.client.fetch<{ customer: any }>(
+        "/store/customers/me",
+        { headers: { Authorization: `Bearer ${response.token}` } }
+      )
+
+      return customer
+    },
+    onSuccess: (customer) => {
+      queryClient.setQueryData(queryKeys.customer.current(), customer)
       queryClient.invalidateQueries({ queryKey: queryKeys.customer.all })
     },
   })

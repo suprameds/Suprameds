@@ -9,226 +9,335 @@ import {
   Text,
   Img,
   Hr,
-} from "@react-email/components";
-import { styles } from "./styles";
+  Link,
+} from "@react-email/components"
+import { styles } from "./styles"
 
 interface OrderItem {
-  title: string;
-  subtitle: string;
-  thumbnail: string;
-  quantity: number;
-  unit_price: number;
-  compare_at_unit_price?: number;
-  total: number;
+  title: string
+  subtitle: string
+  thumbnail: string
+  quantity: number
+  unit_price: number
+  compare_at_unit_price?: number
+  total: number
 }
 
 interface Address {
-  first_name: string;
-  last_name: string;
-  address_1: string;
-  address_2?: string;
-  postal_code: string;
-  city: string;
-  country_code: string;
+  first_name: string
+  last_name: string
+  address_1: string
+  address_2?: string
+  postal_code: string
+  city: string
+  province?: string
+  country_code: string
+  phone?: string
 }
 
 interface OrderConfirmationProps {
-  displayId: number;
-  email: string;
-  createdAt: string;
-  currencyCode: string;
-  items: OrderItem[];
-  shippingAddress: Address;
-  itemSubtotal: number;
-  discountTotal: number;
-  shippingTotal: number;
-  taxTotal: number;
-  total: number;
-  paymentStatus: string;
+  displayId: number
+  email: string
+  createdAt: string
+  currencyCode: string
+  items: OrderItem[]
+  shippingAddress: Address
+  itemSubtotal: number
+  discountTotal: number
+  shippingTotal: number
+  taxTotal: number
+  total: number
+  paymentStatus: string
 }
 
 export default function OrderConfirmation({
-  displayId = 10035,
-  email = "test@example.com",
-  createdAt = "2025-10-11T08:51:41.106Z",
-  currencyCode = "EUR",
+  displayId = 10201,
+  email = "customer@example.com",
+  createdAt = "2026-03-21T08:00:00.000Z",
+  currencyCode = "INR",
   shippingAddress = {
-    first_name: "Tony",
-    last_name: "Stark",
-    address_1: "10880 Malibu Point, 90265",
-    address_2: "",
-    postal_code: "90265",
-    city: "Malibu",
-    country_code: "US",
+    first_name: "Pawan",
+    last_name: "Galiyan",
+    address_1: "1981 Katra Lachhu Singh, Chandni Chowk",
+    postal_code: "110006",
+    city: "Delhi",
+    province: "Delhi",
+    country_code: "IN",
+    phone: "8595624291",
   },
   items = [
     {
-      title: "Relaxed Jogger Pant",
-      subtitle:
-        "Minimalist joggers with a tailored silhouette—ideal for travel or downtime.",
-      thumbnail:
-        "https://cdn.mignite.app/ws/works_01KGFKTHDC6ZD3WS7GQTX8992N/-NanoBanana-2026-02-05-5-2-01KGSBR3R5A1KXA1MBX09R0YJ1.jpeg",
-      quantity: 1,
-      unit_price: 50,
-      total: 50,
+      title: "Paracetamol 500mg Tablet",
+      subtitle: "Strip of 10 tablets",
+      thumbnail: "",
+      quantity: 3,
+      unit_price: 12,
+      compare_at_unit_price: 30,
+      total: 36,
     },
   ],
-  itemSubtotal = 50,
-  discountTotal = 0,
+  itemSubtotal = 36,
+  discountTotal = 54,
   shippingTotal = 0,
-  taxTotal = 0,
-  total = 50,
+  taxTotal = 2,
+  total = 38,
 }: OrderConfirmationProps) {
-  const formatCurrency = (amount: number, currency: string) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: currency.toUpperCase(),
-    }).format(amount);
-  };
+  const formatINR = (amount: number) => {
+    return `₹${amount.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`
+  }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString("en-US", {
+    return new Date(date).toLocaleDateString("en-IN", {
       weekday: "short",
       year: "numeric",
       month: "short",
       day: "numeric",
-    });
-  };
+    })
+  }
+
+  const totalSavings = discountTotal > 0 ? discountTotal : 0
 
   return (
     <Html>
-      <Head />
+      <Head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </Head>
       <Body style={styles.body}>
         <Container style={styles.container}>
-          <Section>
-            <Text style={styles.heading}>Dear Customer,</Text>
-            <Text style={styles.heading}>Thank you for your purchase!</Text>
-          </Section>
-
-          <Section>
-            <Text style={styles.text}>
-              Order number: <strong>{displayId}</strong>
-            </Text>
-            <Text style={styles.text}>
-              Order date: <strong>{formatDate(createdAt)}</strong>
+          {/* Header */}
+          <Section style={styles.header}>
+            <Text style={styles.headerLogo}>SUPRAMEDS</Text>
+            <Text style={styles.headerTagline}>
+              Affordable Generic Medicines
             </Text>
           </Section>
 
-          <Hr style={styles.hr} />
+          {/* Content */}
+          <Section style={styles.contentSection}>
+            {/* Order Confirmation Banner */}
+            <Section style={styles.orderBanner}>
+              <Text style={styles.orderBannerText}>
+                Order Confirmed!
+              </Text>
+              <Text style={styles.orderBannerSub}>
+                Thank you for choosing Suprameds. Your order #{displayId} has been placed successfully.
+              </Text>
+            </Section>
 
-          <Section>
+            {/* Order Meta */}
+            <Row>
+              <Column>
+                <Text style={styles.text}>
+                  <strong>Order #:</strong> {displayId}
+                </Text>
+              </Column>
+              <Column align="right">
+                <Text style={styles.text}>
+                  <strong>Date:</strong> {formatDate(createdAt)}
+                </Text>
+              </Column>
+            </Row>
+
+            <Hr style={styles.hr} />
+
+            {/* Order Items */}
             <Text style={styles.heading}>Order Summary</Text>
+
             {items.map((item, index) => (
               <Row key={index} style={styles.itemRow}>
-                <Column style={styles.itemImageColumn}>
-                  <Img
-                    src={item.thumbnail}
-                    alt={item.title}
-                    width="240"
-                    height="240"
-                    style={styles.itemImage}
-                  />
-                </Column>
+                {item.thumbnail && (
+                  <Column style={styles.itemImageColumn}>
+                    <Img
+                      src={item.thumbnail}
+                      alt={item.title}
+                      width="80"
+                      height="80"
+                      style={styles.itemImage}
+                    />
+                  </Column>
+                )}
                 <Column style={{ verticalAlign: "top" }}>
                   <Text style={styles.itemTitle}>{item.title}</Text>
-                  <Text style={{ ...styles.textSecondary, margin: "0" }}>
-                    Quantity: {item.quantity} ×{" "}
-                    {item.compare_at_unit_price && (
+                  {item.subtitle && (
+                    <Text style={styles.itemSubtitle}>{item.subtitle}</Text>
+                  )}
+                  <Text style={styles.itemPrice}>
+                    Qty: {item.quantity} × {formatINR(item.unit_price)}
+                    {item.compare_at_unit_price && item.compare_at_unit_price > item.unit_price && (
                       <>
+                        {" "}
                         <span style={styles.strikethrough}>
-                          {formatCurrency(
-                            item.compare_at_unit_price,
-                            currencyCode
-                          )}
-                        </span>{" "}
+                          {formatINR(item.compare_at_unit_price)}
+                        </span>
                       </>
                     )}
-                    {formatCurrency(item.total, currencyCode)}
+                    {" = "}
+                    <strong>{formatINR(item.total)}</strong>
                   </Text>
+                  {item.compare_at_unit_price && item.compare_at_unit_price > item.unit_price && (
+                    <Text style={styles.textGreen}>
+                      You save {formatINR((item.compare_at_unit_price - item.unit_price) * item.quantity)} ({Math.round(((item.compare_at_unit_price - item.unit_price) / item.compare_at_unit_price) * 100)}% off)
+                    </Text>
+                  )}
                 </Column>
               </Row>
             ))}
 
-            <Section style={{ margin: "24px 0" }}>
+            {/* Totals */}
+            <Section style={{ margin: "16px 0" }}>
               <Row style={styles.summaryRow}>
                 <Column>
-                  <Text style={styles.summaryText}>Subtotal (incl. VAT)</Text>
+                  <Text style={styles.summaryText}>Subtotal</Text>
                 </Column>
                 <Column align="right">
                   <Text style={styles.summaryText}>
-                    {formatCurrency(itemSubtotal, currencyCode)}
+                    {formatINR(itemSubtotal)}
                   </Text>
                 </Column>
               </Row>
+
+              {discountTotal > 0 && (
+                <Row style={styles.summaryRow}>
+                  <Column>
+                    <Text style={{ ...styles.summaryText, color: "#27AE60" }}>
+                      Discount
+                    </Text>
+                  </Column>
+                  <Column align="right">
+                    <Text style={{ ...styles.summaryText, color: "#27AE60" }}>
+                      -{formatINR(discountTotal)}
+                    </Text>
+                  </Column>
+                </Row>
+              )}
+
               <Row style={styles.summaryRow}>
                 <Column>
-                  <Text style={styles.summaryText}>Discount Total</Text>
+                  <Text style={styles.summaryText}>
+                    {shippingTotal > 0 ? "Shipping" : "Shipping (FREE)"}
+                  </Text>
                 </Column>
                 <Column align="right">
                   <Text style={styles.summaryText}>
-                    {formatCurrency(discountTotal, currencyCode)}
+                    {shippingTotal > 0 ? formatINR(shippingTotal) : "₹0.00"}
                   </Text>
                 </Column>
               </Row>
+
               <Row style={styles.summaryRow}>
                 <Column>
-                  <Text style={styles.summaryText}>Shipping Total</Text>
+                  <Text style={styles.summaryTextItalic}>GST (incl.)</Text>
                 </Column>
                 <Column align="right">
-                  <Text style={styles.summaryText}>
-                    {formatCurrency(shippingTotal, currencyCode)}
+                  <Text style={styles.summaryTextItalic}>
+                    {formatINR(taxTotal)}
                   </Text>
                 </Column>
               </Row>
+
+              <Hr style={{ ...styles.hr, margin: "12px 0" }} />
+
               <Row style={styles.summaryRow}>
                 <Column>
                   <Text style={styles.summaryTextBold}>Total</Text>
                 </Column>
                 <Column align="right">
                   <Text style={styles.summaryTextBold}>
-                    {formatCurrency(total, currencyCode)}
-                  </Text>
-                </Column>
-              </Row>
-              <Row style={styles.summaryRow}>
-                <Column>
-                  <Text style={styles.summaryTextItalic}>VAT Amount</Text>
-                </Column>
-                <Column align="right">
-                  <Text style={styles.summaryTextItalic}>
-                    {formatCurrency(taxTotal, currencyCode)}
+                    {formatINR(total)}
                   </Text>
                 </Column>
               </Row>
             </Section>
-          </Section>
 
-          <Hr style={styles.hr} />
+            {/* Savings Badge */}
+            {totalSavings > 0 && (
+              <Section style={{ textAlign: "center", margin: "16px 0" }}>
+                <Text style={styles.savingsBadge}>
+                  You saved {formatINR(totalSavings)} on this order!
+                </Text>
+              </Section>
+            )}
 
-          <Section>
-            <Text style={styles.heading}>Shipping Address</Text>
-            <Section style={{ margin: "24px 0" }}>
-              <Text style={styles.text}>
+            <Hr style={styles.hr} />
+
+            {/* Shipping Address */}
+            <Text style={styles.heading}>Delivery Address</Text>
+            <Section style={styles.addressBlock}>
+              <Text style={{ ...styles.text, fontWeight: "600", margin: "0 0 4px" }}>
                 {shippingAddress.first_name} {shippingAddress.last_name}
               </Text>
-              <Text style={styles.text}>
+              <Text style={{ ...styles.text, margin: "0 0 2px" }}>
                 {shippingAddress.address_1}
               </Text>
               {shippingAddress.address_2 && (
-                <Text style={styles.text}>
+                <Text style={{ ...styles.text, margin: "0 0 2px" }}>
                   {shippingAddress.address_2}
                 </Text>
               )}
-              <Text style={styles.text}>
-                {shippingAddress.postal_code} {shippingAddress.city}
+              <Text style={{ ...styles.text, margin: "0 0 2px" }}>
+                {shippingAddress.city}
+                {shippingAddress.province ? `, ${shippingAddress.province}` : ""}{" "}
+                - {shippingAddress.postal_code}
               </Text>
-              <Text style={styles.text}>
-                {shippingAddress.country_code.toUpperCase()}
-              </Text>
+              {shippingAddress.phone && (
+                <Text style={{ ...styles.text, margin: "0" }}>
+                  Phone: {shippingAddress.phone}
+                </Text>
+              )}
             </Section>
+
+            <Hr style={styles.hr} />
+
+            {/* Delivery Info */}
+            <Text style={styles.subheading}>Estimated Delivery</Text>
+            <Text style={styles.text}>
+              Your order will be delivered within <strong>2-7 business days</strong> depending on your location. Orders within Telangana arrive in 1-2 days.
+            </Text>
+            <Text style={styles.text}>
+              Free delivery on orders above ₹300.
+            </Text>
+          </Section>
+
+          {/* Footer */}
+          <Section style={styles.footer}>
+            <Text style={styles.footerText}>
+              Suprameds — Supracyn Pharma Pvt Ltd
+            </Text>
+            <Text style={styles.footerText}>
+              1st Floor, H.No 7-2-544, SRT 323 Sanathnagar, Hyderabad - 500018
+            </Text>
+            <Text style={styles.footerText}>
+              GSTIN: 36ABGCS8302R1ZP | DL-20: TS/HYD/2021-82149
+            </Text>
+            <Text style={{ ...styles.footerText, margin: "8px 0 0" }}>
+              <Link href="https://suprameds.in" style={styles.footerLink}>
+                suprameds.in
+              </Link>
+              {" | "}
+              <Link
+                href="mailto:support@supracynpharma.com"
+                style={styles.footerLink}
+              >
+                support@supracynpharma.com
+              </Link>
+              {" | "}
+              <Link href="tel:+917674962758" style={styles.footerLink}>
+                +91 7674962758
+              </Link>
+            </Text>
+            <Text style={{ ...styles.footerText, margin: "12px 0 0" }}>
+              This email was sent to {email}. If you have questions about your
+              order, please contact us.
+            </Text>
           </Section>
         </Container>
       </Body>
     </Html>
-  );
+  )
 }

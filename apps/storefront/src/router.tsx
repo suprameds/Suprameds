@@ -10,10 +10,19 @@ export function createRouter() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 1000 * 60 * 5, // 5 minutes — reduces background chatter in SSR
-        refetchOnWindowFocus: false, // avoid hammering the backend on every tab-switch
+        staleTime: 1000 * 60 * 5,
+        refetchOnWindowFocus: false,
         refetchOnReconnect: true,
-        retry: false, // network errors are surfaced immediately; auth errors shouldn't be retried
+        retry: (failureCount, error) => {
+          // Don't retry auth errors (401/403)
+          const msg = (error instanceof Error ? error.message : "").toLowerCase()
+          if (msg.includes("401") || msg.includes("403") || msg.includes("unauthorized")) {
+            return false
+          }
+          // Retry connection errors up to 2 times with backoff
+          return failureCount < 2
+        },
+        retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
       },
     },
   })

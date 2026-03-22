@@ -1,5 +1,8 @@
+import { DeliveryEstimate } from "@/components/delivery-estimate"
 import ProductActions from "@/components/product-actions"
+import { ProductSubstitutes } from "@/components/product-substitutes"
 import { ImageGallery } from "@/components/ui/image-gallery"
+import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
 import { useLoaderData } from "@tanstack/react-router"
 
 type DrugProduct = {
@@ -9,6 +12,8 @@ type DrugProduct = {
   dosage_form?: string | null
   strength?: string | null
   gst_rate?: number | null
+  mrp_paise?: number | null
+  pack_size?: string | null
 }
 
 function scheduleCopy(schedule: DrugProduct["schedule"]) {
@@ -24,6 +29,11 @@ const ProductDetails = () => {
 
   const drug = (product as any)?.drug_product as DrugProduct | undefined
   const sched = scheduleCopy(drug?.schedule)
+
+  const currentPrice =
+    product.variants?.[0]?.calculated_price?.calculated_amount ?? 0
+  const mrpRupees = drug?.mrp_paise ? drug.mrp_paise / 100 : null
+  const discount = calcDiscountFromMRP(drug?.mrp_paise, currentPrice)
 
   return (
     <div style={{ background: "#FAFAF8" }}>
@@ -44,16 +54,54 @@ const ProductDetails = () => {
                 {product.title}
               </h1>
 
-              {drug?.schedule && (
+              {/* Badges row: schedule + discount */}
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                {drug?.schedule && (
+                  <span
+                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border"
+                    style={{
+                      borderColor: sched.tone === "rx" ? "#F39C12" : sched.tone === "blocked" ? "#EF4444" : "#27AE60",
+                      background: sched.tone === "rx" ? "rgba(243,156,18,0.10)" : sched.tone === "blocked" ? "rgba(239,68,68,0.10)" : "rgba(39,174,96,0.08)",
+                      color: sched.tone === "rx" ? "#A16207" : sched.tone === "blocked" ? "#B91C1C" : "#1A7A4A",
+                    }}
+                  >
+                    {sched.label}
+                  </span>
+                )}
+                {discount && discount > 0 && (
+                  <span
+                    className="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold"
+                    style={{
+                      background: discount >= 40
+                        ? "linear-gradient(135deg, #16A34A, #22C55E)"
+                        : "#27AE60",
+                      color: "#fff",
+                    }}
+                  >
+                    {discount}% OFF
+                  </span>
+                )}
+              </div>
+
+              {/* Price block with MRP */}
+              {currentPrice > 0 && (
                 <div
-                  className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border mb-3"
-                  style={{
-                    borderColor: sched.tone === "rx" ? "#F39C12" : sched.tone === "blocked" ? "#EF4444" : "#27AE60",
-                    background: sched.tone === "rx" ? "rgba(243,156,18,0.10)" : sched.tone === "blocked" ? "rgba(239,68,68,0.10)" : "rgba(39,174,96,0.08)",
-                    color: sched.tone === "rx" ? "#A16207" : sched.tone === "blocked" ? "#B91C1C" : "#1A7A4A",
-                  }}
+                  className="flex items-baseline gap-3 mb-4 px-4 py-3 rounded-lg"
+                  style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}
                 >
-                  {sched.label}
+                  <span className="text-2xl font-bold" style={{ color: "#0D1B2A" }}>
+                    ₹{currentPrice.toLocaleString("en-IN")}
+                  </span>
+                  {mrpRupees && mrpRupees > currentPrice && (
+                    <span className="text-sm line-through" style={{ color: "#9CA3AF" }}>
+                      MRP ₹{mrpRupees.toLocaleString("en-IN")}
+                    </span>
+                  )}
+                  {discount && discount > 0 && (
+                    <span className="text-sm font-semibold" style={{ color: "#16A34A" }}>
+                      You save ₹{((mrpRupees ?? 0) - currentPrice).toLocaleString("en-IN")}
+                    </span>
+                  )}
                 </div>
               )}
 
@@ -71,18 +119,7 @@ const ProductDetails = () => {
               className="rounded-lg p-4 flex flex-col gap-2.5 mt-2"
               style={{ background: "#fff", border: "1px solid #EDE9E1" }}
             >
-              <div className="flex items-center gap-2.5 text-xs" style={{ color: "#2C3E50" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
-                </svg>
-                <span><strong style={{ color: "#0D1B2A" }}>2 days</strong> in Telangana & A.P. · <strong style={{ color: "#0D1B2A" }}>5–7 days</strong> rest of India</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-xs" style={{ color: "#2C3E50" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#27AE60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
-                </svg>
-                <span><strong style={{ color: "#1A7A4A" }}>Free delivery</strong> on orders above ₹300</span>
-              </div>
+              <DeliveryEstimate />
               <div className="flex items-center gap-2.5 text-xs" style={{ color: "#2C3E50" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -154,6 +191,9 @@ const ProductDetails = () => {
                 )}
               </div>
             )}
+
+            {/* Therapeutic substitution suggestions */}
+            <ProductSubstitutes productId={product.id} currentPrice={currentPrice} />
           </div>
         </div>
       </div>
