@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck-backend:
+    name: Backend — TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx tsc --noEmit
+        working-directory: apps/backend
+
+  typecheck-storefront:
+    name: Storefront — TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx tsc --noEmit
+        working-directory: apps/storefront
+
+  build-backend:
+    name: Backend — Build
+    runs-on: ubuntu-latest
+    needs: typecheck-backend
+    env:
+      DATABASE_URL: postgres://fake:fake@localhost:5432/fake
+      JWT_SECRET: ci-test-secret
+      COOKIE_SECRET: ci-test-cookie
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        working-directory: apps/backend
+
+  build-storefront:
+    name: Storefront — Build
+    runs-on: ubuntu-latest
+    needs: typecheck-storefront
+    env:
+      VITE_MEDUSA_BACKEND_URL: http://localhost:9000
+      VITE_MEDUSA_PUBLISHABLE_KEY: pk_test_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        working-directory: apps/storefront

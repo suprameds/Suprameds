@@ -1,6 +1,7 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { ReviewRxWorkflow } from "../../../../workflows/prescription/review-rx"
+import { decryptPhiFields, encryptPhi, PRESCRIPTION_PHI_FIELDS, isPhiEncryptionEnabled } from "../../../../lib/phi-crypto"
 
 /**
  * GET /admin/prescriptions/:id
@@ -42,7 +43,11 @@ export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) 
     throw new MedusaError(MedusaError.Types.NOT_FOUND, `Prescription ${id} not found`)
   }
 
-  return res.json({ prescription: prescriptions[0] })
+  const rx = isPhiEncryptionEnabled()
+    ? decryptPhiFields(prescriptions[0] as any, PRESCRIPTION_PHI_FIELDS)
+    : prescriptions[0]
+
+  return res.json({ prescription: rx })
 }
 
 /**
@@ -75,18 +80,20 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     )
   }
 
+  // Encrypt PHI fields entered by pharmacist before persisting
+  const shouldEncrypt = isPhiEncryptionEnabled()
   const { result, errors } = await ReviewRxWorkflow(req.scope).run({
     input: {
       prescription_id: id,
       pharmacist_id: pharmacistId as string,
       action: body.action,
       rejection_reason: body.rejection_reason,
-      doctor_name: body.doctor_name,
-      doctor_reg_no: body.doctor_reg_no,
-      patient_name: body.patient_name,
+      doctor_name: shouldEncrypt ? encryptPhi(body.doctor_name) : body.doctor_name,
+      doctor_reg_no: shouldEncrypt ? encryptPhi(body.doctor_reg_no) : body.doctor_reg_no,
+      patient_name: shouldEncrypt ? encryptPhi(body.patient_name) : body.patient_name,
       prescribed_on: body.prescribed_on ? new Date(body.prescribed_on) : undefined,
       valid_until: body.valid_until ? new Date(body.valid_until) : undefined,
-      pharmacist_notes: body.pharmacist_notes,
+      pharmacist_notes: shouldEncrypt ? encryptPhi(body.pharmacist_notes) : body.pharmacist_notes,
       lines: body.lines,
     },
   })

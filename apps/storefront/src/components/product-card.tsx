@@ -1,6 +1,7 @@
 import { getProductPrice } from "@/lib/utils/price"
 import { Thumbnail } from "@/components/ui/thumbnail"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
 import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
 
@@ -15,11 +16,25 @@ type DrugProduct = {
   generic_name?: string | null
   manufacturer?: string | null
   pack_size?: string | null
+  mrp_paise?: number | null
 }
 
-function getDiscountPercent(product: HttpTypes.StoreProduct): number | null {
+/**
+ * Calculates discount: prefers MRP-based (from drug_product.mrp_paise),
+ * falls back to Medusa price list discount (original vs calculated).
+ */
+function getDiscountPercent(product: HttpTypes.StoreProduct, drug?: DrugProduct): number | null {
   const variant = product.variants?.[0]
   const calc = (variant as any)?.calculated_price
+  const sellingPrice = calc?.calculated_amount
+
+  // Method 1: MRP-based discount (primary for generic medicines)
+  if (drug?.mrp_paise && sellingPrice) {
+    const mrpDiscount = calcDiscountFromMRP(drug.mrp_paise, sellingPrice)
+    if (mrpDiscount && mrpDiscount > 0) return mrpDiscount
+  }
+
+  // Method 2: Medusa price list discount (fallback)
   if (!calc) return null
   const original = calc.original_amount
   const current = calc.calculated_amount
@@ -37,11 +52,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const genericName = drug?.generic_name ?? null
   const manufacturer = drug?.manufacturer ?? null
   const packSize = drug?.pack_size ?? null
-  const discount = getDiscountPercent(product)
+  const discount = getDiscountPercent(product, drug)
   const isRx = sched === "H" || sched === "H1"
   const isBlocked = sched === "X"
 
   const { cheapestPrice } = getProductPrice({ product, variant_id: product.variants?.[0]?.id })
+
+  // MRP from drug_product (in paise → rupees)
+  const mrpRupees = drug?.mrp_paise ? drug.mrp_paise / 100 : null
+  const sellingPrice = cheapestPrice?.calculated_price_number ?? null
+  const hasMrpDiscount = mrpRupees !== null && sellingPrice !== null && mrpRupees > sellingPrice
 
   return (
     <Link
@@ -145,11 +165,17 @@ const ProductCard = ({ product }: ProductCardProps) => {
               {cheapestPrice?.calculated_price ?? "—"}
             </span>
 
-            {/* MRP strikethrough — shown when there's a real discount */}
-            {cheapestPrice && cheapestPrice.original_price_number > cheapestPrice.calculated_price_number && (
+            {/* MRP strikethrough — prefers pharma MRP, falls back to Medusa original price */}
+            {hasMrpDiscount ? (
               <span className="text-[11px] line-through" style={{ color: "#9CA3AF" }}>
-                MRP {cheapestPrice.original_price}
+                MRP ₹{mrpRupees!.toLocaleString("en-IN")}
               </span>
+            ) : (
+              cheapestPrice && cheapestPrice.original_price_number > cheapestPrice.calculated_price_number && (
+                <span className="text-[11px] line-through" style={{ color: "#9CA3AF" }}>
+                  MRP {cheapestPrice.original_price}
+                </span>
+              )
             )}
           </div>
 

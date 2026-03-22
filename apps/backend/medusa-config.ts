@@ -37,7 +37,8 @@ export default defineConfig({
   },
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
-    redisUrl: process.env.REDIS_URL,
+    redisUrl: process.env.REDIS_URL || undefined,
+    // ↑ Set REDIS_URL only when Redis is actually running (local dev: comment out in .env)
     // SSL disabled for Supabase pooler — was causing connection timeouts; re-enable if Supabase enforces it
     http: {
       storeCors: process.env.STORE_CORS!,
@@ -84,6 +85,34 @@ export default defineConfig({
     pharmaAnalytics: { resolve: "./src/modules/analytics" },
     pharmaLoyalty: { resolve: "./src/modules/loyalty" },
     pharmaNotification: { resolve: "./src/modules/notification" },
+    fulfillment: {
+      resolve: "@medusajs/medusa/fulfillment",
+      options: {
+        providers: [
+          { resolve: "@medusajs/medusa/fulfillment-manual" },
+          {
+            resolve: "./src/providers/fulfillment-conditional",
+            id: "conditional-shipping",
+          },
+        ],
+      },
+    },
+    notification: {
+      resolve: "@medusajs/medusa/notification",
+      options: {
+        providers: [
+          {
+            resolve: "./src/providers/notification-resend",
+            id: "resend",
+            options: {
+              channels: ["email"],
+              api_key: process.env.RESEND_API_KEY,
+              from: process.env.RESEND_FROM_EMAIL || "Suprameds <support@supracynpharma.com>",
+            },
+          },
+        ],
+      },
+    },
     file: {
       resolve: "@medusajs/medusa/file",
       options: {

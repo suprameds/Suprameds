@@ -1,4 +1,4 @@
-import ProductCard from "@/components/product-card"
+import ProductGrid from "@/components/product-grid"
 import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
@@ -113,11 +113,7 @@ const Store = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <ProductGrid products={products} />
 
             {hasNextPage && (
               <div className="text-center mt-8">

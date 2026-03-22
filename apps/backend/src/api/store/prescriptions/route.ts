@@ -5,6 +5,7 @@ import {
 } from "@medusajs/framework/http"
 import { PRESCRIPTION_MODULE } from "../../../modules/prescription"
 import { UploadRxWorkflow } from "../../../workflows/prescription/upload-rx"
+import { decryptPhiArray, PRESCRIPTION_PHI_FIELDS, isPhiEncryptionEnabled } from "../../../lib/phi-crypto"
 
 /**
  * GET /store/prescriptions
@@ -37,7 +38,11 @@ export const GET = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) 
     }
   )
 
-  return res.json({ prescriptions, count: prescriptions.length })
+  const result = isPhiEncryptionEnabled()
+    ? decryptPhiArray(prescriptions, PRESCRIPTION_PHI_FIELDS)
+    : prescriptions
+
+  return res.json({ prescriptions: result, count: result.length })
 }
 
 export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse) => {

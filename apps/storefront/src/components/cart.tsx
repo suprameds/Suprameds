@@ -7,6 +7,8 @@ import {
   DrawerTrigger,
   DrawerFooter,
 } from "@/components/ui/drawer"
+import { DeliveryEstimate } from "@/components/delivery-estimate"
+import { DrugInteractionWarnings } from "@/components/drug-interaction-warnings"
 import { Input } from "@/components/ui/input"
 import { Loading } from "@/components/ui/loading"
 import { Price } from "@/components/ui/price"
@@ -319,7 +321,11 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
         </div>
         <div className="flex justify-between text-sm">
           <span style={{ color: "#2C3E50" }}>Shipping</span>
-          <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
+          {cart.shipping_total === 0 && (cart.shipping_methods?.length ?? 0) > 0 ? (
+            <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
+          ) : (
+            <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
+          )}
         </div>
         <div className="flex justify-between text-sm">
           <span style={{ color: "#2C3E50" }}>Discount</span>
@@ -338,9 +344,14 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
         <Price price={cart.total} currencyCode={cart.currency_code} />
       </div>
 
-      <p className="text-xs" style={{ color: "#999" }}>
-        Estimated delivery: 2 days (T.S. & A.P.) · 5–7 days (rest of India)
-      </p>
+      {(cart.metadata?.drug_interactions as any[])?.length > 0 && (
+        <DrugInteractionWarnings
+          interactions={cart.metadata!.drug_interactions as any[]}
+          className="mt-1"
+        />
+      )}
+
+      <DeliveryEstimate />
     </div>
   )
 }
@@ -529,6 +540,14 @@ export const CartDropdown = () => {
                 <span className="text-base font-medium" style={{ color: "#2C3E50" }}>Subtotal</span>
                 <Price price={cart.item_subtotal} currencyCode={cart.currency_code} />
               </div>
+
+              {(cart.metadata?.drug_interactions as any[])?.length > 0 && (
+                <DrugInteractionWarnings
+                  interactions={cart.metadata!.drug_interactions as any[]}
+                  compact
+                  className="mb-3"
+                />
+              )}
 
               <Link to="/$countryCode/cart" params={{ countryCode }} onClick={closeCart}>
                 <Button className="w-full" variant="primary">

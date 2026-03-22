@@ -65,6 +65,11 @@ export const queryKeys = {
       createDynamicKey("prescriptions", "cartRx", cartId),
   },
 
+  loyalty: {
+    ...createDomainKeys("loyalty"),
+    account: () => createDynamicKey("loyalty", "account"),
+  },
+
   payments: {
     ...createDomainKeys("payments"),
     forCart: (cartId: string) => createDynamicKey("payments", "forCart", cartId),

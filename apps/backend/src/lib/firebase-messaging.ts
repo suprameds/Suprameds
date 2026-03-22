@@ -38,20 +38,30 @@ export async function subscribeTokenToCustomerTopic(customerId: string, token: s
   if (!isFirebaseConfigured()) return { ok: false as const, reason: "missing_env" as const }
   if (!token || !customerId) return { ok: false as const, reason: "invalid_input" as const }
 
-  const app = getOrInitFirebaseApp()
-  const messaging = getMessaging(app)
-  await messaging.subscribeToTopic([token], customerTopic(customerId))
-  return { ok: true as const }
+  try {
+    const app = getOrInitFirebaseApp()
+    const messaging = getMessaging(app)
+    await messaging.subscribeToTopic([token], customerTopic(customerId))
+    return { ok: true as const }
+  } catch (err) {
+    console.error(`[fcm] subscribeToTopic failed: ${(err as Error).message}`)
+    return { ok: false as const, reason: "fcm_error" as const }
+  }
 }
 
 export async function unsubscribeTokenFromCustomerTopic(customerId: string, token: string) {
   if (!isFirebaseConfigured()) return { ok: false as const, reason: "missing_env" as const }
   if (!token || !customerId) return { ok: false as const, reason: "invalid_input" as const }
 
-  const app = getOrInitFirebaseApp()
-  const messaging = getMessaging(app)
-  await messaging.unsubscribeFromTopic([token], customerTopic(customerId))
-  return { ok: true as const }
+  try {
+    const app = getOrInitFirebaseApp()
+    const messaging = getMessaging(app)
+    await messaging.unsubscribeFromTopic([token], customerTopic(customerId))
+    return { ok: true as const }
+  } catch (err) {
+    console.error(`[fcm] unsubscribeFromTopic failed: ${(err as Error).message}`)
+    return { ok: false as const, reason: "fcm_error" as const }
+  }
 }
 
 export async function sendPushToCustomerTopic(
@@ -65,27 +75,32 @@ export async function sendPushToCustomerTopic(
   if (!isFirebaseConfigured()) return { ok: false as const, reason: "missing_env" as const }
   if (!customerId) return { ok: false as const, reason: "invalid_input" as const }
 
-  const app = getOrInitFirebaseApp()
-  const messaging = getMessaging(app)
+  try {
+    const app = getOrInitFirebaseApp()
+    const messaging = getMessaging(app)
 
-  const message: Message = {
-    topic: customerTopic(customerId),
-    notification: {
-      title: payload.title,
-      body: payload.body,
-    },
-    data: payload.data,
-    webpush: {
+    const message: Message = {
+      topic: customerTopic(customerId),
       notification: {
         title: payload.title,
         body: payload.body,
-        icon: "/images/suprameds.svg",
       },
-      fcmOptions: payload.data?.url ? { link: payload.data.url } : undefined,
-    },
-  }
+      data: payload.data,
+      webpush: {
+        notification: {
+          title: payload.title,
+          body: payload.body,
+          icon: "/images/suprameds.svg",
+        },
+        fcmOptions: payload.data?.url ? { link: payload.data.url } : undefined,
+      },
+    }
 
-  const id = await messaging.send(message)
-  return { ok: true as const, id }
+    const id = await messaging.send(message)
+    return { ok: true as const, id }
+  } catch (err) {
+    console.error(`[fcm] sendPush failed for ${customerId}: ${(err as Error).message}`)
+    return { ok: false as const, reason: "fcm_error" as const }
+  }
 }
 

@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
+import { lazy, Suspense, useState } from "react"
 import { useCustomer, useUpdateCustomer } from "@/lib/hooks/use-customer"
+
+const LoyaltyDashboard = lazy(() => import("@/components/loyalty-dashboard"))
 
 export const Route = createFileRoute("/$countryCode/account/_layout/profile")({
   component: ProfilePage,
@@ -175,6 +177,25 @@ function ProfilePage() {
           </a>{" "}
           if you need to update your email.
         </p>
+      </div>
+
+      {/* Loyalty Points section */}
+      <div>
+        <h2
+          className="text-lg font-semibold mb-3"
+          style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+        >
+          Loyalty Rewards
+        </h2>
+        <Suspense
+          fallback={
+            <div className="bg-white border rounded-xl p-6 animate-pulse" style={{ borderColor: "#EDE9E1" }}>
+              <div className="h-4 w-32 rounded" style={{ background: "#E5E7EB" }} />
+            </div>
+          }
+        >
+          <LoyaltyDashboard />
+        </Suspense>
       </div>
     </div>
   )

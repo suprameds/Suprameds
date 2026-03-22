@@ -89,12 +89,16 @@ const ShippingItemSelector = ({
         </div>
 
         <div className="text-right">
-          {price ? (
-            <Price
-              price={price}
-              currencyCode={cart.currency_code}
-              textWeight="plus"
-            />
+          {typeof price === "number" ? (
+            price === 0 ? (
+              <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
+            ) : (
+              <Price
+                price={price}
+                currencyCode={cart.currency_code}
+                textWeight="plus"
+              />
+            )
           ) : (
             <Loading className="w-4 h-4" rows={1} />
           )}

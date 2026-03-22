@@ -1,4 +1,6 @@
 import { useCustomer } from "@/lib/hooks/use-customer"
+import { useUploadPrescription } from "@/lib/hooks/use-prescriptions"
+import { sdk } from "@/lib/utils/sdk"
 import { Link, useLoaderData } from "@tanstack/react-router"
 import { useCallback, useRef, useState } from "react"
 
@@ -32,6 +34,7 @@ const FileIcon = () => (
 const UploadRx = () => {
   const { countryCode } = useLoaderData({ from: "/$countryCode/upload-rx" })
   const { data: customer } = useCustomer()
+  const uploadMutation = useUploadPrescription()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [state, setState] = useState<UploadState>("idle")
@@ -83,14 +86,40 @@ const UploadRx = () => {
     setErrorMsg("")
 
     try {
-      // In a production setup, we would:
-      // 1. Request a presigned S3 URL from the backend
-      // 2. Upload the file directly to S3
-      // 3. Call POST /store/prescriptions with the file_key
-      //
-      // For the prototype, we simulate success after a delay
-      // since S3 presigned URL endpoint isn't wired yet.
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Read file as base64 (strip the data URL prefix)
+      const base64Content = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result as string
+          const base64 = result.includes(",") ? result.split(",")[1] : result
+          resolve(base64)
+        }
+        reader.onerror = () => reject(new Error("Failed to read file"))
+        reader.readAsDataURL(selectedFile)
+      })
+
+      // Upload to S3/R2 via backend file module
+      const uploadResult = await sdk.client.fetch<{
+        file_key: string
+        file_url: string
+      }>("/store/prescriptions/upload-file", {
+        method: "POST",
+        body: {
+          filename: selectedFile.name,
+          content_type: selectedFile.type,
+          content: base64Content,
+        },
+      })
+
+      // Create prescription record
+      await uploadMutation.mutateAsync({
+        file_key: uploadResult.file_key,
+        file_url: uploadResult.file_url,
+        original_filename: selectedFile.name,
+        mime_type: selectedFile.type,
+        file_size_bytes: selectedFile.size,
+      })
+
       setState("success")
     } catch {
       setErrorMsg("Upload failed. Please try again.")

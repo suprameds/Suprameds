@@ -5,7 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Price } from "@/components/ui/price"
 import { useCartRxStatus } from "@/lib/hooks/use-prescriptions"
 import { getActivePaymentSession, isManual, isPaidWithGiftCard } from "@/lib/utils/checkout"
+import { sdk } from "@/lib/utils/sdk"
 import { HttpTypes } from "@medusajs/types"
+import { useCallback, useState } from "react"
+
+// 15-char Indian GST Identification Number
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
 
 interface ReviewStepProps {
   cart: HttpTypes.StoreCart;
@@ -124,6 +129,9 @@ const ReviewStep = ({ cart, onBack }: ReviewStepProps) => {
         </p>
       )}
 
+      {/* GSTIN Input (Optional, for B2B invoices) */}
+      <GstinCheckoutInput cartId={cart.id} existingGstin={(cart.metadata as Record<string, any> | undefined)?.gstin} />
+
       {/* Action Buttons */}
       <div className="flex items-center gap-4">
         <Button variant="secondary" onClick={onBack}>
@@ -135,5 +143,132 @@ const ReviewStep = ({ cart, onBack }: ReviewStepProps) => {
     </div>
   )
 }
+
+// ============ GSTIN COLLAPSIBLE INPUT ============
+
+/**
+ * Collapsible GSTIN input for B2B customers. Saves to cart metadata
+ * so the value carries over when the order is created.
+ */
+const GstinCheckoutInput = ({
+  cartId,
+  existingGstin,
+}: {
+  cartId: string
+  existingGstin?: string
+}) => {
+  const [isOpen, setIsOpen] = useState(!!existingGstin)
+  const [gstin, setGstin] = useState(existingGstin ?? "")
+  const [saved, setSaved] = useState(!!existingGstin)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
+
+  const isValid = GSTIN_REGEX.test(gstin)
+
+  const handleSave = useCallback(async () => {
+    if (!isValid) return
+    setSaving(true)
+    setError("")
+    try {
+      // Persist GSTIN in cart metadata — backend copies to order on placement
+      await sdk.store.cart.update(cartId, {
+        metadata: { gstin: gstin.toUpperCase() },
+      })
+      setSaved(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save GSTIN")
+    } finally {
+      setSaving(false)
+    }
+  }, [cartId, gstin, isValid])
+
+  return (
+    <div
+      className="rounded-xl border transition-all"
+      style={{ borderColor: saved ? "#A7F3D0" : "#EDE9E1", background: saved ? "#F0FDF4" : "#fff" }}
+    >
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium" style={{ color: "#0D1B2A" }}>
+            Have a GSTIN? (Optional)
+          </span>
+          {saved && (
+            <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#065F46" }}>
+              <GstinCheckIcon /> Saved
+            </span>
+          )}
+        </div>
+        <svg
+          width="16" height="16" viewBox="0 0 24 24" fill="none"
+          stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+          className={`transition-transform ${isOpen ? "rotate-180" : ""}`}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="px-4 pb-4 flex flex-col gap-3">
+          <p className="text-xs" style={{ color: "#6B7280" }}>
+            Enter your 15-digit GST Identification Number for a B2B tax invoice.
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={gstin}
+              onChange={(e) => {
+                setGstin(e.target.value.toUpperCase())
+                setSaved(false)
+                setError("")
+              }}
+              placeholder="e.g. 27AAPFU0939F1ZV"
+              maxLength={15}
+              disabled={saving}
+              className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono uppercase tracking-wider outline-none transition-colors"
+              style={{
+                borderColor: gstin && !isValid ? "#FCA5A5" : saved ? "#A7F3D0" : "#D1D5DB",
+                background: saved ? "#F0FDF4" : "#fff",
+              }}
+            />
+            {saved ? (
+              <span className="flex items-center gap-1 text-xs font-semibold whitespace-nowrap" style={{ color: "#065F46" }}>
+                <GstinCheckIcon /> Saved
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={!isValid || saving}
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "#0E7C86" }}
+              >
+                {saving ? "Saving…" : "Save"}
+              </button>
+            )}
+          </div>
+
+          {gstin && !isValid && gstin.length > 0 && (
+            <p className="text-xs" style={{ color: "#C0392B" }}>
+              Invalid GSTIN format. Must be 15 characters (e.g. 27AAPFU0939F1ZV).
+            </p>
+          )}
+          {error && (
+            <p className="text-xs" style={{ color: "#C0392B" }}>{error}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const GstinCheckIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A7A4A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
 
 export default ReviewStep

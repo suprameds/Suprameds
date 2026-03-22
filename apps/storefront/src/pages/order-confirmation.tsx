@@ -1,7 +1,280 @@
-import { OrderDetails, deriveOrderProgress } from "@/components/order"
+import { OrderDetails, deriveOrderProgress, InvoiceDownloadButton } from "@/components/order"
 import { useOrder } from "@/lib/hooks/use-orders"
+import { sdk } from "@/lib/utils/sdk"
+import { isManual } from "@/lib/utils/checkout"
 import { useLoaderData } from "@tanstack/react-router"
 import { ORDER_FIELDS } from "@/routes/$countryCode/order/$orderId/confirmed"
+import { useCallback, useEffect, useState } from "react"
+
+// ============ GSTIN REGEX (Indian GST Identification Number) ============
+const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
+
+// ============ COD CONFIRMATION BANNER ============
+
+type CodStatus = "pending" | "confirming" | "confirmed" | "cancelled" | "error"
+
+const CodConfirmationBanner = ({ order }: { order: any }) => {
+  const [status, setStatus] = useState<CodStatus>("pending")
+  const [errorMsg, setErrorMsg] = useState("")
+
+  // Skip if order is already cancelled or completed
+  const orderStatus = order.status as string
+  const isFinalState = orderStatus === "canceled" || orderStatus === "cancelled" || orderStatus === "completed"
+
+  // Check if COD was already confirmed via order metadata
+  const codConfirmed = (order.metadata as Record<string, any> | undefined)?.cod_confirmed
+  useEffect(() => {
+    if (codConfirmed === true) setStatus("confirmed")
+    if (codConfirmed === false) setStatus("cancelled")
+  }, [codConfirmed])
+
+  const handleCodAction = useCallback(async (confirmed: boolean) => {
+    setStatus("confirming")
+    setErrorMsg("")
+    try {
+      await sdk.client.fetch(`/store/orders/cod-confirm`, {
+        method: "POST",
+        body: { order_id: order.id, confirmed },
+      })
+      setStatus(confirmed ? "confirmed" : "cancelled")
+    } catch (err) {
+      setStatus("error")
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.")
+    }
+  }, [order.id])
+
+  if (isFinalState && status === "pending") return null
+
+  // Already confirmed
+  if (status === "confirmed") {
+    return (
+      <div
+        className="rounded-xl border p-4 flex items-center gap-3"
+        style={{ background: "#ECFDF5", borderColor: "#A7F3D0" }}
+      >
+        <CheckCircleIcon color="#065F46" />
+        <div>
+          <p className="text-sm font-semibold" style={{ color: "#065F46" }}>
+            COD Order Confirmed
+          </p>
+          <p className="text-xs" style={{ color: "#047857" }}>
+            Your cash on delivery order has been confirmed. We'll prepare it for dispatch.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Cancelled
+  if (status === "cancelled") {
+    return (
+      <div
+        className="rounded-xl border p-4 flex items-center gap-3"
+        style={{ background: "#FEF2F2", borderColor: "#FECACA" }}
+      >
+        <XCircleIcon color="#991B1B" />
+        <div>
+          <p className="text-sm font-semibold" style={{ color: "#991B1B" }}>
+            Order Cancelled
+          </p>
+          <p className="text-xs" style={{ color: "#B91C1C" }}>
+            You chose not to confirm this order. No charges will be applied.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="rounded-xl border-2 p-5 flex flex-col gap-4"
+      style={{ background: "#FFFBEB", borderColor: "#F59E0B" }}
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          <CodBadgeIcon />
+        </div>
+        <div>
+          <p className="text-base font-semibold" style={{ color: "#92400E" }}>
+            Please confirm your Cash on Delivery order
+          </p>
+          <p className="text-sm mt-1" style={{ color: "#78350F" }}>
+            Your order is placed but requires confirmation. Please confirm below
+            to proceed, or cancel if you've changed your mind.
+            Unconfirmed COD orders are automatically cancelled after 30 minutes.
+          </p>
+        </div>
+      </div>
+
+      {status === "error" && (
+        <div
+          className="text-sm rounded-lg border px-3 py-2"
+          style={{ background: "#FEF2F2", borderColor: "#FECACA", color: "#991B1B" }}
+        >
+          {errorMsg}
+        </div>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={() => handleCodAction(true)}
+          disabled={status === "confirming"}
+          className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ background: "#1A7A4A" }}
+        >
+          {status === "confirming" ? "Confirming…" : "Confirm Order"}
+        </button>
+        <button
+          onClick={() => handleCodAction(false)}
+          disabled={status === "confirming"}
+          className="px-5 py-2.5 rounded-lg text-sm font-semibold border transition-all hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ color: "#991B1B", borderColor: "#FCA5A5" }}
+        >
+          Cancel Order
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ============ GSTIN INPUT (post-order) ============
+
+const GstinSection = ({ order }: { order: any }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [gstin, setGstin] = useState("")
+  const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
+
+  // Pre-fill if GSTIN was saved during checkout (via cart metadata)
+  const existingGstin = (order.metadata as Record<string, any> | undefined)?.gstin
+  useEffect(() => {
+    if (existingGstin) {
+      setGstin(existingGstin)
+      setSaved(true)
+      setIsOpen(true)
+    }
+  }, [existingGstin])
+
+  const isValid = GSTIN_REGEX.test(gstin.toUpperCase())
+
+  const handleSave = useCallback(async () => {
+    if (!isValid) return
+    setSaving(true)
+    setError("")
+    try {
+      await sdk.client.fetch(`/store/orders/gstin`, {
+        method: "POST",
+        body: { order_id: order.id, gstin: gstin.toUpperCase() },
+      })
+      setSaved(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save GSTIN")
+    } finally {
+      setSaving(false)
+    }
+  }, [order.id, gstin, isValid])
+
+  return (
+    <div className="rounded-xl border" style={{ borderColor: "#EDE9E1" }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer"
+      >
+        <span className="text-sm font-medium" style={{ color: "#0D1B2A" }}>
+          Have a GSTIN? (Optional)
+        </span>
+        <ChevronIcon open={isOpen} />
+      </button>
+
+      {isOpen && (
+        <div className="px-4 pb-4 flex flex-col gap-3">
+          <p className="text-xs" style={{ color: "#6B7280" }}>
+            Enter your GST Identification Number for a B2B tax invoice.
+          </p>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={gstin}
+              onChange={(e) => {
+                setGstin(e.target.value.toUpperCase())
+                setSaved(false)
+                setError("")
+              }}
+              placeholder="e.g. 27AAPFU0939F1ZV"
+              maxLength={15}
+              disabled={saving}
+              className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono uppercase tracking-wider outline-none transition-colors"
+              style={{
+                borderColor: gstin && !isValid ? "#FCA5A5" : saved ? "#A7F3D0" : "#D1D5DB",
+                background: saved ? "#F0FDF4" : "#fff",
+              }}
+            />
+            {saved ? (
+              <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#065F46" }}>
+                <CheckCircleIcon color="#1A7A4A" size={16} /> Saved
+              </span>
+            ) : (
+              <button
+                onClick={handleSave}
+                disabled={!isValid || saving}
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: "#0E7C86" }}
+              >
+                {saving ? "Saving…" : "Save"}
+              </button>
+            )}
+          </div>
+
+          {gstin && !isValid && gstin.length > 0 && (
+            <p className="text-xs" style={{ color: "#C0392B" }}>
+              Invalid GSTIN format. Must be 15 characters (e.g. 27AAPFU0939F1ZV).
+            </p>
+          )}
+          {error && (
+            <p className="text-xs" style={{ color: "#C0392B" }}>{error}</p>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ============ ICONS ============
+
+const CheckCircleIcon = ({ color = "#065F46", size = 20 }: { color?: string; size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+    <polyline points="22 4 12 14.01 9 11.01" />
+  </svg>
+)
+
+const XCircleIcon = ({ color = "#991B1B" }: { color?: string }) => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="15" y1="9" x2="9" y2="15" />
+    <line x1="9" y1="9" x2="15" y2="15" />
+  </svg>
+)
+
+const CodBadgeIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D68910" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+    <line x1="1" y1="10" x2="23" y2="10" />
+  </svg>
+)
+
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <svg
+    width="16" height="16" viewBox="0 0 24 24" fill="none"
+    stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+    className={`transition-transform ${open ? "rotate-180" : ""}`}
+  >
+    <polyline points="6 9 12 15 18 9" />
+  </svg>
+)
+
+// ============ MAIN PAGE ============
 
 const OrderConfirmation = () => {
   const { orderId } = useLoaderData({
@@ -36,6 +309,14 @@ const OrderConfirmation = () => {
 
   const { summaryLabel } = deriveOrderProgress(order)
 
+  // Detect COD payment
+  const paymentSessions = order.payment_collections?.[0]?.payment_sessions
+  const providerId = paymentSessions?.[0]?.provider_id ?? ""
+  const isCOD = isManual(providerId)
+
+  // Show invoice for non-cancelled orders
+  const isCancelled = order.status === "canceled" || order.status === "cancelled"
+
   return (
     <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
       <div className="content-container py-8">
@@ -43,10 +324,7 @@ const OrderConfirmation = () => {
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
             <span style={{ color: "#27AE60" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-              </svg>
+              <CheckCircleIcon color="#27AE60" />
             </span>
             <h1 className="text-xl font-serif font-semibold" style={{ color: "#0D1B2A" }}>
               {summaryLabel === "Cancelled" ? "Order Cancelled" : "Order Confirmed"}
@@ -55,6 +333,15 @@ const OrderConfirmation = () => {
           <p className="text-sm" style={{ color: "#6B7280" }}>
             Thank you for your order! We'll notify you as it progresses.
           </p>
+        </div>
+
+        {/* COD Confirmation Banner (Feature 1) */}
+        {isCOD && <div className="mb-6"><CodConfirmationBanner order={order} /></div>}
+
+        {/* Invoice Download + GSTIN row */}
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          {!isCancelled && <InvoiceDownloadButton orderId={order.id} />}
+          <GstinSection order={order} />
         </div>
 
         <OrderDetails order={order} />

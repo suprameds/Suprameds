@@ -19,8 +19,11 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
 
   const result = await unsubscribeTokenFromCustomerTopic(customerId, token)
 
-  if (!result.ok && result.reason === "missing_env") {
-    return res.status(503).json({ error: "Push notifications are not configured on server" })
+  if (!result.ok) {
+    if (result.reason === "missing_env") {
+      return res.status(503).json({ error: "Push notifications are not configured on server" })
+    }
+    return res.status(502).json({ error: "Push notification service temporarily unavailable" })
   }
 
   return res.json({ ok: true })

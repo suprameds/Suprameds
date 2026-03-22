@@ -1,4 +1,4 @@
-import ProductCard from "@/components/product-card"
+import ProductGrid from "@/components/product-grid"
 import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useLoaderData } from "@tanstack/react-router"
@@ -36,11 +36,7 @@ const Category = () => {
         <div className="text-zinc-600">No products found</div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          <ProductGrid products={products} className="grid grid-cols-2 md:grid-cols-4 gap-4" />
 
           {hasNextPage && (
             <Button
