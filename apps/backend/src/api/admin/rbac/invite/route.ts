@@ -5,6 +5,8 @@ import type {
 import { MedusaError, Modules } from "@medusajs/framework/utils"
 import { RBAC_MODULE } from "../../../../modules/rbac"
 
+const LOG = "[rbac-invite]"
+
 /**
  * POST /admin/rbac/invite — Create an admin invite with an intended RBAC role.
  * Body: { email: string, role_code: string }
@@ -12,6 +14,7 @@ import { RBAC_MODULE } from "../../../../modules/rbac"
  * 1. Validates the role exists
  * 2. Creates a Medusa invite via the User module
  * 3. Stores the email→role mapping in InviteRole
+ * 4. Directly sends the invite email (doesn't rely solely on event bus)
  *
  * When the user accepts the invite, the `user.created` subscriber
  * calls rbacService.assignDefaultRole() which consumes this mapping.
@@ -59,6 +62,10 @@ export async function POST(
     // Store the intended role mapping
     await rbacService.storeInviteRole(normalizedEmail, role_code, adminUserId)
 
+    // Directly send invite email as a reliable fallback
+    // (the event subscriber may also fire — Resend handles dedup)
+    await sendInviteEmailDirect(req, invite, normalizedEmail)
+
     return res.status(201).json({
       success: true,
       message: `Invite sent to ${normalizedEmail} with role "${role_code}"`,
@@ -82,6 +89,61 @@ export async function POST(
     return res.status(500).json({
       message: error.message || "Failed to create invite",
     })
+  }
+}
+
+/**
+ * Send the invite email directly via the notification module.
+ * Non-throwing — logs errors but doesn't block the invite creation.
+ */
+async function sendInviteEmailDirect(
+  req: AuthenticatedMedusaRequest,
+  invite: { id: string; token?: string; email?: string },
+  email: string
+) {
+  try {
+    const notificationModuleService = req.scope.resolve("notification") as any
+
+    let backendUrl: string
+    let adminPath: string
+    try {
+      const config = req.scope.resolve("configModule") as any
+      backendUrl =
+        config?.admin?.backendUrl && config.admin.backendUrl !== "/"
+          ? config.admin.backendUrl
+          : process.env.BACKEND_URL ||
+            process.env.MEDUSA_BACKEND_URL ||
+            "http://localhost:9000"
+      adminPath = config?.admin?.path || "/app"
+    } catch {
+      backendUrl =
+        process.env.BACKEND_URL ||
+        process.env.MEDUSA_BACKEND_URL ||
+        "http://localhost:9000"
+      adminPath = process.env.MEDUSA_ADMIN_PATH || "/app"
+    }
+
+    // If we have the token from the just-created invite, use it
+    const inviteUrl = invite.token
+      ? `${backendUrl}${adminPath}/invite?token=${invite.token}`
+      : `${backendUrl}${adminPath}`
+
+    await notificationModuleService.createNotifications({
+      to: email,
+      channel: "email",
+      template: "user-invited",
+      data: {
+        invite_url: inviteUrl,
+        email,
+      },
+    })
+
+    console.info(`${LOG} Invite email sent directly to ${email}`)
+  } catch (err) {
+    console.error(
+      `${LOG} Direct email send failed for ${email}:`,
+      err instanceof Error ? err.message : err
+    )
   }
 }
 
