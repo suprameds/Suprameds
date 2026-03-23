@@ -50,8 +50,9 @@ export async function POST(
 
       if (existing.length > 0) {
         const ids = existing.map((r: any) => r.id)
-        for (let i = 0; i < ids.length; i += 500) {
-          await warehouseService.deleteServiceablePincodes(ids.slice(i, i + 500))
+        for (let i = 0; i < ids.length; i += 100) {
+          await warehouseService.deleteServiceablePincodes(ids.slice(i, i + 100))
+          if (i + 100 < ids.length) await new Promise((r) => setTimeout(r, 50))
         }
         logger.info(`[pincode-import] Cleared ${existing.length} existing records for fresh import`)
       }
@@ -85,9 +86,14 @@ export async function POST(
     }
 
     if (toCreate.length > 0) {
-      // Insert in sub-batches of 500 for DB stability
-      for (let i = 0; i < toCreate.length; i += 500) {
-        await warehouseService.createServiceablePincodes(toCreate.slice(i, i + 500))
+      // Insert in sub-batches of 100 with small delays to stay under
+      // managed Redis Lua script execution limits (Medusa Cloud)
+      const SUB_BATCH = 100
+      for (let i = 0; i < toCreate.length; i += SUB_BATCH) {
+        await warehouseService.createServiceablePincodes(toCreate.slice(i, i + SUB_BATCH))
+        if (i + SUB_BATCH < toCreate.length) {
+          await new Promise((r) => setTimeout(r, 50))
+        }
       }
       imported = toCreate.length
     }

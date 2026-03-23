@@ -48,7 +48,7 @@ type PincodeRecord = {
 
 // ── CSV helpers ───────────────────────────────────────────────────────────────
 
-const CHUNK_SIZE = 5_000
+const CHUNK_SIZE = 500
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = []
@@ -212,6 +212,11 @@ const PincodesPage = () => {
 
         totalImported += json.imported ?? 0
         totalSkipped += json.skipped ?? 0
+
+        // Brief pause between chunks to let managed Redis recover
+        if (i + 1 < totalChunks) {
+          await new Promise((r) => setTimeout(r, 300))
+        }
 
         setImportProgress({
           state: "uploading",
