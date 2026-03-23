@@ -1,9 +1,53 @@
 import { MedusaContainer } from "@medusajs/framework/types"
+import { PRESCRIPTION_MODULE } from "../modules/prescription"
 
+const LOG = "[job:purge-prescriptions]"
+
+/**
+ * Daily job — marks prescriptions older than 6 months as expired.
+ * Indian Rx validity is typically 6 months from issue date.
+ * Runs at 01:00 UTC daily.
+ */
 export default async function PurgeExpiredPrescriptionsJob(container: MedusaContainer) {
-  const logger = container.resolve("logger")
-  logger.info("[job] Executing purge-prescriptions")
-  // TODO: Implement job logic
+  const logger = container.resolve("logger") as any
+  logger.info(`${LOG} Starting`)
+
+  try {
+    const prescriptionService = container.resolve(PRESCRIPTION_MODULE) as any
+
+    // Fetch pending/approved prescriptions that are past expiry (6 months)
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
+    const expiredRx = await prescriptionService.listPrescriptions(
+      {
+        status: ["pending_review", "approved"],
+        created_at: { $lt: sixMonthsAgo.toISOString() },
+      },
+      { take: 500 }
+    )
+
+    if (!expiredRx?.length) {
+      logger.info(`${LOG} No expired prescriptions found`)
+      return
+    }
+
+    let count = 0
+    for (const rx of expiredRx) {
+      try {
+        await prescriptionService.updatePrescriptions(rx.id, {
+          status: "expired",
+        })
+        count++
+      } catch (err) {
+        logger.warn(`${LOG} Failed to expire Rx ${rx.id}: ${(err as Error).message}`)
+      }
+    }
+
+    logger.info(`${LOG} Expired ${count}/${expiredRx.length} prescriptions`)
+  } catch (err) {
+    logger.error(`${LOG} Failed: ${(err as Error).message}`)
+  }
 }
 
 export const config = {

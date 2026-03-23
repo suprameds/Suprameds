@@ -107,6 +107,57 @@ const templates: Record<string, TemplateRenderer> = {
     }
   },
 
+  "welcome": (data) => {
+    const firstName = (data.first_name as string) || "there"
+    return {
+      subject: "Welcome to Suprameds!",
+      html: wrapInLayout("Welcome!", `
+        <h2 style="color:${BRAND.navy};font-size:20px;margin:0 0 16px;">Welcome, ${firstName}!</h2>
+        <p style="color:${BRAND.charcoal};font-size:14px;line-height:22px;margin:0 0 8px;">
+          Thank you for creating your Suprameds account. You now have access to:
+        </p>
+        <ul style="color:${BRAND.charcoal};font-size:14px;line-height:24px;padding-left:20px;margin:0 0 24px;">
+          <li>Quick reordering of your medicines</li>
+          <li>Easy prescription uploads</li>
+          <li>Order tracking from dispatch to delivery</li>
+          <li>Free delivery on orders above ₹300</li>
+        </ul>
+        <div style="text-align:center;margin:24px 0;">
+          <a href="https://suprameds.in/in/store" style="display:inline-block;background:${BRAND.green};color:#ffffff;font-size:14px;font-weight:600;padding:12px 28px;border-radius:6px;text-decoration:none;">
+            Browse Medicines
+          </a>
+        </div>
+        <p style="color:#9ca3af;font-size:12px;margin:24px 0 0;">
+          Have a prescription? Upload it after placing your order — our pharmacist will review it within minutes.
+        </p>
+      `),
+    }
+  },
+
+  "payment-confirmed": (data) => {
+    const orderId = (data.display_id || data.order_id || "N/A") as string
+    const amount = data.amount as number | undefined
+    const currency = (data.currency_code as string || "INR").toUpperCase()
+    const symbol = currency === "INR" ? "₹" : currency + " "
+
+    return {
+      subject: `Suprameds — Payment Received for Order #${orderId}`,
+      html: wrapInLayout("Payment Confirmed", `
+        <h2 style="color:${BRAND.navy};font-size:20px;margin:0 0 16px;">Payment Confirmed</h2>
+        <p style="color:${BRAND.charcoal};font-size:14px;line-height:22px;margin:0 0 8px;">
+          We've received your payment for order <strong>#${orderId}</strong>.
+        </p>
+        ${amount != null ? `<p style="font-size:18px;font-weight:700;color:${BRAND.green};margin:16px 0;">Amount: ${symbol}${amount}</p>` : ""}
+        <p style="color:${BRAND.charcoal};font-size:14px;line-height:22px;margin:0 0 24px;">
+          Your order is being prepared and will be dispatched shortly. You'll receive a notification when it's on its way.
+        </p>
+        <p style="color:#9ca3af;font-size:12px;margin:24px 0 0;">
+          For any queries, reach out to us at support@suprameds.in
+        </p>
+      `),
+    }
+  },
+
   "password-reset": (data) => {
     const resetUrl = (data.reset_url || data.url) as string || "#"
     return {
