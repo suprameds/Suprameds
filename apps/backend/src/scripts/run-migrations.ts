@@ -26,6 +26,9 @@ import addInrToStore from "../migration-scripts/20032026-add-inr-to-store"
 import razorpayRegionProviders from "../migration-scripts/19032026-razorpay-region-providers"
 import addCodToRegion from "../migration-scripts/20032026-add-cod-to-region"
 import pharmacyCatalog from "../migration-scripts/18032026-pharmacy-taxonomy-and-sample-catalog"
+import conditionalShipping from "../migration-scripts/22032026-conditional-shipping-option"
+import rbacBootstrap from "../migration-scripts/22032026-rbac-bootstrap"
+import fixShippingProfiles from "../migration-scripts/23032026-fix-shipping-profiles"
 import ftsSearchVector from "../migration-scripts/20032026-fts-search-vector"
 
 interface MigrationStep {
@@ -66,7 +69,19 @@ const MIGRATIONS: MigrationStep[] = [
     isProductSeed: true,
   },
   {
-    name: "8. Full-text search vector + GIN index",
+    name: "8. Conditional shipping option (₹50 / free above ₹300)",
+    fn: conditionalShipping,
+  },
+  {
+    name: "9. Fix shipping profiles on all products",
+    fn: fixShippingProfiles,
+  },
+  {
+    name: "10. RBAC bootstrap (roles + permissions)",
+    fn: rbacBootstrap,
+  },
+  {
+    name: "11. Full-text search vector + GIN index",
     fn: ftsSearchVector,
   },
 ]
