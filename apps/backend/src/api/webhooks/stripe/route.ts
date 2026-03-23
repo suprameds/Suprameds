@@ -24,12 +24,13 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   try {
-    // Import Stripe dynamically to avoid crashes when not installed
+    // Require Stripe at runtime — skips if the package isn't installed
     let stripe: any
     try {
-      const Stripe = (await import("stripe")).default
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const Stripe = require("stripe")
       stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-        apiVersion: "2024-06-20" as any,
+        apiVersion: "2024-06-20",
       })
     } catch {
       logger.warn(`${LOG} Stripe SDK not available`)
