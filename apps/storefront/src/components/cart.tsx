@@ -323,11 +323,22 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
         </div>
         <div className="flex justify-between text-sm">
           <span style={{ color: "#2C3E50" }}>Shipping</span>
-          {cart.shipping_total === 0 && (cart.shipping_methods?.length ?? 0) > 0 ? (
-            <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
-          ) : (
-            <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
-          )}
+          {(() => {
+            const hasShippingMethod = (cart.shipping_methods?.length ?? 0) > 0
+            const subtotal = cart.item_subtotal ?? cart.subtotal ?? 0
+            const qualifiesFree = subtotal >= 300
+
+            if (hasShippingMethod && cart.shipping_total === 0) {
+              return <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
+            }
+            if (!hasShippingMethod && qualifiesFree) {
+              return <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
+            }
+            if (!hasShippingMethod && !qualifiesFree) {
+              return <span className="text-sm" style={{ color: "#999" }}>₹50.00</span>
+            }
+            return <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
+          })()}
         </div>
         <div className="flex justify-between text-sm">
           <span style={{ color: "#2C3E50" }}>Discount</span>
