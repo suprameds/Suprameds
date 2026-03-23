@@ -108,7 +108,7 @@ const templates: Record<string, TemplateRenderer> = {
   },
 
   "password-reset": (data) => {
-    const resetUrl = data.url as string || "#"
+    const resetUrl = (data.reset_url || data.url) as string || "#"
     return {
       subject: "Reset your Suprameds password",
       html: wrapInLayout("Password Reset", `
