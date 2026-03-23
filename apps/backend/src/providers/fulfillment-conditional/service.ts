@@ -32,11 +32,27 @@ class ConditionalShippingService extends AbstractFulfillmentProviderService {
     context: any
   ): Promise<FulfillmentTypes.CalculatedShippingOptionPrice> {
     const cart = context?.cart
-    const itemTotal =
+
+    // Try all known total fields; if none exist, sum line items manually
+    let itemTotal: number =
       cart?.item_total ?? cart?.item_subtotal ?? cart?.subtotal ?? 0
+
+    // Fallback: sum up individual line items when computed totals are missing
+    // (Medusa may not always pass pre-computed totals to the provider context)
+    if (itemTotal === 0 && Array.isArray(cart?.items) && cart.items.length > 0) {
+      itemTotal = cart.items.reduce(
+        (sum: number, item: any) =>
+          sum + ((item.unit_price ?? 0) * (item.quantity ?? 1)),
+        0
+      )
+    }
 
     const amount =
       itemTotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_CHARGE
+
+    console.info(
+      `[conditional-shipping] itemTotal=${itemTotal}, threshold=${FREE_SHIPPING_THRESHOLD}, charge=${amount}`
+    )
 
     return { calculated_amount: amount, is_calculated_price_tax_inclusive: false }
   }
