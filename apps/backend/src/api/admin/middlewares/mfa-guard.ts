@@ -100,8 +100,23 @@ export function requireMfa() {
       }
 
       return next()
-    } catch (err) {
-      console.error("[mfa-guard]", err)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+
+      // Table-not-found means RBAC module migrations haven't run yet.
+      // Log once-style warning instead of a full stack trace on every request.
+      if (msg.includes("does not exist") || msg.includes("TableNotFoundException")) {
+        if (!(requireMfa as any).__warnedMissingTable) {
+          console.warn(
+            "[mfa-guard] RBAC tables not yet migrated (mfa_secret missing). " +
+              "MFA enforcement is disabled until 'medusa db:migrate' is run."
+          )
+          ;(requireMfa as any).__warnedMissingTable = true
+        }
+      } else {
+        console.error("[mfa-guard] Unexpected error:", msg)
+      }
+
       return next() // Fail open to avoid completely locking out admins
     }
   }
