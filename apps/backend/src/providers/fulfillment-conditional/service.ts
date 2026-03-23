@@ -8,6 +8,10 @@ import type { FulfillmentTypes } from "@medusajs/types"
  * - Cart item_total <  ₹300 → standard charge (₹50)
  *
  * Medusa stores amounts in whole currency units (₹50 = 50, not 5000).
+ *
+ * The third arg to calculatePrice is a CartPropsForFulfillment context.
+ * It is a flat object with { id, shipping_address, items, cart, ... }
+ * — NOT nested under context.cart.
  */
 
 const FREE_SHIPPING_THRESHOLD = 300
@@ -31,18 +35,38 @@ class ConditionalShippingService extends AbstractFulfillmentProviderService {
     _data: Record<string, unknown>,
     context: any
   ): Promise<FulfillmentTypes.CalculatedShippingOptionPrice> {
+    // Medusa v2 passes context as a flat CartPropsForFulfillment:
+    //   context.items  — line items with unit_price, quantity, total, etc.
+    //   context.cart    — full CartDTO (may include item_total, subtotal)
+    //   context.id      — cart ID
+    let itemTotal = 0
+
+    // 1. Try the nested cart DTO totals (most reliable when present)
     const cart = context?.cart
+    if (cart?.item_total || cart?.item_subtotal || cart?.subtotal) {
+      itemTotal = Number(cart.item_total ?? cart.item_subtotal ?? cart.subtotal ?? 0)
+    }
 
-    // Try all known total fields; if none exist, sum line items manually
-    let itemTotal: number =
-      cart?.item_total ?? cart?.item_subtotal ?? cart?.subtotal ?? 0
+    // 2. Sum context.items (Medusa always passes these with computed totals)
+    if (itemTotal === 0 && Array.isArray(context?.items) && context.items.length > 0) {
+      itemTotal = context.items.reduce(
+        (sum: number, item: any) => {
+          const lineTotal = Number(item.total ?? item.subtotal ?? 0)
+          if (lineTotal > 0) return sum + lineTotal
+          return sum + (Number(item.unit_price ?? 0) * Number(item.quantity ?? 1))
+        },
+        0
+      )
+    }
 
-    // Fallback: sum up individual line items when computed totals are missing
-    // (Medusa may not always pass pre-computed totals to the provider context)
+    // 3. Fallback: sum cart.items if context.items was empty
     if (itemTotal === 0 && Array.isArray(cart?.items) && cart.items.length > 0) {
       itemTotal = cart.items.reduce(
-        (sum: number, item: any) =>
-          sum + ((item.unit_price ?? 0) * (item.quantity ?? 1)),
+        (sum: number, item: any) => {
+          const lineTotal = Number(item.total ?? item.subtotal ?? 0)
+          if (lineTotal > 0) return sum + lineTotal
+          return sum + (Number(item.unit_price ?? 0) * Number(item.quantity ?? 1))
+        },
         0
       )
     }
@@ -51,7 +75,8 @@ class ConditionalShippingService extends AbstractFulfillmentProviderService {
       itemTotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_CHARGE
 
     console.info(
-      `[conditional-shipping] itemTotal=${itemTotal}, threshold=${FREE_SHIPPING_THRESHOLD}, charge=${amount}`
+      `[conditional-shipping] itemTotal=${itemTotal}, threshold=${FREE_SHIPPING_THRESHOLD}, charge=${amount}, ` +
+      `contextKeys=${Object.keys(context || {}).join(",")}, itemsLen=${context?.items?.length ?? "none"}`
     )
 
     return { calculated_amount: amount, is_calculated_price_tax_inclusive: false }

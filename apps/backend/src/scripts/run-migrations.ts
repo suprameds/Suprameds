@@ -29,6 +29,7 @@ import pharmacyCatalog from "../migration-scripts/18032026-pharmacy-taxonomy-and
 import conditionalShipping from "../migration-scripts/22032026-conditional-shipping-option"
 import rbacBootstrap from "../migration-scripts/22032026-rbac-bootstrap"
 import fixShippingProfiles from "../migration-scripts/23032026-fix-shipping-profiles"
+import cleanupManualShipping from "../migration-scripts/23032026-cleanup-manual-shipping"
 import ftsSearchVector from "../migration-scripts/20032026-fts-search-vector"
 
 interface MigrationStep {
@@ -77,11 +78,15 @@ const MIGRATIONS: MigrationStep[] = [
     fn: fixShippingProfiles,
   },
   {
-    name: "10. RBAC bootstrap (roles + permissions)",
+    name: "10. Remove old manual shipping option (fixes fp_manual_manual error)",
+    fn: cleanupManualShipping,
+  },
+  {
+    name: "11. RBAC bootstrap (roles + permissions)",
     fn: rbacBootstrap,
   },
   {
-    name: "11. Full-text search vector + GIN index",
+    name: "12. Full-text search vector + GIN index",
     fn: ftsSearchVector,
   },
 ]

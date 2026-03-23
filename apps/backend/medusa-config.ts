@@ -89,7 +89,10 @@ export default defineConfig({
       resolve: "@medusajs/medusa/fulfillment",
       options: {
         providers: [
-          { resolve: "@medusajs/medusa/fulfillment-manual" },
+          {
+            resolve: "@medusajs/medusa/fulfillment-manual",
+            id: "manual",
+          },
           {
             resolve: "./src/providers/fulfillment-conditional",
             id: "conditional-shipping",
