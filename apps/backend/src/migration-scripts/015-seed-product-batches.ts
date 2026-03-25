@@ -164,7 +164,7 @@ export default async function seedProductBatches({
   }
 
   // Delete existing seed batches for idempotency
-  const existingBatches = await batchService.listBatchs({}, { take: 5000 })
+  const existingBatches = await batchService.listBatches({}, { take: 5000 })
   const seedBatchIds = (existingBatches as any[])
     .filter((b: any) => b?.metadata?.source === "seed-batches-2026")
     .map((b: any) => b.id)
@@ -172,7 +172,7 @@ export default async function seedProductBatches({
   if (seedBatchIds.length) {
     logger.info(`[seed-batches] Deleting ${seedBatchIds.length} existing seed batches...`)
     for (const id of seedBatchIds) {
-      await batchService.deleteBatchs(id)
+      await batchService.deleteBatches(id)
     }
   }
 
@@ -231,7 +231,7 @@ export default async function seedProductBatches({
         const batchMrpPaise = Math.round(basePrice * tmpl.mrpMultiplier * 100)
         const purchasePricePaise = Math.round(basePrice * tmpl.costMultiplier * 100)
 
-        await batchService.createBatchs({
+        await batchService.createBatches({
           product_variant_id: variant.id,
           product_id: product.id,
           lot_number: lotNumber,

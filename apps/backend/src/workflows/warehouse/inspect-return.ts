@@ -318,7 +318,7 @@ export const restockStep = createStep(
         const qtyToRestore = Math.min(remainingQty, deduction.quantity)
 
         // Increase available_quantity on the batch
-        await batchService.updateBatchs(batch.id, {
+        await batchService.updateBatches({ id: batch.id,
           available_quantity: Number(batch.available_quantity) + qtyToRestore,
         })
 

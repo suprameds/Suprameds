@@ -197,9 +197,7 @@ export const runChecklistStep = createStep(
           if (!batchId) continue
 
           try {
-            const batches = await batchService.listBatchs
-              ? await batchService.listBatchs({ id: batchId })
-              : await batchService.listBatches({ id: batchId })
+            const batches = await batchService.listBatches({ id: batchId })
 
             const batchList = Array.isArray(batches?.[0]) ? batches[0] : Array.isArray(batches) ? batches : []
             const batch = batchList[0]
