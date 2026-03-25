@@ -23,15 +23,23 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
 /**
  * POST /admin/pharma/batches
- * Creates a new batch (GRN / stock receipt).
+ * Creates a new batch (GRN / stock receipt) with audit trail.
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const batchService = req.scope.resolve(INVENTORY_BATCH_MODULE) as any
   const body = req.body as Record<string, any>
+  const actorId = (req as any).auth_context?.actor_id || "unknown"
 
-  if (!body.product_variant_id || !body.product_id || !body.lot_number || !body.expiry_date || !body.received_quantity) {
+  if (
+    !body.product_variant_id ||
+    !body.product_id ||
+    !body.lot_number ||
+    !body.expiry_date ||
+    !body.received_quantity
+  ) {
     return res.status(400).json({
-      message: "Required: product_variant_id, product_id, lot_number, expiry_date, received_quantity",
+      message:
+        "Required: product_variant_id, product_id, lot_number, expiry_date, received_quantity",
     })
   }
 
@@ -45,8 +53,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       received_quantity: Number(body.received_quantity),
       available_quantity: Number(body.received_quantity),
       reserved_quantity: 0,
-      batch_mrp_paise: body.batch_mrp_paise ? Number(body.batch_mrp_paise) : null,
-      purchase_price_paise: body.purchase_price_paise ? Number(body.purchase_price_paise) : null,
+      batch_mrp_paise: body.batch_mrp_paise
+        ? Number(body.batch_mrp_paise)
+        : null,
+      purchase_price_paise: body.purchase_price_paise
+        ? Number(body.purchase_price_paise)
+        : null,
       location_id: body.location_id || null,
       supplier_name: body.supplier_name || null,
       purchase_order_ref: body.purchase_order_ref || null,
@@ -55,8 +67,27 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       status: body.status || "active",
       metadata: body.metadata || null,
     })
+
+    // Audit: log batch creation
+    try {
+      await batchService.createBatchAuditLogs({
+        batch_id: batch.id,
+        action: "created",
+        field_name: null,
+        old_value: null,
+        new_value: `lot=${body.lot_number} qty=${body.received_quantity} exp=${body.expiry_date}`,
+        actor_id: actorId,
+        actor_type: "admin",
+        reason: body._reason || "Manual batch creation via admin",
+      })
+    } catch {
+      // Best-effort audit
+    }
+
     return res.status(201).json({ batch })
   } catch (err: any) {
-    return res.status(400).json({ message: err?.message || "Failed to create batch" })
+    return res
+      .status(400)
+      .json({ message: err?.message || "Failed to create batch" })
   }
 }

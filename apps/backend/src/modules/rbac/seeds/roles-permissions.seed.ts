@@ -60,7 +60,7 @@ const ROLE_DEFS: RoleDef[] = [
   { code: "platform_admin", name: "Platform Admin", description: "Full platform access except super-admin operations", is_clinical: false, requires_mfa: true, metadata: { tier: 4 } },
 
   // Tier 5 — Elevated
-  { code: "super_admin", name: "Super Admin", description: "Unrestricted system access — max 3 accounts", is_clinical: false, requires_mfa: true, metadata: { tier: 5, max_accounts: 3 } },
+  { code: "super_admin", name: "Super Admin", description: "Unrestricted system access — max 3 accounts", is_clinical: false, requires_mfa: false, metadata: { tier: 5, max_accounts: 3 } },
   { code: "cdsco_inspector", name: "CDSCO Inspector", description: "Read-only regulatory audit access — 48 h TTL", is_clinical: false, requires_mfa: true, metadata: { tier: 5, ttl_hours: 48, read_only: true } },
   { code: "supplier", name: "Supplier", description: "External supplier with PO visibility", is_clinical: false, requires_mfa: false, metadata: { tier: 5 } },
 

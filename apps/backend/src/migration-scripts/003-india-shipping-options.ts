@@ -1,11 +1,12 @@
 /**
- * Adds India (country code "in") to the default fulfillment service zone and
- * adds an INR price to the default shipping option so that storefront
- * checkout shows delivery choices for Indian addresses.
+ * Ensures India ("in") exists in the default fulfillment service zone and
+ * an INR price exists on the default shipping option.
  *
- * Root cause: Initial seed (25022026) only created geo_zones for US + EU and
- * shipping option prices for USD/EUR. Carts with shipping_address.country_code
- * "in" matched no service zone, so listCartOptions returned empty.
+ * On a fresh database the initial seed already creates India-only, so this
+ * becomes a no-op. On a database migrated from an older US/EU seed, this
+ * adds India to the existing zone and an INR price to the existing option.
+ *
+ * Idempotent — safe to re-run.
  */
 
 import { MedusaContainer } from "@medusajs/framework"
@@ -28,7 +29,7 @@ export default async function india_shipping_options({
     ModuleRegistrationName.PRICING
   ) as any
 
-  // --- 1. Add India to the default fulfillment set's service zone ---
+  // ── 1. Ensure India is in the service zone ───────────────────────────
   const fulfillmentSets = await fulfillmentModuleService.listFulfillmentSets(
     {},
     { relations: ["service_zones", "service_zones.geo_zones"] }
@@ -36,9 +37,7 @@ export default async function india_shipping_options({
 
   const fulfillmentSet = fulfillmentSets[0]
   if (!fulfillmentSet?.service_zones?.length) {
-    logger.warn(
-      "[india-shipping] No fulfillment set or service zones found; skipping."
-    )
+    logger.warn("[india-shipping] No fulfillment set or service zones found; skipping.")
     return
   }
 
@@ -61,14 +60,12 @@ export default async function india_shipping_options({
       id: serviceZone.id,
       geo_zones: newGeoZones,
     })
-    logger.info(
-      `[india-shipping] Added India (in) to service zone ${serviceZone.id}`
-    )
+    logger.info(`[india-shipping] Added India (in) to service zone ${serviceZone.id}`)
   } else {
     logger.info("[india-shipping] India already in service zone; skipping.")
   }
 
-  // --- 2. Add INR price to the default shipping option's price set ---
+  // ── 2. Add INR price to the default shipping option ──────────────────
   const { data: shippingOptions } = await query.graph({
     entity: "shipping_option",
     fields: ["id", "name"],
@@ -82,33 +79,32 @@ export default async function india_shipping_options({
   const links = (optionPriceSetLinks as { shipping_option_id: string; price_set_id: string }[]) ?? []
   const linkByOptionId = new Map(links.map((l) => [l.shipping_option_id, l.price_set_id]))
 
-  const defaultOption = options.find((o) => o.name === "Standard Worldwide Shipping") ?? options[0]
+  // Find the flat-rate option (new "Standard Shipping (India)" or legacy "Standard Worldwide Shipping")
+  const defaultOption =
+    options.find((o) => o.name === "Standard Shipping (India)") ??
+    options.find((o) => o.name === "Standard Worldwide Shipping") ??
+    options[0]
+
   const price_set_id = defaultOption ? linkByOptionId.get(defaultOption.id) : undefined
 
   if (!defaultOption || !price_set_id) {
-    logger.warn(
-      "[india-shipping] No shipping option with price_set_id found; skipping INR price."
-    )
+    logger.warn("[india-shipping] No shipping option with price_set_id found; skipping INR price.")
     return
   }
 
   try {
     await pricingModuleService.addPrices({
       priceSetId: price_set_id,
-      prices: [
-        {
-          amount: 0,
-          currency_code: "inr",
-        },
-      ],
+      prices: [{ amount: 50, currency_code: "inr" }],
     })
-    logger.info(
-      `[india-shipping] Added INR price (₹0) to shipping option ${defaultOption.id}`
-    )
+    logger.info(`[india-shipping] Added INR price (₹50) to shipping option ${defaultOption.id}`)
   } catch (err: unknown) {
-    // Duplicate currency or already exists — ignore
     const msg = err instanceof Error ? err.message : String(err)
-    if (msg.toLowerCase().includes("inr") || msg.toLowerCase().includes("already") || msg.toLowerCase().includes("duplicate")) {
+    if (
+      msg.toLowerCase().includes("inr") ||
+      msg.toLowerCase().includes("already") ||
+      msg.toLowerCase().includes("duplicate")
+    ) {
       logger.info("[india-shipping] INR price already present; skipping.")
     } else {
       throw err

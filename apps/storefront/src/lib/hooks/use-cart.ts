@@ -5,6 +5,7 @@ import { sdk } from "@/lib/utils/sdk"
 import {
   getStoredCart,
   setStoredCart,
+  removeStoredCart,
   addItemOptimistically,
   createOptimisticCartItem,
   getCurrentCart,
@@ -14,7 +15,7 @@ import {
   createOptimisticCart,
 } from "@/lib/utils/cart"
 
-const DEFAULT_CART_FIELDS = "+items.total, shipping_methods.name"
+const DEFAULT_CART_FIELDS = "+items.total, +shipping_methods.name"
 
 export const useCart = ({ fields }: { fields?: string } = {}) => {
   return useQuery({
@@ -22,10 +23,22 @@ export const useCart = ({ fields }: { fields?: string } = {}) => {
     queryFn: async () => {
       const id = getStoredCart()
       if (!id) return null
-      const { cart } = await sdk.store.cart.retrieve(id, {
-        fields: fields || DEFAULT_CART_FIELDS,
-      })
-      return cart
+      try {
+        const { cart } = await sdk.store.cart.retrieve(id, {
+          fields: fields || DEFAULT_CART_FIELDS,
+        })
+        // If the cart was already completed into an order, discard it
+        // so subsequent add-to-cart creates a fresh one.
+        if ((cart as any).completed_at) {
+          removeStoredCart()
+          return null
+        }
+        return cart
+      } catch {
+        // Cart no longer exists on the server (deleted, expired, etc.)
+        removeStoredCart()
+        return null
+      }
     },
     staleTime: 0
   })
@@ -111,7 +124,7 @@ export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
             fields: "id,region_id",
           })
 
-          if (existingCart.region_id !== targetRegion.id) {
+          if ((existingCart as any).completed_at || existingCart.region_id !== targetRegion.id) {
             const { cart } = await sdk.store.cart.create(
               { region_id: targetRegion.id },
               { fields: requestFields || fields || DEFAULT_CART_FIELDS }

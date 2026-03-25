@@ -284,7 +284,7 @@ export async function buildGstInvoice(
 
   // ── 3. Batch-lookup: collect all deductions for this order ────────
 
-  let deductionsByItem = new Map<string, any>()
+  const deductionsByItem = new Map<string, any>()
   const batchCache = new Map<string, any>()
 
   try {
@@ -293,13 +293,11 @@ export async function buildGstInvoice(
     })
 
     for (const d of allDeductions as any[]) {
-      // Keep only the first deduction per line item (primary batch)
       if (!deductionsByItem.has(d.order_line_item_id)) {
         deductionsByItem.set(d.order_line_item_id, d)
       }
     }
 
-    // Fetch all referenced batches
     const batchIds = new Set<string>()
     for (const d of deductionsByItem.values()) {
       const bid = d.batch_id ?? d.batch?.id
@@ -322,6 +320,9 @@ export async function buildGstInvoice(
 
   // ── 4. Build line items ───────────────────────────────────────────
 
+  // Default GST rate for medicines (5% per Indian pharma GST schedule)
+  const DEFAULT_MEDICINE_GST_RATE = 5
+
   const items: InvoiceLineItem[] = []
 
   for (const item of order.items || []) {
@@ -340,12 +341,31 @@ export async function buildGstInvoice(
       }
     }
 
-    // Batch info from deduction lookup
+    // Batch info: prefer deduction-linked batch, fall back to
+    // direct variant lookup (for orders fulfilled before FEFO fix)
     const deduction = deductionsByItem.get(item.id)
     const batchId = deduction?.batch_id ?? deduction?.batch?.id
-    const batch = batchId ? batchCache.get(batchId) : deduction?.batch ?? null
+    let batch = batchId ? batchCache.get(batchId) : deduction?.batch ?? null
 
-    const gstRate = drugProduct?.gst_rate ?? 12
+    if (!batch && item.variant_id) {
+      try {
+        const variantBatches = await batchService.listBatches(
+          { product_variant_id: item.variant_id, status: "active" },
+          { order: { expiry_date: "ASC" }, take: 1 }
+        )
+        if ((variantBatches as any[])?.length) {
+          batch = (variantBatches as any[])[0]
+          logger.info(
+            `${LOG_PREFIX} No deduction for item ${item.id}, ` +
+              `using earliest active batch ${batch.lot_number} for variant ${item.variant_id}`
+          )
+        }
+      } catch {
+        // Batch module may not have data for this variant
+      }
+    }
+
+    const gstRate = drugProduct?.gst_rate ?? DEFAULT_MEDICINE_GST_RATE
     const hsnCode = drugProduct?.hsn_code ?? ""
     const genericName = drugProduct?.generic_name ?? item.variant_title ?? ""
 
@@ -442,7 +462,8 @@ export async function buildGstInvoice(
         paymentMode = "razorpay"
       } else if (
         providerId.includes("manual") ||
-        providerId.includes("cod")
+        providerId.includes("cod") ||
+        providerId.includes("system_default")
       ) {
         paymentMode = "cod"
       }

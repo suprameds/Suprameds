@@ -226,8 +226,16 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
       html = rendered.html
       this.logger.info(`[resend] Rendering template "${templateName}" for ${to}`)
     } else {
-      subject = (notification.subject as string) || "Suprameds Update"
-      html = (notification.html as string) || ""
+      // Fallback: look for subject/html in data (since Medusa's notification
+      // module only passes to/channel/template/data — not top-level fields)
+      subject =
+        (notification.subject as string) ||
+        (templateData.subject as string) ||
+        "Suprameds Update"
+      html =
+        (notification.html as string) ||
+        (templateData.html as string) ||
+        ""
       if (templateName) {
         this.logger.warn(`[resend] Unknown template "${templateName}" — falling back to raw html`)
       }

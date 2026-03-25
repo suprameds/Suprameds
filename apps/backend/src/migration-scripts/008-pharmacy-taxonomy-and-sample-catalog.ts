@@ -50,6 +50,8 @@ type SeedCatalogProduct = {
   tag_values: Array<
     "otc" | "rx_required" | "schedule_h" | "schedule_h1" | "chronic" | "pediatric"
   >
+  /** Retail price in INR (whole rupees, not paise) */
+  price: number
   pharma: {
     schedule: ProductSchedule
     generic_name: string
@@ -64,7 +66,6 @@ type SeedCatalogProduct = {
 }
 
 const SEED_SOURCES = new Set<string>([
-  "supracyn-brochure-2025",
   "seed-basic-pharmacy-2026",
 ])
 
@@ -142,6 +143,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Antidiabetic",
     type_value: "Medicine",
     tag_values: ["rx_required", "schedule_h", "chronic"],
+    price: 155,
     pharma: {
       schedule: "H",
       generic_name: "Glimepiride",
@@ -150,7 +152,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "1mg/500mg",
       composition: "Glimepiride 1mg + Metformin 500mg (SR)",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -162,6 +164,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Antidiabetic",
     type_value: "Medicine",
     tag_values: ["rx_required", "schedule_h", "chronic"],
+    price: 200,
     pharma: {
       schedule: "H",
       generic_name: "Dapagliflozin",
@@ -170,7 +173,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "10mg",
       composition: "Dapagliflozin 10mg",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -184,6 +187,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Cardiology",
     type_value: "Medicine",
     tag_values: ["rx_required", "schedule_h", "chronic"],
+    price: 140,
     pharma: {
       schedule: "H",
       generic_name: "Telmisartan",
@@ -192,7 +196,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "40mg",
       composition: "Telmisartan 40mg",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -204,6 +208,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Cardiology",
     type_value: "Medicine",
     tag_values: ["rx_required", "schedule_h", "chronic"],
+    price: 120,
     pharma: {
       schedule: "H",
       generic_name: "Amlodipine",
@@ -212,7 +217,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "5mg",
       composition: "Amlodipine 5mg",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -226,6 +231,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Pain Relief",
     type_value: "Medicine",
     tag_values: ["otc"],
+    price: 100,
     pharma: {
       schedule: "OTC",
       generic_name: "Paracetamol",
@@ -234,7 +240,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "500mg",
       composition: "Paracetamol 500mg",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -248,6 +254,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Respiratory",
     type_value: "Medicine",
     tag_values: ["otc"],
+    price: 105,
     pharma: {
       schedule: "OTC",
       generic_name: "Cetirizine",
@@ -256,7 +263,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "10mg",
       composition: "Cetirizine 10mg",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -268,6 +275,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Respiratory",
     type_value: "Medicine",
     tag_values: ["otc"],
+    price: 150,
     pharma: {
       schedule: "OTC",
       generic_name: "Dextromethorphan",
@@ -276,7 +284,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: null,
       composition: "Dextromethorphan + Phenylephrine + Chlorpheniramine (syrup)",
       unit_type: "bottle",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -290,6 +298,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Gastro",
     type_value: "Medicine",
     tag_values: ["rx_required", "schedule_h"],
+    price: 130,
     pharma: {
       schedule: "H",
       generic_name: "Pantoprazole",
@@ -298,7 +307,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "40mg",
       composition: "Pantoprazole 40mg",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -312,6 +321,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Antibiotics",
     type_value: "Medicine",
     tag_values: ["rx_required", "schedule_h"],
+    price: 160,
     pharma: {
       schedule: "H",
       generic_name: "Amoxicillin",
@@ -320,7 +330,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "500mg",
       composition: "Amoxicillin 500mg",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -334,6 +344,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Dermatology",
     type_value: "PersonalCare",
     tag_values: ["otc"],
+    price: 125,
     pharma: {
       schedule: "OTC",
       generic_name: "Clotrimazole",
@@ -342,7 +353,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "1%",
       composition: "Clotrimazole 1% w/w",
       unit_type: "tube",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -356,6 +367,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Respiratory",
     type_value: "Medicine",
     tag_values: ["otc"],
+    price: 180,
     pharma: {
       schedule: "OTC",
       generic_name: "Carboxymethylcellulose",
@@ -364,7 +376,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "0.5%",
       composition: "Carboxymethylcellulose sodium 0.5% w/v",
       unit_type: "bottle",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -378,6 +390,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Vitamins",
     type_value: "Supplement",
     tag_values: ["otc"],
+    price: 135,
     pharma: {
       schedule: "OTC",
       generic_name: "Cholecalciferol",
@@ -386,7 +399,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: "60000 IU",
       composition: "Vitamin D3 (Cholecalciferol) 60000 IU",
       unit_type: "strip",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -400,6 +413,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Vitamins",
     type_value: "Device",
     tag_values: ["otc"],
+    price: 250,
     pharma: {
       schedule: "OTC",
       generic_name: "Thermometer",
@@ -422,6 +436,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
     collection_title: "Gastro",
     type_value: "Supplement",
     tag_values: ["otc", "pediatric"],
+    price: 100,
     pharma: {
       schedule: "OTC",
       generic_name: "Oral Rehydration Salts",
@@ -430,7 +445,7 @@ const SAMPLE_PRODUCTS: SeedCatalogProduct[] = [
       strength: null,
       composition: "WHO ORS formulation (sachet)",
       unit_type: "sachet",
-      gst_rate: 12,
+      gst_rate: 5,
       hsn_code: null,
     },
   },
@@ -475,15 +490,15 @@ export default async function seed_basic_pharmacy_store({
   const { data: stockLocations } = await query.graph({
     entity: "stock_location",
     fields: ["id", "name"],
-    filters: { name: "Main Warehouse" },
   })
   const stockLocation = (stockLocations as any[])?.[0] ?? null
   if (!stockLocation?.id) {
     logger.warn(
-      "[seed] Main Warehouse stock location not found; run base seed first. Skipping."
+      "[seed] No stock location found; run base seed first. Skipping."
     )
     return
   }
+  logger.info(`[seed] Using stock location: ${stockLocation.name} (${stockLocation.id})`)
 
   // 1) Delete seeded/demo products only (metadata.source OR handle prefix)
   const { data: allProducts } = await query.graph({
@@ -497,7 +512,6 @@ export default async function seed_basic_pharmacy_store({
       const handle = String(p?.handle || "")
       return (
         (source && SEED_SOURCES.has(source)) ||
-        handle.startsWith("supracyn-") ||
         handle.startsWith("seed-")
       )
     })
@@ -635,7 +649,7 @@ export default async function seed_basic_pharmacy_store({
               title: p.title,
               sku: makeSku(p.handle),
               options: { Pack: "default" },
-              prices: [{ currency_code: "inr", amount: 1 }],
+              prices: [{ currency_code: "inr", amount: p.price }],
               manage_inventory: true,
               allow_backorder: false,
             },
@@ -695,7 +709,7 @@ export default async function seed_basic_pharmacy_store({
     }
   }
 
-  // Ensure inventory levels at Main Warehouse: create missing, update existing to DEFAULT_STOCK_QTY
+  // Ensure inventory levels at warehouse: create missing, update existing to DEFAULT_STOCK_QTY
   const inventoryItemIds = wantedSkus
     .map((sku) => inventoryItemBySku.get(sku)?.id)
     .filter(Boolean)

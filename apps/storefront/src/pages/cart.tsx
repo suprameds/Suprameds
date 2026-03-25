@@ -11,8 +11,7 @@ import { sortCartItems } from "@/lib/utils/cart"
 import { Link, useLoaderData } from "@tanstack/react-router"
 import { useMemo } from "react"
 
-const DEFAULT_CART_FIELDS =
-  "id, *items, total, currency_code, subtotal, shipping_total, discount_total, tax_total, *promotions"
+const DEFAULT_CART_FIELDS = "+items.*, +shipping_methods.*, *promotions"
 
 function itemRequiresRx(item: { metadata?: Record<string, unknown> | null }): boolean {
   const schedule = item.metadata?.schedule_classification as string | undefined

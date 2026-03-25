@@ -1,58 +1,38 @@
 import { Loading } from "@/components/ui/loading"
 import { Price } from "@/components/ui/price"
 import Radio from "@/components/ui/radio"
-import { calculatePriceForShippingOption } from "@/lib/utils/checkout"
 import { HttpTypes } from "@medusajs/types"
-import { useEffect, useRef, useState } from "react"
 
 type ShippingItemSelectorProps = {
   shippingOption: HttpTypes.StoreCartShippingOption;
   cart: HttpTypes.StoreCart;
   isSelected: boolean;
   handleSelect: (optionId: string) => void;
+  /** Pre-calculated price for options with price_type === "calculated" */
+  calculatedPrice?: number;
+  /** Whether calculated prices are still being fetched */
+  priceLoading?: boolean;
 };
 
+/**
+ * Pure display component for a single shipping option.
+ * All price calculation is handled by the parent (DeliveryStep)
+ * following the Medusa v2 batch Promise.allSettled pattern.
+ */
 const ShippingItemSelector = ({
   shippingOption,
   cart,
   isSelected,
   handleSelect,
+  calculatedPrice,
+  priceLoading,
 }: ShippingItemSelectorProps) => {
-  const [calculatedPrice, setCalculatedPrice] = useState<number | undefined>(
-    undefined
-  )
-  const isMounted = useRef(true)
+  const isCalculated = shippingOption.price_type === "calculated"
+  const price = isCalculated ? calculatedPrice : shippingOption.amount
+
+  // Disabled only while prices are still loading for calculated options
   const isDisabled =
-    shippingOption.price_type === "calculated" &&
-    typeof calculatedPrice !== "number"
-  const price =
-    shippingOption.price_type === "calculated"
-      ? calculatedPrice
-      : shippingOption.amount
-
-  useEffect(() => {
-    isMounted.current = true
-
-    if (shippingOption.price_type !== "calculated") {
-      return
-    }
-
-    calculatePriceForShippingOption({
-      option_id: shippingOption.id,
-    })
-      .then((option) => {
-        if (isMounted.current) {
-          setCalculatedPrice(option.amount)
-        }
-      })
-      .catch(() => {
-        // Error is handled silently - price will show loading state
-      })
-
-    return () => {
-      isMounted.current = false
-    }
-  }, [shippingOption.price_type, shippingOption.id])
+    isCalculated && priceLoading === true && typeof calculatedPrice !== "number"
 
   return (
     <label
@@ -89,9 +69,16 @@ const ShippingItemSelector = ({
         </div>
 
         <div className="text-right">
-          {typeof price === "number" ? (
+          {isCalculated && priceLoading && typeof calculatedPrice !== "number" ? (
+            <Loading className="w-4 h-4" rows={1} />
+          ) : typeof price === "number" ? (
             price === 0 ? (
-              <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
+              <span
+                className="text-sm font-semibold"
+                style={{ color: "#27AE60" }}
+              >
+                FREE
+              </span>
             ) : (
               <Price
                 price={price}
@@ -100,7 +87,8 @@ const ShippingItemSelector = ({
               />
             )
           ) : (
-            <Loading className="w-4 h-4" rows={1} />
+            // Calculation failed or not applicable — allow selection, price resolved server-side
+            <span className="text-xs text-zinc-500">Price at checkout</span>
           )}
         </div>
       </div>

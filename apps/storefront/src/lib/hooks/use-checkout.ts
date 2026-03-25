@@ -3,7 +3,7 @@ import { queryKeys } from "@/lib/utils/query-keys"
 import { sdk } from "@/lib/utils/sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
-const DEFAULT_CART_FIELDS = "+items.total, shipping_methods.name"
+const DEFAULT_CART_FIELDS = "+items.*, +shipping_methods.*"
 
 // ============ ADDRESSES ============
 

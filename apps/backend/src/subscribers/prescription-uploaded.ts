@@ -14,15 +14,24 @@ export default async function prescriptionUploadedHandler({
     Modules.NOTIFICATION
   )
 
-  // Send internal notification to pharmacy team
-  await notificationModuleService.createNotifications({
-    to: "pharmacist@suprameds.in",
-    channel: "email",
-    template: "rx-uploaded",
-    data: {
-      prescription_id: data.id,
-    },
-  })
+  // Send internal notification to pharmacy team — wrapped in try/catch
+  // so a missing template or transient email failure doesn't crash the event pipeline
+  try {
+    await notificationModuleService.createNotifications({
+      to: "pharmacist@suprameds.in",
+      channel: "email",
+      template: "rx-uploaded",
+      data: {
+        prescription_id: data.id,
+        subject: `New Prescription Uploaded — ${data.id}`,
+        html: `<p>A new prescription <strong>${data.id}</strong> has been uploaded and is awaiting review.</p><p><a href="${process.env.BACKEND_URL || "http://localhost:9000"}/app/prescriptions/${data.id}">Review in Admin</a></p>`,
+      },
+    })
+  } catch (err) {
+    console.warn(
+      `[subscriber] prescription.uploaded email skipped: ${(err as Error).message}`
+    )
+  }
 
   console.info(`[subscriber] prescription.uploaded handled for Rx: ${data.id}`)
 }

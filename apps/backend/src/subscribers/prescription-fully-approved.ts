@@ -15,16 +15,22 @@ export default async function prescriptionFullyApprovedHandler({
   const prescriptionModule: any = container.resolve(PRESCRIPTION_MODULE)
   const [prescription] = await prescriptionModule.listPrescriptions({ id: data.id })
 
-  // Send SMS to customer (T05_RX_APPROVED)
+  // Send SMS to customer (T05_RX_APPROVED) — gracefully skip if no SMS provider configured
   if (prescription?.guest_phone || prescription?.customer_id) {
-     await notificationModuleService.createNotifications({
-      to: prescription.guest_phone || prescription.customer_id, // Simplified for now
-      channel: "sms",
-      template: "T05_RX_APPROVED",
-      data: {
-        prescription_id: data.id,
-      },
-    })
+    try {
+      await notificationModuleService.createNotifications({
+        to: prescription.guest_phone || prescription.customer_id,
+        channel: "sms",
+        template: "T05_RX_APPROVED",
+        data: {
+          prescription_id: data.id,
+        },
+      })
+    } catch (err) {
+      console.warn(
+        `[subscriber] prescription.fully-approved SMS skipped (no provider?): ${(err as Error).message}`
+      )
+    }
   }
 
   if (prescription?.customer_id) {

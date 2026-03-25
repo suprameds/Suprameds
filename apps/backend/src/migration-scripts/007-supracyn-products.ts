@@ -17,6 +17,8 @@ type BrochureProduct = {
   strength: string | null
   schedule: "H" | "H1" | "OTC" | "X"
   therapeutic_class: string
+  /** Retail price in INR (whole rupees, not paise) */
+  price: number
 }
 
 const PRODUCTS: BrochureProduct[] = [
@@ -27,6 +29,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "1mg/500mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 155,
   },
   {
     brand_name: "GLIMCYNMET 2 Tab",
@@ -35,6 +38,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "2mg/500mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 170,
   },
   {
     brand_name: "GLIMCYN M1 FORTE Tab",
@@ -43,6 +47,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "1mg/1000mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 185,
   },
   {
     brand_name: "GLIMCYN M2 FORTE Tab",
@@ -51,6 +56,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "2mg/1000mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 195,
   },
   {
     brand_name: "GLIMCYN MV2 Tab",
@@ -59,6 +65,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 240,
   },
   {
     brand_name: "BEPRIDE 1 Tab",
@@ -67,6 +74,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "1mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 105,
   },
   {
     brand_name: "BEPRIDE 2 Tab",
@@ -75,6 +83,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "2mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 120,
   },
   {
     brand_name: "MAXFORMIN SR 500 Tab",
@@ -83,6 +92,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "500mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 100,
   },
   {
     brand_name: "MAXFORMIN SR 1000 Tab",
@@ -91,6 +101,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "1000mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 140,
   },
   {
     brand_name: "DAXABAY 25 Tab",
@@ -99,6 +110,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "25mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 115,
   },
   {
     brand_name: "DAXABAY 50 Tab",
@@ -107,6 +119,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "50mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 135,
   },
   {
     brand_name: "DAXABAY-M 25 Tab",
@@ -115,6 +128,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 165,
   },
   {
     brand_name: "DAXABAY-M 50 Tab",
@@ -123,6 +137,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 180,
   },
   {
     brand_name: "DAPACYN-5 Tab",
@@ -131,6 +146,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "5mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 160,
   },
   {
     brand_name: "DAPACYN-10 Tab",
@@ -139,6 +155,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "10mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 200,
   },
   {
     brand_name: "DAPADAX-M 5/500 Tab",
@@ -147,6 +164,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "5mg/500mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 210,
   },
   {
     brand_name: "DAPADAX-M 5/1000 Tab",
@@ -155,6 +173,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "5mg/1000mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 230,
   },
   {
     brand_name: "DAPADAX-M 10/500 Tab",
@@ -163,6 +182,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "10mg/500mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 225,
   },
   {
     brand_name: "DAPADAX-M 10/1000 Tab",
@@ -171,6 +191,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "10mg/1000mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 250,
   },
   {
     brand_name: "DAPADAX-TG 10/20 Tab",
@@ -179,6 +200,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 245,
   },
   {
     brand_name: "DAPADAX-VG 10/100 Tab",
@@ -187,6 +209,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 260,
   },
   {
     brand_name: "DAPADAX-VGM 10/100/500 Tab",
@@ -195,6 +218,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 280,
   },
   {
     brand_name: "DAPADAX-VGM 10/100/1000 Tab",
@@ -203,6 +227,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 295,
   },
   {
     brand_name: "FORDAY 850 SR Tab",
@@ -211,6 +236,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "850mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 120,
   },
   {
     brand_name: "GBMIDE PM Tab",
@@ -219,6 +245,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 265,
   },
   {
     brand_name: "GLICIA 30 MR Tab",
@@ -227,6 +254,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "30mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 110,
   },
   {
     brand_name: "GLICIA 60 MR Tab",
@@ -235,6 +263,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "60mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 145,
   },
   {
     brand_name: "GLICIA 40 Tab",
@@ -243,6 +272,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "40mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 115,
   },
   {
     brand_name: "GLICIA 80 Tab",
@@ -251,6 +281,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "80mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 150,
   },
   {
     brand_name: "GLICIA M 30 SR Tab",
@@ -259,6 +290,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 160,
   },
   {
     brand_name: "GLICIA M 40 Tab",
@@ -267,6 +299,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 170,
   },
   {
     brand_name: "GLICIA M 60 SR Tab",
@@ -275,6 +308,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 190,
   },
   {
     brand_name: "GLICIA M 80 Tab",
@@ -283,6 +317,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 200,
   },
   {
     brand_name: "GLICIA TOTAL - 60 Tab",
@@ -291,6 +326,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 275,
   },
   {
     brand_name: "GLIVO M 0.2 Tab",
@@ -299,6 +335,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 255,
   },
   {
     brand_name: "GLIVO M 0.3 Tab",
@@ -307,6 +344,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: null,
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 270,
   },
   {
     brand_name: "GLIDAX 3 Tab",
@@ -315,6 +353,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "3mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 130,
   },
   {
     brand_name: "GLIDAX 4 Tab",
@@ -323,6 +362,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "4mg",
     schedule: "H",
     therapeutic_class: "antidiabetic",
+    price: 145,
   },
   // --- Cardiology (from brochure pages 4-7) ---
   {
@@ -332,6 +372,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "20mg",
     schedule: "H",
     therapeutic_class: "cardiology",
+    price: 125,
   },
   {
     brand_name: "SUPRATEL-40",
@@ -340,6 +381,7 @@ const PRODUCTS: BrochureProduct[] = [
     strength: "40mg",
     schedule: "H",
     therapeutic_class: "cardiology",
+    price: 155,
   },
 ]
 
@@ -486,7 +528,7 @@ export default async function migration_17032026_supracyn_products({
               prices: [
                 {
                   currency_code: "inr",
-                  amount: 1,
+                  amount: p.price,
                 },
               ],
               manage_inventory: false,
@@ -521,7 +563,7 @@ export default async function migration_17032026_supracyn_products({
         strength: match.strength,
         composition: match.composition,
         unit_type: "strip" as const,
-        gst_rate: 12,
+        gst_rate: 5,
         metadata: {
           source: "supracyn-brochure-2025",
         },

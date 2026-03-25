@@ -9,6 +9,7 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
 import { isEqual } from "lodash-es"
+import { Minus, Plus } from "@medusajs/icons"
 import { memo, useEffect, useMemo, useState } from "react"
 
 type DrugSchedule = "OTC" | "H" | "H1" | "X"
@@ -103,6 +104,13 @@ const ProductActions = memo(function ProductActions({
     return isVariantInStock(selectedVariant)
   }, [selectedVariant])
 
+  const [quantity, setQuantity] = useState(1)
+
+  // Reset quantity when product changes
+  useEffect(() => {
+    setQuantity(1)
+  }, [product?.handle])
+
   const drugProduct = (product as any)?.drug_product as
     | { schedule?: DrugSchedule }
     | undefined
@@ -110,19 +118,19 @@ const ProductActions = memo(function ProductActions({
   const requiresRx = schedule === "H" || schedule === "H1"
   const isBlocked = schedule === "X"
 
-  // add the selected variant to the cart
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
 
     try {
       await addToCartMutation.mutateAsync({
         variant_id: selectedVariant.id,
-        quantity: 1,
+        quantity,
         country_code: countryCode,
         product,
         variant: selectedVariant,
         region,
       })
+      setQuantity(1)
       openCart()
     } catch {
       // Optimistic rollback is handled by the hook; no extra action needed.
@@ -155,6 +163,42 @@ const ProductActions = memo(function ProductActions({
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Quantity selector */}
+      {!isBlocked && selectedVariant && inStock && (
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium" style={{ color: "#2C3E50" }}>Qty</span>
+          <div
+            className="inline-flex items-center rounded-lg border"
+            style={{ borderColor: "#EDE9E1", background: "#fff" }}
+          >
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={quantity <= 1 || addToCartMutation.isPending}
+              className="flex items-center justify-center w-9 h-9 transition-colors disabled:opacity-30"
+              style={{ color: "#2C3E50" }}
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+            <span
+              className="w-10 text-center text-sm font-semibold tabular-nums"
+              style={{ color: "#0D1B2A", borderLeft: "1px solid #EDE9E1", borderRight: "1px solid #EDE9E1" }}
+            >
+              {quantity}
+            </span>
+            <button
+              type="button"
+              onClick={() => setQuantity((q) => q + 1)}
+              disabled={addToCartMutation.isPending}
+              className="flex items-center justify-center w-9 h-9 transition-colors disabled:opacity-30"
+              style={{ color: "#2C3E50" }}
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       )}
 
