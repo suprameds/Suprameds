@@ -141,40 +141,37 @@ export const CartItemQuantitySelector = ({
   }
 
   return (
-    <div className={clsx("flex items-center", isMutating && "opacity-60 pointer-events-none")}>
-      <Button
+    <div
+      className={clsx(
+        "inline-flex items-center rounded-lg border",
+        isMutating && "opacity-50 pointer-events-none"
+      )}
+      style={{ borderColor: "#EDE9E1", background: "#fff" }}
+    >
+      <button
+        type="button"
         onClick={() => handleQuantityChange(item.quantity - 1)}
         disabled={isMutating}
-        className={clsx(
-          type === "compact" &&
-            "text-zinc-600 hover:text-zinc-500 transition-colors p-1 ml-2"
-        )}
-        variant="transparent"
-        size="fit"
+        className="flex items-center justify-center w-8 h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
+        style={{ color: "#2C3E50" }}
       >
-        <Minus />
-      </Button>
+        {item.quantity === 1 ? <Trash className="w-3.5 h-3.5" style={{ color: "#EF4444" }} /> : <Minus className="w-3.5 h-3.5" />}
+      </button>
       <span
-        className={clsx(
-          type === "compact"
-            ? "text-sm text-zinc-900 text-center px-3"
-            : "text-center text-sm px-6"
-        )}
+        className="w-8 text-center text-sm font-semibold tabular-nums"
+        style={{ color: "#0D1B2A", borderLeft: "1px solid #EDE9E1", borderRight: "1px solid #EDE9E1" }}
       >
         {item.quantity}
       </span>
-      <Button
+      <button
+        type="button"
         onClick={() => handleQuantityChange(item.quantity + 1)}
         disabled={isMutating}
-        className={clsx(
-          type === "compact" &&
-            "text-zinc-600 hover:text-zinc-500 transition-colors p-1 ml-2"
-        )}
-        variant="transparent"
-        size="fit"
+        className="flex items-center justify-center w-8 h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
+        style={{ color: "#2C3E50" }}
       >
-        <Plus />
-      </Button>
+        <Plus className="w-3.5 h-3.5" />
+      </button>
     </div>
   )
 }
@@ -314,7 +311,7 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
   }
   return (
     <div className="space-y-4">
-      <FreeDeliveryBar subtotal={cart.subtotal ?? 0} currencyCode={cart.currency_code} />
+      <FreeDeliveryBar subtotal={cart.item_subtotal ?? cart.subtotal ?? 0} currencyCode={cart.currency_code} />
 
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
@@ -325,19 +322,19 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
           <span style={{ color: "#2C3E50" }}>Shipping</span>
           {(() => {
             const hasShippingMethod = (cart.shipping_methods?.length ?? 0) > 0
-            const subtotal = cart.item_subtotal ?? cart.subtotal ?? 0
-            const qualifiesFree = subtotal >= 300
 
             if (hasShippingMethod && cart.shipping_total === 0) {
               return <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
             }
-            if (!hasShippingMethod && qualifiesFree) {
-              return <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
+            if (hasShippingMethod) {
+              return <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
             }
-            if (!hasShippingMethod && !qualifiesFree) {
-              return <span className="text-sm" style={{ color: "#999" }}>₹50.00</span>
-            }
-            return <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
+
+            // No shipping method selected — show contextual estimate
+            const itemTotal = cart.item_subtotal ?? cart.subtotal ?? 0
+            return itemTotal >= FREE_DELIVERY_THRESHOLD
+              ? <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
+              : <span className="text-sm" style={{ color: "#999" }}>Calculated at checkout</span>
           })()}
         </div>
         <div className="flex justify-between text-sm">

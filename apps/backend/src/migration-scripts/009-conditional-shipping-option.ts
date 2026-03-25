@@ -114,14 +114,16 @@ export default async function conditionalShippingOption({
   // Disable the old free manual option for store visibility
   const oldOption = (existingOptions as any[])?.find(
     (o: any) =>
-      o.name === "Standard Worldwide Shipping" && o.price_type === "flat"
+      (o.name === "Standard Worldwide Shipping" ||
+        o.name === "Standard Shipping (India)") &&
+      o.price_type === "flat"
   )
 
   if (oldOption) {
     try {
       await fulfillmentModuleService.updateShippingOptions({
         id: oldOption.id,
-        name: "Standard Worldwide Shipping (legacy)",
+        name: "Standard Shipping (legacy)",
       })
       logger.info(
         `[conditional-shipping] Renamed old option ${oldOption.id} to legacy.`

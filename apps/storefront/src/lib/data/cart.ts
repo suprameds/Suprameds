@@ -7,7 +7,7 @@ import {
   sendDeleteRequest 
 } from "@/lib/data/custom"
 
-const DEFAULT_CART_FIELDS = "+items.total, shipping_methods.name"
+const DEFAULT_CART_FIELDS = "+items.total, +shipping_methods.name"
 
 /**
  * Retrieves a cart by ID or from stored ID. Returns null if no cart is found.

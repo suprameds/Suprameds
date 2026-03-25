@@ -5,7 +5,8 @@ import { PHARMA_MODULE } from "../modules/pharma"
 import { createRateLimiter } from "./rate-limiter"
 import { authorize, enforceSsd } from "./rbac-authorize"
 import { getPrescriptionUploader, getGrnCreator, getPoRaiser } from "./rbac-ssd-helpers"
-import { requireMfa } from "./admin/middlewares/mfa-guard"
+// MFA guard disabled for initial launch — re-enable when TOTP is rolled out
+// import { requireMfa } from "./admin/middlewares/mfa-guard"
 
 /**
  * Schedule X block — stateless API middleware.
@@ -182,11 +183,12 @@ export default defineMiddlewares({
       bodyParser: { preserveRawBody: true },
     },
 
-    // ── MFA enforcement for admin routes (after session auth, before RBAC) ──
-    {
-      matcher: "/admin/*",
-      middlewares: [requireMfa()],
-    },
+    // ── MFA enforcement for admin routes — DISABLED for initial launch ──
+    // Re-enable when TOTP enrollment is rolled out to staff:
+    // {
+    //   matcher: "/admin/*",
+    //   middlewares: [requireMfa()],
+    // },
 
     // ── RBAC authorization for admin routes ───────────────────────────
 

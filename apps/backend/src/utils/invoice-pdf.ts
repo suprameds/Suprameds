@@ -2,8 +2,9 @@ import PDFDocument from "pdfkit"
 import type { GstInvoice, InvoiceLineItem } from "./gst-invoice"
 
 /**
- * Generate a professional GST-compliant pharma invoice PDF.
- * Matches the Vyapar format used by Supracyn Pharma but with cleaner layout.
+ * Generate a B2C retail order invoice PDF for Suprameds.
+ * Includes GST breakup (required by law) but positioned as a customer-friendly
+ * order invoice rather than a B2B tax invoice.
  *
  * Returns a Buffer containing the complete PDF.
  */
@@ -16,9 +17,9 @@ export async function generateInvoicePdf(
         size: "A4",
         margin: 30,
         info: {
-          Title: `Tax Invoice ${invoice.invoice_number}`,
+          Title: `Invoice ${invoice.invoice_number}`,
           Author: invoice.seller_name,
-          Subject: `Invoice for order`,
+          Subject: `Order Invoice`,
         },
       })
 
@@ -46,7 +47,7 @@ export async function generateInvoicePdf(
         .font("Helvetica-Bold")
         .fontSize(14)
         .fillColor(WHITE)
-        .text("Tax Invoice", LEFT, y + 7, { width: PAGE_W, align: "center" })
+        .text("Order Invoice", LEFT, y + 7, { width: PAGE_W, align: "center" })
       y += 36
 
       // ── SELLER INFO + INVOICE META ─────────────────────────────────
@@ -104,38 +105,39 @@ export async function generateInvoicePdf(
       doc.font("Helvetica-Bold").fontSize(7).fillColor(NAVY)
       doc.text("Payment", metaMid + 4, y + 34)
       doc.font("Helvetica").fontSize(8).fillColor("#000")
-      doc.text(invoice.payment_mode.toUpperCase(), metaMid + 4, y + 46)
-
-      doc.font("Helvetica-Bold").fontSize(7).fillColor(NAVY)
-      doc.text("GST Type", metaX + 4, y + 59)
-      doc.font("Helvetica").fontSize(8).fillColor("#000")
-      doc.text(
-        invoice.is_intra_state ? "Intra-State (CGST+SGST)" : "Inter-State (IGST)",
-        metaX + 4,
-        y + 71
-      )
+      const paymentLabel =
+        invoice.payment_mode === "cod" ? "Cash on Delivery" :
+        invoice.payment_mode === "razorpay" ? "Paid Online (Razorpay)" :
+        invoice.payment_mode === "online" ? "Paid Online" :
+        invoice.payment_mode.toUpperCase()
+      doc.text(paymentLabel, metaMid + 4, y + 46)
 
       if (invoice.prescription_ref) {
         doc.font("Helvetica-Bold").fontSize(7).fillColor(NAVY)
-        doc.text("Prescription Ref", metaX + 4, y + 84)
+        doc.text("Prescription Ref", metaX + 4, y + 59)
         doc.font("Helvetica").fontSize(7).fillColor("#000")
-        doc.text(invoice.prescription_ref, metaX + 4, y + 94)
+        doc.text(invoice.prescription_ref, metaX + 4, y + 71)
+      }
+
+      if (invoice.supply_memo_number) {
+        doc.font("Helvetica-Bold").fontSize(7).fillColor(NAVY)
+        doc.text("Memo No.", metaMid + 4, y + 59)
+        doc.font("Helvetica").fontSize(7).fillColor("#000")
+        doc.text(invoice.supply_memo_number, metaMid + 4, y + 71)
       }
 
       y = sellerBlockY + 113
 
-      // ── BILL TO ────────────────────────────────────────────────────
+      // ── SHIP TO / BILL TO ──────────────────────────────────────────
       doc.rect(LEFT, y, PAGE_W, 50).lineWidth(0.5).stroke(BORDER)
       doc.font("Helvetica-Bold").fontSize(7.5).fillColor(NAVY)
-      doc.text("Bill To", LEFT + 8, y + 4)
+      doc.text("Deliver To", LEFT + 8, y + 4)
       doc.font("Helvetica-Bold").fontSize(9).fillColor("#000")
-      doc.text(invoice.buyer_name, LEFT + 8, y + 15)
+      doc.text(invoice.buyer_name || "Customer", LEFT + 8, y + 15)
       doc.font("Helvetica").fontSize(7.5).fillColor(GRAY)
       doc.text(invoice.buyer_address, LEFT + 8, y + 27, { width: 400 })
-      doc.text(`State: ${invoice.buyer_state}`, LEFT + 8, y + 39)
-
-      if (invoice.buyer_gstin) {
-        doc.text(`GSTIN: ${invoice.buyer_gstin}`, LEFT + 250, y + 39)
+      if (invoice.buyer_state) {
+        doc.text(`State: ${invoice.buyer_state}`, LEFT + 8, y + 39)
       }
 
       y += 58
@@ -218,7 +220,7 @@ export async function generateInvoicePdf(
 
       // Left: Amount in words + You Saved
       doc.font("Helvetica-Bold").fontSize(7).fillColor(NAVY)
-      doc.text("Invoice Amount in Words", LEFT + 8, y + 6)
+      doc.text("Amount in Words", LEFT + 8, y + 6)
       doc.font("Helvetica-Bold").fontSize(9).fillColor("#000")
       doc.text(invoice.amount_in_words, LEFT + 8, y + 18, { width: 250 })
 
@@ -243,12 +245,7 @@ export async function generateInvoicePdf(
         ],
       ]
 
-      if (invoice.is_intra_state) {
-        amtRows.push(["CGST", `₹${fmtNum(invoice.total_cgst)}`])
-        amtRows.push(["SGST", `₹${fmtNum(invoice.total_sgst)}`])
-      } else {
-        amtRows.push(["IGST", `₹${fmtNum(invoice.total_igst)}`])
-      }
+      amtRows.push(["Tax (GST)", `₹${fmtNum(invoice.total_gst)}`])
 
       const roundOff = Math.round(invoice.grand_total) - invoice.grand_total
       if (Math.abs(roundOff) >= 0.01) {
@@ -363,7 +360,7 @@ export async function generateInvoicePdf(
       // ── POWERED BY ─────────────────────────────────────────────────
       doc.font("Helvetica").fontSize(6).fillColor(GRAY)
       doc.text(
-        "This is a computer-generated invoice and does not require a physical signature.",
+        "This is a computer-generated document and does not require a physical signature.",
         LEFT,
         y,
         { width: PAGE_W, align: "center" }
@@ -396,7 +393,7 @@ function buildColumnLayout(intraState: boolean): ColDef[] {
     { header: "Unit", x: L + 297, w: 20, align: "center" },
     { header: "Rate", x: L + 319, w: 42, align: "right" },
     { header: "Discount", x: L + 363, w: 54, align: "right" },
-    { header: intraState ? "CGST+SGST" : "GST", x: L + 419, w: 50, align: "right" },
+    { header: "Tax", x: L + 419, w: 50, align: "right" },
     { header: "Amount", x: L + 471, w: 62, align: "right" },
   ]
 }

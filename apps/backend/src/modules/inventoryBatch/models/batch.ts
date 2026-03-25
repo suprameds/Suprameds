@@ -69,6 +69,11 @@ const Batch = model.define("batch", {
   recall_reason: model.text().nullable(),
   recalled_on: model.dateTime().nullable(),
 
+  // Optimistic lock — incremented on every quantity mutation.
+  // Callers must read version, then update with WHERE version = :read,
+  // retrying on conflict.
+  version: model.number().default(0),
+
   // Batch deductions (linked to order line items)
   deductions: model.hasMany(() => BatchDeduction, {
     mappedBy: "batch",

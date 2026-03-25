@@ -4,7 +4,11 @@
  * Executes all data-seeding migration scripts in the correct order.
  * Each script is idempotent — safe to re-run on an existing database.
  *
- * Usage:
+ * NOTE: Medusa auto-discovers files in migration-scripts/ and runs them
+ * in alphabetical order during `npx medusa db:migrate`. The numeric
+ * prefixes (001–014) ensure correct execution order.
+ *
+ * This unified runner is a backup / manual tool:
  *   npx medusa exec ./src/scripts/run-migrations.ts
  *
  * Prerequisites:
@@ -18,19 +22,21 @@
 import { MedusaContainer } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
-// Migration scripts in execution order
-import initialSeed from "../migration-scripts/25022026-initial-seed"
-import indiaRegion from "../migration-scripts/21032026-india-region"
-import indiaShippingOptions from "../migration-scripts/18032026-india-shipping-options"
-import addInrToStore from "../migration-scripts/20032026-add-inr-to-store"
-import razorpayRegionProviders from "../migration-scripts/19032026-razorpay-region-providers"
-import addCodToRegion from "../migration-scripts/20032026-add-cod-to-region"
-import pharmacyCatalog from "../migration-scripts/18032026-pharmacy-taxonomy-and-sample-catalog"
-import conditionalShipping from "../migration-scripts/22032026-conditional-shipping-option"
-import rbacBootstrap from "../migration-scripts/22032026-rbac-bootstrap"
-import fixShippingProfiles from "../migration-scripts/23032026-fix-shipping-profiles"
-import cleanupManualShipping from "../migration-scripts/23032026-cleanup-manual-shipping"
-import ftsSearchVector from "../migration-scripts/20032026-fts-search-vector"
+import initialSeed from "../migration-scripts/001-initial-seed"
+import indiaRegion from "../migration-scripts/002-india-region"
+import indiaShippingOptions from "../migration-scripts/003-india-shipping-options"
+import addInrToStore from "../migration-scripts/004-add-inr-to-store"
+import razorpayRegionProviders from "../migration-scripts/005-razorpay-region-providers"
+import addCodToRegion from "../migration-scripts/006-add-cod-to-region"
+import supracynProducts from "../migration-scripts/007-supracyn-products"
+import pharmacyCatalog from "../migration-scripts/008-pharmacy-taxonomy-and-sample-catalog"
+import conditionalShipping from "../migration-scripts/009-conditional-shipping-option"
+import fixShippingProfiles from "../migration-scripts/010-fix-shipping-profiles"
+import cleanupManualShipping from "../migration-scripts/011-cleanup-manual-shipping"
+import rbacBootstrap from "../migration-scripts/012-rbac-bootstrap"
+import bootstrapSuperAdmin from "../migration-scripts/013-bootstrap-super-admin"
+import ftsSearchVector from "../migration-scripts/014-fts-search-vector"
+import seedProductBatches from "../migration-scripts/015-seed-product-batches"
 
 interface MigrationStep {
   name: string
@@ -41,19 +47,19 @@ interface MigrationStep {
 
 const MIGRATIONS: MigrationStep[] = [
   {
-    name: "1. Initial seed (defaults, regions, stock, shipping)",
+    name: "1. Initial seed (India region, INR, GST 5%, stock, shipping)",
     fn: initialSeed,
   },
   {
-    name: "2. India region + GST tax",
+    name: "2. India region + GST 5% (safety net / fix old 18% rate)",
     fn: indiaRegion,
   },
   {
-    name: "3. India shipping options (geo-zone + INR price)",
+    name: "3. India shipping options (geo-zone + INR price safety net)",
     fn: indiaShippingOptions,
   },
   {
-    name: "4. Add INR to store supported currencies",
+    name: "4. Ensure INR is sole store currency",
     fn: addInrToStore,
   },
   {
@@ -65,29 +71,43 @@ const MIGRATIONS: MigrationStep[] = [
     fn: addCodToRegion,
   },
   {
-    name: "7. Pharmacy taxonomy & sample catalog",
+    name: "7. Supracyn product catalog",
+    fn: supracynProducts,
+    isProductSeed: true,
+  },
+  {
+    name: "8. Pharmacy taxonomy & sample catalog",
     fn: pharmacyCatalog,
     isProductSeed: true,
   },
   {
-    name: "8. Conditional shipping option (₹50 / free above ₹300)",
+    name: "9. Conditional shipping option (₹50 / free above ₹300)",
     fn: conditionalShipping,
   },
   {
-    name: "9. Fix shipping profiles on all products",
+    name: "10. Fix shipping profiles on all products",
     fn: fixShippingProfiles,
   },
   {
-    name: "10. Remove old manual shipping option (fixes fp_manual_manual error)",
+    name: "11. Remove old manual shipping option (fixes fp_manual_manual error)",
     fn: cleanupManualShipping,
   },
   {
-    name: "11. RBAC bootstrap (roles + permissions)",
+    name: "12. RBAC bootstrap (roles + permissions)",
     fn: rbacBootstrap,
   },
   {
-    name: "12. Full-text search vector + GIN index",
+    name: "13. Bootstrap super_admin account",
+    fn: bootstrapSuperAdmin,
+  },
+  {
+    name: "14. Full-text search vector + GIN index",
     fn: ftsSearchVector,
+  },
+  {
+    name: "15. Seed product batches (2-3 per variant, FEFO testing)",
+    fn: seedProductBatches,
+    isProductSeed: true,
   },
 ]
 
@@ -129,7 +149,6 @@ export default async function runMigrations({
       const msg = err instanceof Error ? err.message : String(err)
       logger.error(`✗  FAIL:  ${step.name} (${elapsed}ms) — ${msg}`)
       failed++
-      // Continue with remaining migrations even if one fails
     }
 
     logger.info("")

@@ -1,4 +1,4 @@
-import { OrderDetails, deriveOrderProgress, InvoiceDownloadButton } from "@/components/order"
+import { OrderDetails, deriveOrderProgress } from "@/components/order"
 import { useOrder } from "@/lib/hooks/use-orders"
 import { sdk } from "@/lib/utils/sdk"
 import { isManual } from "@/lib/utils/checkout"
@@ -6,27 +6,34 @@ import { useLoaderData } from "@tanstack/react-router"
 import { ORDER_FIELDS } from "@/routes/$countryCode/order/$orderId/confirmed"
 import { useCallback, useEffect, useState } from "react"
 
-// ============ GSTIN REGEX (Indian GST Identification Number) ============
-const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/
-
 // ============ COD CONFIRMATION BANNER ============
 
 type CodStatus = "pending" | "confirming" | "confirmed" | "cancelled" | "error"
 
 const CodConfirmationBanner = ({ order }: { order: any }) => {
-  const [status, setStatus] = useState<CodStatus>("pending")
+  const orderStatus = order.status as string
+  const codMeta = (order.metadata as Record<string, any> | undefined)?.cod_confirmed
+
+  // Determine initial state: if the order exists and isn't cancelled,
+  // the COD order is inherently confirmed (completeCart succeeded).
+  const resolveInitialStatus = (): CodStatus => {
+    if (codMeta === false) return "cancelled"
+    if (codMeta === true) return "confirmed"
+    if (orderStatus === "canceled" || orderStatus === "cancelled") return "cancelled"
+    // Order placed successfully — treat as confirmed
+    if (orderStatus === "pending" || orderStatus === "completed" || orderStatus === "archived") return "confirmed"
+    return "confirmed"
+  }
+
+  const [status, setStatus] = useState<CodStatus>(resolveInitialStatus)
   const [errorMsg, setErrorMsg] = useState("")
 
-  // Skip if order is already cancelled or completed
-  const orderStatus = order.status as string
   const isFinalState = orderStatus === "canceled" || orderStatus === "cancelled" || orderStatus === "completed"
 
-  // Check if COD was already confirmed via order metadata
-  const codConfirmed = (order.metadata as Record<string, any> | undefined)?.cod_confirmed
   useEffect(() => {
-    if (codConfirmed === true) setStatus("confirmed")
-    if (codConfirmed === false) setStatus("cancelled")
-  }, [codConfirmed])
+    if (codMeta === true) setStatus("confirmed")
+    if (codMeta === false) setStatus("cancelled")
+  }, [codMeta])
 
   const handleCodAction = useCallback(async (confirmed: boolean) => {
     setStatus("confirming")
@@ -137,109 +144,6 @@ const CodConfirmationBanner = ({ order }: { order: any }) => {
   )
 }
 
-// ============ GSTIN INPUT (post-order) ============
-
-const GstinSection = ({ order }: { order: any }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [gstin, setGstin] = useState("")
-  const [saved, setSaved] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState("")
-
-  // Pre-fill if GSTIN was saved during checkout (via cart metadata)
-  const existingGstin = (order.metadata as Record<string, any> | undefined)?.gstin
-  useEffect(() => {
-    if (existingGstin) {
-      setGstin(existingGstin)
-      setSaved(true)
-      setIsOpen(true)
-    }
-  }, [existingGstin])
-
-  const isValid = GSTIN_REGEX.test(gstin.toUpperCase())
-
-  const handleSave = useCallback(async () => {
-    if (!isValid) return
-    setSaving(true)
-    setError("")
-    try {
-      await sdk.client.fetch(`/store/orders/gstin`, {
-        method: "POST",
-        body: { order_id: order.id, gstin: gstin.toUpperCase() },
-      })
-      setSaved(true)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save GSTIN")
-    } finally {
-      setSaving(false)
-    }
-  }, [order.id, gstin, isValid])
-
-  return (
-    <div className="rounded-xl border" style={{ borderColor: "#EDE9E1" }}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer"
-      >
-        <span className="text-sm font-medium" style={{ color: "#0D1B2A" }}>
-          Have a GSTIN? (Optional)
-        </span>
-        <ChevronIcon open={isOpen} />
-      </button>
-
-      {isOpen && (
-        <div className="px-4 pb-4 flex flex-col gap-3">
-          <p className="text-xs" style={{ color: "#6B7280" }}>
-            Enter your GST Identification Number for a B2B tax invoice.
-          </p>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={gstin}
-              onChange={(e) => {
-                setGstin(e.target.value.toUpperCase())
-                setSaved(false)
-                setError("")
-              }}
-              placeholder="e.g. 27AAPFU0939F1ZV"
-              maxLength={15}
-              disabled={saving}
-              className="flex-1 px-3 py-2 border rounded-lg text-sm font-mono uppercase tracking-wider outline-none transition-colors"
-              style={{
-                borderColor: gstin && !isValid ? "#FCA5A5" : saved ? "#A7F3D0" : "#D1D5DB",
-                background: saved ? "#F0FDF4" : "#fff",
-              }}
-            />
-            {saved ? (
-              <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#065F46" }}>
-                <CheckCircleIcon color="#1A7A4A" size={16} /> Saved
-              </span>
-            ) : (
-              <button
-                onClick={handleSave}
-                disabled={!isValid || saving}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: "#0E7C86" }}
-              >
-                {saving ? "Saving…" : "Save"}
-              </button>
-            )}
-          </div>
-
-          {gstin && !isValid && gstin.length > 0 && (
-            <p className="text-xs" style={{ color: "#C0392B" }}>
-              Invalid GSTIN format. Must be 15 characters (e.g. 27AAPFU0939F1ZV).
-            </p>
-          )}
-          {error && (
-            <p className="text-xs" style={{ color: "#C0392B" }}>{error}</p>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
 // ============ ICONS ============
 
 const CheckCircleIcon = ({ color = "#065F46", size = 20 }: { color?: string; size?: number }) => (
@@ -264,15 +168,52 @@ const CodBadgeIcon = () => (
   </svg>
 )
 
-const ChevronIcon = ({ open }: { open: boolean }) => (
-  <svg
-    width="16" height="16" viewBox="0 0 24 24" fill="none"
-    stroke="#6B7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-    className={`transition-transform ${open ? "rotate-180" : ""}`}
-  >
-    <polyline points="6 9 12 15 18 9" />
-  </svg>
-)
+// ============ ORDER EDIT BANNER ============
+
+const OrderEditBanner = ({ order }: { order: any }) => {
+  const meta = order.metadata as Record<string, any> | undefined
+  const editedAt = meta?.edited_at as string | undefined
+  const editSummary = meta?.edit_summary as string | undefined
+
+  if (!editedAt) return null
+
+  const formattedDate = new Date(editedAt).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+
+  return (
+    <div
+      className="rounded-xl border p-4 flex items-start gap-3"
+      style={{ background: "#EFF6FF", borderColor: "#BFDBFE" }}
+    >
+      <svg
+        width="20" height="20" viewBox="0 0 24 24" fill="none"
+        stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+        className="flex-shrink-0 mt-0.5"
+      >
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+      </svg>
+      <div>
+        <p className="text-sm font-semibold" style={{ color: "#1E40AF" }}>
+          Order Modified
+        </p>
+        <p className="text-xs mt-0.5" style={{ color: "#3B82F6" }}>
+          {editSummary || "Your order was updated by our pharmacy team."}{" "}
+          <span style={{ color: "#6B7280" }}>({formattedDate})</span>
+        </p>
+        <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
+          The items and total below reflect the latest version of your order.
+          Contact us if you have questions.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 // ============ MAIN PAGE ============
 
@@ -335,14 +276,11 @@ const OrderConfirmation = () => {
           </p>
         </div>
 
-        {/* COD Confirmation Banner (Feature 1) */}
+        {/* COD Confirmation Banner */}
         {isCOD && <div className="mb-6"><CodConfirmationBanner order={order} /></div>}
 
-        {/* Invoice Download + GSTIN row */}
-        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          {!isCancelled && <InvoiceDownloadButton orderId={order.id} />}
-          <GstinSection order={order} />
-        </div>
+        {/* Order Edit Banner */}
+        <div className="mb-6"><OrderEditBanner order={order} /></div>
 
         <OrderDetails order={order} />
       </div>

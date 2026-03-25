@@ -9,7 +9,7 @@ import {
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
 import { useLocation, useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { RazorpayPaymentButton } from "./razorpay-payment-button"
 
 type PaymentButtonProps = {
@@ -56,6 +56,7 @@ const StripePaymentButton = ({
   className?: string;
 }) => {
   const [submitting, setSubmitting] = useState(false)
+  const lockRef = useRef(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -63,7 +64,8 @@ const StripePaymentButton = ({
   const completeOrderMutation = useCompleteCartOrder()
 
   const handlePayment = async () => {
-    if (submitting) return
+    if (lockRef.current) return
+    lockRef.current = true
     setSubmitting(true)
     setErrorMessage(null)
 
@@ -75,6 +77,7 @@ const StripePaymentButton = ({
         replace: true,
       })
     } catch (error) {
+      lockRef.current = false
       setErrorMessage(
         error instanceof Error ? error.message : "Payment failed"
       )
@@ -108,6 +111,7 @@ const ManualPaymentButton = ({
   className?: string;
 }) => {
   const [submitting, setSubmitting] = useState(false)
+  const lockRef = useRef(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -115,7 +119,8 @@ const ManualPaymentButton = ({
   const completeOrderMutation = useCompleteCartOrder()
 
   const handlePayment = async () => {
-    if (submitting) return
+    if (lockRef.current) return
+    lockRef.current = true
     setSubmitting(true)
     setErrorMessage(null)
 
@@ -127,6 +132,7 @@ const ManualPaymentButton = ({
         replace: true,
       })
     } catch (error) {
+      lockRef.current = false
       setErrorMessage(
         error instanceof Error ? error.message : "Failed to place order"
       )

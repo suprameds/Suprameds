@@ -108,9 +108,10 @@ const PharmacistAdjustmentWidget = () => {
     setLoading(true)
     try {
       const [orderResp, rxResp, decResp] = await Promise.all([
-        fetch(`/admin/orders/${orderId}?fields=items.*`, {
-          credentials: "include",
-        }),
+        fetch(
+          `/admin/orders/${orderId}?fields=id,customer_id,items.*`,
+          { credentials: "include" }
+        ),
         fetch(`/admin/prescriptions?order_id=${orderId}`, {
           credentials: "include",
         }),

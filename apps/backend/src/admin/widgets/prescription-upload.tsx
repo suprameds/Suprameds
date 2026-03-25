@@ -69,7 +69,10 @@ const PrescriptionUploadWidget = () => {
     setLoading(true)
     try {
       const [orderResp, rxResp] = await Promise.all([
-        fetch(`/admin/orders/${orderId}`, { credentials: "include" }),
+        fetch(
+          `/admin/orders/${orderId}?fields=id,customer_id,email`,
+          { credentials: "include" }
+        ),
         fetch(`/admin/prescriptions?order_id=${orderId}`, {
           credentials: "include",
         }),

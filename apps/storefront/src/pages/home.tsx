@@ -115,13 +115,14 @@ const Home = () => {
          ════════════════════════════════════════════ */}
       <section className="relative overflow-hidden" style={{ background: "#0D1B2A" }}>
         <div
-          className="absolute inset-0 opacity-[0.04]"
+          className="absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle at 25px 25px, #0E7C86 1px, transparent 0)`,
-            backgroundSize: "50px 50px",
+            backgroundImage: `url('/images/hero-bg.png')`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            opacity: 0.45,
           }}
         />
-        <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #0E7C86, transparent)" }} />
 
         <div className="content-container relative z-10 py-16 lg:py-24">
           <div className="max-w-2xl">
@@ -231,35 +232,6 @@ const Home = () => {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ════════════════════════════════════════════
-          HOW IT WORKS — 4-step process
-         ════════════════════════════════════════════ */}
-      <section className="content-container py-14 lg:py-18">
-        <div className="text-center mb-10">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#0E7C86" }}>How It Works</p>
-          <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}>
-            Pharmacy-grade care, delivered home
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {[
-            { step: "01", title: "Search or Upload Rx", body: "Find your medicine by name or upload a doctor's prescription. We accept PDF, JPG, or photo uploads.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> },
-            { step: "02", title: "Pharmacist Reviews", body: "Our registered pharmacist (RPh) reviews your order and verifies prescriptions within 4 hours.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg> },
-            { step: "03", title: "Pay Your Way", body: "UPI, debit/credit card, netbanking, or Cash on Delivery. Orders before 2 PM ship same day.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
-            { step: "04", title: "Tracked Delivery", body: "India Post Speed Post to your door with live tracking. OTP confirmation for Rx orders.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
-          ].map((item) => (
-            <div key={item.step} className="p-5 rounded-xl flex flex-col gap-3" style={{ background: "#fff", border: "1px solid #EDE9E1" }}>
-              <div className="flex items-start justify-between">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#F0FDFA", color: "#0E7C86" }}>{item.icon}</div>
-                <span className="text-2xl font-light" style={{ color: "#EDE9E1", fontFamily: "Fraunces, Georgia, serif" }}>{item.step}</span>
-              </div>
-              <h3 className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>{item.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "#666" }}>{item.body}</p>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -535,6 +507,35 @@ const Home = () => {
               })}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════
+          HOW IT WORKS — 4-step process
+         ════════════════════════════════════════════ */}
+      <section className="content-container py-14 lg:py-18">
+        <div className="text-center mb-10">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#0E7C86" }}>How It Works</p>
+          <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}>
+            Pharmacy-grade care, delivered home
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {[
+            { step: "01", title: "Search or Upload Rx", body: "Find your medicine by name or upload a doctor's prescription. We accept PDF, JPG, or photo uploads.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> },
+            { step: "02", title: "Pharmacist Reviews", body: "Our registered pharmacist (RPh) reviews your order and verifies prescriptions within 4 hours.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg> },
+            { step: "03", title: "Pay Your Way", body: "UPI, debit/credit card, netbanking, or Cash on Delivery. Orders before 2 PM ship same day.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
+            { step: "04", title: "Tracked Delivery", body: "India Post Speed Post to your door with live tracking. OTP confirmation for Rx orders.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
+          ].map((item) => (
+            <div key={item.step} className="p-5 rounded-xl flex flex-col gap-3" style={{ background: "#fff", border: "1px solid #EDE9E1" }}>
+              <div className="flex items-start justify-between">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#F0FDFA", color: "#0E7C86" }}>{item.icon}</div>
+                <span className="text-2xl font-light" style={{ color: "#EDE9E1", fontFamily: "Fraunces, Georgia, serif" }}>{item.step}</span>
+              </div>
+              <h3 className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>{item.title}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: "#666" }}>{item.body}</p>
+            </div>
+          ))}
         </div>
       </section>
 
