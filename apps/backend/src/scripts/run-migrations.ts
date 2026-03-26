@@ -29,6 +29,7 @@ import seedProductBatches from "../migration-scripts/015-seed-product-batches"
 import fixAllProductInventory from "../migration-scripts/017-fix-all-product-inventory"
 import removeSampleProducts from "../migration-scripts/018-remove-sample-products"
 import fixCloudInventory from "../migration-scripts/019-fix-cloud-inventory"
+import fixInventoryTitles from "../migration-scripts/020-fix-inventory-titles"
 
 interface MigrationStep {
   name: string
@@ -80,6 +81,11 @@ const MIGRATIONS: MigrationStep[] = [
   {
     name: "10. Fix cloud inventory (batches + stock levels + links)",
     fn: fixCloudInventory,
+    isProductSeed: true,
+  },
+  {
+    name: "11. Fix inventory item titles (set product name on each item)",
+    fn: fixInventoryTitles,
     isProductSeed: true,
   },
 ]

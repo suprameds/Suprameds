@@ -134,11 +134,24 @@ export default async function fixCloudInventory({
     (existingInvItems as any[]).filter((i) => i?.sku).map((i) => [i.sku, i])
   )
 
+  // Build SKU → product title map for inventory item naming
+  const skuToTitle = new Map<string, string>()
+  for (const p of products) {
+    for (const v of (p as any).variants || []) {
+      if (v?.sku) skuToTitle.set(v.sku, (p as any).title || v.sku)
+    }
+  }
+
   const missingSkus = skus.filter((s: string) => !invBySku.has(s))
   if (missingSkus.length) {
     logger.info(`${LOG} Creating ${missingSkus.length} missing inventory items...`)
     const { result: createdItems } = await createInventoryItemsWorkflow(container).run({
-      input: { items: missingSkus.map((sku: string) => ({ sku })) as any },
+      input: {
+        items: missingSkus.map((sku: string) => ({
+          sku,
+          title: skuToTitle.get(sku) || sku,
+        })) as any,
+      },
     })
     for (const item of createdItems as any[]) {
       if (item?.sku) invBySku.set(item.sku, item)
