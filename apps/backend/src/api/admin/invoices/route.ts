@@ -1,6 +1,7 @@
-import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import type { AuthenticatedMedusaRequest, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { PAYMENT_MODULE } from "../../../modules/payment"
+import { RBAC_MODULE } from "../../../modules/rbac"
 import {
   buildGstInvoice,
   generateMemoNumber,
@@ -42,13 +43,30 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER) as any
   const body = req.body as Record<string, any>
+  const actorId = (req as AuthenticatedMedusaRequest).auth_context?.actor_id
 
-  const { order_id, shipment_id, pharmacist_name, pharmacist_reg } = body
+  let { order_id, shipment_id, pharmacist_name, pharmacist_reg } = body
+
+  // Auto-fill pharmacist details from StaffCredential if not provided
+  if ((!pharmacist_name || !pharmacist_reg) && actorId) {
+    try {
+      const rbacService = req.scope.resolve(RBAC_MODULE) as any
+      const cred = await rbacService.getPharmacistReg(actorId)
+      if (cred) {
+        if (!pharmacist_name) pharmacist_name = cred.name
+        if (!pharmacist_reg) pharmacist_reg = cred.reg_no
+        logger.info(`${LOG_PREFIX} Auto-filled pharmacist credential from user profile: ${cred.name} (${cred.reg_no})`)
+      }
+    } catch (err: any) {
+      logger.warn(`${LOG_PREFIX} Could not auto-fill pharmacist credential: ${err.message}`)
+    }
+  }
 
   if (!order_id || !pharmacist_name || !pharmacist_reg) {
     return res.status(400).json({
       message:
-        "order_id, pharmacist_name, and pharmacist_reg are required",
+        "order_id, pharmacist_name, and pharmacist_reg are required. " +
+        "Set them in the request body or add a pharmacist_registration credential in Roles & Access.",
     })
   }
 

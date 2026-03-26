@@ -5,6 +5,7 @@ import UserRole from "./models/user-role"
 import RoleAuditLog from "./models/role-audit-log"
 import InviteRole from "./models/invite-role"
 import MfaSecret from "./models/mfa-secret"
+import StaffCredential from "./models/staff-credential"
 import { seedRolesAndPermissions } from "./seeds/roles-permissions.seed"
 
 // ---------------------------------------------------------------------------
@@ -167,6 +168,7 @@ class RbacModuleService extends MedusaService({
   RoleAuditLog,
   InviteRole,
   MfaSecret,
+  StaffCredential,
 }) {
   // -----------------------------------------------------------------------
   // assignRole — create UserRole + audit log with validation
@@ -531,6 +533,49 @@ class RbacModuleService extends MedusaService({
     }
 
     return isValid
+  }
+
+  // -----------------------------------------------------------------------
+  // Staff Credential helpers
+  // -----------------------------------------------------------------------
+
+  /**
+   * Look up a staff credential by user ID and type.
+   * Returns the first matching active credential, or null.
+   */
+  async getCredential(
+    userId: string,
+    credentialType: string
+  ): Promise<{ credential_value: string; holder_name: string; issuing_authority: string | null } | null> {
+    const creds = (await this.listStaffCredentials(
+      { user_id: userId, credential_type: credentialType },
+      { take: 1 }
+    )) as any[]
+
+    if (!creds.length) return null
+    return {
+      credential_value: creds[0].credential_value,
+      holder_name: creds[0].holder_name,
+      issuing_authority: creds[0].issuing_authority,
+    }
+  }
+
+  /**
+   * Shorthand: get pharmacist registration number for a user.
+   * Used by review-rx, dispense, H1 register, and supply memo workflows.
+   */
+  async getPharmacistReg(userId: string): Promise<{
+    reg_no: string
+    name: string
+    authority: string | null
+  } | null> {
+    const cred = await this.getCredential(userId, "pharmacist_registration")
+    if (!cred) return null
+    return {
+      reg_no: cred.credential_value,
+      name: cred.holder_name,
+      authority: cred.issuing_authority,
+    }
   }
 
   // -----------------------------------------------------------------------

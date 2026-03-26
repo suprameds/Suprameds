@@ -137,6 +137,26 @@ export const createH1EntryStep = createStep(
     }
 
     const complianceService = container.resolve(COMPLIANCE_MODULE) as any
+    const logger = container.resolve("logger") as any
+
+    // Auto-populate pharmacist name + registration from StaffCredential
+    let pharmacistName = input.pharmacist_id
+    let pharmacistRegNo = "NOT_ON_FILE"
+    try {
+      const rbacService = container.resolve("pharmaRbac") as any
+      const cred = await rbacService.getPharmacistReg(input.pharmacist_id)
+      if (cred) {
+        pharmacistName = cred.name
+        pharmacistRegNo = cred.reg_no
+      } else {
+        logger.warn(
+          `[h1-register] No pharmacist_registration credential found for user ${input.pharmacist_id}. ` +
+            `Add it via Roles & Access > Staff Credentials.`
+        )
+      }
+    } catch (err: any) {
+      logger.warn(`[h1-register] Failed to fetch pharmacist credential: ${err.message}`)
+    }
 
     const entry = await complianceService.createH1RegisterEntries({
       entry_date: new Date(),
@@ -149,8 +169,8 @@ export const createH1EntryStep = createStep(
       brand_name: input.drugProduct?.composition || "Unknown",
       batch_number: "PENDING",
       quantity_dispensed: input.approved_quantity || input.line?.approved_quantity || 1,
-      dispensing_pharmacist: input.pharmacist_id,
-      pharmacist_reg_no: "PENDING",
+      dispensing_pharmacist: pharmacistName,
+      pharmacist_reg_no: pharmacistRegNo,
       order_item_id: input.line?.id || "PENDING",
       dispense_decision_id: "PENDING",
     })

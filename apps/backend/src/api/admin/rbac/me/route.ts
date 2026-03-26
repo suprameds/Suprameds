@@ -76,6 +76,12 @@ export async function GET(
       }
     }
 
+    // Fetch staff credentials
+    const staffCredentials = await rbacService.listStaffCredentials(
+      { user_id: actorId },
+      { take: 10 }
+    )
+
     return res.json({
       user_id: actorId,
       email,
@@ -83,6 +89,14 @@ export async function GET(
       last_name: lastName,
       roles,
       permissions: Array.from(allPermissions).sort(),
+      credentials: (staffCredentials as any[]).map((c: any) => ({
+        id: c.id,
+        credential_type: c.credential_type,
+        credential_value: c.credential_value,
+        holder_name: c.holder_name,
+        issuing_authority: c.issuing_authority,
+        is_verified: c.is_verified,
+      })),
     })
   } catch (error: any) {
     return res.status(500).json({
