@@ -1,33 +1,11 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { PRESCRIPTION_MODULE } from "../../../modules/prescription"
 import {
   decryptPhiArray,
   PRESCRIPTION_PHI_FIELDS,
   isPhiEncryptionEnabled,
 } from "../../../lib/phi-crypto"
-
-const RX_FIELDS = [
-  "id",
-  "customer_id",
-  "guest_phone",
-  "status",
-  "file_url",
-  "original_filename",
-  "mime_type",
-  "file_size_bytes",
-  "doctor_name",
-  "doctor_reg_no",
-  "patient_name",
-  "prescribed_on",
-  "valid_until",
-  "reviewed_by",
-  "reviewed_at",
-  "rejection_reason",
-  "pharmacist_notes",
-  "fully_dispensed",
-  "created_at",
-  "lines.*",
-]
 
 /**
  * GET /admin/prescriptions
@@ -39,15 +17,14 @@ const RX_FIELDS = [
  *   - customer_id: filter by customer
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-
   const status = req.query.status as string | undefined
   const orderId = req.query.order_id as string | undefined
   const customerId = req.query.customer_id as string | undefined
 
-  // If filtering by order_id, traverse the order<->prescription link
+  // If filtering by order_id, traverse the order<->prescription link via query.graph
   if (orderId) {
     try {
+      const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
       const { data: orderRows } = await query.graph({
         entity: "order",
         fields: ["id", "prescription.*", "prescription.lines.*"],
@@ -56,7 +33,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
       let prescriptions = (orderRows as any[])?.[0]?.prescription ?? []
 
-      // Apply status filter on top if provided
       if (status) {
         prescriptions = prescriptions.filter(
           (rx: any) => rx.status === status
@@ -69,7 +45,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
       return res.json({ prescriptions: result, count: result.length })
     } catch (err: any) {
-      // Link may not resolve — fall back to returning empty
       console.warn(
         `[admin:prescriptions] Could not resolve prescriptions for order ${orderId}: ${err?.message}`
       )
@@ -77,20 +52,30 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     }
   }
 
-  // Standard listing with optional filters
-  const filters: Record<string, any> = {}
-  if (status) filters.status = status
-  if (customerId) filters.customer_id = customerId
+  // Standard listing — use the module service directly (more reliable than query.graph)
+  try {
+    const prescriptionService = req.scope.resolve(PRESCRIPTION_MODULE) as any
 
-  const { data: prescriptions } = await query.graph({
-    entity: "prescription",
-    fields: RX_FIELDS,
-    filters,
-  })
+    const filters: Record<string, any> = {}
+    if (status) filters.status = status
+    if (customerId) filters.customer_id = customerId
 
-  const result = isPhiEncryptionEnabled()
-    ? decryptPhiArray(prescriptions as any[], PRESCRIPTION_PHI_FIELDS)
-    : prescriptions
+    const prescriptions = await prescriptionService.listPrescriptions(
+      filters,
+      {
+        order: { created_at: "DESC" },
+        take: 100,
+        relations: ["lines"],
+      }
+    )
 
-  return res.json({ prescriptions: result, count: result.length })
+    const result = isPhiEncryptionEnabled()
+      ? decryptPhiArray(prescriptions, PRESCRIPTION_PHI_FIELDS)
+      : prescriptions
+
+    return res.json({ prescriptions: result, count: result.length })
+  } catch (err: any) {
+    console.error("[admin:prescriptions] Failed to list prescriptions:", err?.message)
+    return res.status(500).json({ error: "Failed to load prescriptions" })
+  }
 }

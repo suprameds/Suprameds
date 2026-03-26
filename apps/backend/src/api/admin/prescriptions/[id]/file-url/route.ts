@@ -1,9 +1,6 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import {
-  ContainerRegistrationKeys,
-  Modules,
-  MedusaError,
-} from "@medusajs/framework/utils"
+import { Modules, MedusaError } from "@medusajs/framework/utils"
+import { PRESCRIPTION_MODULE } from "../../../../../modules/prescription"
 
 /**
  * GET /admin/prescriptions/:id/file-url
@@ -13,13 +10,12 @@ import {
  */
 export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   const { id } = req.params
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+  const prescriptionService = req.scope.resolve(PRESCRIPTION_MODULE) as any
 
-  const { data: prescriptions } = await query.graph({
-    entity: "prescription",
-    fields: ["id", "file_key", "file_url"],
-    filters: { id },
-  })
+  const prescriptions = await prescriptionService.listPrescriptions(
+    { id },
+    { take: 1 }
+  )
 
   if (!prescriptions.length) {
     throw new MedusaError(
