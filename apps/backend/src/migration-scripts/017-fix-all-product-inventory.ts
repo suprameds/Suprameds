@@ -107,25 +107,34 @@ export default async function fixAllProductInventory({
 
   // 5. Ensure inventory levels at stock location with correct stock
   const invItemIds = skus.map((s) => invBySku.get(s)?.id).filter(Boolean) as string[]
+  const inventoryService = container.resolve(Modules.INVENTORY) as any
 
-  const { data: existingLevels } = await query.graph({
-    entity: "inventory_levels",
-    fields: ["id", "inventory_item_id", "location_id", "stocked_quantity"],
-    filters: { inventory_item_id: invItemIds, location_id: [stockLocation.id] },
-  })
+  // Use the inventory service directly instead of query.graph for reliable results
+  let existingLevels: any[] = []
+  try {
+    existingLevels = await inventoryService.listInventoryLevels(
+      { inventory_item_id: invItemIds, location_id: stockLocation.id },
+      { take: invItemIds.length + 50 }
+    )
+  } catch (err: any) {
+    logger.warn(`[017] Could not list inventory levels: ${err.message}. Will try to create all.`)
+  }
 
   const levelMap = new Map<string, any>(
-    (existingLevels as any[]).map((l) => [`${l.inventory_item_id}:${l.location_id}`, l])
+    existingLevels
+      .filter((l: any) => l?.inventory_item_id)
+      .map((l: any) => [l.inventory_item_id, l])
   )
 
   const creates: any[] = []
   const updates: any[] = []
 
   for (const invId of invItemIds) {
-    const key = `${invId}:${stockLocation.id}`
-    const existing = levelMap.get(key)
+    const existing = levelMap.get(invId)
     if (existing) {
-      if (existing.stocked_quantity === 0) {
+      // Force update if stock is below DEFAULT_STOCK (handles BigNumber, null, 0, etc.)
+      const currentStock = Number(existing.stocked_quantity) || 0
+      if (currentStock < DEFAULT_STOCK) {
         updates.push({
           id: existing.id,
           inventory_item_id: invId,
@@ -143,14 +152,39 @@ export default async function fixAllProductInventory({
   }
 
   if (creates.length || updates.length) {
-    await batchInventoryItemLevelsWorkflow(container).run({
-      input: { creates, updates, deletes: [] } as any,
-    })
-    logger.info(
-      `[017] Inventory levels: ${creates.length} created, ${updates.length} updated to ${DEFAULT_STOCK} stock`
-    )
+    try {
+      await batchInventoryItemLevelsWorkflow(container).run({
+        input: { creates, updates, deletes: [] } as any,
+      })
+      logger.info(
+        `[017] Inventory levels: ${creates.length} created, ${updates.length} updated to ${DEFAULT_STOCK} stock`
+      )
+    } catch (err: any) {
+      // If batch workflow fails, fall back to direct service calls
+      logger.warn(`[017] batchInventoryItemLevelsWorkflow failed: ${err.message}. Falling back to direct updates.`)
+
+      for (const c of creates) {
+        try {
+          await inventoryService.createInventoryLevels(c)
+        } catch (createErr: any) {
+          logger.warn(`[017] Could not create level for ${c.inventory_item_id}: ${createErr.message}`)
+        }
+      }
+
+      for (const u of updates) {
+        try {
+          await inventoryService.updateInventoryLevels(u.id, {
+            stocked_quantity: DEFAULT_STOCK,
+          })
+        } catch (updateErr: any) {
+          logger.warn(`[017] Could not update level ${u.id}: ${updateErr.message}`)
+        }
+      }
+
+      logger.info(`[017] Fallback complete: ${creates.length} creates, ${updates.length} updates attempted`)
+    }
   } else {
-    logger.info("[017] All inventory levels already have stock. No changes needed.")
+    logger.info("[017] All inventory levels already have sufficient stock. No changes needed.")
   }
 
   // 6. Ensure variant → inventory item links exist
