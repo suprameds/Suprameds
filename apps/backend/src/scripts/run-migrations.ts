@@ -28,6 +28,7 @@ import ftsSearchVector from "../migration-scripts/014-fts-search-vector"
 import seedProductBatches from "../migration-scripts/015-seed-product-batches"
 import fixAllProductInventory from "../migration-scripts/017-fix-all-product-inventory"
 import removeSampleProducts from "../migration-scripts/018-remove-sample-products"
+import fixCloudInventory from "../migration-scripts/019-fix-cloud-inventory"
 
 interface MigrationStep {
   name: string
@@ -75,6 +76,11 @@ const MIGRATIONS: MigrationStep[] = [
   {
     name: "9. Remove sample products (cleanup old 008 data)",
     fn: removeSampleProducts,
+  },
+  {
+    name: "10. Fix cloud inventory (batches + stock levels + links)",
+    fn: fixCloudInventory,
+    isProductSeed: true,
   },
 ]
 
