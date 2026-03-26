@@ -1,5 +1,6 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
+import { MedusaError } from "@medusajs/framework/utils"
+import { PRESCRIPTION_MODULE } from "../../../../modules/prescription"
 import { ReviewRxWorkflow } from "../../../../workflows/prescription/review-rx"
 import { decryptPhiFields, encryptPhi, PRESCRIPTION_PHI_FIELDS, isPhiEncryptionEnabled } from "../../../../lib/phi-crypto"
 
@@ -9,35 +10,12 @@ import { decryptPhiFields, encryptPhi, PRESCRIPTION_PHI_FIELDS, isPhiEncryptionE
  */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { id } = req.params
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+  const prescriptionService = req.scope.resolve(PRESCRIPTION_MODULE) as any
 
-  const { data: prescriptions } = await query.graph({
-    entity: "prescription",
-    fields: [
-      "id",
-      "customer_id",
-      "guest_phone",
-      "status",
-      "file_key",
-      "file_url",
-      "original_filename",
-      "mime_type",
-      "file_size_bytes",
-      "doctor_name",
-      "doctor_reg_no",
-      "patient_name",
-      "prescribed_on",
-      "valid_until",
-      "reviewed_by",
-      "reviewed_at",
-      "rejection_reason",
-      "pharmacist_notes",
-      "fully_dispensed",
-      "created_at",
-      "lines.*",
-    ],
-    filters: { id },
-  })
+  const prescriptions = await prescriptionService.listPrescriptions(
+    { id },
+    { relations: ["lines"], take: 1 }
+  )
 
   if (!prescriptions.length) {
     throw new MedusaError(MedusaError.Types.NOT_FOUND, `Prescription ${id} not found`)
