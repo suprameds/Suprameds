@@ -37,6 +37,7 @@ import rbacBootstrap from "../migration-scripts/012-rbac-bootstrap"
 import bootstrapSuperAdmin from "../migration-scripts/013-bootstrap-super-admin"
 import ftsSearchVector from "../migration-scripts/014-fts-search-vector"
 import seedProductBatches from "../migration-scripts/015-seed-product-batches"
+import fixAllProductInventory from "../migration-scripts/017-fix-all-product-inventory"
 
 interface MigrationStep {
   name: string
@@ -107,6 +108,11 @@ const MIGRATIONS: MigrationStep[] = [
   {
     name: "15. Seed product batches (2-3 per variant, FEFO testing)",
     fn: seedProductBatches,
+    isProductSeed: true,
+  },
+  {
+    name: "17. Fix all product inventory (items, levels, links, stock = 50)",
+    fn: fixAllProductInventory,
     isProductSeed: true,
   },
 ]
