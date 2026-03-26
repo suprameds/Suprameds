@@ -17,8 +17,6 @@
     "seed": "medusa exec ./src/scripts/seed.ts",
     "db:migrate": "medusa db:migrate",
     "db:seed": "medusa exec ./src/scripts/run-migrations.ts",
-    "db:reset": "medusa exec ./src/scripts/db-reset.ts",
-    "db:fresh": "medusa exec ./src/scripts/db-reset.ts && medusa db:migrate && medusa exec ./src/scripts/run-migrations.ts",
     "db:setup": "medusa db:migrate && medusa exec ./src/scripts/run-migrations.ts",
     "db:setup:prod": "medusa db:migrate && SKIP_PRODUCT_SEED=true medusa exec ./src/scripts/run-migrations.ts",
     "import:products": "medusa exec ./src/scripts/import-products.ts",
