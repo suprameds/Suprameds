@@ -13,8 +13,8 @@ import {
   Text,
   toast,
 } from "@medusajs/ui"
-import { ArrowPath, EnvelopeSolid, LockClosedSolid, MagnifyingGlass, PlusMini, XMark } from "@medusajs/icons"
-import { useCallback, useEffect, useState } from "react"
+import { ArrowPath, EnvelopeSolid, LockClosedSolid, MagnifyingGlass, PlusMini, User, XMark } from "@medusajs/icons"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { sdk } from "../../lib/client"
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -141,6 +141,113 @@ const SeedRolesPrompt = ({ onSeeded }: { onSeeded: () => void }) => {
         {seeding ? "Seeding..." : "Initialize Roles & Permissions"}
       </Button>
     </div>
+  )
+}
+
+// ── My Role Card ──────────────────────────────────────────────────────────────
+
+type MyRoleInfo = {
+  user_id: string
+  email: string | null
+  first_name: string | null
+  last_name: string | null
+  roles: {
+    code: string
+    name: string
+    tier: number
+    clinical: boolean
+    mfa_required: boolean
+    assigned_at: string
+    permissions: string[]
+  }[]
+  permissions: string[]
+}
+
+const MyRoleCard = () => {
+  const [me, setMe] = useState<MyRoleInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [showPerms, setShowPerms] = useState(false)
+
+  useEffect(() => {
+    sdk.client
+      .fetch<MyRoleInfo>("/admin/rbac/me")
+      .then((data) => setMe(data))
+      .catch((err) => console.error("[rbac-me]", err))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <Container className="p-5">
+        <Text className="text-ui-fg-subtle">Loading your profile...</Text>
+      </Container>
+    )
+  }
+
+  if (!me) return null
+
+  const displayName =
+    [me.first_name, me.last_name].filter(Boolean).join(" ") || me.email || me.user_id
+
+  return (
+    <Container className="p-5">
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-ui-bg-subtle flex items-center justify-center">
+          <User className="w-6 h-6 text-ui-fg-muted" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
+            <Text className="text-sm font-semibold">{displayName}</Text>
+            {me.email && displayName !== me.email && (
+              <Text className="text-xs text-ui-fg-muted">{me.email}</Text>
+            )}
+          </div>
+
+          {me.roles.length === 0 ? (
+            <Text className="text-sm text-ui-fg-muted">No roles assigned</Text>
+          ) : (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {me.roles.map((role) => (
+                <div key={role.code} className="flex items-center gap-1.5">
+                  <Badge color={tierBadgeColor(role.tier)}>{role.name}</Badge>
+                  {role.clinical && (
+                    <Badge color="blue" className="text-[10px]">Clinical</Badge>
+                  )}
+                  {role.mfa_required && (
+                    <Badge color="purple" className="text-[10px]">MFA</Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-center gap-3">
+            <Text className="text-xs text-ui-fg-muted">
+              {me.permissions.length} permission(s) across {me.roles.length} role(s)
+            </Text>
+            {me.permissions.length > 0 && (
+              <button
+                type="button"
+                className="text-xs text-ui-fg-interactive underline hover:text-ui-fg-interactive-hover"
+                onClick={() => setShowPerms(!showPerms)}
+              >
+                {showPerms ? "Hide permissions" : "View permissions"}
+              </button>
+            )}
+          </div>
+
+          {showPerms && (
+            <div className="mt-3 flex flex-wrap gap-1">
+              {me.permissions.map((perm) => (
+                <Badge key={perm} color="grey" className="text-[10px]">
+                  {perm}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Container>
   )
 }
 
@@ -428,9 +535,8 @@ const RolesOverviewTab = () => {
 const UserRolesTab = () => {
   const [users, setUsers] = useState<UserWithRoles[]>([])
   const [roles, setRoles] = useState<RoleDefinition[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [searchText, setSearchText] = useState("")
-  const [searched, setSearched] = useState(false)
 
   // Assign drawer state
   const [assignOpen, setAssignOpen] = useState(false)
@@ -447,36 +553,49 @@ const UserRolesTab = () => {
       const json = await sdk.client.fetch<{ roles: RoleDefinition[] }>("/admin/rbac/roles")
       setRoles(json.roles ?? [])
     } catch {
-      // Roles needed for the assign dropdown; non-critical
+      // Non-critical
+    }
+  }, [])
+
+  const fetchUsers = useCallback(async (query?: string) => {
+    setLoading(true)
+    try {
+      const params: Record<string, string> = { limit: "100" }
+      if (query?.trim()) params.search = query.trim()
+
+      const json = await sdk.client.fetch<{ users: UserWithRoles[] }>(
+        "/admin/rbac/users",
+        { query: params }
+      )
+      setUsers(json.users ?? [])
+    } catch (err) {
+      console.error("[rbac-users]", err)
+      toast.error("Failed to load users")
+      setUsers([])
+    } finally {
+      setLoading(false)
     }
   }, [])
 
   useEffect(() => {
     fetchRoles()
-  }, [fetchRoles])
+    fetchUsers()
+  }, [fetchRoles, fetchUsers])
 
-  const searchUsers = useCallback(async () => {
-    if (!searchText.trim()) return
-    setLoading(true)
-    setSearched(true)
-    try {
-      const json = await sdk.client.fetch<{ users: UserWithRoles[] }>(
-        "/admin/rbac/users",
-        { query: { search: searchText.trim() } }
-      )
-      setUsers(json.users ?? [])
-    } catch (err) {
-      console.error("[rbac-users]", err)
-      toast.error("Failed to search users")
-      setUsers([])
-    } finally {
-      setLoading(false)
-    }
-  }, [searchText])
+  // Filter users client-side for instant search
+  const filteredUsers = useMemo(() => {
+    if (!searchText.trim()) return users
+    const q = searchText.toLowerCase()
+    return users.filter(
+      (u) =>
+        u.user_id.toLowerCase().includes(q) ||
+        (u.email?.toLowerCase().includes(q) ?? false)
+    )
+  }, [users, searchText])
 
   const handleAssign = async () => {
-    if (!assignUserId.trim() || !assignRoleCode) {
-      toast.error("User ID and Role are required")
+    if (!assignUserId || !assignRoleCode) {
+      toast.error("User and Role are required")
       return
     }
     setAssigning(true)
@@ -484,7 +603,7 @@ const UserRolesTab = () => {
       await sdk.client.fetch<{ success: boolean }>("/admin/rbac/assign", {
         method: "POST",
         body: {
-          user_id: assignUserId.trim(),
+          user_id: assignUserId,
           role_code: assignRoleCode,
           reason: assignReason.trim() || undefined,
         },
@@ -494,7 +613,7 @@ const UserRolesTab = () => {
       setAssignUserId("")
       setAssignRoleCode("")
       setAssignReason("")
-      if (searched) searchUsers()
+      fetchUsers()
     } catch (err: any) {
       toast.error("Failed to assign role", { description: err.message })
     } finally {
@@ -515,7 +634,7 @@ const UserRolesTab = () => {
         },
       })
       toast.success("Role revoked")
-      if (searched) searchUsers()
+      fetchUsers()
     } catch (err: any) {
       toast.error("Failed to revoke role", { description: err.message })
     } finally {
@@ -530,24 +649,21 @@ const UserRolesTab = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Search bar */}
+      {/* Search bar + Assign button */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-[250px] max-w-[400px]">
           <Text className="text-xs text-ui-fg-subtle mb-1">
-            Search by user ID or email
+            Filter by user ID or email
           </Text>
           <Input
-            placeholder="Enter user ID or email address..."
+            placeholder="Type to filter users..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") searchUsers()
-            }}
           />
         </div>
-        <Button variant="secondary" size="small" onClick={searchUsers}>
-          <MagnifyingGlass />
-          Search
+        <Button variant="secondary" size="small" onClick={() => fetchUsers()}>
+          <ArrowPath />
+          Refresh
         </Button>
         <div className="ml-auto">
           <Button
@@ -563,47 +679,41 @@ const UserRolesTab = () => {
 
       {/* Users table */}
       {loading ? (
-        <Text className="text-ui-fg-subtle p-4">Searching users...</Text>
-      ) : !searched ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <Text className="text-ui-fg-subtle mb-1">
-            Search for a user to view and manage their roles.
-          </Text>
-          <Text className="text-xs text-ui-fg-muted">
-            Enter a user ID or email address above.
-          </Text>
-        </div>
-      ) : users.length === 0 ? (
+        <Text className="text-ui-fg-subtle p-4">Loading users...</Text>
+      ) : filteredUsers.length === 0 ? (
         <Text className="text-ui-fg-subtle p-4">
-          No users found matching your search.
+          {searchText.trim()
+            ? "No users match your filter."
+            : "No admin users found."}
         </Text>
       ) : (
         <Table>
           <Table.Header>
             <Table.Row>
-              <Table.HeaderCell>User ID</Table.HeaderCell>
               <Table.HeaderCell>Email</Table.HeaderCell>
+              <Table.HeaderCell>User ID</Table.HeaderCell>
               <Table.HeaderCell>Assigned Roles</Table.HeaderCell>
+              <Table.HeaderCell className="text-right">Actions</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <Table.Row key={user.user_id}>
                 <Table.Cell>
-                  <Text className="text-sm font-mono">
-                    {user.user_id.slice(-12)}
+                  <Text className="text-sm font-medium">
+                    {user.email ?? "--"}
                   </Text>
                 </Table.Cell>
                 <Table.Cell>
-                  <Text className="text-sm">
-                    {user.email ?? "--"}
+                  <Text className="text-xs font-mono text-ui-fg-subtle">
+                    {user.user_id.slice(-12)}
                   </Text>
                 </Table.Cell>
                 <Table.Cell>
                   <div className="flex flex-wrap gap-1.5">
                     {user.roles.length === 0 ? (
                       <Text className="text-sm text-ui-fg-muted">
-                        No roles assigned
+                        No roles
                       </Text>
                     ) : (
                       user.roles.map((r) => {
@@ -629,6 +739,19 @@ const UserRolesTab = () => {
                     )}
                   </div>
                 </Table.Cell>
+                <Table.Cell className="text-right">
+                  <Button
+                    variant="secondary"
+                    size="small"
+                    onClick={() => {
+                      setAssignUserId(user.user_id)
+                      setAssignOpen(true)
+                    }}
+                  >
+                    <PlusMini />
+                    Add Role
+                  </Button>
+                </Table.Cell>
               </Table.Row>
             ))}
           </Table.Body>
@@ -644,13 +767,22 @@ const UserRolesTab = () => {
           <Drawer.Body className="p-4 overflow-y-auto">
             <div className="flex flex-col gap-4">
               <div>
-                <Label className="text-xs">User ID *</Label>
-                <Input
-                  className="mt-1"
-                  placeholder="Enter the user ID..."
+                <Label className="text-xs">User *</Label>
+                <Select
                   value={assignUserId}
-                  onChange={(e) => setAssignUserId(e.target.value)}
-                />
+                  onValueChange={(v) => setAssignUserId(v)}
+                >
+                  <Select.Trigger className="mt-1">
+                    <Select.Value placeholder="Select a user..." />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {users.map((u) => (
+                      <Select.Item key={u.user_id} value={u.user_id}>
+                        {u.email ?? u.user_id.slice(-12)} ({u.user_id.slice(-8)})
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select>
               </div>
               <div>
                 <Label className="text-xs">Role *</Label>
@@ -687,7 +819,7 @@ const UserRolesTab = () => {
             </Drawer.Close>
             <Button
               variant="primary"
-              disabled={assigning || !assignUserId.trim() || !assignRoleCode}
+              disabled={assigning || !assignUserId || !assignRoleCode}
               onClick={handleAssign}
             >
               {assigning ? "Assigning..." : "Assign Role"}
@@ -1043,6 +1175,9 @@ const RolesPage = () => {
           and review the audit trail of all role changes.
         </Text>
       </Container>
+
+      {/* Current user's role card */}
+      <MyRoleCard />
 
       <Container className="p-6">
         <Tabs defaultValue="roles-overview">
