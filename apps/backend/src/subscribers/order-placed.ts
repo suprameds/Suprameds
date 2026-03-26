@@ -1,7 +1,8 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import { Modules } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { PRESCRIPTION_MODULE } from "../modules/prescription"
 
 const LOG_PREFIX = "[subscriber:order-placed]"
 
@@ -33,6 +34,38 @@ export default async function orderPlacedHandler({
     console.info(
       `${LOG_PREFIX} Order ${orderId}: ${itemCount} item(s), shipping to ${shippingCity}, total ${order.total}`
     )
+
+    // ── 1b. Link prescription to order (if attached during checkout) ─
+    try {
+      const prescriptionId = (order.metadata as any)?.prescription_id
+      if (prescriptionId) {
+        const prescriptionService = container.resolve(PRESCRIPTION_MODULE) as any
+        const [rx] = await prescriptionService.listPrescriptions(
+          { id: prescriptionId },
+          { take: 1 }
+        )
+
+        if (rx) {
+          const linkService = container.resolve(ContainerRegistrationKeys.LINK) as any
+          await linkService.create({
+            [Modules.ORDER]: { order_id: orderId },
+            [PRESCRIPTION_MODULE]: { prescription_id: prescriptionId },
+          })
+          console.info(
+            `${LOG_PREFIX} Linked prescription ${prescriptionId} to order ${orderId}`
+          )
+        } else {
+          console.warn(
+            `${LOG_PREFIX} Prescription ${prescriptionId} referenced in order metadata not found`
+          )
+        }
+      }
+    } catch (linkErr) {
+      console.warn(
+        `${LOG_PREFIX} Failed to link prescription to order ${orderId}:`,
+        (linkErr as Error).message
+      )
+    }
 
     // ── 2. Send customer confirmation notification ──────────────────
     try {
@@ -73,10 +106,10 @@ export default async function orderPlacedHandler({
     try {
       const pharmaOrderService = container.resolve(ORDERS_MODULE) as any
 
-      // Determine if this is an Rx order by checking item metadata
-      const isRxOrder = order.items?.some(
+      const prescriptionId = (order.metadata as any)?.prescription_id
+      const isRxOrder = !!prescriptionId || (order.items?.some(
         (item: any) => item.metadata?.requires_prescription === true
-      ) ?? false
+      ) ?? false)
 
       const extension = await pharmaOrderService.createOrderExtensions({
         order_id: orderId,
