@@ -61,6 +61,11 @@ export const Route = createRootRouteWithContext<{
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/images/suprameds.svg" },
       { rel: "shortcut icon", href: "/favicon.ico" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      {
+        rel: "apple-touch-icon",
+        href: "/icons/apple-touch-icon-180x180.png",
+      },
       {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",
@@ -87,6 +92,12 @@ export const Route = createRootRouteWithContext<{
         name: "description",
         content:
           "Suprameds — CDSCO-registered online pharmacy. Pharmacist-dispensed prescription medicines and OTC products delivered across India.",
+      },
+      { name: "theme-color", content: "#1E2D5A" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "default",
       },
     ],
     scripts: [

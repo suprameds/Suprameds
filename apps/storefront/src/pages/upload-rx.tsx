@@ -2,7 +2,7 @@ import { useCustomer } from "@/lib/hooks/use-customer"
 import { useUploadPrescription } from "@/lib/hooks/use-prescriptions"
 import { sdk } from "@/lib/utils/sdk"
 import { Link, useLoaderData } from "@tanstack/react-router"
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
@@ -31,11 +31,24 @@ const FileIcon = () => (
   </svg>
 )
 
+const CameraIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+    <circle cx="12" cy="13" r="4" />
+  </svg>
+)
+
 const UploadRx = () => {
   const { countryCode } = useLoaderData({ from: "/$countryCode/upload-rx" })
   const { data: customer } = useCustomer()
   const uploadMutation = useUploadPrescription()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const cameraInputRef = useRef<HTMLInputElement>(null)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsMobile(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent))
+  }, [])
 
   const [state, setState] = useState<UploadState>("idle")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -244,15 +257,37 @@ const UploadRx = () => {
                 onChange={handleInputChange}
                 className="hidden"
               />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                capture="environment"
+                onChange={handleInputChange}
+                className="hidden"
+              />
               <div className="flex justify-center mb-4" style={{ color: "#0E7C86" }}>
                 <UploadIcon />
               </div>
               <p className="text-sm font-medium mb-1" style={{ color: "#0D1B2A" }}>
                 {selectedFile ? "Click or drag to replace" : "Drag & drop your prescription here"}
               </p>
-              <p className="text-xs" style={{ color: "#999" }}>
+              <p className="text-xs mb-3" style={{ color: "#999" }}>
                 JPG, PNG, WebP, or PDF — max 10 MB
               </p>
+              {isMobile && !selectedFile && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    cameraInputRef.current?.click()
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90"
+                  style={{ background: "#1E2D5A", color: "#fff" }}
+                >
+                  <CameraIcon />
+                  Take Photo
+                </button>
+              )}
             </div>
 
             {/* Selected file info */}
