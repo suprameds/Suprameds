@@ -146,6 +146,15 @@ const SeedRolesPrompt = ({ onSeeded }: { onSeeded: () => void }) => {
 
 // ── My Role Card ──────────────────────────────────────────────────────────────
 
+type MyCredentialInfo = {
+  id: string
+  credential_type: string
+  credential_value: string
+  holder_name: string
+  issuing_authority: string | null
+  is_verified: boolean
+}
+
 type MyRoleInfo = {
   user_id: string
   email: string | null
@@ -161,6 +170,7 @@ type MyRoleInfo = {
     permissions: string[]
   }[]
   permissions: string[]
+  credentials: MyCredentialInfo[]
 }
 
 const MyRoleCard = () => {
@@ -243,6 +253,28 @@ const MyRoleCard = () => {
                   {perm}
                 </Badge>
               ))}
+            </div>
+          )}
+
+          {me.credentials && me.credentials.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-ui-border-base">
+              <Text className="text-xs text-ui-fg-subtle mb-1.5">Professional Credentials</Text>
+              <div className="flex flex-wrap gap-2">
+                {me.credentials.map((cred) => (
+                  <div
+                    key={cred.id}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded border border-ui-border-base bg-ui-bg-subtle text-xs"
+                  >
+                    <span className="font-medium">{cred.credential_type.replace(/_/g, " ")}:</span>
+                    <span className="font-mono">{cred.credential_value}</span>
+                    {cred.is_verified ? (
+                      <Badge color="green" className="text-[9px]">Verified</Badge>
+                    ) : (
+                      <Badge color="orange" className="text-[9px]">Unverified</Badge>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -1161,6 +1193,360 @@ const InviteUserTab = () => {
   )
 }
 
+// ── Staff Credentials Tab ─────────────────────────────────────────────────────
+
+type StaffCredentialEntry = {
+  id: string
+  user_id: string
+  user_email: string | null
+  credential_type: string
+  credential_value: string
+  holder_name: string
+  issuing_authority: string | null
+  valid_from: string | null
+  valid_until: string | null
+  is_verified: boolean
+  verified_by: string | null
+  verified_at: string | null
+}
+
+const CREDENTIAL_TYPES = [
+  { value: "pharmacist_registration", label: "Pharmacist Registration (State Pharmacy Council)" },
+  { value: "mci_registration", label: "MCI Registration (Medical Council)" },
+  { value: "drug_license", label: "Drug License (State Drug Authority)" },
+  { value: "other", label: "Other" },
+]
+
+const credentialTypeLabel = (type: string): string =>
+  CREDENTIAL_TYPES.find((t) => t.value === type)?.label ?? type
+
+const StaffCredentialsTab = () => {
+  const [credentials, setCredentials] = useState<StaffCredentialEntry[]>([])
+  const [users, setUsers] = useState<{ user_id: string; email: string | null }[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Add form state
+  const [addOpen, setAddOpen] = useState(false)
+  const [addUserId, setAddUserId] = useState("")
+  const [addType, setAddType] = useState("")
+  const [addValue, setAddValue] = useState("")
+  const [addHolderName, setAddHolderName] = useState("")
+  const [addAuthority, setAddAuthority] = useState("")
+  const [addValidFrom, setAddValidFrom] = useState("")
+  const [addValidUntil, setAddValidUntil] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+
+  const fetchCredentials = useCallback(async () => {
+    setLoading(true)
+    try {
+      const json = await sdk.client.fetch<{ credentials: StaffCredentialEntry[] }>(
+        "/admin/rbac/credentials"
+      )
+      setCredentials(json.credentials ?? [])
+    } catch (err) {
+      console.error("[rbac-credentials]", err)
+      toast.error("Failed to load credentials")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      const json = await sdk.client.fetch<{
+        users: { user_id: string; email: string | null }[]
+      }>("/admin/rbac/users", { query: { limit: "100" } })
+      setUsers(json.users ?? [])
+    } catch {
+      // Non-critical
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchCredentials()
+    fetchUsers()
+  }, [fetchCredentials, fetchUsers])
+
+  const handleAdd = async () => {
+    if (!addUserId || !addType || !addValue || !addHolderName) {
+      toast.error("User, type, value, and holder name are required")
+      return
+    }
+    setSubmitting(true)
+    try {
+      await sdk.client.fetch("/admin/rbac/credentials", {
+        method: "POST",
+        body: {
+          user_id: addUserId,
+          credential_type: addType,
+          credential_value: addValue,
+          holder_name: addHolderName,
+          issuing_authority: addAuthority || undefined,
+          valid_from: addValidFrom || undefined,
+          valid_until: addValidUntil || undefined,
+        },
+      })
+      toast.success("Credential added")
+      setAddOpen(false)
+      setAddUserId("")
+      setAddType("")
+      setAddValue("")
+      setAddHolderName("")
+      setAddAuthority("")
+      setAddValidFrom("")
+      setAddValidUntil("")
+      fetchCredentials()
+    } catch (err: any) {
+      toast.error("Failed to add credential", { description: err.message })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleVerify = async (id: string, isVerified: boolean) => {
+    try {
+      await sdk.client.fetch(`/admin/rbac/credentials/${id}`, {
+        method: "POST",
+        body: { is_verified: !isVerified },
+      })
+      toast.success(isVerified ? "Verification removed" : "Credential verified")
+      fetchCredentials()
+    } catch (err: any) {
+      toast.error("Failed to update", { description: err.message })
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      await sdk.client.fetch(`/admin/rbac/credentials/${id}`, {
+        method: "DELETE",
+      })
+      toast.success("Credential deleted")
+      fetchCredentials()
+    } catch (err: any) {
+      toast.error("Failed to delete", { description: err.message })
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <Text className="text-sm font-medium">Staff Professional Credentials</Text>
+          <Text className="text-xs text-ui-fg-muted mt-0.5">
+            Store pharmacist registration numbers, drug licenses, and other
+            professional credentials. These auto-populate in prescription
+            approvals, H1 register, and supply memos.
+          </Text>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="secondary" size="small" onClick={fetchCredentials}>
+            <ArrowPath />
+            Refresh
+          </Button>
+          <Button
+            variant="primary"
+            size="small"
+            onClick={() => setAddOpen(true)}
+          >
+            <PlusMini />
+            Add Credential
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
+        <Text className="text-ui-fg-subtle p-4">Loading credentials...</Text>
+      ) : credentials.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Text className="text-ui-fg-subtle mb-1">
+            No staff credentials registered yet.
+          </Text>
+          <Text className="text-xs text-ui-fg-muted">
+            Add pharmacist registration numbers to enable compliant Rx approvals.
+          </Text>
+        </div>
+      ) : (
+        <Table>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>User</Table.HeaderCell>
+              <Table.HeaderCell>Type</Table.HeaderCell>
+              <Table.HeaderCell>Registration No.</Table.HeaderCell>
+              <Table.HeaderCell>Holder Name</Table.HeaderCell>
+              <Table.HeaderCell>Authority</Table.HeaderCell>
+              <Table.HeaderCell>Valid Until</Table.HeaderCell>
+              <Table.HeaderCell>Status</Table.HeaderCell>
+              <Table.HeaderCell className="text-right">Actions</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {credentials.map((cred) => (
+              <Table.Row key={cred.id}>
+                <Table.Cell>
+                  <Text className="text-sm">{cred.user_email ?? cred.user_id.slice(-12)}</Text>
+                </Table.Cell>
+                <Table.Cell>
+                  <Badge color="blue" className="text-[10px]">
+                    {cred.credential_type.replace(/_/g, " ")}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell>
+                  <Text className="text-sm font-mono font-medium">
+                    {cred.credential_value}
+                  </Text>
+                </Table.Cell>
+                <Table.Cell>
+                  <Text className="text-sm">{cred.holder_name}</Text>
+                </Table.Cell>
+                <Table.Cell>
+                  <Text className="text-sm text-ui-fg-subtle">
+                    {cred.issuing_authority ?? "--"}
+                  </Text>
+                </Table.Cell>
+                <Table.Cell>
+                  <Text className="text-sm text-ui-fg-subtle">
+                    {cred.valid_until
+                      ? new Date(cred.valid_until).toLocaleDateString("en-IN")
+                      : "--"}
+                  </Text>
+                </Table.Cell>
+                <Table.Cell>
+                  {cred.is_verified ? (
+                    <Badge color="green">Verified</Badge>
+                  ) : (
+                    <Badge color="orange">Unverified</Badge>
+                  )}
+                </Table.Cell>
+                <Table.Cell className="text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      onClick={() => handleVerify(cred.id, cred.is_verified)}
+                    >
+                      {cred.is_verified ? "Unverify" : "Verify"}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      onClick={() => handleDelete(cred.id)}
+                    >
+                      <XMark className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      )}
+
+      {/* Add Credential Drawer */}
+      <Drawer open={addOpen} onOpenChange={setAddOpen}>
+        <Drawer.Content className="!max-w-[540px]">
+          <Drawer.Header>
+            <Drawer.Title>Add Staff Credential</Drawer.Title>
+          </Drawer.Header>
+          <Drawer.Body className="p-4 overflow-y-auto">
+            <div className="flex flex-col gap-4">
+              <div>
+                <Label className="text-xs">User *</Label>
+                <Select value={addUserId} onValueChange={(v) => setAddUserId(v)}>
+                  <Select.Trigger className="mt-1">
+                    <Select.Value placeholder="Select a user..." />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {users.map((u) => (
+                      <Select.Item key={u.user_id} value={u.user_id}>
+                        {u.email ?? u.user_id.slice(-12)}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Credential Type *</Label>
+                <Select value={addType} onValueChange={(v) => setAddType(v)}>
+                  <Select.Trigger className="mt-1">
+                    <Select.Value placeholder="Select type..." />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {CREDENTIAL_TYPES.map((ct) => (
+                      <Select.Item key={ct.value} value={ct.value}>
+                        {ct.label}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Registration / License Number *</Label>
+                <Input
+                  className="mt-1"
+                  placeholder="e.g. PH/12345/2024"
+                  value={addValue}
+                  onChange={(e) => setAddValue(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Holder Name (as on certificate) *</Label>
+                <Input
+                  className="mt-1"
+                  placeholder="e.g. Dr. Ramesh Kumar"
+                  value={addHolderName}
+                  onChange={(e) => setAddHolderName(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Issuing Authority</Label>
+                <Input
+                  className="mt-1"
+                  placeholder="e.g. Karnataka State Pharmacy Council"
+                  value={addAuthority}
+                  onChange={(e) => setAddAuthority(e.target.value)}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Valid From</Label>
+                  <Input
+                    className="mt-1"
+                    type="date"
+                    value={addValidFrom}
+                    onChange={(e) => setAddValidFrom(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Valid Until</Label>
+                  <Input
+                    className="mt-1"
+                    type="date"
+                    value={addValidUntil}
+                    onChange={(e) => setAddValidUntil(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </Drawer.Body>
+          <Drawer.Footer>
+            <Drawer.Close asChild>
+              <Button variant="secondary">Cancel</Button>
+            </Drawer.Close>
+            <Button
+              variant="primary"
+              disabled={submitting || !addUserId || !addType || !addValue || !addHolderName}
+              onClick={handleAdd}
+            >
+              {submitting ? "Saving..." : "Add Credential"}
+            </Button>
+          </Drawer.Footer>
+        </Drawer.Content>
+      </Drawer>
+    </div>
+  )
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 const RolesPage = () => {
@@ -1185,6 +1571,7 @@ const RolesPage = () => {
             <Tabs.Trigger value="roles-overview">Roles Overview</Tabs.Trigger>
             <Tabs.Trigger value="invite-user">Invite User</Tabs.Trigger>
             <Tabs.Trigger value="user-roles">User Roles</Tabs.Trigger>
+            <Tabs.Trigger value="credentials">Staff Credentials</Tabs.Trigger>
             <Tabs.Trigger value="audit-log">Audit Log</Tabs.Trigger>
           </Tabs.List>
 
@@ -1198,6 +1585,10 @@ const RolesPage = () => {
 
           <Tabs.Content value="user-roles" className="pt-4">
             <UserRolesTab />
+          </Tabs.Content>
+
+          <Tabs.Content value="credentials" className="pt-4">
+            <StaffCredentialsTab />
           </Tabs.Content>
 
           <Tabs.Content value="audit-log" className="pt-4">

@@ -25,11 +25,26 @@ export const reviewPrescriptionStep = createStep(
   "review-prescription-step",
   async (input: ReviewRxStepInput, { container }) => {
     const prescriptionModuleService = container.resolve(PRESCRIPTION_MODULE) as any
+    const logger = container.resolve("logger") as any
     
     // Validate prescription exists
     const [existing] = await prescriptionModuleService.listPrescriptions({ id: input.prescription_id })
     if (!existing) {
       throw new Error(`Prescription ${input.prescription_id} not found`)
+    }
+
+    // Warn if pharmacist has no registered credential
+    try {
+      const rbacService = container.resolve("pharmaRbac") as any
+      const cred = await rbacService.getPharmacistReg(input.pharmacist_id)
+      if (!cred) {
+        logger.warn(
+          `[review-rx] Pharmacist ${input.pharmacist_id} has no pharmacist_registration credential on file. ` +
+            `Add it via Roles & Access > Staff Credentials for compliance traceability.`
+        )
+      }
+    } catch {
+      // Non-blocking
     }
 
     if (input.action === "reject") {
