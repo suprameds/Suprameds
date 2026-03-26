@@ -152,6 +152,16 @@ export default async function seedProductBatches({
 
   logger.info("[seed-batches] Starting batch seeding...")
 
+  // Resolve method names defensively (MedusaService may generate "Batchs" or "Batches")
+  const _listBatches = (batchService.listBatches ?? batchService.listBatchs)?.bind(batchService)
+  const _createBatches = (batchService.createBatches ?? batchService.createBatchs)?.bind(batchService)
+  const _deleteBatches = (batchService.deleteBatches ?? batchService.deleteBatchs)?.bind(batchService)
+
+  if (!_listBatches || !_createBatches) {
+    logger.warn("[seed-batches] Batch service methods not found; skipping.")
+    return
+  }
+
   // Get stock location
   const { data: stockLocations } = await query.graph({
     entity: "stock_location",
@@ -164,7 +174,7 @@ export default async function seedProductBatches({
   }
 
   // Delete existing seed batches for idempotency
-  const existingBatches = await batchService.listBatches({}, { take: 5000 })
+  const existingBatches = await _listBatches({}, { take: 5000 })
   const seedBatchIds = (existingBatches as any[])
     .filter((b: any) => b?.metadata?.source === "seed-batches-2026")
     .map((b: any) => b.id)
@@ -172,7 +182,7 @@ export default async function seedProductBatches({
   if (seedBatchIds.length) {
     logger.info(`[seed-batches] Deleting ${seedBatchIds.length} existing seed batches...`)
     for (const id of seedBatchIds) {
-      await batchService.deleteBatches(id)
+      if (_deleteBatches) await _deleteBatches(id)
     }
   }
 
@@ -231,7 +241,7 @@ export default async function seedProductBatches({
         const batchMrpPaise = Math.round(basePrice * tmpl.mrpMultiplier * 100)
         const purchasePricePaise = Math.round(basePrice * tmpl.costMultiplier * 100)
 
-        await batchService.createBatches({
+        await _createBatches({
           product_variant_id: variant.id,
           product_id: product.id,
           lot_number: lotNumber,
