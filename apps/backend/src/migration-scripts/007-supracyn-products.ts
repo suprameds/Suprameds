@@ -2,13 +2,16 @@ import { MedusaContainer } from "@medusajs/framework"
 import {
   ContainerRegistrationKeys,
   ModuleRegistrationName,
+  Modules,
 } from "@medusajs/framework/utils"
-import { createProductsWorkflow } from "@medusajs/medusa/core-flows"
-import { PHARMA_MODULE } from "../modules/pharma"
 import {
+  batchInventoryItemLevelsWorkflow,
   createCollectionsWorkflow,
+  createInventoryItemsWorkflow,
+  createProductsWorkflow,
   deleteProductsWorkflow,
 } from "@medusajs/medusa/core-flows"
+import { PHARMA_MODULE } from "../modules/pharma"
 
 type BrochureProduct = {
   brand_name: string
@@ -531,7 +534,8 @@ export default async function migration_17032026_supracyn_products({
                   amount: p.price,
                 },
               ],
-              manage_inventory: false,
+              manage_inventory: true,
+              allow_backorder: false,
             },
           ],
           shipping_profile_id: shippingProfile.id,
@@ -570,6 +574,86 @@ export default async function migration_17032026_supracyn_products({
       }
     })
   )
+
+  // ── Create inventory items, stock levels, and variant links ──
+  const DEFAULT_STOCK = 50
+  const { data: stockLocations } = await query.graph({
+    entity: "stock_location",
+    fields: ["id"],
+  })
+  const stockLocation = (stockLocations as any[])?.[0]
+
+  if (stockLocation?.id) {
+    const createdProductIds = created.map((p) => p.id).filter(Boolean)
+    const { data: variants } = await query.graph({
+      entity: "variant",
+      fields: ["id", "sku", "product_id"],
+      filters: { product_id: createdProductIds },
+    })
+
+    const skus = (variants as any[]).filter((v) => v?.sku).map((v) => v.sku)
+
+    const { data: existingInvItems } = await query.graph({
+      entity: "inventory_item",
+      fields: ["id", "sku"],
+      filters: { sku: skus },
+    })
+    const invBySku = new Map<string, any>(
+      (existingInvItems as any[]).filter((i) => i?.sku).map((i) => [i.sku, i])
+    )
+
+    const missingSkus = skus.filter((s) => !invBySku.has(s))
+    if (missingSkus.length) {
+      const { result: createdInvItems } = await createInventoryItemsWorkflow(container).run({
+        input: { items: missingSkus.map((sku) => ({ sku })) as any },
+      })
+      for (const item of createdInvItems as any[]) {
+        if (item?.sku) invBySku.set(item.sku, item)
+      }
+    }
+
+    const invItemIds = skus.map((s) => invBySku.get(s)?.id).filter(Boolean)
+    const { data: existingLevels } = await query.graph({
+      entity: "inventory_levels",
+      fields: ["id", "inventory_item_id", "location_id"],
+      filters: { inventory_item_id: invItemIds, location_id: [stockLocation.id] },
+    })
+    const levelMap = new Map<string, string>(
+      (existingLevels as any[]).map((l) => [`${l.inventory_item_id}:${l.location_id}`, l.id])
+    )
+
+    const creates: any[] = []
+    const updates: any[] = []
+    for (const id of invItemIds) {
+      const key = `${id}:${stockLocation.id}`
+      const existing = levelMap.get(key)
+      if (existing) {
+        updates.push({ id: existing, inventory_item_id: id, location_id: stockLocation.id, stocked_quantity: DEFAULT_STOCK })
+      } else {
+        creates.push({ inventory_item_id: id, location_id: stockLocation.id, stocked_quantity: DEFAULT_STOCK })
+      }
+    }
+    if (creates.length || updates.length) {
+      await batchInventoryItemLevelsWorkflow(container).run({
+        input: { creates, updates, deletes: [] } as any,
+      })
+    }
+
+    const link = container.resolve(ContainerRegistrationKeys.LINK) as any
+    const linkDefs = (variants as any[])
+      .filter((v) => v?.sku && invBySku.get(v.sku)?.id)
+      .map((v) => ({
+        [Modules.PRODUCT]: { variant_id: v.id },
+        [Modules.INVENTORY]: { inventory_item_id: invBySku.get(v.sku).id },
+      }))
+    if (linkDefs.length) {
+      await link.create(linkDefs as any)
+    }
+
+    logger.info(`[seed] Created inventory for ${invItemIds.length} Supracyn variants (${DEFAULT_STOCK} stock each).`)
+  } else {
+    logger.warn("[seed] No stock location found — skipping inventory creation for Supracyn products.")
+  }
 
   logger.info(`[seed] Seeded ${created.length} Supracyn products.`)
 }
