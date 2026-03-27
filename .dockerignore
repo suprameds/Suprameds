@@ -1,0 +1,12 @@
+node_modules
+.git
+.claude
+apps/backend/.medusa
+apps/storefront/dist
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+playwright-report
+test-results
+*.log

@@ -137,6 +137,11 @@ export default defineMiddlewares({
       matcher: "/store/reminders/:id",
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
+    // Wishlist — authenticated customers only
+    {
+      matcher: "/store/wishlist*",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
     // AfterShip webhook — preserve raw body for HMAC signature verification
     {
       matcher: "/webhooks/aftership",

@@ -38,6 +38,7 @@ import { Route as CountryCodeAccountForgotPasswordRouteImport } from './routes/$
 import { Route as CountryCodeAccountLayoutRouteImport } from './routes/$countryCode/account/_layout'
 import { Route as CountryCodeAccountLayoutIndexRouteImport } from './routes/$countryCode/account/_layout/index'
 import { Route as CountryCodeOrderOrderIdConfirmedRouteImport } from './routes/$countryCode/order/$orderId/confirmed'
+import { Route as CountryCodeAccountLayoutWishlistRouteImport } from './routes/$countryCode/account/_layout/wishlist'
 import { Route as CountryCodeAccountLayoutRemindersRouteImport } from './routes/$countryCode/account/_layout/reminders'
 import { Route as CountryCodeAccountLayoutProfileRouteImport } from './routes/$countryCode/account/_layout/profile'
 import { Route as CountryCodeAccountLayoutOrdersRouteImport } from './routes/$countryCode/account/_layout/orders'
@@ -195,6 +196,12 @@ const CountryCodeOrderOrderIdConfirmedRoute =
     path: '/order/$orderId/confirmed',
     getParentRoute: () => CountryCodeRoute,
   } as any)
+const CountryCodeAccountLayoutWishlistRoute =
+  CountryCodeAccountLayoutWishlistRouteImport.update({
+    id: '/wishlist',
+    path: '/wishlist',
+    getParentRoute: () => CountryCodeAccountLayoutRoute,
+  } as any)
 const CountryCodeAccountLayoutRemindersRoute =
   CountryCodeAccountLayoutRemindersRouteImport.update({
     id: '/reminders',
@@ -251,6 +258,7 @@ export interface FileRoutesByFullPath {
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
+  '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
   '/$countryCode/account/': typeof CountryCodeAccountLayoutIndexRoute
 }
@@ -284,6 +292,7 @@ export interface FileRoutesByTo {
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
+  '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
 }
 export interface FileRoutesById {
@@ -319,6 +328,7 @@ export interface FileRoutesById {
   '/$countryCode/account/_layout/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/_layout/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/_layout/reminders': typeof CountryCodeAccountLayoutRemindersRoute
+  '/$countryCode/account/_layout/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
   '/$countryCode/account/_layout/': typeof CountryCodeAccountLayoutIndexRoute
 }
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account/orders'
     | '/$countryCode/account/profile'
     | '/$countryCode/account/reminders'
+    | '/$countryCode/account/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
     | '/$countryCode/account/'
   fileRoutesByTo: FileRoutesByTo
@@ -388,6 +399,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account/orders'
     | '/$countryCode/account/profile'
     | '/$countryCode/account/reminders'
+    | '/$countryCode/account/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
   id:
     | '__root__'
@@ -422,6 +434,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account/_layout/orders'
     | '/$countryCode/account/_layout/profile'
     | '/$countryCode/account/_layout/reminders'
+    | '/$countryCode/account/_layout/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
     | '/$countryCode/account/_layout/'
   fileRoutesById: FileRoutesById
@@ -647,6 +660,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryCodeOrderOrderIdConfirmedRouteImport
       parentRoute: typeof CountryCodeRoute
     }
+    '/$countryCode/account/_layout/wishlist': {
+      id: '/$countryCode/account/_layout/wishlist'
+      path: '/wishlist'
+      fullPath: '/$countryCode/account/wishlist'
+      preLoaderRoute: typeof CountryCodeAccountLayoutWishlistRouteImport
+      parentRoute: typeof CountryCodeAccountLayoutRoute
+    }
     '/$countryCode/account/_layout/reminders': {
       id: '/$countryCode/account/_layout/reminders'
       path: '/reminders'
@@ -683,6 +703,7 @@ interface CountryCodeAccountLayoutRouteChildren {
   CountryCodeAccountLayoutOrdersRoute: typeof CountryCodeAccountLayoutOrdersRoute
   CountryCodeAccountLayoutProfileRoute: typeof CountryCodeAccountLayoutProfileRoute
   CountryCodeAccountLayoutRemindersRoute: typeof CountryCodeAccountLayoutRemindersRoute
+  CountryCodeAccountLayoutWishlistRoute: typeof CountryCodeAccountLayoutWishlistRoute
   CountryCodeAccountLayoutIndexRoute: typeof CountryCodeAccountLayoutIndexRoute
 }
 
@@ -694,6 +715,8 @@ const CountryCodeAccountLayoutRouteChildren: CountryCodeAccountLayoutRouteChildr
     CountryCodeAccountLayoutProfileRoute: CountryCodeAccountLayoutProfileRoute,
     CountryCodeAccountLayoutRemindersRoute:
       CountryCodeAccountLayoutRemindersRoute,
+    CountryCodeAccountLayoutWishlistRoute:
+      CountryCodeAccountLayoutWishlistRoute,
     CountryCodeAccountLayoutIndexRoute: CountryCodeAccountLayoutIndexRoute,
   }
 

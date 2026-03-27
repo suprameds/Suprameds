@@ -5,6 +5,7 @@ import { isManual } from "@/lib/utils/checkout"
 import { useLoaderData } from "@tanstack/react-router"
 import { ORDER_FIELDS } from "@/routes/$countryCode/order/$orderId/confirmed"
 import { useCallback, useEffect, useState } from "react"
+import { ReturnRequestForm, isOrderReturnable, isWithinReturnWindow } from "@/components/return-request-form"
 
 // ============ COD CONFIRMATION BANNER ============
 
@@ -215,6 +216,104 @@ const OrderEditBanner = ({ order }: { order: any }) => {
   )
 }
 
+// ============ RETURN REQUEST SECTION ============
+
+const ReturnSection = ({ order }: { order: any }) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const returnable = isOrderReturnable(order)
+  const withinWindow = isWithinReturnWindow(order.created_at)
+
+  // Show the section only if the order is delivered/completed and within 48h window
+  // Also show with a "window closed" state up to 24h after window expiry so
+  // users who just missed it can still see messaging.
+  const justMissed =
+    returnable && !withinWindow && isWithinReturnWindow(order.created_at, 72)
+
+  if (!returnable) return null
+  if (!withinWindow && !justMissed) return null
+
+  if (justMissed) {
+    return (
+      <div
+        className="rounded-xl border p-4 flex items-start gap-3"
+        style={{ background: "#FEF2F2", borderColor: "#FECACA" }}
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#991B1B"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="flex-shrink-0 mt-0.5"
+        >
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: "#991B1B" }}>
+            Return window has closed
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: "#B91C1C" }}>
+            The 48-hour return window for this order has passed. For batch recall or
+            exceptional cases, please contact support at{" "}
+            <a
+              href="tel:+918008005678"
+              className="underline"
+              style={{ color: "#991B1B" }}
+            >
+              +91 800 800 5678
+            </a>
+            .
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div
+        className="rounded-xl border p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6"
+        style={{ background: "#F0FDFA", borderColor: "#99F6E4" }}
+      >
+        <div className="flex-1">
+          <p className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+            Something wrong with your order?
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+            You have 48 hours from delivery to request a return. Opened medicines
+            cannot be returned.
+          </p>
+        </div>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold border transition-all hover:bg-teal-50"
+          style={{ color: "#0E7C86", borderColor: "#0E7C86", background: "#fff" }}
+        >
+          Request Return
+        </button>
+      </div>
+
+      <ReturnRequestForm
+        order={{
+          id: order.id,
+          items: order.items ?? [],
+          status: order.status,
+          created_at: order.created_at,
+          fulfillment_status: order.fulfillment_status,
+        }}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+      />
+    </>
+  )
+}
+
 // ============ MAIN PAGE ============
 
 const OrderConfirmation = () => {
@@ -283,6 +382,13 @@ const OrderConfirmation = () => {
         <div className="mb-6"><OrderEditBanner order={order} /></div>
 
         <OrderDetails order={order} />
+
+        {/* Return Request Section — shown only for delivered/completed orders within window */}
+        {!isCancelled && (
+          <div className="mt-8">
+            <ReturnSection order={order} />
+          </div>
+        )}
       </div>
     </div>
   )

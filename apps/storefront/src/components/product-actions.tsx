@@ -2,6 +2,7 @@ import { DEFAULT_CART_DROPDOWN_FIELDS } from "@/components/cart"
 import ProductOptionSelect from "@/components/product-option-select"
 import ProductPrice from "@/components/product-price"
 import { Button } from "@/components/ui/button"
+import { WishlistButton } from "@/components/wishlist-button"
 import { useCartDrawer } from "@/lib/context/cart"
 import { useAddToCart } from "@/lib/hooks/use-cart"
 import { getVariantOptionsKeymap, isVariantInStock } from "@/lib/utils/product"
@@ -259,22 +260,32 @@ const ProductActions = memo(function ProductActions({
           </Button>
         </div>
       ) : (
-        <Button
-          onClick={handleAddToCart}
-          disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant || addToCartMutation.isPending}
-          loading={addToCartMutation.isPending}
-          variant="primary"
-          className="w-full"
-          data-testid="add-product-button"
-        >
-          {addToCartMutation.isPending
-            ? "Adding…"
-            : !selectedVariant
-              ? "Select variant"
-              : !inStock || !isValidVariant
-                ? "Out of stock"
-                : "Add to cart"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleAddToCart}
+            disabled={!inStock || !selectedVariant || !!disabled || !isValidVariant || addToCartMutation.isPending}
+            loading={addToCartMutation.isPending}
+            variant="primary"
+            className="flex-1"
+            data-testid="add-product-button"
+          >
+            {addToCartMutation.isPending
+              ? "Adding…"
+              : !selectedVariant
+                ? "Select variant"
+                : !inStock || !isValidVariant
+                  ? "Out of stock"
+                  : "Add to cart"}
+          </Button>
+          <WishlistButton
+            productId={product.id}
+            variantId={selectedVariant?.id}
+            currentPrice={
+              (selectedVariant as any)?.calculated_price?.calculated_amount ?? undefined
+            }
+            className="flex-shrink-0 border border-gray-200"
+          />
+        </div>
       )}
     </div>
   )

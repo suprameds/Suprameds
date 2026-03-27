@@ -1,0 +1,45 @@
+# ──────────────────────────────────────────────
+# Stage 1: Dependencies
+# ──────────────────────────────────────────────
+FROM node:20-alpine AS deps
+RUN corepack enable && corepack prepare pnpm@10 --activate
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/storefront/package.json apps/storefront/
+
+RUN pnpm install --frozen-lockfile --filter storefront
+
+# ──────────────────────────────────────────────
+# Stage 2: Build
+# ──────────────────────────────────────────────
+FROM node:20-alpine AS build
+RUN corepack enable && corepack prepare pnpm@10 --activate
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/storefront/node_modules ./apps/storefront/node_modules
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/storefront ./apps/storefront
+
+ARG VITE_MEDUSA_BACKEND_URL
+ARG VITE_MEDUSA_PUBLISHABLE_KEY
+ARG VITE_FIREBASE_API_KEY
+ARG VITE_FIREBASE_PROJECT_ID
+
+RUN pnpm --filter storefront build
+
+# ──────────────────────────────────────────────
+# Stage 3: Serve with Nginx
+# ──────────────────────────────────────────────
+FROM nginx:1.27-alpine AS production
+
+COPY --from=build /app/apps/storefront/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q --spider http://localhost/health.html || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]
