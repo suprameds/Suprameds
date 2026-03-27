@@ -31,6 +31,18 @@ const DELIVERY_STATUS: Record<string, string> = {
 export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER) as any
 
+  // Basic auth-token validation — MSG91 supports passing a custom token in webhook URL query params
+  // Configure webhook URL as: https://yourdomain.com/webhooks/msg91?token=YOUR_SECRET
+  const expectedToken = process.env.MSG91_WEBHOOK_TOKEN
+  if (expectedToken) {
+    const token = req.query.token as string | undefined
+    if (token !== expectedToken) {
+      logger.warn("[webhook/msg91] Invalid or missing webhook token — rejecting")
+      res.status(401).json({ error: "Unauthorized" })
+      return
+    }
+  }
+
   // MSG91 sends an array of reports or a single object depending on config
   const payload = req.body as Record<string, unknown> | Record<string, unknown>[]
   const reports = Array.isArray(payload) ? payload : [payload]

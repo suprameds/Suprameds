@@ -35,13 +35,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       SELECT
         date_trunc(:truncUnit, o."created_at")::date AS period,
         COUNT(*)::int AS order_count,
-        COALESCE(SUM(o."total"), 0) AS revenue,
-        COALESCE(AVG(o."total"), 0) AS avg_order_value,
-        COALESCE(SUM(o."subtotal"), 0) AS subtotal,
-        COALESCE(SUM(o."tax_total"), 0) AS tax_total,
-        COALESCE(SUM(o."shipping_total"), 0) AS shipping_total,
-        COALESCE(SUM(o."discount_total"), 0) AS discount_total
+        COALESCE(SUM((os."totals"->>'current_order_total')::numeric), 0) AS revenue,
+        COALESCE(AVG((os."totals"->>'current_order_total')::numeric), 0) AS avg_order_value,
+        0 AS subtotal,
+        0 AS tax_total,
+        0 AS shipping_total,
+        0 AS discount_total
       FROM "order" o
+      LEFT JOIN "order_summary" os ON os."order_id" = o."id"
+        AND os."version" = (SELECT MAX(os2."version") FROM "order_summary" os2 WHERE os2."order_id" = o."id")
       WHERE o."canceled_at" IS NULL
         AND o."deleted_at" IS NULL
         AND o."created_at" >= :from::timestamp
@@ -90,7 +92,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     logger.error(`[analytics:revenue] Query failed: ${(err as Error).message}`)
     return res.status(500).json({
       message: "Failed to query revenue analytics",
-      error: (err as Error).message,
     })
   }
 }

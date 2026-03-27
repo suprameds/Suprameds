@@ -47,5 +47,15 @@ build_log.txt
 # ---- Medusa generated ----
 .medusa/
 
+# ---- Test artifacts ----
+test-results/
+playwright-report/
+smoke-*.png
+
+# ---- Claude Code local ----
+.claude/settings.local.json
+.claude/worktrees/
+.playwright-mcp/
+
 # ---- Scratch ----
 tmp/

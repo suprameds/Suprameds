@@ -39,21 +39,25 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   const logger = req.scope.resolve("logger")
   logger.info("[webhook:aftership] Received")
 
-  // ── 1. Verify HMAC signature (optional) ─────────────────────────
+  // ── 1. Verify HMAC signature (required) ─────────────────────────
   const secret = process.env.AFTERSHIP_WEBHOOK_SECRET
-  if (secret) {
-    const rawBody = JSON.stringify(req.body)
-    const expected = crypto
-      .createHmac("sha256", secret)
-      .update(rawBody)
-      .digest("hex")
-    const signature = req.headers["hmac-sha256"] as string | undefined
+  if (!secret) {
+    logger.error("[webhook:aftership] AFTERSHIP_WEBHOOK_SECRET not configured — rejecting request")
+    res.status(500).json({ error: "Webhook secret not configured" })
+    return
+  }
 
-    if (!signature || signature !== expected) {
-      logger.warn("[webhook:aftership] Invalid HMAC signature — rejecting")
-      res.status(401).json({ error: "Invalid signature" })
-      return
-    }
+  const rawBody = JSON.stringify(req.body)
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(rawBody)
+    .digest("hex")
+  const signature = req.headers["hmac-sha256"] as string | undefined
+
+  if (!signature || signature !== expected) {
+    logger.warn("[webhook:aftership] Invalid HMAC signature — rejecting")
+    res.status(401).json({ error: "Invalid signature" })
+    return
   }
 
   // ── 2. Extract payload ──────────────────────────────────────────
