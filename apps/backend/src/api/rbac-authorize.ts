@@ -20,8 +20,7 @@ import { RBAC_MODULE } from "../modules/rbac"
  *  2. Resolves the RBAC module from the DI container
  *  3. Calls `checkPermission(userId, resource, action)`
  *  4. 403 if denied, next() if permitted
- *  5. Graceful degradation: if RBAC module is unavailable (e.g. not seeded),
- *     logs a warning and allows the request through
+ *  5. Fail-closed: if RBAC module is unavailable, returns 503 (never allows unauthorized access)
  */
 export function authorize(resource: string, action: string) {
   return async (
@@ -57,12 +56,16 @@ export function authorize(resource: string, action: string) {
 
       next()
     } catch (err: any) {
-      // Graceful degradation — RBAC module may not be registered or seeded yet
+      // Fail-closed: if RBAC module is unavailable, deny access
       const logger = req.scope.resolve("logger") as any
-      logger.warn(
-        `[rbac] authorize("${resource}", "${action}") failed for user ${userId}: ${err.message}. Allowing request through (graceful degradation).`
+      logger.error(
+        `[rbac] authorize("${resource}", "${action}") failed for user ${userId}: ${err.message}. Denying request (fail-closed).`
       )
-      next()
+      res.status(503).json({
+        type: "service_unavailable",
+        message: "Authorization service is temporarily unavailable. Please try again later.",
+      })
+      return
     }
   }
 }
@@ -134,11 +137,16 @@ export function enforceSsd(
           return
         }
       } catch (err: any) {
-        // Graceful degradation — RBAC module may not be available
+        // Fail-closed: if RBAC module is unavailable, deny access
         const logger = req.scope.resolve("logger") as any
-        logger.warn(
-          `[rbac] enforceSsd(${rule}) validation failed: ${err.message}. Allowing request through (graceful degradation).`
+        logger.error(
+          `[rbac] enforceSsd(${rule}) validation failed: ${err.message}. Denying request (fail-closed).`
         )
+        res.status(503).json({
+          type: "service_unavailable",
+          message: "Authorization service is temporarily unavailable. Please try again later.",
+        })
+        return
       }
     }
 

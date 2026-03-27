@@ -63,7 +63,7 @@ describe("Button", () => {
 
   it("applies primary variant styles by default", () => {
     render(<Button>Primary</Button>)
-    expect(screen.getByRole("button")).toHaveClass("bg-zinc-800")
+    expect(screen.getByRole("button")).toHaveClass("bg-[#0E7C86]")
   })
 
   it("applies secondary variant styles", () => {
