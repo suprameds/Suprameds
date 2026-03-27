@@ -4,6 +4,7 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
 import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
+import { WishlistButton } from "@/components/wishlist-button"
 
 interface ProductCardProps {
   product: HttpTypes.StoreProduct;
@@ -119,6 +120,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
       </div>
+
+      {/* ── Wishlist button ── */}
+      <WishlistButton
+        productId={product.id}
+        variantId={product.variants?.[0]?.id}
+        currentPrice={
+          (product.variants?.[0] as any)?.calculated_price?.calculated_amount ?? undefined
+        }
+        className="absolute top-2 right-2 z-10"
+      />
 
       {/* ── Thumbnail ── */}
       <div className="aspect-square w-full overflow-hidden relative" style={{ background: "#FAFAF8" }}>
