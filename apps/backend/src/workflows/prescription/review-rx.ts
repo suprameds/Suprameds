@@ -73,11 +73,14 @@ export const reviewPrescriptionStep = createStep(
       reviewed_at: new Date(),
     })
 
-    // Create prescription lines
+    // Create prescription lines (product_id should be resolved by the route handler)
     if (input.lines && input.lines.length > 0) {
       const linesToCreate = input.lines.map((line: any) => ({
         prescription_id: input.prescription_id,
-        ...line
+        product_variant_id: line.product_variant_id,
+        product_id: line.product_id || "",
+        approved_quantity: line.approved_quantity ?? 1,
+        max_refills: line.max_refills ?? null,
       }))
       await prescriptionModuleService.createPrescriptionLines(linesToCreate)
     }

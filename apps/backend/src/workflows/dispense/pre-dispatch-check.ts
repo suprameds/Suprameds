@@ -110,6 +110,8 @@ export const runChecklistStep = createStep(
     const failures: string[] = []
 
     // ── 1. Check Rx compliance: each H/H1 item needs an approved decision ──
+    // rx_line_map stores { order_item_id → prescription_drug_line_id } in order.metadata
+    const rxLineMap: Record<string, string> = (order.metadata as any)?.rx_line_map || {}
     let rxItemsApproved = true
     for (const item of items) {
       if (!item.product_id) continue
@@ -129,13 +131,15 @@ export const runChecklistStep = createStep(
       if (!drug) continue
       if (drug.schedule !== "H" && drug.schedule !== "H1") continue
 
-      // This is an Rx item — check for approved dispense decision
+      // This is an Rx item — resolve prescription_drug_line_id from:
+      // 1. rx_line_map on order metadata (set when pharmacist makes dispense decision)
+      // 2. item.metadata.prescription_drug_line_id (legacy/direct)
       const prescriptionLineId =
-        item.metadata?.prescription_drug_line_id || null
+        rxLineMap[item.id] || item.metadata?.prescription_drug_line_id || null
 
       if (!prescriptionLineId) {
         rxItemsApproved = false
-        failures.push(`Item ${item.id}: no prescription_drug_line_id in metadata for scheduled drug`)
+        failures.push(`Item ${item.id}: no prescription_drug_line_id mapped for scheduled drug`)
         continue
       }
 

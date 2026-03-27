@@ -1,5 +1,5 @@
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { MedusaError } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../../../../modules/prescription"
 import { ReviewRxWorkflow } from "../../../../workflows/prescription/review-rx"
 import { decryptPhiFields, encryptPhi, PRESCRIPTION_PHI_FIELDS, isPhiEncryptionEnabled } from "../../../../lib/phi-crypto"
@@ -58,6 +58,29 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     )
   }
 
+  // Resolve product_id for each line from variant before passing to workflow
+  let resolvedLines = body.lines
+  if (body.action === "approve" && body.lines?.length) {
+    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+    resolvedLines = await Promise.all(
+      body.lines.map(async (line: any) => {
+        if (line.product_id) return line
+        if (!line.product_variant_id) return line
+        try {
+          const { data: variants } = await query.graph({
+            entity: "variants",
+            fields: ["id", "product_id"],
+            filters: { id: [line.product_variant_id] },
+          })
+          const vid = (variants as { id: string; product_id?: string }[])?.[0]
+          return { ...line, product_id: vid?.product_id || "" }
+        } catch {
+          return line
+        }
+      })
+    )
+  }
+
   // Encrypt PHI fields entered by pharmacist before persisting
   const shouldEncrypt = isPhiEncryptionEnabled()
   const { result, errors } = await ReviewRxWorkflow(req.scope).run({
@@ -72,7 +95,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
       prescribed_on: body.prescribed_on ? new Date(body.prescribed_on) : undefined,
       valid_until: body.valid_until ? new Date(body.valid_until) : undefined,
       pharmacist_notes: shouldEncrypt ? encryptPhi(body.pharmacist_notes) : body.pharmacist_notes,
-      lines: body.lines,
+      lines: resolvedLines,
     },
   })
 
