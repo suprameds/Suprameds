@@ -84,6 +84,7 @@ export default defineConfig({
     pharmaCrm: { resolve: "./src/modules/crm" },
     pharmaAnalytics: { resolve: "./src/modules/analytics" },
     pharmaLoyalty: { resolve: "./src/modules/loyalty" },
+    pharmaWishlist: { resolve: "./src/modules/wishlist" },
     pharmaNotification: { resolve: "./src/modules/notification" },
     fulfillment: {
       resolve: "@medusajs/medusa/fulfillment",

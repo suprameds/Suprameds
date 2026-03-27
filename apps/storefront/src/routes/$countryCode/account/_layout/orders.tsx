@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
+import { useState } from "react"
 import { useCustomerOrders } from "@/lib/hooks/use-orders"
 import { deriveOrderProgress } from "@/components/order"
+import { ReturnRequestForm, isOrderReturnable, isWithinReturnWindow } from "@/components/return-request-form"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useLocation } from "@tanstack/react-router"
 import { HttpTypes } from "@medusajs/types"
@@ -12,6 +14,8 @@ export const Route = createFileRoute("/$countryCode/account/_layout/orders")({
 function OrdersPage() {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
+
+  const [returnModalOrderId, setReturnModalOrderId] = useState<string | null>(null)
 
   const { data: orders, isLoading } = useCustomerOrders({
     fields:
@@ -95,7 +99,7 @@ function OrdersPage() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 flex-wrap">
                   <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
                     {formatPrice(order.total, order.currency_code)}
                   </span>
@@ -107,12 +111,41 @@ function OrdersPage() {
                   >
                     View details
                   </Link>
+                  {isOrderReturnable(order as any) &&
+                    isWithinReturnWindow(String(order.created_at)) && (
+                      <button
+                        onClick={() => setReturnModalOrderId(order.id)}
+                        className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-teal-50"
+                        style={{ color: "#0E7C86", borderColor: "#0E7C86" }}
+                      >
+                        Request Return
+                      </button>
+                    )}
                 </div>
               </div>
             )
           })}
         </div>
       )}
+
+      {/* Return request modal — rendered for the selected order */}
+      {returnModalOrderId && (() => {
+        const activeOrder = orders?.find((o) => o.id === returnModalOrderId)
+        if (!activeOrder) return null
+        return (
+          <ReturnRequestForm
+            order={{
+              id: activeOrder.id,
+              items: (activeOrder.items ?? []) as any,
+              status: activeOrder.status,
+              created_at: String(activeOrder.created_at),
+              fulfillment_status: (activeOrder as any).fulfillment_status,
+            }}
+            isOpen={true}
+            onClose={() => setReturnModalOrderId(null)}
+          />
+        )
+      })()}
     </div>
   )
 }
