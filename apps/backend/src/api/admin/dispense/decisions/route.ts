@@ -2,7 +2,7 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework/http"
-import { MedusaError } from "@medusajs/framework/utils"
+import { MedusaError, Modules } from "@medusajs/framework/utils"
 import { PharmacistDecisionWorkflow } from "../../../../workflows/dispense/pharmacist-decision"
 import { DISPENSE_MODULE } from "../../../../modules/dispense"
 
@@ -118,6 +118,32 @@ export async function POST(
       MedusaError.Types.INVALID_DATA,
       errors[0].error?.message || "Pharmacist decision workflow failed"
     )
+  }
+
+  // Store mapping of order_item_id → prescription_drug_line_id in order metadata
+  // so pre-dispatch check can trace each Rx item to its approved decision.
+  if (body.order_id && body.order_item_id && body.prescription_drug_line_id) {
+    try {
+      const orderService = req.scope.resolve(Modules.ORDER) as any
+      const order = await orderService.retrieveOrder(body.order_id, {
+        select: ["id", "metadata"],
+      })
+      const existingMap = (order?.metadata as any)?.rx_line_map || {}
+      existingMap[body.order_item_id] = body.prescription_drug_line_id
+
+      await orderService.updateOrders(body.order_id, {
+        metadata: {
+          ...(order?.metadata || {}),
+          rx_line_map: existingMap,
+        },
+      })
+    } catch (err: any) {
+      // Non-blocking — don't fail the decision if metadata update fails
+      const logger = req.scope.resolve("logger") as any
+      logger.warn(
+        `[dispense] Could not store rx_line_map on order ${body.order_id}: ${err.message}`
+      )
+    }
   }
 
   return res.status(201).json({ decision: result })

@@ -5,11 +5,34 @@ import { StartClient } from "@tanstack/react-start/client"
 import { getRouter } from "./router"
 
 Sentry.init({
-  dsn:
-    import.meta.env.VITE_SENTRY_DSN ??
-    "https://1c0ecc6f79ff0f0331c3ccaea3c08e4b@o4511002546077696.ingest.de.sentry.io/4511076540285008",
+  dsn: import.meta.env.VITE_SENTRY_DSN,
   enabled: import.meta.env.PROD,
-  sendDefaultPii: true,
+  environment: import.meta.env.MODE,
+  release: `suprameds-storefront@${import.meta.env.VITE_APP_VERSION || "0.0.0"}`,
+
+  // Performance — sample 20% of page loads in production
+  tracesSampleRate: 0.2,
+
+  // Session Replay — capture 10% of sessions, 100% on error
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration({
+      maskAllText: true,
+      blockAllMedia: true,
+    }),
+  ],
+
+  // Don't report network errors from ad-blockers or extension interference
+  beforeSend(event) {
+    const message = event.exception?.values?.[0]?.value || ""
+    if (message.includes("ResizeObserver") || message.includes("ChunkLoadError")) {
+      return null
+    }
+    return event
+  },
 })
 
 /**

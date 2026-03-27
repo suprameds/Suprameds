@@ -2,6 +2,7 @@ import NotFound from "@/components/not-found"
 import ErrorFallback from "@/components/error-fallback"
 import Layout from "@/components/layout"
 import { listRegions } from "@/lib/data/regions"
+import * as Sentry from "@sentry/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import {
   HeadContent,
@@ -33,6 +34,8 @@ function RouteLoadingFallback() {
 
 function RouteErrorFallback({ error }: { error: Error }) {
   const router = useRouter()
+  // Report route-level errors to Sentry
+  Sentry.captureException(error)
   return (
     <ErrorFallback
       error={error}

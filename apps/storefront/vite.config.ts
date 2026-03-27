@@ -1,3 +1,4 @@
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import medusaAiTags from "@medusajs-ai/tags";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -26,7 +27,25 @@ export default defineConfig(({ mode }) => {
 
       tanstackStart(),
       viteReact(),
+
+      // Sentry source maps — only during production builds when auth token is set
+      ...(!isDev && process.env.SENTRY_AUTH_TOKEN
+        ? [
+            sentryVitePlugin({
+              org: process.env.SENTRY_ORG,
+              project: process.env.SENTRY_PROJECT || "suprameds-storefront",
+              authToken: process.env.SENTRY_AUTH_TOKEN,
+              sourcemaps: {
+                filesToDeleteAfterUpload: ["./dist/**/*.map"],
+              },
+            }),
+          ]
+        : []),
     ],
+
+    build: {
+      sourcemap: true,
+    },
 
     ssr: {
       noExternal: ["@medusajs/js-sdk", "@medusajs/types"],
