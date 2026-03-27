@@ -30,26 +30,25 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
         const query = `
           SELECT
-            p."id",
-            p."title",
-            p."handle",
-            p."thumbnail",
+            oli."product_id" AS id,
+            oli."product_title" AS title,
+            oli."product_handle" AS handle,
+            oli."thumbnail",
             dp."generic_name",
             dp."schedule",
             dp."dosage_form",
             SUM(oi."quantity")::int AS units_sold,
-            COALESCE(SUM(oi."total"), 0) AS revenue,
-            COUNT(DISTINCT o."id")::int AS order_count
-          FROM "order_line_item" oi
+            COALESCE(SUM(oi."quantity" * oli."unit_price"), 0) AS revenue,
+            COUNT(DISTINCT oi."order_id")::int AS order_count
+          FROM "order_item" oi
+          JOIN "order_line_item" oli ON oli."id" = oi."item_id"
           JOIN "order" o ON o."id" = oi."order_id"
-          LEFT JOIN "product_variant" pv ON pv."id" = oi."variant_id"
-          LEFT JOIN "product" p ON p."id" = pv."product_id"
-          LEFT JOIN "drug_product" dp ON dp."product_id" = p."id" AND dp."deleted_at" IS NULL
+          LEFT JOIN "drug_product" dp ON dp."product_id" = oli."product_id" AND dp."deleted_at" IS NULL
           WHERE o."canceled_at" IS NULL
             AND o."deleted_at" IS NULL
-            AND p."id" IS NOT NULL
+            AND oli."product_id" IS NOT NULL
             ${dateFilter}
-          GROUP BY p."id", p."title", p."handle", p."thumbnail",
+          GROUP BY oli."product_id", oli."product_title", oli."product_handle", oli."thumbnail",
                    dp."generic_name", dp."schedule", dp."dosage_form"
           ORDER BY units_sold DESC
           LIMIT :limit
@@ -90,11 +89,11 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
           LEFT JOIN LATERAL (
             SELECT
               SUM(oi."quantity") AS units_sold,
-              SUM(oi."total") AS revenue
-            FROM "order_line_item" oi
+              SUM(oi."quantity" * oli."unit_price") AS revenue
+            FROM "order_item" oi
+            JOIN "order_line_item" oli ON oli."id" = oi."item_id"
             JOIN "order" o ON o."id" = oi."order_id"
-            LEFT JOIN "product_variant" pv ON pv."id" = oi."variant_id"
-            WHERE pv."product_id" = p."id"
+            WHERE oli."product_id" = p."id"
               AND o."canceled_at" IS NULL
               AND o."deleted_at" IS NULL
           ) sales ON true
@@ -137,10 +136,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
           ) inv ON true
           LEFT JOIN LATERAL (
             SELECT MAX(o."created_at") AS last_sold_at
-            FROM "order_line_item" oi
+            FROM "order_item" oi
+            JOIN "order_line_item" oli ON oli."id" = oi."item_id"
             JOIN "order" o ON o."id" = oi."order_id"
-            JOIN "product_variant" pv ON pv."id" = oi."variant_id"
-            WHERE pv."product_id" = p."id"
+            WHERE oli."product_id" = p."id"
               AND o."canceled_at" IS NULL
           ) sales ON true
           WHERE p."status" = 'published'
@@ -188,7 +187,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     logger.error(`[analytics:products] Query failed: ${(err as Error).message}`)
     return res.status(500).json({
       message: "Failed to query product analytics",
-      error: (err as Error).message,
     })
   }
 }

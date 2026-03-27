@@ -63,8 +63,10 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         COALESCE(sa."province", '') AS state,
         COUNT(DISTINCT o."id")::int AS order_count,
         COUNT(DISTINCT o."customer_id")::int AS customer_count,
-        COALESCE(SUM(o."total"), 0) AS revenue
+        COALESCE(SUM((os."totals"->>'current_order_total')::numeric), 0) AS revenue
       FROM "order" o
+      LEFT JOIN "order_summary" os ON os."order_id" = o."id"
+        AND os."version" = (SELECT MAX(os2."version") FROM "order_summary" os2 WHERE os2."order_id" = o."id")
       LEFT JOIN "order_address" sa
         ON sa."id" = o."shipping_address_id"
       WHERE o."canceled_at" IS NULL
@@ -81,10 +83,12 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         SELECT
           o."customer_id",
           COUNT(*)::int AS total_orders,
-          COALESCE(SUM(o."total"), 0) AS lifetime_value,
+          COALESCE(SUM((os."totals"->>'current_order_total')::numeric), 0) AS lifetime_value,
           MIN(o."created_at") AS first_order,
           MAX(o."created_at") AS last_order
         FROM "order" o
+        LEFT JOIN "order_summary" os ON os."order_id" = o."id"
+          AND os."version" = (SELECT MAX(os2."version") FROM "order_summary" os2 WHERE os2."order_id" = o."id")
         WHERE o."customer_id" IS NOT NULL
           AND o."canceled_at" IS NULL
           AND o."deleted_at" IS NULL
@@ -125,10 +129,12 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         c."email",
         c."phone",
         COUNT(DISTINCT o."id")::int AS total_orders,
-        COALESCE(SUM(o."total"), 0) AS lifetime_value,
+        COALESCE(SUM((os."totals"->>'current_order_total')::numeric), 0) AS lifetime_value,
         MIN(o."created_at") AS first_order,
         MAX(o."created_at") AS last_order
       FROM "order" o
+      LEFT JOIN "order_summary" os ON os."order_id" = o."id"
+        AND os."version" = (SELECT MAX(os2."version") FROM "order_summary" os2 WHERE os2."order_id" = o."id")
       JOIN "customer" c ON c."id" = o."customer_id"
       WHERE o."customer_id" IS NOT NULL
         AND o."canceled_at" IS NULL
@@ -215,7 +221,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     logger.error(`[analytics:customers] Query failed: ${(err as Error).message}`)
     return res.status(500).json({
       message: "Failed to query customer analytics",
-      error: (err as Error).message,
     })
   }
 }

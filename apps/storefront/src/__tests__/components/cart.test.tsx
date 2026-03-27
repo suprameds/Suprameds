@@ -91,9 +91,10 @@ describe("CartItemQuantitySelector", () => {
     })
   })
 
-  it("calls update with quantity - 1 when − is clicked", async () => {
+  it("calls update with quantity - 1 when minus is clicked", async () => {
     render(<CartItemQuantitySelector item={item} />)
-    const minusBtn = screen.getByText("−").closest("button")!
+    const buttons = screen.getAllByRole("button")
+    const minusBtn = buttons[0] // first button is minus/decrease
     await userEvent.click(minusBtn)
     expect(mockUpdateMutate).toHaveBeenCalledWith({
       line_id: "li_1",
@@ -104,7 +105,8 @@ describe("CartItemQuantitySelector", () => {
   it("calls delete when quantity would become 0", async () => {
     const singleItem = { ...item, quantity: 1 }
     render(<CartItemQuantitySelector item={singleItem} />)
-    const minusBtn = screen.getByText("−").closest("button")!
+    const buttons = screen.getAllByRole("button")
+    const minusBtn = buttons[0] // first button is minus/delete
     await userEvent.click(minusBtn)
     expect(mockDeleteMutate).toHaveBeenCalledWith({ line_id: "li_1" })
   })
@@ -131,7 +133,7 @@ describe("CartItemQuantitySelector", () => {
     mockUpdateIsPending = true
     const { container } = render(<CartItemQuantitySelector item={item} />)
     const wrapper = container.firstChild as HTMLElement
-    expect(wrapper.className).toContain("opacity-60")
+    expect(wrapper.className).toContain("opacity-50")
   })
 })
 

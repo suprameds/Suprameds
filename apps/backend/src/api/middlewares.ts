@@ -182,6 +182,34 @@ export default defineMiddlewares({
       method: "POST",
       bodyParser: { preserveRawBody: true },
     },
+    // WhatsApp webhook — preserve raw body for X-Hub-Signature-256 verification
+    {
+      matcher: "/webhooks/whatsapp",
+      method: "POST",
+      bodyParser: { preserveRawBody: true },
+    },
+    // Admin rate limiting: 30 requests per minute per IP (prevents query bombing)
+    {
+      matcher: "/admin/analytics/*",
+      method: "GET",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 30 }),
+      ],
+    },
+    {
+      matcher: "/admin/compliance/*",
+      method: "POST",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 20 }),
+      ],
+    },
+    {
+      matcher: "/admin/rbac/*",
+      method: "POST",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 10 }),
+      ],
+    },
 
     // ── MFA enforcement for admin routes — DISABLED for initial launch ──
     // Re-enable when TOTP enrollment is rolled out to staff:

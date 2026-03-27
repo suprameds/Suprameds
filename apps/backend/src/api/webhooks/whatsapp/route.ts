@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { getVerifyToken, isWhatsAppConfigured, markMessageRead } from "../../../lib/whatsapp"
 
@@ -66,6 +67,20 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     info: (msg: string) => void
     warn: (msg: string) => void
     error: (msg: string) => void
+  }
+
+  // Verify X-Hub-Signature-256 from Meta (HMAC-SHA256 of raw body with app secret)
+  const appSecret = process.env.WHATSAPP_APP_SECRET
+  if (appSecret) {
+    const signature = req.headers["x-hub-signature-256"] as string | undefined
+    const rawBody = (req as any).rawBody || JSON.stringify(req.body)
+    const expected = "sha256=" + crypto.createHmac("sha256", appSecret).update(rawBody).digest("hex")
+
+    if (!signature || signature !== expected) {
+      logger.warn(`${LOG} Invalid X-Hub-Signature-256 — rejecting`)
+      res.status(401).send("Invalid signature")
+      return
+    }
   }
 
   // Always respond 200 quickly — Meta retries on non-2xx

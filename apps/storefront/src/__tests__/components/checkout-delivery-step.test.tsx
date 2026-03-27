@@ -28,6 +28,14 @@ vi.mock("@/components/shipping-item-selector", () => ({
   ),
 }))
 
+vi.mock("@/components/delivery-estimate", () => ({
+  DeliveryEstimate: () => null,
+}))
+
+vi.mock("@/lib/utils/sdk", () => ({
+  sdk: { store: { fulfillment: { calculate: vi.fn() } } },
+}))
+
 import DeliveryStep from "@/components/checkout-delivery-step"
 import { makeCart } from "@/test/mocks"
 

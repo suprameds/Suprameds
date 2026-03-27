@@ -28,6 +28,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const IST_OFFSET = "'+5 hours 30 minutes'"
 
     // ── 1. Order counts & revenue by period ────────────────────────
+    // Medusa v2: order totals are in order_summary.totals JSON, not on the order table
     const orderStatsQuery = `
       SELECT
         COUNT(*) FILTER (
@@ -45,45 +46,47 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
             - INTERVAL ${IST_OFFSET}
         ) AS orders_this_month,
 
-        COALESCE(SUM(o."total") FILTER (
+        COALESCE(SUM((os."totals"->>'current_order_total')::numeric) FILTER (
           WHERE o."created_at" >= (NOW() AT TIME ZONE 'UTC' + INTERVAL ${IST_OFFSET})::date
             - INTERVAL ${IST_OFFSET}
         ), 0) AS revenue_today,
 
-        COALESCE(SUM(o."total") FILTER (
+        COALESCE(SUM((os."totals"->>'current_order_total')::numeric) FILTER (
           WHERE o."created_at" >= date_trunc('week', (NOW() AT TIME ZONE 'UTC' + INTERVAL ${IST_OFFSET})::date)
             - INTERVAL ${IST_OFFSET}
         ), 0) AS revenue_this_week,
 
-        COALESCE(SUM(o."total") FILTER (
+        COALESCE(SUM((os."totals"->>'current_order_total')::numeric) FILTER (
           WHERE o."created_at" >= date_trunc('month', (NOW() AT TIME ZONE 'UTC' + INTERVAL ${IST_OFFSET})::date)
             - INTERVAL ${IST_OFFSET}
         ), 0) AS revenue_this_month,
 
         COUNT(*) AS total_orders,
-        COALESCE(SUM(o."total"), 0) AS total_revenue,
-        COALESCE(AVG(o."total"), 0) AS avg_order_value
+        COALESCE(SUM((os."totals"->>'current_order_total')::numeric), 0) AS total_revenue,
+        COALESCE(AVG((os."totals"->>'current_order_total')::numeric), 0) AS avg_order_value
       FROM "order" o
+      LEFT JOIN "order_summary" os ON os."order_id" = o."id"
       WHERE o."canceled_at" IS NULL
         AND o."deleted_at" IS NULL
+        AND os."version" = (SELECT MAX(os2."version") FROM "order_summary" os2 WHERE os2."order_id" = o."id")
     `
 
     // ── 2. Top 5 selling products ──────────────────────────────────
+    // Medusa v2: order_item has quantity, order_line_item has product info
     const topProductsQuery = `
       SELECT
-        p."id",
-        p."title",
-        p."thumbnail",
+        oli."product_id" AS id,
+        oli."product_title" AS title,
+        oli."thumbnail",
         SUM(oi."quantity") AS units_sold,
-        SUM(oi."total") AS revenue
-      FROM "order_line_item" oi
+        SUM(oi."quantity" * oli."unit_price") AS revenue
+      FROM "order_item" oi
+      JOIN "order_line_item" oli ON oli."id" = oi."item_id"
       JOIN "order" o ON o."id" = oi."order_id"
-      LEFT JOIN "product_variant" pv ON pv."id" = oi."variant_id"
-      LEFT JOIN "product" p ON p."id" = pv."product_id"
       WHERE o."canceled_at" IS NULL
         AND o."deleted_at" IS NULL
-        AND p."id" IS NOT NULL
-      GROUP BY p."id", p."title", p."thumbnail"
+        AND oli."product_id" IS NOT NULL
+      GROUP BY oli."product_id", oli."product_title", oli."thumbnail"
       ORDER BY units_sold DESC
       LIMIT 5
     `
@@ -91,7 +94,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     // ── 3. Order status distribution ───────────────────────────────
     const statusDistQuery = `
       SELECT
-        COALESCE(o."status", 'unknown') AS status,
+        COALESCE(o."status"::text, 'unknown') AS status,
         COUNT(*) AS count
       FROM "order" o
       WHERE o."deleted_at" IS NULL
@@ -100,18 +103,19 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     `
 
     // ── 4. Payment method split ────────────────────────────────────
-    // Detect COD vs Razorpay via payment_collection → payments → provider_id
     const paymentSplitQuery = `
       SELECT
         CASE
-          WHEN pp."provider_id" ILIKE '%razorpay%' THEN 'razorpay'
-          WHEN pp."provider_id" ILIKE '%cod%' OR pp."provider_id" ILIKE '%cash%' THEN 'cod'
-          WHEN pp."provider_id" ILIKE '%system%' THEN 'system_default'
-          ELSE COALESCE(pp."provider_id", 'unknown')
+          WHEN pp."id" ILIKE '%razorpay%' THEN 'razorpay'
+          WHEN pp."id" ILIKE '%cod%' OR pp."id" ILIKE '%cash%' THEN 'cod'
+          WHEN pp."id" ILIKE '%system%' THEN 'system_default'
+          ELSE COALESCE(pp."id", 'unknown')
         END AS method,
         COUNT(DISTINCT o."id") AS order_count,
-        COALESCE(SUM(o."total"), 0) AS revenue
+        COALESCE(SUM((os."totals"->>'current_order_total')::numeric), 0) AS revenue
       FROM "order" o
+      LEFT JOIN "order_summary" os ON os."order_id" = o."id"
+        AND os."version" = (SELECT MAX(os2."version") FROM "order_summary" os2 WHERE os2."order_id" = o."id")
       LEFT JOIN "order_payment_collection" opc ON opc."order_id" = o."id"
       LEFT JOIN "payment_collection" pc ON pc."id" = opc."payment_collection_id"
       LEFT JOIN "payment" p ON p."payment_collection_id" = pc."id"
@@ -208,7 +212,6 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     logger.error(`[analytics] Dashboard query failed: ${(err as Error).message}`)
     return res.status(500).json({
       message: "Failed to generate analytics dashboard",
-      error: (err as Error).message,
     })
   }
 }
