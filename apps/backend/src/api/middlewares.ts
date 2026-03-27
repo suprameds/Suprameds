@@ -5,6 +5,8 @@ import { PHARMA_MODULE } from "../modules/pharma"
 import { createRateLimiter } from "./rate-limiter"
 import { authorize, enforceSsd } from "./rbac-authorize"
 import { getPrescriptionUploader, getGrnCreator, getPoRaiser } from "./rbac-ssd-helpers"
+// Sentry — must be imported early so auto-instrumentation hooks attach before routes load
+import "../lib/sentry"
 // MFA guard disabled for initial launch — re-enable when TOTP is rolled out
 // import { requireMfa } from "./admin/middlewares/mfa-guard"
 
@@ -348,5 +350,6 @@ export default defineMiddlewares({
       method: "GET",
       middlewares: [authorize("product", "export")],
     },
+
   ],
 })

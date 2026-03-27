@@ -207,6 +207,8 @@ const PharmacistAdjustmentWidget = () => {
         pharmacist_id: "admin",
         decision,
         dispensing_notes: form.notes || undefined,
+        order_item_id: item.id,
+        order_id: orderId,
       }
 
       if (decision === "rejected") {
