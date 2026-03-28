@@ -1,0 +1,4 @@
+SKU,Stock Quantity,Batch Lot Number,Batch Expiry Date,Batch Manufactured On,Batch MRP INR,Batch Purchase Price INR,Batch Supplier,Batch GRN Number
+METCYN-500-SR,100,LOT-2026-001,2028-03-15,2026-01-10,180,45,Supracyn Pharmaceuticals,GRN-2026-001
+PARACYN-500,200,LOT-2026-002,2028-06-20,2026-02-01,25,8,Supracyn Pharmaceuticals,GRN-2026-002
+AMLCYN-5,150,LOT-2026-003,2027-12-31,2025-12-15,280,70,Supracyn Pharmaceuticals,GRN-2026-003
