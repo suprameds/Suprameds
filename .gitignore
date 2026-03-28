@@ -51,6 +51,8 @@ build_log.txt
 test-results/
 playwright-report/
 smoke-*.png
+blob-report/
+e2e/performance/results/
 
 # ---- Claude Code local ----
 .claude/settings.local.json

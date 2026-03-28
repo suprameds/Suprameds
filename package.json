@@ -15,11 +15,19 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "e2e:report": "playwright show-report",
+    "test:smoke": "playwright test --project=smoke",
+    "test:security": "playwright test --project=security",
+    "test:a11y": "playwright test --project=a11y",
+    "test:visual": "playwright test --project=visual --update-snapshots",
+    "test:visual:check": "playwright test --project=visual",
+    "test:e2e:mobile": "playwright test --project=mobile --project=iphone",
+    "test:perf": "k6 run e2e/performance/load-test.js",
     "docker:build": "docker-compose -f docker-compose.production.yml build",
     "docker:up": "docker-compose -f docker-compose.production.yml up -d",
     "docker:down": "docker-compose -f docker-compose.production.yml down"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@playwright/test": "^1.58.2",
     "prettier": "^3.2.5",
     "turbo": "^2.0.14"

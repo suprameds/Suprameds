@@ -16,7 +16,66 @@ export default defineConfig({
   },
 
   projects: [
-    { name: "chromium", use: { browserName: "chromium" } },
+    // ─── DEFAULT E2E (desktop) ───
+    {
+      name: "chromium",
+      use: { browserName: "chromium" },
+    },
+
+    // ─── SMOKE TESTS (<60s deploy gate) ───
+    {
+      name: "smoke",
+      testMatch: "smoke.spec.ts",
+      use: { browserName: "chromium" },
+      timeout: 15_000,
+    },
+
+    // ─── SECURITY TESTS ───
+    {
+      name: "security",
+      testMatch: "security.spec.ts",
+      use: { browserName: "chromium" },
+      timeout: 15_000,
+    },
+
+    // ─── ACCESSIBILITY AUDIT (WCAG 2.1 AA) ───
+    {
+      name: "a11y",
+      testMatch: "a11y.spec.ts",
+      use: { browserName: "chromium" },
+      timeout: 30_000,
+    },
+
+    // ─── VISUAL REGRESSION ───
+    {
+      name: "visual",
+      testMatch: "visual.spec.ts",
+      use: {
+        browserName: "chromium",
+        viewport: { width: 1440, height: 900 },
+      },
+      timeout: 30_000,
+      expect: {
+        toHaveScreenshot: {
+          maxDiffPixelRatio: 0.01,
+          threshold: 0.2,
+        },
+      },
+    },
+
+    // ─── MOBILE E2E (Pixel 7) ───
+    {
+      name: "mobile",
+      testMatch: ["storefront-browse.spec.ts", "cart-checkout.spec.ts"],
+      use: { ...devices["Pixel 7"] },
+    },
+
+    // ─── MOBILE E2E (iPhone 14) ───
+    {
+      name: "iphone",
+      testMatch: ["storefront-browse.spec.ts", "cart-checkout.spec.ts"],
+      use: { ...devices["iPhone 14"] },
+    },
   ],
 
   webServer: process.env.CI
