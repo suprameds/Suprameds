@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { COD_MODULE } from "../modules/cod"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:cod-timeout]"
 
@@ -74,6 +75,7 @@ export default async function codUnconfirmedTimeoutHandler({
       console.warn(
         `${LOG_PREFIX} Failed to update order extension: ${(extErr as Error).message}`
       )
+      captureException(extErr, { subscriber: "cod-unconfirmed-timeout", orderId: order_id, codOrderId: cod_order_id, step: "update-extension" })
     }
 
     // Send cancellation notification
@@ -89,6 +91,7 @@ export default async function codUnconfirmedTimeoutHandler({
       console.warn(
         `${LOG_PREFIX} Notification failed: ${(notifErr as Error).message}`
       )
+      captureException(notifErr, { subscriber: "cod-unconfirmed-timeout", orderId: order_id, codOrderId: cod_order_id, step: "send-notification" })
     }
 
     console.info(`${LOG_PREFIX} Completed timeout processing for order ${order_id}`)
@@ -97,6 +100,7 @@ export default async function codUnconfirmedTimeoutHandler({
       `${LOG_PREFIX} Unhandled error: ${(error as Error).message}`,
       (error as Error).stack
     )
+    captureException(error, { subscriber: "cod-unconfirmed-timeout", orderId: order_id, codOrderId: cod_order_id })
   }
 }
 

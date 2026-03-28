@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { WISHLIST_MODULE } from "../modules/wishlist"
+import { captureException } from "../lib/sentry"
 
 /**
  * Reacts to product.updated events.
@@ -54,6 +55,7 @@ export default async function productPriceChangedHandler({
       logger.warn(
         `[subscriber:product-price-changed] Failed to emit for item ${item.id}: ${err.message}`
       )
+      captureException(err, { subscriber: "product-price-changed", productId, wishlistItemId: item.id })
     }
   }
 }

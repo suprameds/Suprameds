@@ -1,13 +1,13 @@
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 
 /**
- * In-memory sliding-window rate limiter for sensitive endpoints.
+ * Sliding-window rate limiter with Redis (prod) + in-memory (dev) backends.
  *
- * Tracks request timestamps per key (IP by default) and rejects requests
- * that exceed the configured threshold within the sliding window.
- *
- * NOT suitable for multi-instance deployments — swap to Redis-based
- * counting when horizontal scaling is required.
+ * Auto-detects the backend:
+ *   - If REDIS_URL is set → uses ioredis sorted-set sliding window (shared
+ *     across all backend instances — safe for horizontal scaling).
+ *   - Otherwise → falls back to the original in-memory implementation
+ *     (single-instance dev use only).
  */
 
 interface RateLimiterOptions {
@@ -36,17 +36,69 @@ function defaultKeyGenerator(req: MedusaRequest): string {
   return req.ip ?? "unknown"
 }
 
+// ── Redis client (lazy-initialized, module-level singleton) ──────────────────
+
+let redisClient: any = null
+let redisAvailable = false
+
+async function getRedisClient(): Promise<any | null> {
+  if (redisClient) return redisClient
+
+  const url = process.env.REDIS_URL
+  if (!url) return null
+
+  try {
+    // ioredis is a Medusa transitive dependency — always available.
+    // Import both the default export and the named export to handle
+    // different ioredis versions / CJS interop shapes.
+    const ioredis = await import("ioredis")
+    const Redis: any = (ioredis as any).default ?? ioredis
+
+    redisClient = new Redis(url, {
+      // Don't let the rate-limiter connection block process exit
+      lazyConnect: false,
+      enableOfflineQueue: false,
+      // Suppress noisy connection-retry logs in dev
+      reconnectOnError: () => false,
+      retryStrategy: () => null,
+    })
+
+    redisClient.on("error", () => {
+      redisAvailable = false
+    })
+
+    redisClient.on("ready", () => {
+      redisAvailable = true
+    })
+
+    // Wait for the initial connection (or catch immediately on failure)
+    await redisClient.ping()
+    redisAvailable = true
+
+    return redisClient
+  } catch {
+    redisClient = null
+    return null
+  }
+}
+
+// Kick off the Redis connection at module load — non-blocking.
+// If it fails the in-memory fallback takes over transparently.
+getRedisClient().catch(() => {})
+
+// ── Factory ──────────────────────────────────────────────────────────────────
+
 /**
- * Factory: returns Express-compatible middleware that enforces a
- * sliding-window rate limit per key.
+ * Returns Express-compatible async middleware that enforces a sliding-window
+ * rate limit per key.
  */
 export function createRateLimiter(options: RateLimiterOptions) {
   const { windowMs, maxRequests, keyGenerator = defaultKeyGenerator } = options
 
+  // ── In-memory fallback store ─────────────────────────────────────────────
   const buckets = new Map<string, BucketEntry>()
 
-  // Periodic garbage collection — remove entries whose newest timestamp
-  // is older than the window so the map doesn't grow unbounded.
+  // Periodic GC — prevents unbounded map growth in long-running processes
   const cleanupInterval = setInterval(() => {
     const now = Date.now()
     for (const [key, entry] of buckets) {
@@ -59,22 +111,58 @@ export function createRateLimiter(options: RateLimiterOptions) {
   // Allow the Node process to exit without waiting for the timer
   if (cleanupInterval.unref) cleanupInterval.unref()
 
-  return function rateLimiterMiddleware(
+  // ── Middleware ────────────────────────────────────────────────────────────
+  return async function rateLimiterMiddleware(
     req: MedusaRequest,
     res: MedusaResponse,
     next: MedusaNextFunction,
   ) {
-    const key = keyGenerator(req)
+    const clientKey = keyGenerator(req)
+    const redisKey = `rl:${req.path}:${clientKey}`
     const now = Date.now()
     const windowStart = now - windowMs
 
-    let entry = buckets.get(key)
-    if (!entry) {
-      entry = { timestamps: [] }
-      buckets.set(key, entry)
+    // ── Redis path ──────────────────────────────────────────────────────────
+    if (redisAvailable && redisClient) {
+      try {
+        // Remove timestamps that have expired out of the window
+        await redisClient.zremrangebyscore(redisKey, 0, windowStart)
+
+        const count: number = await redisClient.zcard(redisKey)
+
+        if (count >= maxRequests) {
+          // Determine how long until the oldest request ages out
+          const oldest = await redisClient.zrange(redisKey, 0, 0, "WITHSCORES")
+          const oldestScore = oldest.length >= 2 ? Number(oldest[1]) : now - windowMs
+          const retryAfterSec = Math.ceil((oldestScore + windowMs - now) / 1000)
+
+          res.setHeader("Retry-After", String(retryAfterSec))
+          res.status(429).json({
+            message: "Too many requests. Please try again later.",
+            retryAfter: retryAfterSec,
+          })
+          return
+        }
+
+        // Add this request as a scored member (score = timestamp, value unique)
+        await redisClient.zadd(redisKey, now, `${now}:${Math.random()}`)
+        // Key auto-expires after the window so Redis memory stays bounded
+        await redisClient.expire(redisKey, Math.ceil(windowMs / 1000))
+
+        return next()
+      } catch {
+        // Redis error — fall through to in-memory path silently
+      }
     }
 
-    // Slide the window — drop timestamps older than windowStart
+    // ── In-memory fallback path ─────────────────────────────────────────────
+    let entry = buckets.get(clientKey)
+    if (!entry) {
+      entry = { timestamps: [] }
+      buckets.set(clientKey, entry)
+    }
+
+    // Slide the window — discard timestamps older than windowStart
     entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart)
 
     if (entry.timestamps.length >= maxRequests) {

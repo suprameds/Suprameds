@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:order-updated]"
 
@@ -69,9 +70,11 @@ export default async function orderUpdatedHandler({
     } catch (err) {
       // pharmaOrder module may not be active
       console.warn(`${LOG} Extension sync failed for ${orderId}: ${(err as Error).message}`)
+      captureException(err, { subscriber: "order-updated", orderId, step: "sync-extension" })
     }
   } catch (err) {
     console.error(`${LOG} Failed for order ${orderId}: ${(err as Error).message}`)
+    captureException(err, { subscriber: "order-updated", orderId })
   }
 }
 

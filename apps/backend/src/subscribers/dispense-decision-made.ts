@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:dispense-decision]"
 
@@ -80,10 +81,12 @@ export default async function dispenseDecisionHandler({
         })
       } catch (err) {
         console.warn(`${LOG} Internal notification failed: ${(err as Error).message}`)
+        captureException(err, { subscriber: "dispense-decision-made", orderId: order_id, step: "internal-notification" })
       }
     }
   } catch (err) {
     console.error(`${LOG} Failed for order ${order_id}: ${(err as Error).message}`)
+    captureException(err, { subscriber: "dispense-decision-made", orderId: order_id })
   }
 }
 

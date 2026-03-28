@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:loyalty-redeemed]"
 
@@ -38,6 +39,7 @@ export default async function handler({
     }
   } catch (error) {
     console.error(`${LOG_PREFIX} Failed to send push:`, (error as Error).message)
+    captureException(error, { subscriber: "loyalty-points-redeemed", customerId: customer_id })
   }
 }
 

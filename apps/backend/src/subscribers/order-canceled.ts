@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:order-canceled]"
 
@@ -30,6 +31,7 @@ async function reverseBatchDeductions(
     console.warn(
       `${LOG} Could not list batch deductions for order ${orderId}: ${err?.message}`
     )
+    captureException(err, { subscriber: "order-canceled", orderId, step: "list-deductions" })
     return 0
   }
 
@@ -82,6 +84,7 @@ async function reverseBatchDeductions(
       console.warn(
         `${LOG} Failed to reverse deduction ${deduction.id}: ${err?.message}`
       )
+      captureException(err, { subscriber: "order-canceled", orderId, deductionId: deduction.id, step: "reverse-deduction" })
     }
   }
 
@@ -110,6 +113,7 @@ export default async function handler({
     console.error(
       `${LOG} Batch reversal failed for order ${orderId}: ${(err as Error).message}`
     )
+    captureException(err, { subscriber: "order-canceled", orderId, step: "batch-reversal" })
   }
 
   // 2. Send push notification to customer
@@ -190,9 +194,11 @@ export default async function handler({
       console.warn(
         `${LOG} Cancellation email failed for order ${orderId}: ${(emailErr as Error).message}`
       )
+      captureException(emailErr, { subscriber: "order-canceled", orderId, step: "send-email" })
     }
   } catch (err) {
     console.error(`${LOG} Push failed for order ${orderId}: ${(err as Error).message}`)
+    captureException(err, { subscriber: "order-canceled", orderId })
   }
 }
 

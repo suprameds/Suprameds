@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:payment-captured]"
 
@@ -91,6 +92,7 @@ export default async function paymentCapturedHandler({
         `${LOG_PREFIX} pharmaOrder extension update failed for ${orderId}:`,
         (extError as Error).message
       )
+      captureException(extError, { subscriber: "order-payment-captured", orderId, step: "update-extension" })
     }
 
     // FEFO allocation is handled at fulfillment time via the
@@ -118,6 +120,7 @@ export default async function paymentCapturedHandler({
         `${LOG_PREFIX} Payment notification failed for ${orderId}:`,
         (notifError as Error).message
       )
+      captureException(notifError, { subscriber: "order-payment-captured", orderId, step: "send-notification" })
     }
 
     console.info(`${LOG_PREFIX} Completed processing for order ${orderId}`)
@@ -128,6 +131,7 @@ export default async function paymentCapturedHandler({
       (error as Error).message,
       (error as Error).stack
     )
+    captureException(error, { subscriber: "order-payment-captured", orderId })
   }
 }
 

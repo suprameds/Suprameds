@@ -1,4 +1,5 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:password-reset]"
 
@@ -69,6 +70,7 @@ export default async function resetPasswordHandler({
     console.info(`${LOG} Reset email queued for ${email}`)
   } catch (err) {
     console.error(`${LOG} Failed for ${email}:`, err instanceof Error ? err.message : err)
+    captureException(err, { subscriber: "password-reset", email, actorType })
   }
 }
 

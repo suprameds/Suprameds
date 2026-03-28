@@ -3,6 +3,7 @@ import { INotificationModuleService } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
+import { captureException } from "../lib/sentry"
 
 /** Fires when all Rx lines approved. SMS T05. */
 export default async function prescriptionFullyApprovedHandler({
@@ -30,6 +31,7 @@ export default async function prescriptionFullyApprovedHandler({
       console.warn(
         `[subscriber] prescription.fully-approved SMS skipped (no provider?): ${(err as Error).message}`
       )
+      captureException(err, { subscriber: "prescription-fully-approved", prescriptionId: data.id, step: "send-sms" })
     }
   }
 
@@ -81,6 +83,7 @@ export default async function prescriptionFullyApprovedHandler({
       console.warn(
         `[subscriber] prescription.fully-approved email failed for Rx ${data.id}: ${(emailErr as Error).message}`
       )
+      captureException(emailErr, { subscriber: "prescription-fully-approved", prescriptionId: data.id, step: "send-email" })
     }
   }
 

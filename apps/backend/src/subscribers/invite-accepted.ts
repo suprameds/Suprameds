@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { RBAC_MODULE } from "../modules/rbac"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:invite-accepted]"
 
@@ -54,6 +55,7 @@ export default async function userCreatedHandler({
       `${LOG_PREFIX} Failed to assign role for user ${userId}:`,
       (error as Error).message
     )
+    captureException(error, { subscriber: "invite-accepted", userId })
   }
 }
 

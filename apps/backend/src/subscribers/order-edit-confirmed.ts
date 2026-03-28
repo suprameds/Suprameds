@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:order-edit-confirmed]"
 
@@ -65,6 +66,7 @@ export default async function handler({
     console.info(`${LOG} Stamped edit metadata on order ${orderId}: "${summary}"`)
   } catch (err) {
     console.error(`${LOG} Failed for ${orderId}: ${(err as Error).message}`)
+    captureException(err, { subscriber: "order-edit-confirmed", orderId })
   }
 }
 

@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:return-requested]"
 
@@ -47,6 +48,7 @@ export default async function handler({
     logger.error(
       `${LOG_PREFIX} Failed to process return request ${returnId}: ${(err as Error).message}`
     )
+    captureException(err, { subscriber: "order-return-requested", returnId, orderId })
   }
 }
 

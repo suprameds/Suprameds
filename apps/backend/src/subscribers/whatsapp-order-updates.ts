@@ -7,6 +7,7 @@ import {
   TEMPLATES,
   type TemplateParameter,
 } from "../lib/whatsapp"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:whatsapp-order-updates]"
 
@@ -103,6 +104,7 @@ async function safeSend(
     }
   } catch (err) {
     console.warn(`${LOG} [${eventLabel}] WhatsApp error: ${(err as Error).message}`)
+    captureException(err, { subscriber: "whatsapp-order-updates", eventLabel, to: to.slice(-4) + "***" })
   }
 }
 
@@ -220,6 +222,7 @@ export default async function whatsappOrderUpdatesHandler({
   } catch (err) {
     // Never break order flow due to WhatsApp failures
     console.error(`${LOG} Unhandled error for ${name}: ${(err as Error).message}`)
+    captureException(err, { subscriber: "whatsapp-order-updates", event: name })
   }
 }
 

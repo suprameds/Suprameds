@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[mrp-conflict]"
 
@@ -78,6 +79,7 @@ export default async function batchMrpConflictHandler({
       `${LOG_PREFIX} Failed to create internal notification for PO ${po_number}: ${notifErr?.message}. ` +
         `Conflicts were logged above.`
     )
+    captureException(notifErr, { subscriber: "batch-mrp-conflict", poNumber: po_number })
   }
 }
 

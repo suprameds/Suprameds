@@ -7,6 +7,7 @@ import {
 } from "@medusajs/framework/utils"
 import { completeOrderWorkflow } from "@medusajs/medusa/core-flows"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:complete-order-on-delivery]"
 
@@ -76,6 +77,7 @@ export default async function completeOrderOnDeliveryHandler({
         }
       } catch (pushErr) {
         console.warn(`${LOG} Push failed for order ${orderId}: ${(pushErr as Error).message}`)
+        captureException(pushErr, { subscriber: "order-delivered", orderId: orderId, step: "push-notification" })
       }
 
       // --- Email notification ---
@@ -143,6 +145,7 @@ export default async function completeOrderOnDeliveryHandler({
         }
       } catch (emailErr) {
         console.warn(`${LOG} Delivery email failed for order ${orderId}: ${(emailErr as Error).message}`)
+        captureException(emailErr, { subscriber: "order-delivered", orderId: orderId, step: "send-email" })
       }
     }
 
@@ -191,6 +194,7 @@ export default async function completeOrderOnDeliveryHandler({
       (err as Error).message,
       (err as Error).stack
     )
+    captureException(err, { subscriber: "order-delivered", fulfillmentId })
   }
 }
 

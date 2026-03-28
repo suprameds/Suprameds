@@ -3,6 +3,7 @@ import { INotificationModuleService } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
+import { captureException } from "../lib/sentry"
 
 /** Fires when Rx rejected. SMS T06. */
 export default async function prescriptionRejectedHandler({
@@ -73,6 +74,7 @@ export default async function prescriptionRejectedHandler({
       console.warn(
         `[subscriber] prescription.rejected email failed for Rx ${data.id}: ${(emailErr as Error).message}`
       )
+      captureException(emailErr, { subscriber: "prescription-rejected", prescriptionId: data.id, step: "send-email" })
     }
   }
 
