@@ -213,6 +213,206 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  test-security:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    needs: [build-backend]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: suprameds
+          POSTGRES_PASSWORD: suprameds_test
+          POSTGRES_DB: suprameds_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://suprameds:suprameds_test@localhost:5432/suprameds_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-e2e-jwt-secret-32chars-minimum!
+      COOKIE_SECRET: ci-e2e-cookie-secret
+      STORE_CORS: http://localhost:5173
+      PHI_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps chromium
+      - name: Run Medusa migrations
+        run: pnpm medusa db:migrate
+        working-directory: apps/backend
+      - name: Start backend
+        run: pnpm medusa start &
+        working-directory: apps/backend
+      - name: Wait for backend
+        run: npx wait-on http://localhost:9000/health --timeout 60000
+      - name: Run security tests
+        run: pnpm test:security
+
+  test-a11y:
+    name: Accessibility Audit
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-storefront]
+    if: github.event_name == 'push'
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: suprameds
+          POSTGRES_PASSWORD: suprameds_test
+          POSTGRES_DB: suprameds_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://suprameds:suprameds_test@localhost:5432/suprameds_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-e2e-jwt-secret-32chars-minimum!
+      COOKIE_SECRET: ci-e2e-cookie-secret
+      STORE_CORS: http://localhost:5173
+      ADMIN_CORS: http://localhost:9000
+      AUTH_CORS: http://localhost:5173,http://localhost:9000
+      VITE_MEDUSA_BACKEND_URL: http://localhost:9000
+      VITE_MEDUSA_PUBLISHABLE_KEY: pk_test_placeholder
+      PHI_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps chromium
+      - name: Run Medusa migrations
+        run: pnpm medusa db:migrate
+        working-directory: apps/backend
+      - name: Build storefront for preview
+        run: pnpm build
+        working-directory: apps/storefront
+        env:
+          VITE_MEDUSA_BACKEND_URL: http://localhost:9000
+          VITE_MEDUSA_PUBLISHABLE_KEY: pk_test_placeholder
+      - name: Start backend
+        run: pnpm medusa start &
+        working-directory: apps/backend
+      - name: Wait for backend
+        run: npx wait-on http://localhost:9000/health --timeout 60000
+      - name: Start storefront preview
+        run: pnpm preview &
+        working-directory: apps/storefront
+      - name: Wait for storefront
+        run: npx wait-on http://localhost:5173 --timeout 30000
+      - name: Run accessibility audit
+        run: pnpm test:a11y
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: a11y-report
+          path: playwright-report/
+          retention-days: 7
+
+  test-smoke:
+    name: Smoke Tests (Production)
+    runs-on: ubuntu-latest
+    needs: [test-e2e]
+    if: github.ref == 'refs/heads/main'
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: suprameds
+          POSTGRES_PASSWORD: suprameds_test
+          POSTGRES_DB: suprameds_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://suprameds:suprameds_test@localhost:5432/suprameds_test
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-e2e-jwt-secret-32chars-minimum!
+      COOKIE_SECRET: ci-e2e-cookie-secret
+      STORE_CORS: http://localhost:5173
+      ADMIN_CORS: http://localhost:9000
+      AUTH_CORS: http://localhost:5173,http://localhost:9000
+      VITE_MEDUSA_BACKEND_URL: http://localhost:9000
+      VITE_MEDUSA_PUBLISHABLE_KEY: pk_test_placeholder
+      PHI_ENCRYPTION_KEY: 0000000000000000000000000000000000000000000000000000000000000000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx playwright install --with-deps chromium
+      - name: Run Medusa migrations
+        run: pnpm medusa db:migrate
+        working-directory: apps/backend
+      - name: Build storefront for preview
+        run: pnpm build
+        working-directory: apps/storefront
+        env:
+          VITE_MEDUSA_BACKEND_URL: http://localhost:9000
+          VITE_MEDUSA_PUBLISHABLE_KEY: pk_test_placeholder
+      - name: Start backend
+        run: pnpm medusa start &
+        working-directory: apps/backend
+      - name: Wait for backend
+        run: npx wait-on http://localhost:9000/health --timeout 60000
+      - name: Start storefront preview
+        run: pnpm preview &
+        working-directory: apps/storefront
+      - name: Wait for storefront
+        run: npx wait-on http://localhost:5173 --timeout 30000
+      - name: Run smoke tests
+        run: pnpm test:smoke
+
   docker-build:
     name: Docker — Build Images
     runs-on: ubuntu-latest
