@@ -31,6 +31,7 @@ const Layout = () => {
           </main>
 
           <Footer />
+          <WhatsAppButton />
           <ConsentBanner />
           <WhatsAppButton />
         </div>

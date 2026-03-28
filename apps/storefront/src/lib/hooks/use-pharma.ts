@@ -45,6 +45,34 @@ export function useBulkPharma(productIds: string[]) {
 }
 
 /**
+ * Server-side pharma filter: returns product_ids matching the given
+ * schedule and/or dosage_form. Uses the bulk endpoint in filter mode
+ * (no ids param, just schedule/dosage_form).
+ *
+ * Only fires when at least one filter is active.
+ */
+export function usePharmaFilter(schedule?: string, dosageForm?: string) {
+  const hasFilter = (schedule && schedule !== "all") || (dosageForm && dosageForm !== "all")
+
+  return useQuery({
+    queryKey: ["pharma-filter", schedule, dosageForm],
+    queryFn: async (): Promise<string[]> => {
+      const params = new URLSearchParams()
+      if (schedule && schedule !== "all") params.set("schedule", schedule)
+      if (dosageForm && dosageForm !== "all") params.set("dosage_form", dosageForm)
+
+      const { product_ids } = await sdk.client.fetch<{ product_ids: string[] }>(
+        `/store/products/pharma/bulk?${params.toString()}`,
+        { method: "GET" }
+      )
+      return product_ids ?? []
+    },
+    enabled: !!hasFilter,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/**
  * Calculates discount percentage from MRP and selling price.
  *   discount = ((MRP - sellingPrice) / MRP) * 100
  *

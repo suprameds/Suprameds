@@ -132,7 +132,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
       </div>
 
-      {/* ── Wishlist button ── */}
+      {/* ── Wishlist button (top-right, no overlap) ── */}
       <WishlistButton
         productId={product.id}
         variantId={product.variants?.[0]?.id}
@@ -216,53 +216,34 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
 
-        {/* ── Add to Cart / Upload Rx button ── */}
-        {!isBlocked && (
+        {/* ── Add to Cart button (OTC only) ── */}
+        {!isBlocked && !isRx && (
           <div className="pt-2 pointer-events-auto">
-            {isRx ? (
-              <span
-                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-colors"
-                style={{
-                  background: "rgba(243,156,18,0.08)",
-                  color: "var(--brand-amber-dark)",
-                  border: "1px solid rgba(243,156,18,0.25)",
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-                Upload Rx & Buy
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={addToCartMutation.isPending}
-                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50"
-                style={{
-                  background: "var(--discount-bg)",
-                  color: "var(--text-inverse)",
-                }}
-              >
-                {addToCartMutation.isPending ? (
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Adding...
-                  </span>
-                ) : (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                    </svg>
-                    Add to Cart
-                  </>
-                )}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={addToCartMutation.isPending}
+              className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50"
+              style={{
+                background: "var(--discount-bg)",
+                color: "var(--text-inverse)",
+              }}
+            >
+              {addToCartMutation.isPending ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Adding...
+                </span>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                  </svg>
+                  Add to Cart
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>

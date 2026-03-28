@@ -18,7 +18,21 @@ const ImageGallery = memo(function ImageGallery({ images }: ImageGalleryProps) {
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
   }, [images.length])
 
-  if (images.length === 0) return null
+  if (images.length === 0) {
+    return (
+      <div className="flex items-start relative">
+        <div className="flex-1 sm:mx-16 relative">
+          <div className="relative aspect-[29/34] w-full overflow-hidden flex flex-col items-center justify-center" style={{ background: "#FAFAF8" }}>
+            <svg width="80" height="80" viewBox="0 0 64 64" fill="none">
+              <path d="M18.5 45.5l27-27a9.9 9.9 0 10-14-14l-27 27a9.9 9.9 0 1014 14z" fill="#E6F4F0" stroke="#0E7C86" strokeWidth="1.5" />
+              <line x1="24" y1="24" x2="40" y2="40" stroke="#0E7C86" strokeWidth="1.5" strokeDasharray="2 2" />
+            </svg>
+            <span className="text-[10px] font-semibold uppercase tracking-widest mt-3" style={{ color: "#0E7C86", opacity: 0.4 }}>Suprameds</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex items-start relative">

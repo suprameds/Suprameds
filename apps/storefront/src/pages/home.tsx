@@ -4,6 +4,8 @@ import { useCategories } from "@/lib/hooks/use-categories"
 import { getProductPrice } from "@/lib/utils/price"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import ProductCard from "@/components/product-card"
+import { Reveal } from "@/components/ui/reveal"
+import { Counter } from "@/components/ui/counter"
 import { Link, useLocation, useLoaderData, useNavigate } from "@tanstack/react-router"
 import { Route } from "@/routes/$countryCode/index"
 import { useState } from "react"
@@ -205,12 +207,54 @@ const Home = () => {
               <Link
                 to="/$countryCode/upload-rx"
                 params={{ countryCode }}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
-                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.12)" }}
+                className="flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-all hover:border-[#0E7C86]"
+                style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.85)", border: "1.5px solid rgba(255,255,255,0.15)" }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 Upload Prescription
               </Link>
+            </div>
+          </div>
+
+          {/* ── Glassmorphism floating badges (desktop only) ── */}
+          <div className="hidden lg:block absolute right-8 top-1/2 -translate-y-1/2" style={{ zIndex: 5 }}>
+            <div
+              className="absolute -top-16 right-0 flex items-center gap-3 px-4 py-3 rounded-xl"
+              style={{
+                background: "rgba(255,255,255,0.78)",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                border: "1px solid rgba(255,255,255,0.4)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                animation: "float 5s ease-in-out infinite",
+              }}
+            >
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(14,124,134,0.1)" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-bold" style={{ color: "#0D1B2A" }}>CDSCO Registered</p>
+                <p className="text-[10px]" style={{ color: "#6B7280" }}>Form 18AA Verified</p>
+              </div>
+            </div>
+            <div
+              className="absolute top-24 right-8 flex items-center gap-3 px-4 py-3 rounded-xl"
+              style={{
+                background: "rgba(255,255,255,0.78)",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                border: "1px solid rgba(255,255,255,0.4)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                animation: "float 5s 2.5s ease-in-out infinite",
+              }}
+            >
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(184,146,47,0.08)" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B8922F" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              </div>
+              <div>
+                <p className="text-xs font-bold" style={{ color: "#0D1B2A" }}>Avg. Savings</p>
+                <p className="text-[10px]" style={{ color: "#6B7280" }}>₹1,240 / month</p>
+              </div>
             </div>
           </div>
         </div>
@@ -220,19 +264,24 @@ const Home = () => {
           <div className="content-container py-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { value: "50–80%", label: "Savings on Generics" },
-                { value: "₹300+", label: "Free Delivery" },
-                { value: "5,000+", label: "Medicines" },
-                { value: "All India", label: "Speed Post Delivery" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="text-lg font-semibold" style={{ color: "var(--brand-teal-light)", fontFamily: "Fraunces, Georgia, serif" }}>{stat.value}</p>
-                  <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{stat.label}</p>
-                </div>
+                { value: <><Counter end={80} suffix="%" /></>, label: "Max Savings on Generics" },
+                { value: "₹0", label: "Delivery above ₹300" },
+                { value: <><Counter end={5000} suffix="+" /></>, label: "Medicines Available" },
+                { value: "2-Day", label: "Delivery in TS & AP" },
+              ].map((stat, i) => (
+                <Reveal key={i} delay={i * 0.08}>
+                  <div className="text-center">
+                    <p className="text-lg font-semibold" style={{ color: "var(--brand-teal-light)", fontFamily: "Fraunces, Georgia, serif" }}>{stat.value}</p>
+                    <p className="text-[11px] mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{stat.label}</p>
+                  </div>
+                </Reveal>
               ))}
             </div>
           </div>
         </div>
+
+        {/* Float animation for hero badges */}
+        <style>{`@keyframes float { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }`}</style>
       </section>
 
       {/* ════════════════════════════════════════════
@@ -241,6 +290,7 @@ const Home = () => {
       {categories && categories.length > 0 && (
         <section style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border-primary)", borderBottom: "1px solid var(--border-primary)" }}>
           <div className="content-container py-14 lg:py-18">
+            <Reveal>
             <div className="flex items-end justify-between mb-8">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal)" }}>Browse</p>
@@ -288,6 +338,7 @@ const Home = () => {
                 <span className="text-sm font-medium" style={{ color: "var(--text-inverse)" }}>All Medicines</span>
               </Link>
             </div>
+            </Reveal>
           </div>
         </section>
       )}
@@ -297,6 +348,7 @@ const Home = () => {
          ════════════════════════════════════════════ */}
       {products.length > 0 && (
         <section className="content-container py-14 lg:py-18">
+          <Reveal>
           <div className="flex items-end justify-between mb-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal)" }}>Popular</p>
@@ -330,36 +382,44 @@ const Home = () => {
               View all medicines <ArrowRight />
             </Link>
           </div>
+          </Reveal>
         </section>
       )}
 
       {/* ════════════════════════════════════════════
           PRESCRIPTION CTA — mid-page conversion
          ════════════════════════════════════════════ */}
-      <section style={{ background: "var(--bg-inverse)" }}>
-        <div className="content-container py-14 lg:py-18">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "var(--brand-teal-light)" }}>Prescription Medicines</p>
+      <section className="content-container py-14 lg:py-18">
+        <Reveal>
+        <div className="rounded-2xl overflow-hidden" style={{ boxShadow: "0 8px 48px rgba(0,0,0,0.08)" }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {/* Left: dark navy */}
+            <div className="p-10 lg:p-14 flex flex-col justify-center" style={{ background: "linear-gradient(155deg, var(--bg-inverse), #16384D)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-2" style={{ color: "var(--brand-green)" }}>
+                <span style={{ width: 20, height: 1.5, background: "var(--brand-green)", borderRadius: 1, display: "inline-block" }} />
+                Prescription Medicines
+              </p>
               <h2 className="text-2xl lg:text-3xl font-semibold leading-tight mb-4" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>
                 Have a doctor's prescription?
               </h2>
-              <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
-                Upload your prescription and our pharmacist will prepare your order. We'll confirm availability, apply generic savings, and dispatch within hours.
+              <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.55)" }}>
+                Upload your prescription and our pharmacist will prepare your order with maximum generic savings.
               </p>
 
-              <div className="space-y-3 mb-8">
+              <div className="flex flex-col gap-3 mb-8">
                 {[
-                  "Upload a photo or PDF of your prescription",
-                  "Pharmacist reviews within 4 hours",
-                  "Generic alternatives suggested for maximum savings",
-                  "Secure, encrypted prescription storage",
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(39,174,96,0.2)" }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand-green)" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  { n: "1", t: "Upload a photo or PDF", d: "JPG, PNG, or PDF — all formats accepted" },
+                  { n: "2", t: "Pharmacist reviews in 4 hrs", d: "Generic alternatives suggested for savings" },
+                  { n: "3", t: "Secure, encrypted storage", d: "DPDP Act compliant · 5-year retention" },
+                ].map((step) => (
+                  <div key={step.n} className="flex gap-3 items-start">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 text-[11px] font-bold" style={{ background: "rgba(16,163,127,0.12)", color: "var(--brand-green)" }}>
+                      {step.n}
                     </div>
-                    <span className="text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>{item}</span>
+                    <div>
+                      <p className="text-sm font-semibold" style={{ color: "var(--text-inverse)" }}>{step.t}</p>
+                      <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>{step.d}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -367,7 +427,7 @@ const Home = () => {
               <Link
                 to="/$countryCode/upload-rx"
                 params={{ countryCode }}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:opacity-90 self-start"
                 style={{ background: "var(--brand-green)", color: "var(--text-inverse)" }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -375,98 +435,97 @@ const Home = () => {
               </Link>
             </div>
 
-            {/* Right: compliance grid */}
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Drugs & Cosmetics Act, 1940", status: "Compliant" },
-                { label: "Pharmacy Act, 1948", status: "Compliant" },
-                { label: "CDSCO Form 18AA", status: "Registered" },
-                { label: "DPDP Act, 2023", status: "Compliant" },
-                { label: "LegitScript Category B", status: "Certified" },
-                { label: "Consumer Protection Rules", status: "Compliant" },
-              ].map((item) => (
-                <div key={item.label} className="flex items-start gap-2 p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.04)" }}>
-                  <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: "rgba(14,124,134,0.2)" }}>
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--brand-teal-light)" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium leading-snug" style={{ color: "rgba(255,255,255,0.8)" }}>{item.label}</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: "var(--brand-teal-light)" }}>{item.status}</p>
-                  </div>
-                </div>
-              ))}
+            {/* Right: light gradient with drop zone */}
+            <div className="p-10 lg:p-14 flex flex-col items-center justify-center gap-5" style={{ background: "linear-gradient(155deg, #E6F4F0, #F5F0E8)" }}>
+              <div
+                className="w-full max-w-xs rounded-2xl p-10 text-center cursor-pointer transition-all hover:scale-[1.02]"
+                style={{ border: "2px dashed rgba(14,124,134,0.2)", background: "rgba(255,255,255,0.55)", backdropFilter: "blur(6px)" }}
+              >
+                <div className="text-4xl mb-3">📄</div>
+                <h4 className="text-sm font-bold mb-1" style={{ color: "var(--text-primary)" }}>Drag & drop your Rx here</h4>
+                <p className="text-[11px]" style={{ color: "var(--text-secondary)" }}>or click to browse · JPG, PNG, PDF</p>
+              </div>
+              <p className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>Max 10MB · Reviewed within 4 hours</p>
+
+              {/* Compliance pills */}
+              <div className="flex flex-wrap justify-center gap-2 mt-2">
+                {["Drugs & Cosmetics Act", "CDSCO Form 18AA", "DPDP Act 2023", "LegitScript Certified"].map((c) => (
+                  <span key={c} className="flex items-center gap-1.5 text-[10px] font-medium" style={{ color: "var(--text-tertiary)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "var(--brand-green)" }} />
+                    {c}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
+        </Reveal>
       </section>
 
       {/* ════════════════════════════════════════════
           WHY SUPRAMEDS — trust signals
          ════════════════════════════════════════════ */}
       <section className="content-container py-14 lg:py-18">
-        <div className="text-center mb-10">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal)" }}>Trust</p>
-          <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>
-            Why choose Suprameds
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {[
-            {
-              title: "CDSCO Registered",
-              body: "Licensed under Form 18AA with Central Drugs Standard Control Organisation. Every transaction is legally compliant.",
-              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
-              color: "var(--brand-teal)",
-              bg: "#E0F7FA",
-            },
-            {
-              title: "50–80% Lower Prices",
-              body: "Generic medicines with the same composition and efficacy as branded drugs. No middlemen — direct from manufacturers.",
-              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
-              color: "var(--brand-green)",
-              bg: "#E8F5E9",
-            },
-            {
-              title: "Pharmacist Verified",
-              body: "RPh B. Venkat Kumar (Reg #KA/2019/4821) reviews and approves every prescription before dispensing.",
-              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><path d="M9 12l2 2 4-4"/></svg>,
-              color: "#6366F1",
-              bg: "#EEF2FF",
-            },
-            {
-              title: "Nationwide Delivery",
-              body: "India Post Speed Post to all serviceable pincodes. Free delivery on orders above ₹300. 2-day delivery in T.S. & A.P.",
-              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
-              color: "#D97706",
-              bg: "#FEF3C7",
-            },
-            {
-              title: "Batch Tracked",
-              body: "Every medicine tracked by batch number, manufacturing and expiry date. First-expiry-first-out (FEFO) allocation.",
-              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>,
-              color: "#EC4899",
-              bg: "#FDF2F8",
-            },
-            {
-              title: "Data Privacy",
-              body: "DPDP Act 2023 compliant. Encrypted prescription storage. Your medical data is never shared with third parties.",
-              icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>,
-              color: "var(--text-primary)",
-              bg: "#F1F5F9",
-            },
-          ].map((card) => (
-            <div
-              key={card.title}
-              className="p-6 rounded-xl flex flex-col gap-4 transition-all hover:shadow-md"
-              style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
-            >
-              <div className="w-11 h-11 rounded-lg flex items-center justify-center" style={{ background: card.bg, color: card.color }}>
-                {card.icon}
-              </div>
-              <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{card.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{card.body}</p>
+        <Reveal>
+          <div className="text-center mb-10">
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center justify-center gap-2" style={{ color: "var(--brand-teal)" }}>
+              <span style={{ width: 20, height: 1.5, background: "var(--brand-teal)", borderRadius: 1, display: "inline-block" }} />
+              Why Suprameds
+              <span style={{ width: 20, height: 1.5, background: "var(--brand-teal)", borderRadius: 1, display: "inline-block" }} />
+            </p>
+            <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>
+              Built on trust, backed by compliance
+            </h2>
+          </div>
+        </Reveal>
+
+        {/* Bento grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Wide navy card */}
+          <Reveal className="sm:col-span-2 rounded-2xl p-8 transition-all hover:-translate-y-1" style={{ background: "var(--bg-inverse)", border: "1px solid transparent" }}>
+            <div className="w-11 h-11 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
-          ))}
+            <p className="text-4xl font-semibold mb-1" style={{ fontFamily: "Fraunces, Georgia, serif", background: "linear-gradient(135deg, #C9A55A, #DDB76A)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              0.0%
+            </p>
+            <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>No Hidden Markups</h3>
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>Direct from WHO-GMP certified manufacturers. No middlemen, no franchise fees. Just the real cost of quality medicine.</p>
+          </Reveal>
+
+          {/* Teal accent card */}
+          <Reveal delay={0.1} className="rounded-2xl p-8 transition-all hover:-translate-y-1" style={{ background: "linear-gradient(150deg, var(--brand-teal), #0a9272)", border: "1px solid transparent" }}>
+            <div className="w-11 h-11 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(255,255,255,0.1)" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>Pharmacist Verified</h3>
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>RPh B. Venkat Kumar (Reg #KA/2019/4821) reviews every prescription before dispensing. No exceptions.</p>
+          </Reveal>
+
+          {/* Regular cards */}
+          <Reveal delay={0.1} className="rounded-2xl p-8 transition-all hover:-translate-y-1 hover:shadow-lg" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+            <div className="w-11 h-11 rounded-lg flex items-center justify-center mb-4" style={{ background: "#E6F4F0", color: "var(--brand-teal)" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            </div>
+            <h3 className="text-sm font-bold mb-2" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>Batch Tracked</h3>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>Every medicine tracked by batch number, MFG & expiry date. FEFO allocation ensures freshness.</p>
+          </Reveal>
+
+          <Reveal delay={0.15} className="rounded-2xl p-8 transition-all hover:-translate-y-1 hover:shadow-lg" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+            <div className="w-11 h-11 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(217,79,59,0.06)", color: "#D94F3B" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+            <h3 className="text-sm font-bold mb-2" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>Pan-India Delivery</h3>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>India Post Speed Post to all serviceable pincodes. Free delivery on orders above ₹300.</p>
+          </Reveal>
+
+          <Reveal delay={0.2} className="rounded-2xl p-8 transition-all hover:-translate-y-1 hover:shadow-lg" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+            <div className="w-11 h-11 rounded-lg flex items-center justify-center mb-4" style={{ background: "rgba(184,146,47,0.07)", color: "#B8922F" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </div>
+            <h3 className="text-sm font-bold mb-2" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>Data Privacy</h3>
+            <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>DPDP Act 2023 compliant. Encrypted prescription storage. Your data is never shared.</p>
+          </Reveal>
         </div>
       </section>
 
@@ -476,12 +535,14 @@ const Home = () => {
       <section style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border-primary)" }}>
         <div className="content-container py-14 lg:py-18">
           <div className="max-w-3xl mx-auto">
+            <Reveal>
             <div className="text-center mb-10">
               <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal)" }}>Support</p>
               <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>
                 Frequently asked questions
               </h2>
             </div>
+            </Reveal>
 
             <div className="space-y-3">
               {FAQ_ITEMS.map((item, i) => {
@@ -514,20 +575,23 @@ const Home = () => {
           HOW IT WORKS — 4-step process
          ════════════════════════════════════════════ */}
       <section className="content-container py-14 lg:py-18">
+        <Reveal>
         <div className="text-center mb-10">
           <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal)" }}>How It Works</p>
           <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>
             Pharmacy-grade care, delivered home
           </h2>
         </div>
+        </Reveal>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
             { step: "01", title: "Search or Upload Rx", body: "Find your medicine by name or upload a doctor's prescription. We accept PDF, JPG, or photo uploads.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> },
             { step: "02", title: "Pharmacist Reviews", body: "Our registered pharmacist (RPh) reviews your order and verifies prescriptions within 4 hours.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg> },
             { step: "03", title: "Pay Your Way", body: "UPI, debit/credit card, netbanking, or Cash on Delivery. Orders before 2 PM ship same day.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg> },
             { step: "04", title: "Tracked Delivery", body: "India Post Speed Post to your door with live tracking. OTP confirmation for Rx orders.", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
-          ].map((item) => (
-            <div key={item.step} className="p-5 rounded-xl flex flex-col gap-3" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+          ].map((item, i) => (
+            <Reveal key={item.step} delay={0.1 + i * 0.1}>
+            <div className="p-5 rounded-xl flex flex-col gap-3 h-full transition-all hover:-translate-y-1 hover:shadow-lg" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
               <div className="flex items-start justify-between">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#F0FDFA", color: "var(--brand-teal)" }}>{item.icon}</div>
                 <span className="text-2xl font-light" style={{ color: "var(--border-primary)", fontFamily: "Fraunces, Georgia, serif" }}>{item.step}</span>
@@ -535,6 +599,7 @@ const Home = () => {
               <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{item.title}</h3>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{item.body}</p>
             </div>
+            </Reveal>
           ))}
         </div>
       </section>

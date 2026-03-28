@@ -245,6 +245,7 @@ export function SearchDropdown({
             </div>
           )}
 
+
           {totalCount > 5 && (
             <button
               type="button"

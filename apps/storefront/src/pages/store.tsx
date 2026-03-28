@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { trackViewItemList } from "@/lib/utils/analytics"
-import { useLoaderData } from "@tanstack/react-router"
-import { useEffect, useMemo, useState } from "react"
-import { useBulkPharma, type DrugProductMeta } from "@/lib/hooks/use-pharma"
+import { useLoaderData, useSearch } from "@tanstack/react-router"
+import { useMemo, useState, useEffect } from "react"
+import { useBulkPharma, usePharmaFilter, type DrugProductMeta } from "@/lib/hooks/use-pharma"
 import { HttpTypes } from "@medusajs/types"
 
 type ScheduleFilter = "all" | "rx" | "otc"
@@ -14,40 +14,47 @@ type EnrichedProduct = HttpTypes.StoreProduct & { drug_product?: DrugProductMeta
 
 const Store = () => {
   const { region } = useLoaderData({ from: "/$countryCode/store" })
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [debouncedQuery, setDebouncedQuery] = useState("")
-  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>("all")
-  const [formFilter, setFormFilter] = useState<string>("all")
+  const searchParams = useSearch({ strict: false }) as Record<string, string>
+  const initialSchedule = (searchParams?.schedule as ScheduleFilter) || "all"
 
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>()
+  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>(initialSchedule)
+  const [formFilter, setFormFilter] = useState<string>("all")
 
   const { data: categories } = useCategories({
     fields: "id,name,handle",
     queryParams: { parent_category_id: "null", limit: 12 },
   })
 
-  // Pass `q` to Medusa API for server-side text search
+  // Server-side pharma filter: returns matching product_ids for schedule/form
+  const hasPharmaFilter = scheduleFilter !== "all" || formFilter !== "all"
+  const { data: filteredIds, isFetching: isFilterFetching } = usePharmaFilter(
+    scheduleFilter !== "all" ? scheduleFilter : undefined,
+    formFilter !== "all" ? formFilter : undefined,
+  )
+
+  // Pass filtered IDs to Medusa's paginated product list
+  // When pharma filter is active but returns 0 results, pass a dummy ID to get 0 products
+  const pharmaIdFilter = hasPharmaFilter
+    ? (filteredIds && filteredIds.length > 0 ? filteredIds : ["__none__"])
+    : undefined
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useProducts({
     region_id: region?.id,
     query_params: {
       limit: 12,
       category_id: selectedCategory ? [selectedCategory] : undefined,
-      ...(debouncedQuery ? { q: debouncedQuery } : {}),
+      ...(pharmaIdFilter ? { id: pharmaIdFilter } : {}),
     },
   })
 
   const products = data?.pages.flatMap((page) => page.products) || []
 
-  // Fetch pharma metadata for all products (lifted from ProductGrid for filtering)
+  // Fetch pharma metadata for display (MRP, manufacturer, etc.)
   const productIds = useMemo(() => products.map((p) => p.id).filter(Boolean), [products])
   const { data: pharmaMap } = useBulkPharma(productIds)
 
-  // Enrich products with pharma data
+  // Enrich products with pharma data for display
   const enrichedProducts = useMemo((): EnrichedProduct[] => {
     if (!pharmaMap) return products
     return products.map((p) => {
@@ -57,48 +64,22 @@ const Store = () => {
     })
   }, [products, pharmaMap])
 
-  // Build dynamic form filter options from loaded products
+  // Build dynamic form filter options from ALL pharma data (not just loaded page)
+  // We fetch distinct forms from the bulk pharma response
   const availableForms = useMemo(() => {
+    if (!pharmaMap) return []
     const forms = new Set<string>()
-    for (const p of enrichedProducts) {
-      const form = (p as EnrichedProduct).drug_product?.dosage_form
-      if (form) forms.add(form.toLowerCase())
+    for (const dp of Object.values(pharmaMap)) {
+      if (dp.dosage_form) forms.add(dp.dosage_form.toLowerCase())
     }
     return Array.from(forms).sort()
-  }, [enrichedProducts])
+  }, [pharmaMap])
 
-  // Apply client-side schedule + form filters (search is now server-side via `q` param)
-  const filteredProducts = useMemo(() => {
-    let result = enrichedProducts
-
-    // Schedule filter (Rx / OTC)
-    if (scheduleFilter !== "all") {
-      result = result.filter((p) => {
-        const dp = (p as EnrichedProduct).drug_product
-        if (!dp?.schedule) return scheduleFilter === "otc"
-        if (scheduleFilter === "rx") return dp.schedule === "H" || dp.schedule === "H1"
-        return dp.schedule === "OTC"
-      })
-    }
-
-    // Form filter
-    if (formFilter !== "all") {
-      result = result.filter((p) => {
-        const dp = (p as EnrichedProduct).drug_product
-        return dp?.dosage_form?.toLowerCase() === formFilter
-      })
-    }
-
-    return result
-  }, [enrichedProducts, scheduleFilter, formFilter])
-
-  const hasActiveFilters = debouncedQuery || scheduleFilter !== "all" || formFilter !== "all"
-  const totalCount = enrichedProducts.length
-  const filteredCount = filteredProducts.length
+  const hasActiveFilters = hasPharmaFilter
+  const displayCount = enrichedProducts.length
+  const isLoading = isFetching || isFilterFetching
 
   const clearAll = () => {
-    setSearchQuery("")
-    setDebouncedQuery("")
     setScheduleFilter("all")
     setFormFilter("all")
   }
@@ -151,39 +132,6 @@ const Store = () => {
       </div>
 
       <div className="content-container py-8">
-        {/* ── Search bar ── */}
-        <div className="relative mb-4">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by medicine name, composition, or generic name..."
-            className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none transition-shadow focus:ring-2"
-            style={{
-              background: "var(--bg-secondary)",
-              border: "1px solid var(--border-primary)",
-              color: "var(--text-primary)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-            }}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => { setSearchQuery(""); setDebouncedQuery(""); }}
-              className="absolute inset-y-0 right-0 flex items-center pr-3.5 transition-opacity hover:opacity-70"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          )}
-        </div>
-
         {/* ── Filter chips ── */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {/* Schedule type filter */}
@@ -275,25 +223,21 @@ const Store = () => {
         )}
 
         {/* Result count */}
-        {hasActiveFilters && (
+        {hasActiveFilters && !isLoading && (
           <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
-            {debouncedQuery ? (
-              <>Showing <strong style={{ color: "var(--text-primary)" }}>{filteredCount}</strong> result{filteredCount !== 1 ? "s" : ""} for &ldquo;{debouncedQuery}&rdquo;</>
-            ) : (
-              <>Showing <strong style={{ color: "var(--text-primary)" }}>{filteredCount}</strong> of {totalCount} medicines</>
-            )}
+            Showing <strong style={{ color: "var(--text-primary)" }}>{displayCount}</strong> medicine{displayCount !== 1 ? "s" : ""}
           </p>
         )}
 
         {/* Products grid */}
-        {isFetching && products.length === 0 ? (
+        {isLoading && products.length === 0 ? (
           <div className="flex items-center justify-center py-16">
             <div
               className="w-6 h-6 border-2 rounded-full animate-spin"
               style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
             />
           </div>
-        ) : filteredProducts.length === 0 ? (
+        ) : enrichedProducts.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
               No medicines found{hasActiveFilters ? " matching your filters" : selectedCategory ? " in this category" : ""}.
@@ -310,15 +254,13 @@ const Store = () => {
           </div>
         ) : (
           <>
-            {/* Pass pre-enriched products — ProductGrid will skip re-fetching pharma data
-                since products already have drug_product attached */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredProducts.map((product) => (
+              {enrichedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
 
-            {hasNextPage && !hasActiveFilters && (
+            {hasNextPage && (
               <div className="text-center mt-8">
                 <Button
                   onClick={() => fetchNextPage()}
