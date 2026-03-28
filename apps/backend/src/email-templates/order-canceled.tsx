@@ -57,7 +57,7 @@ export default function OrderCanceled({
         />
       </Head>
       <Preview>
-        Your order #{display_id} has been cancelled.
+        {`Your order #${display_id} has been cancelled.`}
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
@@ -98,7 +98,7 @@ export default function OrderCanceled({
                   margin: "4px 0 0",
                 }}
               >
-                Your order #{display_id} has been cancelled.
+                {`Your order #${display_id} has been cancelled.`}
               </Text>
             </Section>
 
@@ -109,7 +109,7 @@ export default function OrderCanceled({
 
             <Section style={styles.addressBlock}>
               <Text style={{ ...styles.text, margin: "0 0 4px" }}>
-                <strong>Order #:</strong> {display_id}
+                <strong>Order #:</strong> {String(display_id)}
               </Text>
               <Text style={{ ...styles.text, margin: "0 0 4px" }}>
                 <strong>Reason:</strong>

@@ -186,17 +186,24 @@ const templates: Record<string, TemplateRenderer> = {
 // Each module must export: default (component) + subject (fn → string).
 
 type ReactEmailModule = {
-  default: (props: any) => React.ReactElement
-  subject: (data: Record<string, unknown>) => string
+  default: any
+  subject: (data: any) => string
 }
 
 const reactEmailTemplates: Record<string, () => Promise<ReactEmailModule>> = {
-  "prescription-approved": () => import("../../email-templates/prescription-approved"),
-  "prescription-rejected": () => import("../../email-templates/prescription-rejected"),
-  "shipping-confirmation": () => import("../../email-templates/shipping-confirmation"),
-  "delivery-confirmation": () => import("../../email-templates/delivery-confirmation"),
-  "refund-processed": () => import("../../email-templates/refund-processed"),
-  "order-canceled": () => import("../../email-templates/order-canceled"),
+  // Core transactional templates (migrated from inline)
+  "order-confirmation": () => import("../../email-templates/order-confirmation.js"),
+  "welcome": () => import("../../email-templates/welcome.js"),
+  "user-invited": () => import("../../email-templates/user-invited.js"),
+  "payment-confirmed": () => import("../../email-templates/payment-confirmed.js"),
+  "password-reset": () => import("../../email-templates/password-reset.js"),
+  // Pharmacy & order lifecycle templates
+  "prescription-approved": () => import("../../email-templates/prescription-approved.js"),
+  "prescription-rejected": () => import("../../email-templates/prescription-rejected.js"),
+  "shipping-confirmation": () => import("../../email-templates/shipping-confirmation.js"),
+  "delivery-confirmation": () => import("../../email-templates/delivery-confirmation.js"),
+  "refund-processed": () => import("../../email-templates/refund-processed.js"),
+  "order-canceled": () => import("../../email-templates/order-canceled.js"),
 }
 
 /**

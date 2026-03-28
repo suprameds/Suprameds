@@ -61,7 +61,7 @@ export default function ShippingConfirmation({
         />
       </Head>
       <Preview>
-        Your order #{display_id} is on its way via {carrier}!
+        {`Your order #${display_id} is on its way via ${carrier}!`}
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
@@ -81,7 +81,7 @@ export default function ShippingConfirmation({
                 Order Shipped!
               </Text>
               <Text style={styles.orderBannerSub}>
-                Your order #{display_id} is on its way to you.
+                {`Your order #${display_id} is on its way to you.`}
               </Text>
             </Section>
 
@@ -92,7 +92,7 @@ export default function ShippingConfirmation({
 
             <Section style={styles.addressBlock}>
               <Text style={{ ...styles.text, margin: "0 0 4px" }}>
-                <strong>Order #:</strong> {display_id}
+                <strong>Order #:</strong> {String(display_id)}
               </Text>
               <Text style={{ ...styles.text, margin: "0 0 4px" }}>
                 <strong>Carrier:</strong> {carrier}

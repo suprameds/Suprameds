@@ -1,4 +1,5 @@
 import ProductCard from "@/components/product-card"
+import { ProductGridSkeleton } from "@/components/ui/product-card-skeleton"
 import { useSearch, type SearchProduct } from "@/lib/hooks/use-search"
 import { trackSearch } from "@/lib/utils/analytics"
 import { Link, useLoaderData, useNavigate } from "@tanstack/react-router"
@@ -153,12 +154,7 @@ const Search = () => {
                 </p>
               </div>
             ) : isSearching ? (
-              <div className="flex items-center justify-center py-20">
-                <div
-                  className="w-8 h-8 border-2 rounded-full animate-spin"
-                  style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
-                />
-              </div>
+              <ProductGridSkeleton count={8} />
             ) : products.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-lg font-medium mb-2" style={{ color: "var(--text-primary)" }}>
@@ -178,7 +174,7 @@ const Search = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                   {adaptedProducts.map((product) => (
                     <ProductCard key={product.id} product={product as any} />
                   ))}

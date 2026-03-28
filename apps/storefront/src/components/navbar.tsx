@@ -301,7 +301,7 @@ export const Navbar = () => {
 
           {/* Mobile menu */}
           <Drawer>
-            <DrawerTrigger className="lg:hidden" style={{ color: "var(--text-primary)" }}>
+            <DrawerTrigger className="lg:hidden" style={{ color: "var(--text-primary)" }} aria-label="Open menu">
               <MenuIcon />
             </DrawerTrigger>
             <DrawerContent side="left">

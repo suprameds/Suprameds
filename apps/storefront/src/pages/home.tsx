@@ -4,6 +4,7 @@ import { useCategories } from "@/lib/hooks/use-categories"
 import { getProductPrice } from "@/lib/utils/price"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import ProductCard from "@/components/product-card"
+import { ProductGridSkeleton } from "@/components/ui/product-card-skeleton"
 import { Reveal } from "@/components/ui/reveal"
 import { Counter } from "@/components/ui/counter"
 import { Link, useLocation, useLoaderData, useNavigate } from "@tanstack/react-router"
@@ -86,7 +87,7 @@ const Home = () => {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { region } = useLoaderData({ from: "/$countryCode/" })
 
-  const { data: latestProductsData } = useLatestProducts({ limit: 8, region_id: region?.id })
+  const { data: latestProductsData, isFetching: isProductsFetching } = useLatestProducts({ limit: 8, region_id: region?.id })
   const products = latestProductsData?.products ?? []
 
   const { data: categories } = useCategories({
@@ -346,7 +347,7 @@ const Home = () => {
       {/* ════════════════════════════════════════════
           FEATURED PRODUCTS
          ════════════════════════════════════════════ */}
-      {products.length > 0 && (
+      {(products.length > 0 || isProductsFetching) && (
         <section className="content-container py-14 lg:py-18">
           <Reveal>
           <div className="flex items-end justify-between mb-8">
@@ -366,11 +367,15 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
-            {products.slice(0, 8).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {isProductsFetching && products.length === 0 ? (
+            <ProductGridSkeleton count={4} />
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+              {products.slice(0, 8).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
 
           <div className="mt-6 md:hidden text-center">
             <Link
