@@ -11,7 +11,7 @@ import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { Link, useLocation, useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 
 const MenuIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-5 h-5">
@@ -70,6 +70,32 @@ export const Navbar = () => {
     handle: cat.handle,
   })) ?? []
 
+  // Close <details> dropdown on click-outside, Escape key, or route change
+  const detailsRef = useRef<HTMLDetailsElement>(null)
+  const closeDropdown = () => {
+    if (detailsRef.current) detailsRef.current.open = false
+  }
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (detailsRef.current?.open && !detailsRef.current.contains(e.target as Node)) {
+        closeDropdown()
+      }
+    }
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeDropdown()
+    }
+    document.addEventListener("click", handleClickOutside)
+    document.addEventListener("keydown", handleEscape)
+    return () => {
+      document.removeEventListener("click", handleClickOutside)
+      document.removeEventListener("keydown", handleEscape)
+    }
+  }, [])
+
+  // Close on route change
+  useEffect(() => { closeDropdown() }, [location.pathname])
+
   return (
     <div className="sticky top-0 inset-x-0 z-40">
 
@@ -79,14 +105,14 @@ export const Navbar = () => {
 
           {/* Desktop Navigation (plain links to avoid Radix NavigationMenu render loop in React 19) */}
           <div className="hidden lg:flex items-center gap-x-8 h-full">
-            <details className="group relative">
+            <details ref={detailsRef} className="group relative">
               <summary
-                className="list-none flex items-center gap-1 text-sm font-medium cursor-pointer"
+                className="list-none flex items-center gap-1 text-sm font-medium cursor-pointer select-none"
                 style={{ color: "#0D1B2A" }}
                 aria-label="Medicines menu"
               >
                 Medicines
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginTop: 1 }} aria-hidden="true">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform duration-200 group-open:rotate-180" style={{ marginTop: 1 }} aria-hidden="true">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </summary>
@@ -97,6 +123,7 @@ export const Navbar = () => {
                 <Link
                   to="/$countryCode/store"
                   params={{ countryCode }}
+                  onClick={closeDropdown}
                   className="block px-2 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded"
                   style={{ color: "#0D1B2A" }}
                 >
@@ -107,6 +134,7 @@ export const Navbar = () => {
                     key={link.id}
                     to="/$countryCode/categories/$handle"
                     params={{ countryCode, handle: link.handle }}
+                    onClick={closeDropdown}
                     className="block px-2 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded"
                     style={{ color: "#0D1B2A" }}
                   >

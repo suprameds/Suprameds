@@ -2,6 +2,8 @@ import { getProductPrice } from "@/lib/utils/price"
 import { Thumbnail } from "@/components/ui/thumbnail"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
+import { useAddToCart } from "@/lib/hooks/use-cart"
+import { useCartDrawer } from "@/lib/context/cart"
 import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
 import { WishlistButton } from "@/components/wishlist-button"
@@ -63,6 +65,27 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const mrpRupees = drug?.mrp_paise ? drug.mrp_paise / 100 : null
   const sellingPrice = cheapestPrice?.calculated_price_number ?? null
   const hasMrpDiscount = mrpRupees !== null && sellingPrice !== null && mrpRupees > sellingPrice
+
+  // Add to cart
+  const addToCartMutation = useAddToCart()
+  const { openCart } = useCartDrawer()
+  const variant = product.variants?.[0]
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!variant?.id || isBlocked) return
+    addToCartMutation.mutate(
+      {
+        variant_id: variant.id,
+        quantity: 1,
+        country_code: countryCode,
+        product,
+        variant,
+      },
+      { onSuccess: () => openCart() }
+    )
+  }
 
   return (
     <Link
@@ -172,7 +195,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="mt-auto pt-2 flex items-end justify-between gap-2">
           <div className="flex flex-col">
             {/* Current price */}
-            <span className="text-base font-bold" style={{ color: "#0D1B2A" }}>
+            <span className="text-base font-bold" style={{ color: "#16A34A" }}>
               {cheapestPrice?.calculated_price ?? "—"}
             </span>
 
@@ -203,6 +226,56 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </span>
           )}
         </div>
+
+        {/* ── Add to Cart / Upload Rx button ── */}
+        {!isBlocked && (
+          <div className="pt-2 pointer-events-auto">
+            {isRx ? (
+              <span
+                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-colors"
+                style={{
+                  background: "rgba(243,156,18,0.08)",
+                  color: "#B45309",
+                  border: "1px solid rgba(243,156,18,0.25)",
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                Upload Rx & Buy
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                disabled={addToCartMutation.isPending}
+                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50"
+                style={{
+                  background: "linear-gradient(135deg, #16A34A, #22C55E)",
+                  color: "#fff",
+                }}
+              >
+                {addToCartMutation.isPending ? (
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Adding...
+                  </span>
+                ) : (
+                  <>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    </svg>
+                    Add to Cart
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   )

@@ -1,29 +1,107 @@
-import ProductGrid from "@/components/product-grid"
+import ProductCard from "@/components/product-card"
 import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { trackViewItemList } from "@/lib/utils/analytics"
 import { useLoaderData } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { useBulkPharma, type DrugProductMeta } from "@/lib/hooks/use-pharma"
+import { HttpTypes } from "@medusajs/types"
+
+type ScheduleFilter = "all" | "rx" | "otc"
+
+type EnrichedProduct = HttpTypes.StoreProduct & { drug_product?: DrugProductMeta }
 
 const Store = () => {
   const { region } = useLoaderData({ from: "/$countryCode/store" })
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>()
+  const [searchQuery, setSearchQuery] = useState("")
+  const [debouncedQuery, setDebouncedQuery] = useState("")
+  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>("all")
+  const [formFilter, setFormFilter] = useState<string>("all")
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   const { data: categories } = useCategories({
     fields: "id,name,handle",
     queryParams: { parent_category_id: "null", limit: 12 },
   })
 
+  // Pass `q` to Medusa API for server-side text search
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useProducts({
     region_id: region?.id,
     query_params: {
       limit: 12,
       category_id: selectedCategory ? [selectedCategory] : undefined,
+      ...(debouncedQuery ? { q: debouncedQuery } : {}),
     },
   })
 
   const products = data?.pages.flatMap((page) => page.products) || []
+
+  // Fetch pharma metadata for all products (lifted from ProductGrid for filtering)
+  const productIds = useMemo(() => products.map((p) => p.id).filter(Boolean), [products])
+  const { data: pharmaMap } = useBulkPharma(productIds)
+
+  // Enrich products with pharma data
+  const enrichedProducts = useMemo((): EnrichedProduct[] => {
+    if (!pharmaMap) return products
+    return products.map((p) => {
+      const dp = pharmaMap[p.id]
+      if (!dp) return p
+      return { ...p, drug_product: dp }
+    })
+  }, [products, pharmaMap])
+
+  // Build dynamic form filter options from loaded products
+  const availableForms = useMemo(() => {
+    const forms = new Set<string>()
+    for (const p of enrichedProducts) {
+      const form = (p as EnrichedProduct).drug_product?.dosage_form
+      if (form) forms.add(form.toLowerCase())
+    }
+    return Array.from(forms).sort()
+  }, [enrichedProducts])
+
+  // Apply client-side schedule + form filters (search is now server-side via `q` param)
+  const filteredProducts = useMemo(() => {
+    let result = enrichedProducts
+
+    // Schedule filter (Rx / OTC)
+    if (scheduleFilter !== "all") {
+      result = result.filter((p) => {
+        const dp = (p as EnrichedProduct).drug_product
+        if (!dp?.schedule) return scheduleFilter === "otc"
+        if (scheduleFilter === "rx") return dp.schedule === "H" || dp.schedule === "H1"
+        return dp.schedule === "OTC"
+      })
+    }
+
+    // Form filter
+    if (formFilter !== "all") {
+      result = result.filter((p) => {
+        const dp = (p as EnrichedProduct).drug_product
+        return dp?.dosage_form?.toLowerCase() === formFilter
+      })
+    }
+
+    return result
+  }, [enrichedProducts, scheduleFilter, formFilter])
+
+  const hasActiveFilters = debouncedQuery || scheduleFilter !== "all" || formFilter !== "all"
+  const totalCount = enrichedProducts.length
+  const filteredCount = filteredProducts.length
+
+  const clearAll = () => {
+    setSearchQuery("")
+    setDebouncedQuery("")
+    setScheduleFilter("all")
+    setFormFilter("all")
+  }
 
   useEffect(() => {
     if (products.length) {
@@ -73,6 +151,98 @@ const Store = () => {
       </div>
 
       <div className="content-container py-8">
+        {/* ── Search bar ── */}
+        <div className="relative mb-4">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by medicine name, composition, or generic name..."
+            className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none transition-shadow focus:ring-2"
+            style={{
+              background: "#fff",
+              border: "1px solid #EDE9E1",
+              color: "#0D1B2A",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+            }}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => { setSearchQuery(""); setDebouncedQuery(""); }}
+              className="absolute inset-y-0 right-0 flex items-center pr-3.5 transition-opacity hover:opacity-70"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* ── Filter chips ── */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {/* Schedule type filter */}
+          <span className="text-[11px] font-medium mr-1" style={{ color: "#6B7280" }}>Type:</span>
+          {(["all", "rx", "otc"] as ScheduleFilter[]).map((val) => {
+            const labels: Record<ScheduleFilter, string> = { all: "All", rx: "Rx Only", otc: "OTC" }
+            return (
+              <button
+                key={val}
+                onClick={() => setScheduleFilter(val)}
+                className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                style={{
+                  background: scheduleFilter === val ? (val === "rx" ? "#F59E0B" : val === "otc" ? "#0E7C86" : "#0D1B2A") : "#fff",
+                  color: scheduleFilter === val ? "#fff" : "#0D1B2A",
+                  border: `1px solid ${scheduleFilter === val ? "transparent" : "#EDE9E1"}`,
+                }}
+              >
+                {labels[val]}
+              </button>
+            )
+          })}
+
+          <span className="w-px h-4 mx-1" style={{ background: "#EDE9E1" }} />
+
+          {/* Dosage form filter (dynamic from loaded products) */}
+          {availableForms.length > 0 && (
+            <>
+              <span className="text-[11px] font-medium mr-1" style={{ color: "#6B7280" }}>Form:</span>
+              {["all", ...availableForms].map((val) => (
+                <button
+                  key={val}
+                  onClick={() => setFormFilter(val)}
+                  className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors capitalize"
+                  style={{
+                    background: formFilter === val ? "#0E7C86" : "#fff",
+                    color: formFilter === val ? "#fff" : "#0D1B2A",
+                    border: `1px solid ${formFilter === val ? "transparent" : "#EDE9E1"}`,
+                  }}
+                >
+                  {val === "all" ? "All" : val}
+                </button>
+              ))}
+            </>
+          )}
+
+          {hasActiveFilters && (
+            <>
+              <span className="w-px h-4 mx-1" style={{ background: "#EDE9E1" }} />
+              <button
+                onClick={clearAll}
+                className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                style={{ color: "#EF4444", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
+              >
+                Clear All
+              </button>
+            </>
+          )}
+        </div>
+
         {/* Category quick-filters */}
         {categories && categories.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
@@ -104,6 +274,17 @@ const Store = () => {
           </div>
         )}
 
+        {/* Result count */}
+        {hasActiveFilters && (
+          <p className="text-xs mb-4" style={{ color: "#6B7280" }}>
+            {debouncedQuery ? (
+              <>Showing <strong style={{ color: "#0D1B2A" }}>{filteredCount}</strong> result{filteredCount !== 1 ? "s" : ""} for &ldquo;{debouncedQuery}&rdquo;</>
+            ) : (
+              <>Showing <strong style={{ color: "#0D1B2A" }}>{filteredCount}</strong> of {totalCount} medicines</>
+            )}
+          </p>
+        )}
+
         {/* Products grid */}
         {isFetching && products.length === 0 ? (
           <div className="flex items-center justify-center py-16">
@@ -112,17 +293,32 @@ const Store = () => {
               style={{ borderColor: "#EDE9E1", borderTopColor: "#0E7C86" }}
             />
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-sm" style={{ color: "#666" }}>
-              No medicines found{selectedCategory ? " in this category" : ""}. Try a different filter.
+            <p className="text-sm mb-3" style={{ color: "#666" }}>
+              No medicines found{hasActiveFilters ? " matching your filters" : selectedCategory ? " in this category" : ""}.
             </p>
+            {hasActiveFilters && (
+              <button
+                onClick={clearAll}
+                className="text-sm font-medium underline transition-opacity hover:opacity-70"
+                style={{ color: "#0E7C86" }}
+              >
+                Clear all filters
+              </button>
+            )}
           </div>
         ) : (
           <>
-            <ProductGrid products={products} />
+            {/* Pass pre-enriched products — ProductGrid will skip re-fetching pharma data
+                since products already have drug_product attached */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
 
-            {hasNextPage && (
+            {hasNextPage && !hasActiveFilters && (
               <div className="text-center mt-8">
                 <Button
                   onClick={() => fetchNextPage()}
