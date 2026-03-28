@@ -1,4 +1,5 @@
 import { CartDropdown } from "@/components/cart"
+import { SearchDropdown, saveRecentSearch } from "@/components/search-dropdown"
 import {
   Drawer,
   DrawerClose,
@@ -54,18 +55,77 @@ export const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
+  // Search dropdown state
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [highlightIndex, setHighlightIndex] = useState(-1)
+  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = searchQuery.trim()
     if (trimmed) {
+      saveRecentSearch(trimmed)
       navigate({
         to: "/$countryCode/search",
         params: { countryCode },
         search: { q: trimmed },
       })
       setSearchQuery("")
+      setSearchFocused(false)
     }
   }
+
+  const handleSearchFocus = () => {
+    if (blurTimeout.current) clearTimeout(blurTimeout.current)
+    setSearchFocused(true)
+    setHighlightIndex(-1)
+  }
+
+  const handleSearchBlur = () => {
+    // Delay to allow click on dropdown items to register
+    blurTimeout.current = setTimeout(() => setSearchFocused(false), 200)
+  }
+
+  const handleSelectProduct = (handle: string) => {
+    saveRecentSearch(searchQuery.trim())
+    navigate({
+      to: "/$countryCode/products/$handle",
+      params: { countryCode, handle },
+    })
+    setSearchQuery("")
+    setSearchFocused(false)
+  }
+
+  const handleSubmitFromDropdown = (q: string) => {
+    saveRecentSearch(q)
+    navigate({
+      to: "/$countryCode/search",
+      params: { countryCode },
+      search: { q },
+    })
+    setSearchQuery("")
+    setSearchFocused(false)
+  }
+
+  const handleFillRecent = (q: string) => {
+    setSearchQuery(q)
+    setHighlightIndex(-1)
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      setHighlightIndex((prev) => prev + 1)
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      setHighlightIndex((prev) => Math.max(-1, prev - 1))
+    } else if (e.key === "Escape") {
+      setSearchFocused(false)
+    }
+  }
+
+  // Close dropdown on route change
+  useEffect(() => { setSearchFocused(false) }, [location.pathname])
 
   const { data: topLevelCategories } = useCategories({
     fields: "id,name,handle,parent_category_id",
@@ -178,23 +238,43 @@ export const Navbar = () => {
               Prescription Policy
             </Link>
 
-            <form onSubmit={handleSearch} className="flex items-center ml-2" role="search" aria-label="Search medicines">
+            <form onSubmit={handleSearch} className="relative ml-2" role="search" aria-label="Search medicines">
               <div
-                className="flex items-center rounded-lg overflow-hidden"
-                style={{ background: "#F8F6F2", border: "1px solid #EDE9E1" }}
+                className="flex items-center rounded-lg overflow-hidden transition-all"
+                style={{
+                  background: searchFocused ? "#fff" : "#F8F6F2",
+                  border: searchFocused ? "1px solid #0E7C86" : "1px solid #EDE9E1",
+                  boxShadow: searchFocused ? "0 0 0 3px rgba(14,124,134,0.08)" : "none",
+                }}
               >
-                <div className="pl-2.5" style={{ color: "#999" }}>
+                <div className="pl-2.5" style={{ color: searchFocused ? "#0E7C86" : "#999" }}>
                   <SearchIcon />
                 </div>
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setHighlightIndex(-1) }}
+                  onFocus={handleSearchFocus}
+                  onBlur={handleSearchBlur}
+                  onKeyDown={handleSearchKeyDown}
                   placeholder="Search medicines..."
                   className="px-2 py-1.5 text-xs outline-none bg-transparent w-36 xl:w-48"
                   style={{ color: "#0D1B2A" }}
+                  autoComplete="off"
                 />
               </div>
+
+              <SearchDropdown
+                query={searchQuery}
+                isOpen={searchFocused}
+                highlightIndex={highlightIndex}
+                onClose={() => setSearchFocused(false)}
+                onSelectProduct={handleSelectProduct}
+                onSubmitSearch={handleSubmitFromDropdown}
+                onSetHighlight={setHighlightIndex}
+                onFillRecent={handleFillRecent}
+                countryCode={countryCode}
+              />
             </form>
           </div>
 
