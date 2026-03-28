@@ -94,57 +94,47 @@ const ProductCard = ({ product }: ProductCardProps) => {
       className="group relative flex flex-col w-full rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg"
       style={{ background: "#fff", border: "1px solid #E8E4DD" }}
     >
-      {/* ── Badges overlay ── */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-start justify-between p-2.5 pointer-events-none">
-        {/* Left: discount badge */}
-        <div className="flex flex-col gap-1.5">
-          {discount && discount > 0 && (
-            <span
-              className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tracking-wide shadow-sm"
-              style={{
-                background: discount >= 40
-                  ? "linear-gradient(135deg, #16A34A, #22C55E)"
-                  : discount >= 20
-                    ? "#27AE60"
-                    : "#4ADE80",
-                color: "#fff",
-              }}
-            >
-              {discount}% OFF
-            </span>
-          )}
-        </div>
-
-        {/* Right: Rx / OTC badge */}
-        <div className="flex flex-col items-end gap-1.5">
-          {isRx && (
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
-              style={{
-                background: "rgba(255,255,255,0.92)",
-                color: "#B45309",
-                border: "1.5px solid #F59E0B",
-                backdropFilter: "blur(4px)",
-              }}
-            >
-              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M4 2v12M4 2h4.5a3.5 3.5 0 0 1 0 7H4m4 0 4 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Rx
-            </span>
-          )}
-          {isBlocked && (
-            <span
-              className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
-              style={{ background: "#FEE2E2", color: "#991B1B", border: "1.5px solid #FECACA" }}
-            >
-              Schedule X
-            </span>
-          )}
-        </div>
+      {/* ── Top-left badges ── */}
+      <div className="absolute top-0 left-0 z-10 flex flex-col gap-1.5 p-2.5 pointer-events-none">
+        {discount && discount > 0 && (
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tracking-wide shadow-sm"
+            style={{
+              background: discount >= 40
+                ? "linear-gradient(135deg, #16A34A, #22C55E)"
+                : discount >= 20
+                  ? "#27AE60"
+                  : "#4ADE80",
+              color: "#fff",
+            }}
+          >
+            {discount}% OFF
+          </span>
+        )}
+        {isRx && (
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              color: "#B45309",
+              border: "1.5px solid #F59E0B",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            Rx
+          </span>
+        )}
+        {isBlocked && (
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
+            style={{ background: "#FEE2E2", color: "#991B1B", border: "1.5px solid #FECACA" }}
+          >
+            Schedule X
+          </span>
+        )}
       </div>
 
-      {/* ── Wishlist button ── */}
+      {/* ── Wishlist button (top-right, no overlap) ── */}
       <WishlistButton
         productId={product.id}
         variantId={product.variants?.[0]?.id}
@@ -227,53 +217,34 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
 
-        {/* ── Add to Cart / Upload Rx button ── */}
-        {!isBlocked && (
+        {/* ── Add to Cart button (OTC only) ── */}
+        {!isBlocked && !isRx && (
           <div className="pt-2 pointer-events-auto">
-            {isRx ? (
-              <span
-                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-colors"
-                style={{
-                  background: "rgba(243,156,18,0.08)",
-                  color: "#B45309",
-                  border: "1px solid rgba(243,156,18,0.25)",
-                }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
-                </svg>
-                Upload Rx & Buy
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={addToCartMutation.isPending}
-                className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50"
-                style={{
-                  background: "linear-gradient(135deg, #16A34A, #22C55E)",
-                  color: "#fff",
-                }}
-              >
-                {addToCartMutation.isPending ? (
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Adding...
-                  </span>
-                ) : (
-                  <>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-                    </svg>
-                    Add to Cart
-                  </>
-                )}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={addToCartMutation.isPending}
+              className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50"
+              style={{
+                background: "linear-gradient(135deg, #16A34A, #22C55E)",
+                color: "#fff",
+              }}
+            >
+              {addToCartMutation.isPending ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Adding...
+                </span>
+              ) : (
+                <>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                  </svg>
+                  Add to Cart
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>
