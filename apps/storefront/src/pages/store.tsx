@@ -4,7 +4,7 @@ import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { trackViewItemList } from "@/lib/utils/analytics"
 import { useLoaderData, useSearch } from "@tanstack/react-router"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { useBulkPharma, usePharmaFilter, type DrugProductMeta } from "@/lib/hooks/use-pharma"
 import { HttpTypes } from "@medusajs/types"
 
@@ -18,16 +18,8 @@ const Store = () => {
   const initialSchedule = (searchParams?.schedule as ScheduleFilter) || "all"
 
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [debouncedQuery, setDebouncedQuery] = useState("")
   const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>(initialSchedule)
   const [formFilter, setFormFilter] = useState<string>("all")
-
-  // Debounce search input
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 300)
-    return () => clearTimeout(timer)
-  }, [searchQuery])
 
   const { data: categories } = useCategories({
     fields: "id,name,handle",
@@ -52,7 +44,6 @@ const Store = () => {
     query_params: {
       limit: 12,
       category_id: selectedCategory ? [selectedCategory] : undefined,
-      ...(debouncedQuery ? { q: debouncedQuery } : {}),
       ...(pharmaIdFilter ? { id: pharmaIdFilter } : {}),
     },
   })
@@ -84,13 +75,11 @@ const Store = () => {
     return Array.from(forms).sort()
   }, [pharmaMap])
 
-  const hasActiveFilters = !!debouncedQuery || hasPharmaFilter
+  const hasActiveFilters = hasPharmaFilter
   const displayCount = enrichedProducts.length
   const isLoading = isFetching || isFilterFetching
 
   const clearAll = () => {
-    setSearchQuery("")
-    setDebouncedQuery("")
     setScheduleFilter("all")
     setFormFilter("all")
   }
@@ -143,39 +132,6 @@ const Store = () => {
       </div>
 
       <div className="content-container py-8">
-        {/* ── Search bar ── */}
-        <div className="relative mb-4">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by medicine name, composition, or generic name..."
-            className="w-full pl-10 pr-10 py-3 rounded-xl text-sm outline-none transition-shadow focus:ring-2"
-            style={{
-              background: "#fff",
-              border: "1px solid #EDE9E1",
-              color: "#0D1B2A",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-            }}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => { setSearchQuery(""); setDebouncedQuery(""); }}
-              className="absolute inset-y-0 right-0 flex items-center pr-3.5 transition-opacity hover:opacity-70"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round">
-                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-            </button>
-          )}
-        </div>
-
         {/* ── Filter chips ── */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {/* Schedule type filter */}
@@ -269,11 +225,7 @@ const Store = () => {
         {/* Result count */}
         {hasActiveFilters && !isLoading && (
           <p className="text-xs mb-4" style={{ color: "#6B7280" }}>
-            {debouncedQuery ? (
-              <>Showing <strong style={{ color: "#0D1B2A" }}>{displayCount}</strong> result{displayCount !== 1 ? "s" : ""} for &ldquo;{debouncedQuery}&rdquo;</>
-            ) : (
-              <>Showing <strong style={{ color: "#0D1B2A" }}>{displayCount}</strong> medicine{displayCount !== 1 ? "s" : ""}</>
-            )}
+            Showing <strong style={{ color: "#0D1B2A" }}>{displayCount}</strong> medicine{displayCount !== 1 ? "s" : ""}
           </p>
         )}
 
