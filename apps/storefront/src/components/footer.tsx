@@ -18,7 +18,7 @@ const Footer = () => {
   })
 
   return (
-    <footer style={{ background: "#0D1B2A", color: "rgba(255,255,255,0.75)" }} data-testid="footer">
+    <footer style={{ background: "var(--bg-inverse)", color: "rgba(255,255,255,0.75)" }} data-testid="footer">
 
       {/* Compliance trust strip */}
       <div style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
@@ -27,7 +27,7 @@ const Footer = () => {
             {[
               {
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--brand-teal)" }}>
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
                 ),
@@ -36,7 +36,7 @@ const Footer = () => {
               },
               {
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--brand-teal)" }}>
                     <circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>
                   </svg>
                 ),
@@ -45,7 +45,7 @@ const Footer = () => {
               },
               {
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--brand-teal)" }}>
                     <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
                   </svg>
                 ),
@@ -54,7 +54,7 @@ const Footer = () => {
               },
               {
                 icon: (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--brand-teal)" }}>
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
                   </svg>
                 ),
@@ -65,7 +65,7 @@ const Footer = () => {
               <div key={item.label} className="flex items-start gap-3">
                 <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: "#fff" }}>{item.label}</p>
+                  <p className="text-sm font-semibold" style={{ color: "var(--text-inverse)" }}>{item.label}</p>
                   <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>{item.sub}</p>
                 </div>
               </div>
@@ -81,13 +81,13 @@ const Footer = () => {
           {/* Brand + Address */}
           <div className="lg:col-span-1 flex flex-col gap-5">
             <Link to="/$countryCode" params={{ countryCode }} className="flex items-center gap-2 hover:opacity-80 transition-opacity w-fit">
-              <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "#0E7C86" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "var(--brand-teal)" }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-inverse)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
                   <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
                 </svg>
               </div>
-              <span className="text-xl font-semibold" style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}>
+              <span className="text-xl font-semibold" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>
                 Suprameds
               </span>
             </Link>
@@ -109,7 +109,7 @@ const Footer = () => {
 
           {/* Medicines */}
           <div className="flex flex-col gap-5">
-            <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#0E7C86" }}>
+            <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand-teal)" }}>
               Medicines
             </h3>
             <ul className="space-y-2.5">
@@ -118,7 +118,7 @@ const Footer = () => {
                 ...(categories?.map(c => ({ label: c.name, href: `/${countryCode}/categories/${c.handle}` })) ?? []),
               ].map((item) => (
                 <li key={item.label}>
-                  <Link to={item.href} className="text-sm transition-colors hover:text-[#16a5b0]" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  <Link to={item.href} className="text-sm transition-colors hover:text-[var(--brand-teal-light)]" style={{ color: "rgba(255,255,255,0.6)" }}>
                     {item.label}
                   </Link>
                 </li>
@@ -128,7 +128,7 @@ const Footer = () => {
 
           {/* Patient Services */}
           <div className="flex flex-col gap-5">
-            <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#0E7C86" }}>
+            <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand-teal)" }}>
               Patient Services
             </h3>
             <ul className="space-y-2.5">
@@ -138,7 +138,7 @@ const Footer = () => {
                 { label: "My Orders", href: `/${countryCode}/account/orders` },
               ].map((item) => (
                 <li key={item.label}>
-                  <Link to={item.href} className="text-sm transition-colors hover:text-[#16a5b0]" style={{ color: "rgba(255,255,255,0.6)" }}>
+                  <Link to={item.href} className="text-sm transition-colors hover:text-[var(--brand-teal-light)]" style={{ color: "rgba(255,255,255,0.6)" }}>
                     {item.label}
                   </Link>
                 </li>
@@ -148,7 +148,7 @@ const Footer = () => {
 
           {/* Compliance */}
           <div className="flex flex-col gap-5">
-            <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#0E7C86" }}>
+            <h3 className="text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand-teal)" }}>
               Compliance &amp; Legal
             </h3>
             <ul className="space-y-2.5">
@@ -163,7 +163,7 @@ const Footer = () => {
                 <li key={item.label}>
                   <Link
                     to={item.href}
-                    className="text-sm transition-colors hover:text-[#16a5b0]"
+                    className="text-sm transition-colors hover:text-[var(--brand-teal-light)]"
                     style={{ color: "rgba(255,255,255,0.6)" }}
                   >
                     {item.label}

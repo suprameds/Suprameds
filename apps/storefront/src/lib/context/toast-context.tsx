@@ -42,8 +42,8 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
             animation: "slideDown 0.3s ease-out",
           }}
         >
-          <div className="bg-white shadow-lg px-6 py-3">
-            <p className="text-zinc-900 text-base font-medium">{message}</p>
+          <div className="bg-[var(--bg-secondary)] shadow-lg px-6 py-3" style={{ border: "1px solid var(--border-primary)" }}>
+            <p className="text-[var(--text-primary)] text-base font-medium">{message}</p>
           </div>
         </div>
       )}

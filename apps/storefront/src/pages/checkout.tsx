@@ -66,14 +66,14 @@ function GuestCheckoutBanner({
           className="w-10 h-10 rounded-full flex items-center justify-center"
           style={{ background: "#FEF3C7" }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D68910" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand-amber)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="8" r="4"/>
             <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
           </svg>
         </div>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold" style={{ color: "#92400E" }}>
+        <p className="text-sm font-semibold" style={{ color: "var(--brand-amber-dark)" }}>
           You're not signed in
         </p>
         <p className="text-xs mt-0.5" style={{ color: "#A16207" }}>
@@ -85,8 +85,8 @@ function GuestCheckoutBanner({
           to="/$countryCode/account/login"
           params={{ countryCode }}
           search={{ redirectTo: `/${countryCode}/checkout` } as any}
-          className="px-4 py-2 rounded-lg text-sm font-medium border transition-all hover:bg-white"
-          style={{ color: "#0D1B2A", borderColor: "#D1D5DB", background: "#fff" }}
+          className="px-4 py-2 rounded-lg text-sm font-medium border transition-all hover:bg-[var(--bg-secondary)]"
+          style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "var(--bg-secondary)" }}
         >
           Login / Register
         </Link>
@@ -94,8 +94,8 @@ function GuestCheckoutBanner({
           type="button"
           onClick={onGuestContinue}
           disabled={isLoading}
-          className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
-          style={{ background: "#0E7C86" }}
+          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
+          style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
         >
           {isLoading ? "Setting up..." : "Continue as guest"}
         </button>
@@ -287,10 +287,10 @@ const Checkout = () => {
         {/* Left Column - Checkout Steps */}
         <div className="space-y-4 sm:space-y-6 lg:col-span-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-zinc-900 text-lg sm:text-xl font-semibold">
+            <h2 className="text-lg sm:text-xl font-semibold" style={{ color: "var(--text-primary)" }}>
               {steps[currentStepIndex]?.title}
             </h2>
-            <p className="text-sm sm:text-base font-medium text-zinc-600">
+            <p className="text-sm sm:text-base font-medium" style={{ color: "var(--text-secondary)" }}>
               {steps[currentStepIndex]?.description}
             </p>
           </div>
@@ -337,7 +337,7 @@ const Checkout = () => {
 
         {/* Right Column - Order Summary */}
         <div>
-          <h2 className="text-zinc-900 text-lg sm:text-xl font-semibold mb-4">Order Summary</h2>
+          <h2 className="text-lg sm:text-xl font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Order Summary</h2>
           <Suspense fallback={<Loading />}>
             {cartLoading && <Loading />}
             {cart && <CheckoutSummary cart={cart} />}

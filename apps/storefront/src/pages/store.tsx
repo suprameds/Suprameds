@@ -91,13 +91,13 @@ const Store = () => {
   }, [products.length])
 
   return (
-    <div style={{ background: "#FAFAF8", minHeight: "80vh" }}>
+    <div style={{ background: "var(--bg-primary)", minHeight: "80vh" }}>
       {/* Header */}
-      <div style={{ background: "#0D1B2A" }}>
+      <div style={{ background: "var(--bg-inverse)" }}>
         <div className="content-container py-8 lg:py-10">
           <h1
             className="text-2xl lg:text-3xl font-semibold mb-2"
-            style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}
+            style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}
           >
             All Medicines
           </h1>
@@ -113,7 +113,7 @@ const Store = () => {
               <span
                 key={badge.text}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
-                style={{ background: "rgba(14,124,134,0.2)", color: "#16a5b0" }}
+                style={{ background: "rgba(14,124,134,0.2)", color: "var(--brand-teal-light)" }}
               >
                 {badge.icon === "tag" && (
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
@@ -135,7 +135,7 @@ const Store = () => {
         {/* ── Filter chips ── */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {/* Schedule type filter */}
-          <span className="text-[11px] font-medium mr-1" style={{ color: "#6B7280" }}>Type:</span>
+          <span className="text-[11px] font-medium mr-1" style={{ color: "var(--text-secondary)" }}>Type:</span>
           {(["all", "rx", "otc"] as ScheduleFilter[]).map((val) => {
             const labels: Record<ScheduleFilter, string> = { all: "All", rx: "Rx Only", otc: "OTC" }
             return (
@@ -144,9 +144,9 @@ const Store = () => {
                 onClick={() => setScheduleFilter(val)}
                 className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
                 style={{
-                  background: scheduleFilter === val ? (val === "rx" ? "#F59E0B" : val === "otc" ? "#0E7C86" : "#0D1B2A") : "#fff",
-                  color: scheduleFilter === val ? "#fff" : "#0D1B2A",
-                  border: `1px solid ${scheduleFilter === val ? "transparent" : "#EDE9E1"}`,
+                  background: scheduleFilter === val ? (val === "rx" ? "var(--brand-amber)" : val === "otc" ? "var(--brand-teal)" : "var(--bg-inverse)") : "var(--bg-secondary)",
+                  color: scheduleFilter === val ? "var(--text-inverse)" : "var(--text-primary)",
+                  border: `1px solid ${scheduleFilter === val ? "transparent" : "var(--border-primary)"}`,
                 }}
               >
                 {labels[val]}
@@ -154,21 +154,21 @@ const Store = () => {
             )
           })}
 
-          <span className="w-px h-4 mx-1" style={{ background: "#EDE9E1" }} />
+          <span className="w-px h-4 mx-1" style={{ background: "var(--border-primary)" }} />
 
           {/* Dosage form filter (dynamic from loaded products) */}
           {availableForms.length > 0 && (
             <>
-              <span className="text-[11px] font-medium mr-1" style={{ color: "#6B7280" }}>Form:</span>
+              <span className="text-[11px] font-medium mr-1" style={{ color: "var(--text-secondary)" }}>Form:</span>
               {["all", ...availableForms].map((val) => (
                 <button
                   key={val}
                   onClick={() => setFormFilter(val)}
                   className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors capitalize"
                   style={{
-                    background: formFilter === val ? "#0E7C86" : "#fff",
-                    color: formFilter === val ? "#fff" : "#0D1B2A",
-                    border: `1px solid ${formFilter === val ? "transparent" : "#EDE9E1"}`,
+                    background: formFilter === val ? "var(--brand-teal)" : "var(--bg-secondary)",
+                    color: formFilter === val ? "var(--text-inverse)" : "var(--text-primary)",
+                    border: `1px solid ${formFilter === val ? "transparent" : "var(--border-primary)"}`,
                   }}
                 >
                   {val === "all" ? "All" : val}
@@ -179,11 +179,11 @@ const Store = () => {
 
           {hasActiveFilters && (
             <>
-              <span className="w-px h-4 mx-1" style={{ background: "#EDE9E1" }} />
+              <span className="w-px h-4 mx-1" style={{ background: "var(--border-primary)" }} />
               <button
                 onClick={clearAll}
                 className="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
-                style={{ color: "#EF4444", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
+                style={{ color: "var(--brand-red)", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}
               >
                 Clear All
               </button>
@@ -198,9 +198,9 @@ const Store = () => {
               onClick={() => setSelectedCategory(undefined)}
               className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
               style={{
-                background: !selectedCategory ? "#0E7C86" : "#fff",
-                color: !selectedCategory ? "#fff" : "#0D1B2A",
-                border: `1px solid ${!selectedCategory ? "#0E7C86" : "#EDE9E1"}`,
+                background: !selectedCategory ? "var(--brand-teal)" : "var(--bg-secondary)",
+                color: !selectedCategory ? "var(--text-inverse)" : "var(--text-primary)",
+                border: `1px solid ${!selectedCategory ? "var(--brand-teal)" : "var(--border-primary)"}`,
               }}
             >
               All
@@ -211,9 +211,9 @@ const Store = () => {
                 onClick={() => setSelectedCategory(selectedCategory === cat.id ? undefined : cat.id)}
                 className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
                 style={{
-                  background: selectedCategory === cat.id ? "#0E7C86" : "#fff",
-                  color: selectedCategory === cat.id ? "#fff" : "#0D1B2A",
-                  border: `1px solid ${selectedCategory === cat.id ? "#0E7C86" : "#EDE9E1"}`,
+                  background: selectedCategory === cat.id ? "var(--brand-teal)" : "var(--bg-secondary)",
+                  color: selectedCategory === cat.id ? "var(--text-inverse)" : "var(--text-primary)",
+                  border: `1px solid ${selectedCategory === cat.id ? "var(--brand-teal)" : "var(--border-primary)"}`,
                 }}
               >
                 {cat.name}
@@ -224,8 +224,8 @@ const Store = () => {
 
         {/* Result count */}
         {hasActiveFilters && !isLoading && (
-          <p className="text-xs mb-4" style={{ color: "#6B7280" }}>
-            Showing <strong style={{ color: "#0D1B2A" }}>{displayCount}</strong> medicine{displayCount !== 1 ? "s" : ""}
+          <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
+            Showing <strong style={{ color: "var(--text-primary)" }}>{displayCount}</strong> medicine{displayCount !== 1 ? "s" : ""}
           </p>
         )}
 
@@ -234,19 +234,19 @@ const Store = () => {
           <div className="flex items-center justify-center py-16">
             <div
               className="w-6 h-6 border-2 rounded-full animate-spin"
-              style={{ borderColor: "#EDE9E1", borderTopColor: "#0E7C86" }}
+              style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
             />
           </div>
         ) : enrichedProducts.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-sm mb-3" style={{ color: "#666" }}>
+            <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
               No medicines found{hasActiveFilters ? " matching your filters" : selectedCategory ? " in this category" : ""}.
             </p>
             {hasActiveFilters && (
               <button
                 onClick={clearAll}
                 className="text-sm font-medium underline transition-opacity hover:opacity-70"
-                style={{ color: "#0E7C86" }}
+                style={{ color: "var(--brand-teal)" }}
               >
                 Clear all filters
               </button>

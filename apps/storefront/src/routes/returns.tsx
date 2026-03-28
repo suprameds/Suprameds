@@ -12,11 +12,11 @@ export const Route = createFileRoute("/returns")({
 
 function Returns() {
   return (
-    <div style={{ background: "#F8F6F2", minHeight: "100vh" }}>
-      <div style={{ background: "#0D1B2A", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+    <div style={{ background: "var(--bg-tertiary)", minHeight: "100vh" }}>
+      <div style={{ background: "var(--bg-inverse)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <div className="content-container py-12">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#16a5b0" }}>Legal</p>
-          <h1 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal-light)" }}>Legal</p>
+          <h1 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>
             Returns &amp; Refund Policy
           </h1>
           <p className="text-sm mt-2" style={{ color: "rgba(255,255,255,0.55)" }}>
@@ -28,7 +28,7 @@ function Returns() {
       <div className="content-container py-12">
         <div className="max-w-3xl flex flex-col gap-6">
 
-          <div className="p-5 rounded-xl" style={{ background: "#fdebd0", border: "1px solid #D68910" }}>
+          <div className="p-5 rounded-xl" style={{ background: "#fdebd0", border: "1px solid var(--brand-amber)" }}>
             <p className="text-sm font-medium" style={{ color: "#7D6608" }}>
               Due to the nature of pharmaceutical products and patient safety requirements, our return window is 48 hours from delivery and is limited to specific circumstances. Opened or partially consumed medicines cannot be returned under any circumstances.
             </p>
@@ -81,18 +81,18 @@ function Returns() {
               content: `If a product you purchased is subject to a manufacturer or CDSCO recall, Suprameds will: (1) contact you via SMS, WhatsApp, and email; (2) arrange free pickup of the recalled product; (3) issue a full refund within 48 hours of pickup confirmation. We maintain complete batch-level traceability for this purpose.`,
             },
           ].map((section) => (
-            <div key={section.title} className="p-6 rounded-xl" style={{ background: "#fff", border: "1px solid #EDE9E1" }}>
-              <h2 className="text-base font-semibold mb-3" style={{ color: "#0D1B2A" }}>{section.title}</h2>
-              <div className="text-sm leading-relaxed" style={{ color: "#555" }} dangerouslySetInnerHTML={{ __html: section.content }} />
+            <div key={section.title} className="p-6 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+              <h2 className="text-base font-semibold mb-3" style={{ color: "var(--text-primary)" }}>{section.title}</h2>
+              <div className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }} dangerouslySetInnerHTML={{ __html: section.content }} />
             </div>
           ))}
 
-          <div className="p-5 rounded-xl" style={{ background: "#fff", border: "1px solid #EDE9E1" }}>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: "#0D1B2A" }}>Need help?</h3>
-            <p className="text-sm" style={{ color: "#555" }}>
-              Contact us: <a href="tel:+918008005678" className="font-medium" style={{ color: "#0E7C86" }}>+91 800 800 5678</a> or WhatsApp <a href="tel:+918008001234" className="font-medium" style={{ color: "#0E7C86" }}>+91 800 800 1234</a>
+          <div className="p-5 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Need help?</h3>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              Contact us: <a href="tel:+918008005678" className="font-medium" style={{ color: "var(--brand-teal)" }}>+91 800 800 5678</a> or WhatsApp <a href="tel:+918008001234" className="font-medium" style={{ color: "var(--brand-teal)" }}>+91 800 800 1234</a>
             </p>
-            <p className="text-sm mt-1" style={{ color: "#888" }}>9 AM – 9 PM · Monday to Saturday</p>
+            <p className="text-sm mt-1" style={{ color: "var(--text-tertiary)" }}>9 AM – 9 PM · Monday to Saturday</p>
           </div>
         </div>
       </div>

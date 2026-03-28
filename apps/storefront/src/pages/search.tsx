@@ -85,13 +85,13 @@ const Search = () => {
   const isSearching = isFetching && products.length === 0
 
   return (
-    <div style={{ background: "#F8F6F2", minHeight: "60vh" }}>
+    <div style={{ background: "var(--bg-tertiary)", minHeight: "60vh" }}>
       <div className="content-container py-8">
         {/* Search input */}
         <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-10">
           <div
             className="flex items-center rounded-xl overflow-hidden shadow-sm"
-            style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+            style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
           >
             <div className="pl-4" style={{ color: "#999" }}>
               <SearchIcon />
@@ -105,21 +105,21 @@ const Search = () => {
               }}
               placeholder="Search medicines by name, composition, or generic name..."
               className="flex-1 px-3 py-3.5 text-sm outline-none bg-transparent"
-              style={{ color: "#0D1B2A" }}
+              style={{ color: "var(--text-primary)" }}
               autoFocus
             />
             {isFetching && (
               <div className="pr-2">
                 <div
                   className="w-4 h-4 border-2 rounded-full animate-spin"
-                  style={{ borderColor: "#EDE9E1", borderTopColor: "#0E7C86" }}
+                  style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
                 />
               </div>
             )}
             <button
               type="submit"
               className="px-5 py-3.5 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ background: "#0E7C86", color: "#fff" }}
+              style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
             >
               Search
             </button>
@@ -132,7 +132,7 @@ const Search = () => {
             <div className="flex items-baseline gap-2 mb-6">
               <h1
                 className="text-xl font-semibold"
-                style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+                style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
               >
                 {isSearching ? "Searching..." : `Results for "${debouncedInput}"`}
               </h1>
@@ -145,10 +145,10 @@ const Search = () => {
 
             {isError ? (
               <div className="text-center py-16">
-                <p className="text-lg font-medium mb-2" style={{ color: "#C0392B" }}>
+                <p className="text-lg font-medium mb-2" style={{ color: "var(--brand-red)" }}>
                   Search failed
                 </p>
-                <p className="text-sm" style={{ color: "#666" }}>
+                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                   Something went wrong. Please try a different search term.
                 </p>
               </div>
@@ -156,22 +156,22 @@ const Search = () => {
               <div className="flex items-center justify-center py-20">
                 <div
                   className="w-8 h-8 border-2 rounded-full animate-spin"
-                  style={{ borderColor: "#EDE9E1", borderTopColor: "#0E7C86" }}
+                  style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
                 />
               </div>
             ) : products.length === 0 ? (
               <div className="text-center py-16">
-                <p className="text-lg font-medium mb-2" style={{ color: "#0D1B2A" }}>
+                <p className="text-lg font-medium mb-2" style={{ color: "var(--text-primary)" }}>
                   No medicines found
                 </p>
-                <p className="text-sm mb-6" style={{ color: "#666" }}>
+                <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
                   Try a different search term, or browse all medicines.
                 </p>
                 <Link
                   to="/$countryCode/store"
                   params={{ countryCode }}
                   className="inline-flex px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ background: "#0E7C86", color: "#fff" }}
+                  style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
                 >
                   Browse All Medicines
                 </Link>
@@ -191,9 +191,9 @@ const Search = () => {
                       disabled={isFetching}
                       className="px-6 py-2.5 rounded text-sm font-medium transition-all"
                       style={{
-                        background: isFetching ? "#EDE9E1" : "#fff",
-                        color: "#0D1B2A",
-                        border: "1px solid #EDE9E1",
+                        background: isFetching ? "var(--border-primary)" : "var(--bg-secondary)",
+                        color: "var(--text-primary)",
+                        border: "1px solid var(--border-primary)",
                       }}
                     >
                       {isFetching ? "Loading..." : "Load more results"}
@@ -207,18 +207,18 @@ const Search = () => {
           <div className="text-center py-16">
             <h1
               className="text-2xl font-semibold mb-3"
-              style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+              style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
             >
               Search medicines
             </h1>
-            <p className="text-sm mb-6" style={{ color: "#666" }}>
+            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
               Enter a medicine name, composition, or generic name above.
             </p>
             <Link
               to="/$countryCode/store"
               params={{ countryCode }}
               className="inline-flex px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ background: "#0E7C86", color: "#fff" }}
+              style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
             >
               Browse All Medicines
             </Link>
