@@ -406,7 +406,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                                   e.target.value as ReturnReason
                                 )
                               }
-                              className="rounded-lg border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2"
+                              className="rounded-lg border px-3 py-2 text-sm bg-[var(--bg-secondary)] focus:outline-none focus:ring-2"
                               style={{
                                 borderColor: "#D1D5DB",
                                 color: "#111827",

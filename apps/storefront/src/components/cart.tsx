@@ -104,7 +104,7 @@ export const CartDeleteItem = ({ item, fields }: CartDeleteItemProps) => {
     <Button
       onClick={() => deleteLineItemMutation.mutate({ line_id: item.id })}
       disabled={deleteLineItemMutation.isPending}
-      className="text-zinc-600 hover:text-zinc-500 transition-colors ml-2"
+      className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] transition-colors ml-2"
       variant="transparent"
       size="fit"
     >
@@ -192,10 +192,10 @@ const CompactCartLineItem = ({ item, cart, fields }: CartLineItemProps) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h4 className="text-base font-medium line-clamp-1 text-zinc-900">
+            <h4 className="text-base font-medium line-clamp-1 text-[var(--text-primary)]">
               {item.product_title}
             </h4>
-            <div className="text-sm text-zinc-600">
+            <div className="text-sm text-[var(--text-secondary)]">
               {item.variant_title && item.variant_title !== "Default Variant" && (
                 <span>{item.variant_title}</span>
               )}
@@ -217,7 +217,7 @@ const DisplayCartLineItem = ({ item, cart, className }: CartLineItemProps) => {
   return (
     <div
       className={clsx(
-        "flex items-center gap-4 py-3 border-b border-zinc-300 last:border-b-0",
+        "flex items-center gap-4 py-3 border-b border-[var(--border-primary)] last:border-b-0",
         className
       )}
     >
@@ -227,11 +227,11 @@ const DisplayCartLineItem = ({ item, cart, className }: CartLineItemProps) => {
         className="w-16 h-16"
       />
       <div className="flex-1">
-        <p className="text-base font-semibold text-zinc-900">{item.product_title}</p>
+        <p className="text-base font-semibold text-[var(--text-primary)]">{item.product_title}</p>
         {item.variant_title && item.variant_title !== "Default Variant" && (
-          <p className="text-sm text-zinc-600">{item.variant_title}</p>
+          <p className="text-sm text-[var(--text-secondary)]">{item.variant_title}</p>
         )}
-        <p className="text-sm text-zinc-600">Quantity: {item.quantity}</p>
+        <p className="text-sm text-[var(--text-secondary)]">Quantity: {item.quantity}</p>
       </div>
       <div className="text-right">
         <Price price={item.total || 0} currencyCode={cart.currency_code} textWeight="plus" />
@@ -266,10 +266,10 @@ export const CartLineItem = ({
         </div>
 
         <div className="flex-1 min-w-0 flex flex-col gap-y-1">
-          <span className="text-zinc-900 text-sm sm:text-base font-semibold line-clamp-2">{item.product_title}</span>
+          <span className="text-[var(--text-primary)] text-sm sm:text-base font-semibold line-clamp-2">{item.product_title}</span>
           <div className="flex items-center gap-2">
             {item.variant_title && item.variant_title !== "Default Variant" && (
-              <span className="text-zinc-600 text-xs sm:text-sm">{item.variant_title}</span>
+              <span className="text-[var(--text-secondary)] text-xs sm:text-sm">{item.variant_title}</span>
             )}
             {isRx && (
               <span
@@ -410,7 +410,7 @@ export const CartPromo = ({ cart }: CartPromoProps) => {
               {promotion.code}
               <XMark
                 onClick={() => handleRemove(promotion.code || "")}
-                className="ml-2 text-zinc-600 hover:text-zinc-500 cursor-pointer"
+                className="ml-2 text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] cursor-pointer"
               />
             </Button>
           ))}
@@ -421,7 +421,7 @@ export const CartPromo = ({ cart }: CartPromoProps) => {
         <Button
           onClick={() => setShowInput(true)}
           variant="transparent"
-          className="text-zinc-600 p-0 underline hover:bg-transparent hover:text-zinc-500"
+          className="text-[var(--text-secondary)] p-0 underline hover:bg-transparent hover:text-[var(--text-tertiary)]"
           size="fit"
         >
           Add promo code
@@ -500,7 +500,7 @@ export const CartDropdown = () => {
   return (
     <Drawer open={isOpen} onOpenChange={(open) => (open ? openCart() : closeCart())}>
       <DrawerTrigger asChild>
-        <button className="text-zinc-600 hover:text-zinc-500 h-full">
+        <button className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] h-full">
           Cart ({itemCount})
         </button>
       </DrawerTrigger>
@@ -512,13 +512,13 @@ export const CartDropdown = () => {
 
         {isCartLoading && (
           <div className="flex items-center justify-center flex-1 p-6">
-            <span className="text-sm text-zinc-500 animate-pulse">Loading cart…</span>
+            <span className="text-sm text-[var(--text-tertiary)] animate-pulse">Loading cart…</span>
           </div>
         )}
 
         {!isCartLoading && (!cart || itemCount === 0) && (
           <div className="flex flex-col items-center justify-center flex-1 p-6">
-            <span className="text-base font-medium text-zinc-600 mb-4">
+            <span className="text-base font-medium text-[var(--text-secondary)] mb-4">
               Your cart is empty
             </span>
             <Link to="/$countryCode/store" params={{ countryCode }} onClick={closeCart}>

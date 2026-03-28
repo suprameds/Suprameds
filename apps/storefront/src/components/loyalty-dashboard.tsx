@@ -72,7 +72,7 @@ export default function LoyaltyDashboard() {
   return (
     <div className="flex flex-col gap-5">
       {/* Points balance + tier card */}
-      <div className="bg-white border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
+      <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
         <div className="flex items-start justify-between mb-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>
@@ -132,7 +132,7 @@ export default function LoyaltyDashboard() {
 
       {/* Recent transactions */}
       {data.transactions.length > 0 && (
-        <div className="bg-white border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
           <h3 className="text-sm font-semibold mb-4" style={{ color: "#374151" }}>
             Recent Activity
           </h3>
@@ -243,7 +243,7 @@ function TierIcon({ tier }: { tier: string }) {
 
 function LoyaltySkeleton() {
   return (
-    <div className="bg-white border rounded-xl p-6 animate-pulse" style={{ borderColor: "var(--border-primary)" }}>
+    <div className="bg-[var(--bg-secondary)] border rounded-xl p-6 animate-pulse" style={{ borderColor: "var(--border-primary)" }}>
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="h-3 w-20 rounded" style={{ background: "#E5E7EB" }} />
@@ -259,7 +259,7 @@ function LoyaltySkeleton() {
 function LoyaltyComingSoon() {
   return (
     <div
-      className="bg-white border rounded-xl p-6 text-center"
+      className="bg-[var(--bg-secondary)] border rounded-xl p-6 text-center"
       style={{ borderColor: "var(--border-primary)" }}
     >
       <div

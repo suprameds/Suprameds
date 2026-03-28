@@ -58,7 +58,7 @@ function ProfilePage() {
       </div>
 
       {/* Personal info card */}
-      <div className="bg-white border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
+      <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Personal information
@@ -163,7 +163,7 @@ function ProfilePage() {
       </div>
 
       {/* Email notice */}
-      <div className="bg-white border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
+      <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
         <h2 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
           Email address
         </h2>
@@ -189,7 +189,7 @@ function ProfilePage() {
         </h2>
         <Suspense
           fallback={
-            <div className="bg-white border rounded-xl p-6 animate-pulse" style={{ borderColor: "var(--border-primary)" }}>
+            <div className="bg-[var(--bg-secondary)] border rounded-xl p-6 animate-pulse" style={{ borderColor: "var(--border-primary)" }}>
               <div className="h-4 w-32 rounded" style={{ background: "var(--border-primary)" }} />
             </div>
           }

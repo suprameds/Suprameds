@@ -501,7 +501,7 @@ export default function RemindersPage() {
       {/* Delete confirmation modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-[var(--bg-secondary)] rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-base font-semibold mb-2" style={{ color: NAVY }}>
               Delete reminder?
             </h3>

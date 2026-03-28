@@ -17,7 +17,7 @@ const Layout = () => {
         <div className="min-h-screen flex flex-col">
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-zinc-900 focus:shadow-lg focus:border focus:border-zinc-300"
+            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-[var(--text-primary)] focus:shadow-lg focus:border focus:border-[var(--border-primary)]"
           >
             Skip to main content
           </a>

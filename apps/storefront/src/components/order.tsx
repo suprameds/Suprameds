@@ -484,24 +484,24 @@ type OrderLineItemProps = {
 
 export const OrderLineItem = ({ item, order }: OrderLineItemProps) => {
   return (
-    <div className="flex items-center gap-4 py-3 border-b border-zinc-200 last:border-b-0">
+    <div className="flex items-center gap-4 py-3 border-b border-[var(--border-primary)] last:border-b-0">
       <Thumbnail
         thumbnail={item.thumbnail}
         alt={item.product_title || item.title}
         className="w-16 h-16"
       />
       <div className="flex-1 flex flex-col gap-y-1">
-        <span className="text-base font-semibold text-zinc-900">{item.product_title}</span>
+        <span className="text-base font-semibold text-[var(--text-primary)]">{item.product_title}</span>
         {item.variant_title && item.variant_title !== "Default Variant" && (
-          <span className="text-sm text-zinc-600">{item.variant_title}</span>
+          <span className="text-sm text-[var(--text-secondary)]">{item.variant_title}</span>
         )}
-        <span className="text-sm text-zinc-600">Quantity: {item.quantity}</span>
+        <span className="text-sm text-[var(--text-secondary)]">Quantity: {item.quantity}</span>
       </div>
       <div className="text-right">
         <Price
           price={item.total}
           currencyCode={order.currency_code}
-          className="text-zinc-600"
+          className="text-[var(--text-secondary)]"
         />
       </div>
     </div>
@@ -518,47 +518,47 @@ export const OrderSummary = ({ order }: OrderSummaryProps) => {
       <h3 className="mb-4 font-semibold">Summary</h3>
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Subtotal</span>
+          <span className="text-[var(--text-secondary)]">Subtotal</span>
           <Price
             price={order.subtotal}
             currencyCode={order.currency_code}
-            className="text-zinc-600"
+            className="text-[var(--text-secondary)]"
           />
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Shipping</span>
+          <span className="text-[var(--text-secondary)]">Shipping</span>
           <Price
             price={order.shipping_total}
             currencyCode={order.currency_code}
-            className="text-zinc-600"
+            className="text-[var(--text-secondary)]"
           />
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Discount</span>
+          <span className="text-[var(--text-secondary)]">Discount</span>
           <Price
             price={order.discount_total}
             currencyCode={order.currency_code}
             type="discount"
-            className="text-zinc-600"
+            className="text-[var(--text-secondary)]"
           />
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Tax</span>
+          <span className="text-[var(--text-secondary)]">Tax</span>
           <Price
             price={order.tax_total}
             currencyCode={order.currency_code}
-            className="text-zinc-600"
+            className="text-[var(--text-secondary)]"
           />
         </div>
       </div>
 
-      <hr className="bg-zinc-200" />
+      <hr className="bg-[var(--border-primary)]" />
 
       <div className="flex justify-between">
-        <span className="text-zinc-900 text-sm">Total</span>
+        <span className="text-[var(--text-primary)] text-sm">Total</span>
         <Price price={order.total} currencyCode={order.currency_code} />
       </div>
     </div>
@@ -575,7 +575,7 @@ export const OrderShipping = ({ order }: OrderShippingProps) => {
       <h3 className="mb-4 font-semibold">Delivery Information</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <span className="text-base font-semibold text-zinc-900 mb-2">
+          <span className="text-base font-semibold text-[var(--text-primary)] mb-2">
             Shipping Address
           </span>
           {order.shipping_address && <Address address={order.shipping_address} />}
@@ -583,15 +583,15 @@ export const OrderShipping = ({ order }: OrderShippingProps) => {
 
         {order.shipping_methods?.[0] && (
           <div>
-            <span className="text-base font-semibold text-zinc-900 mb-2">
+            <span className="text-base font-semibold text-[var(--text-primary)] mb-2">
               Shipping Method
             </span>
-            <div className="text-sm text-zinc-600 flex items-center justify-between">
+            <div className="text-sm text-[var(--text-secondary)] flex items-center justify-between">
               <div>{order.shipping_methods[0].name}</div>
               <Price
                 price={order.shipping_methods[0].amount}
                 currencyCode={order.currency_code}
-                className="text-zinc-600"
+                className="text-[var(--text-secondary)]"
               />
             </div>
           </div>
@@ -613,10 +613,10 @@ export const OrderBilling = ({ order }: OrderBillingProps) => {
       <h3 className="mb-4">Billing Information</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <span className="text-base font-semibold text-zinc-900 mb-2">
+          <span className="text-base font-semibold text-[var(--text-primary)] mb-2">
             Billing Address
           </span>
-          <div className="text-sm text-zinc-600">
+          <div className="text-sm text-[var(--text-secondary)]">
             {order.billing_address ? (
               <Address address={order.billing_address} />
             ) : (
@@ -625,8 +625,8 @@ export const OrderBilling = ({ order }: OrderBillingProps) => {
           </div>
         </div>
         <div>
-          <span className="text-base font-semibold text-zinc-900 mb-2">Payment Method</span>
-          <div className="text-sm text-zinc-600">
+          <span className="text-base font-semibold text-[var(--text-primary)] mb-2">Payment Method</span>
+          <div className="text-sm text-[var(--text-secondary)]">
             {order.payment_collections?.[0].payment_sessions?.[0] && (
               <PaymentMethodInfo
                 provider_id={order.payment_collections[0].payment_sessions[0].provider_id}
@@ -649,18 +649,18 @@ export const OrderDetails = ({ order }: OrderDetailsProps) => {
     <div>
       <div className="flex flex-col gap-8">
         <OrderInfo order={order} />
-        <hr className="bg-zinc-200" />
+        <hr className="bg-[var(--border-primary)]" />
         <div className="flex flex-col gap-4">
           <h3 className="mb-4 font-semibold">Items</h3>
           {order.items?.map((item) => (
             <OrderLineItem key={item.id} item={item} order={order} />
           ))}
         </div>
-        <hr className="bg-zinc-200" />
+        <hr className="bg-[var(--border-primary)]" />
         <OrderShipping order={order} />
-        <hr className="bg-zinc-200" />
+        <hr className="bg-[var(--border-primary)]" />
         <OrderBilling order={order} />
-        <hr className="bg-zinc-200" />
+        <hr className="bg-[var(--border-primary)]" />
         <OrderSummary order={order} />
       </div>
     </div>

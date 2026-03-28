@@ -61,7 +61,7 @@ function AccountLayout() {
           {/* Sidebar */}
           <aside className="hidden lg:flex flex-col w-60 flex-shrink-0">
             <div
-              className="bg-white border rounded-xl p-5 mb-3"
+              className="bg-[var(--bg-secondary)] border rounded-xl p-5 mb-3"
               style={{ borderColor: "var(--border-primary)" }}
             >
               <div className="flex items-center gap-3 mb-4 pb-4 border-b" style={{ borderColor: "var(--border-primary)" }}>

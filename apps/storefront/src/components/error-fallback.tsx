@@ -47,7 +47,7 @@ const ErrorFallback = ({ error, reset }: ErrorFallbackProps) => {
   return (
     <div className="content-container py-16">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white border shadow-sm p-8 rounded-xl" style={{ borderColor: "var(--border-primary)" }}>
+        <div className="bg-[var(--bg-secondary)] border shadow-sm p-8 rounded-xl" style={{ borderColor: "var(--border-primary)" }}>
 
           {/* Connection error */}
           {connectionDown && (

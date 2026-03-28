@@ -35,11 +35,11 @@ function OrdersPage() {
       </div>
 
       {isLoading ? (
-        <div className="bg-white border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
           <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Loading your orders...</p>
         </div>
       ) : !orders?.length ? (
-        <div className="bg-white border rounded-xl p-12 text-center" style={{ borderColor: "var(--border-primary)" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-12 text-center" style={{ borderColor: "var(--border-primary)" }}>
           <div
             className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4"
             style={{ background: "var(--bg-tertiary)" }}
@@ -70,7 +70,7 @@ function OrdersPage() {
             return (
               <div
                 key={order.id}
-                className="bg-white border rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="bg-[var(--bg-secondary)] border rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 style={{ borderColor: "var(--border-primary)" }}
               >
                 <div className="flex flex-col gap-1">

@@ -112,7 +112,7 @@ function AddressesPage() {
 
       {/* Add address form */}
       {showForm && (
-        <div className="bg-white border rounded-xl p-6" style={{ borderColor: "var(--brand-green)" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--brand-green)" }}>
           <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
             New delivery address
           </h2>
@@ -159,11 +159,11 @@ function AddressesPage() {
       )}
 
       {isLoading ? (
-        <div className="bg-white border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
           <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Loading addresses...</p>
         </div>
       ) : !addresses?.length && !showForm ? (
-        <div className="bg-white border rounded-xl p-12 text-center" style={{ borderColor: "var(--border-primary)" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-12 text-center" style={{ borderColor: "var(--border-primary)" }}>
           <div
             className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4"
             style={{ background: "var(--bg-tertiary)" }}
@@ -189,7 +189,7 @@ function AddressesPage() {
           {addresses?.map((address) => (
             <div
               key={address.id}
-              className="bg-white border rounded-xl p-5 flex flex-col justify-between gap-4"
+              className="bg-[var(--bg-secondary)] border rounded-xl p-5 flex flex-col justify-between gap-4"
               style={{ borderColor: "var(--border-primary)" }}
             >
               <div>

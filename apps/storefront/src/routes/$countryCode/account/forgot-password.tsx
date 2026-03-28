@@ -40,7 +40,7 @@ function ForgotPasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg-primary)" }}>
         <div className="w-full max-w-md">
-          <div className="bg-white border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
+          <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
             <div className="mb-6 text-center">
               <div
                 className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-4"
@@ -73,7 +73,7 @@ function ForgotPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg-primary)" }}>
       <div className="w-full max-w-md">
-        <div className="bg-white border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
           <div className="mb-8 text-center">
             <div
               className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-4"

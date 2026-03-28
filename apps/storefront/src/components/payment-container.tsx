@@ -21,10 +21,10 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
 
   return (
     <div
-      className={`flex flex-col gap-y-2 text-sm cursor-pointer py-4 border px-8 mb-2 hover:border-zinc-300 transition-colors ${
+      className={`flex flex-col gap-y-2 text-sm cursor-pointer py-4 border px-8 mb-2 hover:border-[var(--border-primary)] transition-colors ${
         isSelected
-          ? "border-zinc-900 bg-zinc-50"
-          : "border-zinc-200"
+          ? "border-[var(--bg-inverse)] bg-[var(--bg-tertiary)]"
+          : "border-[var(--border-primary)]"
       } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
       onClick={disabled ? undefined : onClick}
     >
@@ -36,13 +36,13 @@ const PaymentContainer: React.FC<PaymentContainerProps> = ({
               {paymentMethodsData[paymentProviderId]?.title || paymentProviderId}
             </p>
             {paymentMethodsData[paymentProviderId]?.description && (
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
                 {paymentMethodsData[paymentProviderId].description}
               </p>
             )}
           </div>
         </div>
-        <span className="justify-self-end text-zinc-900">
+        <span className="justify-self-end text-[var(--text-primary)]">
           {paymentMethodsData[paymentProviderId]?.icon}
         </span>
       </div>
