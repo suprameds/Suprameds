@@ -3,6 +3,7 @@ import ErrorBoundary from "@/components/error-boundary"
 import Footer from "@/components/footer"
 import { Navbar } from "@/components/navbar"
 import { PushNotificationManager } from "@/components/push-notification-manager"
+import { WhatsAppButton } from "@/components/whatsapp-button"
 import { CartProvider } from "@/lib/context/cart"
 import { ToastProvider } from "@/lib/context/toast-context"
 import { Outlet } from "@tanstack/react-router"
@@ -28,6 +29,7 @@ const Layout = () => {
           </main>
 
           <Footer />
+          <WhatsAppButton />
           <ConsentBanner />
         </div>
       </CartProvider>
