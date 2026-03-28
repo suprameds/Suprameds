@@ -25,6 +25,14 @@ vi.mock("@/components/push-notification-manager", () => ({
   PushNotificationManager: () => null,
 }))
 
+vi.mock("@/components/whatsapp-button", () => ({
+  default: () => null,
+}))
+
+vi.mock("@/lib/context/theme", () => ({
+  ThemeProvider: ({ children }: any) => <>{children}</>,
+}))
+
 vi.mock("@/lib/context/cart", () => ({
   CartProvider: ({ children }: any) => <>{children}</>,
 }))
