@@ -3,6 +3,7 @@ import { authenticate, defineMiddlewares } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
 import { PHARMA_MODULE } from "../modules/pharma"
 import { createRateLimiter } from "./rate-limiter"
+import { securityHeaders } from "./security-headers"
 import { authorize, enforceSsd } from "./rbac-authorize"
 import { getPrescriptionUploader, getGrnCreator, getPoRaiser } from "./rbac-ssd-helpers"
 // Sentry — must be imported early so auto-instrumentation hooks attach before routes load
@@ -69,6 +70,11 @@ async function scheduleXBlockAddToCart(
 
 export default defineMiddlewares({
   routes: [
+    // ── Security headers — applied to every response ──────────────────────
+    {
+      matcher: "/**",
+      middlewares: [securityHeaders()],
+    },
     {
       matcher: "/store/carts/:id/line-items",
       method: "POST",

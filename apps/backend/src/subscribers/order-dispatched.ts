@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { SHIPMENT_MODULE } from "../modules/shipment"
+import { captureException } from "../lib/sentry"
 
 type OrderDispatchedData = {
   id?: string
@@ -144,11 +145,13 @@ export default async function handler({
       logger.warn(
         `[subscriber] order.dispatched: email failed for order ${orderId}: ${(emailErr as Error).message}`
       )
+      captureException(emailErr, { subscriber: "order-dispatched", orderId, step: "send-email" })
     }
   } catch (err) {
     logger.error(
       `[subscriber] order.dispatched: failed for order ${orderId} - ${(err as Error).message}`
     )
+    captureException(err, { subscriber: "order-dispatched", orderId })
   }
 }
 

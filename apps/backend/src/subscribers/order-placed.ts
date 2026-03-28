@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { NOTIFICATION_MODULE } from "../modules/notification"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:order-placed]"
 
@@ -65,6 +66,7 @@ export default async function orderPlacedHandler({
         `${LOG_PREFIX} Failed to link prescription to order ${orderId}:`,
         (linkErr as Error).message
       )
+      captureException(linkErr, { subscriber: "order-placed", orderId, step: "link-prescription" })
     }
 
     // ── 2. Send customer confirmation notification ──────────────────
@@ -94,6 +96,7 @@ export default async function orderPlacedHandler({
         `${LOG_PREFIX} Notification send failed for order ${orderId}, logging summary instead:`,
         (notifError as Error).message
       )
+      captureException(notifError, { subscriber: "order-placed", orderId, step: "send-notification" })
       console.info(
         `${LOG_PREFIX} Order summary — ID: ${orderId}, ` +
           `Items: ${order.items?.map((i) => `${i.title} x${i.quantity}`).join(", ")}, ` +
@@ -136,6 +139,7 @@ export default async function orderPlacedHandler({
         `${LOG_PREFIX} pharmaOrder extension creation failed for ${orderId}:`,
         (extError as Error).message
       )
+      captureException(extError, { subscriber: "order-placed", orderId, step: "create-extension" })
     }
 
     // ── 4. Send internal notification to pharmacy team ──────────────
@@ -157,6 +161,7 @@ export default async function orderPlacedHandler({
         `${LOG_PREFIX} Internal notification failed for ${orderId}:`,
         (internalNotifError as Error).message
       )
+      captureException(internalNotifError, { subscriber: "order-placed", orderId, step: "internal-notification" })
     }
 
     console.info(`${LOG_PREFIX} Completed processing for order ${orderId}`)
@@ -167,6 +172,7 @@ export default async function orderPlacedHandler({
       (error as Error).message,
       (error as Error).stack
     )
+    captureException(error, { subscriber: "order-placed", orderId })
   }
 }
 

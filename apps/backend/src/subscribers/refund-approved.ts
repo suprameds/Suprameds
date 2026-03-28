@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { NOTIFICATION_MODULE } from "../modules/notification"
 import { PAYMENT_MODULE } from "../modules/payment"
 import { ProcessRefundWorkflow } from "../workflows/payment/process-refund"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:refund-approved]"
 
@@ -43,6 +44,7 @@ export default async function refundApprovedHandler({
     })
   } catch (err) {
     logger.warn(`${LOG} Internal notification failed: ${(err as Error).message}`)
+    captureException(err, { subscriber: "refund-approved", refundId: refund_id, orderId: order_id, step: "internal-notification" })
   }
 
   // Determine payment method to decide whether to auto-process
@@ -83,6 +85,7 @@ export default async function refundApprovedHandler({
           `${LOG} Auto-process workflow failed for refund ${refund_id}: ${workflowErr.message}. ` +
             `Finance team must manually process via POST /admin/refunds/${refund_id}/process.`
         )
+        captureException(workflowErr, { subscriber: "refund-approved", refundId: refund_id, step: "auto-process-workflow" })
       }
     } else if (isCod) {
       // Check if bank details already exist
@@ -110,6 +113,7 @@ export default async function refundApprovedHandler({
         }
       } catch (codErr: any) {
         logger.warn(`${LOG} COD detail check failed: ${codErr.message}`)
+        captureException(codErr, { subscriber: "refund-approved", refundId: refund_id, step: "cod-detail-check" })
       }
     } else {
       logger.info(`${LOG} Refund ${refund_id} — unknown gateway. Skipping auto-process.`)
@@ -118,6 +122,7 @@ export default async function refundApprovedHandler({
     logger.error(
       `${LOG} Payment method resolution failed for refund ${refund_id}: ${(err as Error).message}`
     )
+    captureException(err, { subscriber: "refund-approved", refundId: refund_id, orderId: order_id })
   }
 }
 

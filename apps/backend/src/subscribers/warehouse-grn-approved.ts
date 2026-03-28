@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 import { WAREHOUSE_MODULE } from "../modules/warehouse"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:grn-approved]"
 
@@ -75,6 +76,7 @@ export default async function handler({
       logger.error(
         `${LOG_PREFIX} Failed to create batch for lot ${item.lot_number}: ${err.message}`
       )
+      captureException(err, { subscriber: "warehouse-grn-approved", grnId: data.grn_id, lotNumber: item.lot_number, step: "create-batch" })
     }
   }
 
@@ -95,6 +97,7 @@ export default async function handler({
     }
   } catch (err: any) {
     logger.error(`${LOG_PREFIX} Failed to update GRN record: ${err.message}`)
+    captureException(err, { subscriber: "warehouse-grn-approved", grnId: data.grn_id, step: "update-grn-record" })
   }
 
   // 3. Send internal notification
@@ -112,6 +115,7 @@ export default async function handler({
     })
   } catch (err: any) {
     logger.error(`${LOG_PREFIX} Notification failed: ${err.message}`)
+    captureException(err, { subscriber: "warehouse-grn-approved", grnId: data.grn_id, step: "send-notification" })
   }
 
   logger.info(

@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:low-stock]"
 
@@ -115,6 +116,7 @@ export default async function handler({
     )
   } catch (err: any) {
     logger.error(`${LOG_PREFIX} Failed to process low stock event: ${err.message}`)
+    captureException(err, { subscriber: "inventory-low-stock", variantId })
   }
 }
 

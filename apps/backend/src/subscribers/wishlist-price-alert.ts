@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
+import { captureException } from "../lib/sentry"
 
 type WishlistPriceAlertData = {
   wishlist_item_id: string
@@ -41,6 +42,7 @@ export default async function wishlistPriceAlertHandler({
     logger.warn(
       `[subscriber:wishlist-price-alert] Failed to notify customer ${customer_id}: ${err.message}`
     )
+    captureException(err, { subscriber: "wishlist-price-alert", customerId: customer_id, productId: product_id, wishlistItemId: wishlist_item_id })
   }
 }
 

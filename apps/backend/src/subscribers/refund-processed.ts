@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { NOTIFICATION_MODULE } from "../modules/notification"
 import { PAYMENT_MODULE } from "../modules/payment"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:refund-processed]"
 
@@ -51,6 +52,7 @@ export default async function refundProcessedHandler({
       customerEmail = order?.customer?.email ?? order?.email ?? null
     } catch (err) {
       logger.warn(`${LOG} Could not retrieve order email: ${(err as Error).message}`)
+      captureException(err, { subscriber: "refund-processed", refundId: refund_id, orderId: order_id, step: "retrieve-order-email" })
     }
 
     const amountInRupees = (refund.amount / 100).toFixed(2)
@@ -79,6 +81,7 @@ export default async function refundProcessedHandler({
         logger.info(`${LOG} Customer email sent to ${customerEmail} for refund ${refund_id}`)
       } catch (emailErr: any) {
         logger.warn(`${LOG} External email notification failed: ${emailErr.message}`)
+        captureException(emailErr, { subscriber: "refund-processed", refundId: refund_id, orderId: order_id, step: "send-email" })
       }
     } else {
       logger.warn(`${LOG} No customer email found for order ${order_id} — skipping email notification`)
@@ -98,12 +101,14 @@ export default async function refundProcessedHandler({
       })
     } catch (internalErr: any) {
       logger.warn(`${LOG} Internal notification failed: ${internalErr.message}`)
+      captureException(internalErr, { subscriber: "refund-processed", refundId: refund_id, orderId: order_id, step: "internal-notification" })
     }
   } catch (err) {
     // Subscriber failures must not affect the refund record
     logger.error(
       `${LOG} Failed for refund ${refund_id}: ${(err as Error).message}`
     )
+    captureException(err, { subscriber: "refund-processed", refundId: refund_id, orderId: order_id })
   }
 }
 

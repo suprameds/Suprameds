@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ModuleRegistrationName } from "@medusajs/framework/utils"
+import { captureException } from "../lib/sentry"
 
 /**
  * Auto-assigns the default shipping profile to newly created products.
@@ -47,6 +48,7 @@ export default async function handler({
       `[product-shipping-profile] Failed to assign profile to ${productId}:`,
       err
     )
+    captureException(err, { subscriber: "product-shipping-profile", productId })
   }
 }
 

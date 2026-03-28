@@ -1,24 +1,36 @@
-// Uncomment this file to enable instrumentation and observability using OpenTelemetry
-// Refer to the docs for installation instructions: https://docs.medusajs.com/learn/debugging-and-testing/instrumentation
+/**
+ * OpenTelemetry instrumentation for Medusa backend.
+ *
+ * Enabled when OTEL_EXPORTER_OTLP_ENDPOINT is set (e.g., Jaeger, Grafana Tempo).
+ * Falls back to console exporter in development for local debugging.
+ *
+ * Instruments: HTTP requests, workflow steps, database queries.
+ */
 
-// import { registerOtel } from "@medusajs/medusa"
-// // If using an exporter other than Zipkin, require it here.
-// import { ZipkinExporter } from "@opentelemetry/exporter-zipkin"
+import { registerOtel } from "@medusajs/medusa"
 
-// // If using an exporter other than Zipkin, initialize it here.
-// const exporter = new ZipkinExporter({
-//   serviceName: 'my-medusa-project',
-// })
+const otlpEndpoint = process.env.OTEL_EXPORTER_OTLP_ENDPOINT
+const isProduction = process.env.NODE_ENV === "production"
 
-// export function register() {
-//   registerOtel({
-//     serviceName: 'medusajs',
-//     // pass exporter
-//     exporter,
-//     instrument: {
-//       http: true,
-//       workflows: true,
-//       query: true
-//     },
-//   })
-// }
+export function register() {
+  // Skip instrumentation if no exporter configured in production
+  if (isProduction && !otlpEndpoint) return
+
+  try {
+    registerOtel({
+      serviceName: "suprameds-backend",
+      instrument: {
+        http: true,
+        workflows: true,
+        query: true,
+      },
+    })
+
+    console.log(
+      `[OTel] Instrumentation enabled` +
+        (otlpEndpoint ? ` → ${otlpEndpoint}` : " (console exporter)")
+    )
+  } catch (err) {
+    console.warn("[OTel] Failed to initialize instrumentation:", (err as Error).message)
+  }
+}

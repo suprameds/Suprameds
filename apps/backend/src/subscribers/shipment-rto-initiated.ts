@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { captureException } from "../lib/sentry"
 
 interface RtoEventData {
   shipment_id: string
@@ -38,6 +39,7 @@ export default async function handler({
     })
   } catch (err) {
     logger.warn(`[subscriber] RTO push notification failed: ${(err as Error).message}`)
+    captureException(err, { subscriber: "shipment-rto-initiated", shipmentId: shipment_id, orderId: order_id, step: "push-notification" })
   }
 
   // Internal admin notification
@@ -54,6 +56,7 @@ export default async function handler({
     })
   } catch (err) {
     logger.warn(`[subscriber] RTO internal notification failed: ${(err as Error).message}`)
+    captureException(err, { subscriber: "shipment-rto-initiated", shipmentId: shipment_id, orderId: order_id, step: "internal-notification" })
   }
 }
 

@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:user-invited]"
 
@@ -73,6 +74,7 @@ export default async function inviteCreatedHandler({
   } catch (error) {
     // Log the full error — don't swallow it
     console.error(`${LOG} FAILED for invite ${inviteId}:`, error)
+    captureException(error, { subscriber: "user-invited", inviteId })
   }
 }
 

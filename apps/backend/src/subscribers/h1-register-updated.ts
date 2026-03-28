@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:h1-register-updated]"
 
@@ -48,6 +49,7 @@ export default async function h1RegisterUpdatedHandler({
     console.info(`${LOG} Compliance notification created for entry ${entryId}`)
   } catch (err) {
     console.error(`${LOG} Failed: ${(err as Error).message}`)
+    captureException(err, { subscriber: "h1-register-updated", entryId, orderId: data.order_id })
   }
 }
 

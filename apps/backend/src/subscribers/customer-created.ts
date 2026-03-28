@@ -1,5 +1,6 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:customer-created]"
 
@@ -42,9 +43,11 @@ export default async function customerCreatedHandler({
       console.warn(
         `${LOG} Welcome email failed for ${customer.email}: ${(err as Error).message}`
       )
+      captureException(err, { subscriber: "customer-created", customerId, step: "send-welcome-email" })
     }
   } catch (err) {
     console.error(`${LOG} Failed for customer ${customerId}: ${(err as Error).message}`)
+    captureException(err, { subscriber: "customer-created", customerId })
   }
 }
 

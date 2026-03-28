@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:payment-failed]"
 
@@ -79,6 +80,7 @@ export default async function handler({
     }
   } catch (err) {
     console.error(`${LOG} Failed for payment ${paymentId}: ${(err as Error).message}`)
+    captureException(err, { subscriber: "payment-failed", paymentId })
   }
 }
 

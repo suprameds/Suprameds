@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { captureException } from "../lib/sentry"
 
 const LOG = "[subscriber:refund-raised]"
 
@@ -46,6 +47,7 @@ export default async function refundRaisedHandler({
     logger.error(
       `${LOG} Failed to create notification for refund ${refund_id}: ${(err as Error).message}`
     )
+    captureException(err, { subscriber: "refund-raised", refundId: refund_id, orderId: order_id })
   }
 }
 
