@@ -46,8 +46,8 @@ export function useBulkPharma(productIds: string[]) {
 
 /**
  * Server-side pharma filter: returns product_ids matching the given
- * schedule and/or dosage_form. Use these IDs to pre-filter Medusa's
- * paginated product list (pass as `id: filteredIds`).
+ * schedule and/or dosage_form. Uses the bulk endpoint in filter mode
+ * (no ids param, just schedule/dosage_form).
  *
  * Only fires when at least one filter is active.
  */
@@ -62,7 +62,7 @@ export function usePharmaFilter(schedule?: string, dosageForm?: string) {
       if (dosageForm && dosageForm !== "all") params.set("dosage_form", dosageForm)
 
       const { product_ids } = await sdk.client.fetch<{ product_ids: string[] }>(
-        `/store/products/pharma/filter?${params.toString()}`,
+        `/store/products/pharma/bulk?${params.toString()}`,
         { method: "GET" }
       )
       return product_ids ?? []
