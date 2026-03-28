@@ -36,14 +36,22 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       "unit_type",
       "therapeutic_class",
       "gst_rate",
+      "habit_forming",
+      "is_chronic",
+      "metadata",
     ],
     filters: { product_id: productIds },
   })
 
-  // Key by product_id for easy client-side lookup
+  // Key by product_id, extracting manufacturer from metadata
   const byProductId: Record<string, any> = {}
   for (const dp of drugProducts as any[]) {
-    byProductId[dp.product_id] = dp
+    const meta = dp.metadata as Record<string, any> | null
+    byProductId[dp.product_id] = {
+      ...dp,
+      manufacturer: meta?.manufacturer ?? null,
+      metadata: undefined, // strip heavy metadata from listing response
+    }
   }
 
   return res.json({ drug_products: byProductId })
