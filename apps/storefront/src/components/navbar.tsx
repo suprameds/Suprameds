@@ -1,5 +1,6 @@
 import { CartDropdown } from "@/components/cart"
-import ThemeToggle from "@/components/theme-toggle"
+import { SearchDropdown, saveRecentSearch } from "@/components/search-dropdown"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   Drawer,
   DrawerClose,
@@ -46,19 +47,85 @@ export const Navbar = () => {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data: customer } = useCustomer()
   const [searchQuery, setSearchQuery] = useState("")
+  const [scrolled, setScrolled] = useState(false)
+
+  // Backdrop blur effect on scroll
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
+
+  // Search dropdown state
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [highlightIndex, setHighlightIndex] = useState(-1)
+  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = searchQuery.trim()
     if (trimmed) {
+      saveRecentSearch(trimmed)
       navigate({
         to: "/$countryCode/search",
         params: { countryCode },
         search: { q: trimmed },
       })
       setSearchQuery("")
+      setSearchFocused(false)
     }
   }
+
+  const handleSearchFocus = () => {
+    if (blurTimeout.current) clearTimeout(blurTimeout.current)
+    setSearchFocused(true)
+    setHighlightIndex(-1)
+  }
+
+  const handleSearchBlur = () => {
+    blurTimeout.current = setTimeout(() => setSearchFocused(false), 200)
+  }
+
+  const handleSelectProduct = (handle: string) => {
+    saveRecentSearch(searchQuery.trim())
+    navigate({
+      to: "/$countryCode/products/$handle",
+      params: { countryCode, handle },
+    })
+    setSearchQuery("")
+    setSearchFocused(false)
+  }
+
+  const handleSubmitFromDropdown = (q: string) => {
+    saveRecentSearch(q)
+    navigate({
+      to: "/$countryCode/search",
+      params: { countryCode },
+      search: { q },
+    })
+    setSearchQuery("")
+    setSearchFocused(false)
+  }
+
+  const handleFillRecent = (q: string) => {
+    setSearchQuery(q)
+    setHighlightIndex(-1)
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      setHighlightIndex((prev) => prev + 1)
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      setHighlightIndex((prev) => Math.max(-1, prev - 1))
+    } else if (e.key === "Escape") {
+      setSearchFocused(false)
+    }
+  }
+
+  // Close dropdown on route change
+  useEffect(() => { setSearchFocused(false) }, [location.pathname])
 
   const { data: topLevelCategories } = useCategories({
     fields: "id,name,handle,parent_category_id",
@@ -101,31 +168,59 @@ export const Navbar = () => {
     <div className="sticky top-0 inset-x-0 z-40">
 
       {/* Main navigation */}
-      <header className="relative mx-auto border-b" style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}>
-        <nav className="content-container flex items-center justify-between w-full h-16">
+      <header
+        className="relative mx-auto border-b transition-all duration-300"
+        style={{
+          background: scrolled ? "color-mix(in srgb, var(--bg-secondary) 85%, transparent)" : "var(--bg-secondary)",
+          borderColor: scrolled ? "color-mix(in srgb, var(--border-primary) 40%, transparent)" : "var(--border-primary)",
+          backdropFilter: scrolled ? "blur(20px) saturate(1.4)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(20px) saturate(1.4)" : "none",
+        }}
+      >
+        <nav className="content-container flex items-center gap-x-4 w-full h-16">
 
-          {/* Desktop Navigation (plain links to avoid Radix NavigationMenu render loop in React 19) */}
-          <div className="hidden lg:flex items-center gap-x-8 h-full">
+          {/* ── Logo (left-aligned on desktop) ── */}
+          <Link
+            to="/$countryCode"
+            params={{ countryCode }}
+            className="hidden lg:flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
+          >
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, var(--brand-teal), #0a9272)" }}
+            >
+              <PillIcon />
+            </div>
+            <span
+              className="text-lg font-semibold tracking-tight"
+              style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
+            >
+              Suprameds
+            </span>
+          </Link>
+
+          {/* ── Desktop nav links ── */}
+          <div className="hidden lg:flex items-center gap-x-1 flex-shrink-0">
             <details ref={detailsRef} className="group relative">
               <summary
-                className="list-none flex items-center gap-1 text-sm font-medium cursor-pointer select-none"
+                className="list-none flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-medium cursor-pointer select-none transition-colors hover:bg-[var(--bg-tertiary)]"
                 style={{ color: "var(--text-primary)" }}
                 aria-label="Medicines menu"
               >
                 Medicines
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform duration-200 group-open:rotate-180" style={{ marginTop: 1 }} aria-hidden="true">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform duration-200 group-open:rotate-180" style={{ marginTop: 1 }} aria-hidden="true">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </summary>
               <div
-                className="absolute left-0 mt-2 w-64 rounded-lg border shadow-lg p-3 z-50"
+                className="absolute left-0 mt-2 w-56 rounded-xl border shadow-lg p-2 z-50"
                 style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
               >
                 <Link
                   to="/$countryCode/store"
                   params={{ countryCode }}
                   onClick={closeDropdown}
-                  className="block px-2 py-2 text-sm font-medium hover:bg-[var(--bg-tertiary)] rounded"
+                  className="block px-3 py-2 text-sm font-medium hover:bg-[var(--bg-tertiary)] rounded-lg"
                   style={{ color: "var(--text-primary)" }}
                 >
                   All Medicines
@@ -136,7 +231,7 @@ export const Navbar = () => {
                     to="/$countryCode/categories/$handle"
                     params={{ countryCode, handle: link.handle }}
                     onClick={closeDropdown}
-                    className="block px-2 py-2 text-sm font-medium hover:bg-[var(--bg-tertiary)] rounded"
+                    className="block px-3 py-2 text-sm font-medium hover:bg-[var(--bg-tertiary)] rounded-lg"
                     style={{ color: "var(--text-primary)" }}
                   >
                     {link.name}
@@ -148,39 +243,61 @@ export const Navbar = () => {
             <Link
               to="/$countryCode/store"
               params={{ countryCode }}
-              className="text-sm font-medium transition-colors hover:text-[var(--brand-teal)]"
+              search={{ schedule: "otc" } as any}
+              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[var(--bg-tertiary)]"
               style={{ color: "var(--text-primary)" }}
             >
-              OTC Products
+              OTC
             </Link>
 
             <Link
               to="/prescription-policy"
-              className="text-sm font-medium transition-colors hover:text-[var(--brand-teal)]"
+              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[var(--bg-tertiary)]"
               style={{ color: "var(--text-primary)" }}
             >
-              Prescription Policy
+              Rx Policy
             </Link>
-
-            <form onSubmit={handleSearch} className="flex items-center ml-2" role="search" aria-label="Search medicines">
-              <div
-                className="flex items-center rounded-lg overflow-hidden"
-                style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-primary)" }}
-              >
-                <div className="pl-2.5" style={{ color: "var(--text-tertiary)" }}>
-                  <SearchIcon />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search medicines..."
-                  className="px-2 py-1.5 text-xs outline-none bg-transparent w-36 xl:w-48"
-                  style={{ color: "var(--text-primary)" }}
-                />
-              </div>
-            </form>
           </div>
+
+          {/* ── Search bar (expanded, desktop) ── */}
+          <form onSubmit={handleSearch} className="hidden lg:block relative flex-1 max-w-lg mx-4" role="search" aria-label="Search medicines">
+            <div
+              className="flex items-center rounded-full overflow-hidden transition-all"
+              style={{
+                background: searchFocused ? "var(--bg-secondary)" : "var(--bg-tertiary)",
+                border: searchFocused ? "1.5px solid var(--brand-teal)" : "1.5px solid var(--border-primary)",
+                boxShadow: searchFocused ? "0 0 0 3px rgba(14,124,134,0.08)" : "none",
+              }}
+            >
+              <div className="pl-3.5" style={{ color: searchFocused ? "var(--brand-teal)" : "var(--text-tertiary)" }}>
+                <SearchIcon />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setHighlightIndex(-1) }}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                onKeyDown={handleSearchKeyDown}
+                placeholder="Search medicines, e.g. Metformin, Paracetamol..."
+                className="flex-1 px-2.5 py-2 text-sm outline-none bg-transparent"
+                style={{ color: "var(--text-primary)" }}
+                autoComplete="off"
+              />
+            </div>
+
+            <SearchDropdown
+              query={searchQuery}
+              isOpen={searchFocused}
+              highlightIndex={highlightIndex}
+              onClose={() => setSearchFocused(false)}
+              onSelectProduct={handleSelectProduct}
+              onSubmitSearch={handleSubmitFromDropdown}
+              onSetHighlight={setHighlightIndex}
+              onFillRecent={handleFillRecent}
+              countryCode={countryCode}
+            />
+          </form>
 
           {/* Mobile menu */}
           <Drawer>
@@ -283,27 +400,27 @@ export const Navbar = () => {
                     <span className="font-semibold">Helpline: </span>
                     <a href="tel:+918008001234" className="underline">+91 800 800 1234</a>
                   </p>
-                  <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>9 AM–9 PM · Mon–Sat</p>
+                  <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>9 AM-9 PM · Mon-Sat</p>
                 </div>
               </div>
             </DrawerContent>
           </Drawer>
 
-          {/* Logo — centered */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2">
+          {/* Logo — mobile only (centered) */}
+          <div className="lg:hidden flex-1 flex justify-center">
             <Link
               to="/$countryCode"
               params={{ countryCode }}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               <div
-                className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
-                style={{ background: "var(--bg-inverse)" }}
+                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, var(--brand-teal), #0a9272)" }}
               >
                 <PillIcon />
               </div>
               <span
-                className="font-serif text-xl font-semibold tracking-tight"
+                className="text-lg font-semibold tracking-tight"
                 style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
               >
                 Suprameds
@@ -312,7 +429,7 @@ export const Navbar = () => {
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-x-3 h-full justify-end">
+          <div className="flex items-center gap-x-2 lg:gap-x-3 flex-shrink-0">
             <Link
               to="/$countryCode/upload-rx"
               params={{ countryCode }}
@@ -326,19 +443,19 @@ export const Navbar = () => {
               Upload Rx
             </Link>
 
-            {/* Account / Sign in — visible label so users can find login */}
+            {/* Account / Sign in */}
             <Link
               to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
               params={{ countryCode }}
               search={customer ? {} as any : { redirectTo: location.pathname } as any}
-              className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-gray-100"
+              className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-[var(--bg-tertiary)]"
               style={{ color: "var(--text-primary)" }}
               title={customer ? `${customer.first_name} ${customer.last_name}` : "Sign in or register"}
             >
               {customer ? (
                 <span
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
-                  style={{ background: "var(--brand-green)" }}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                  style={{ background: "var(--brand-green)", color: "var(--text-inverse)" }}
                 >
                   {customer.first_name?.[0]?.toUpperCase() ?? "U"}
                 </span>

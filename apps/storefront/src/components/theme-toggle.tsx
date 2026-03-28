@@ -35,7 +35,7 @@ function MonitorIcon() {
   )
 }
 
-export default function ThemeToggle() {
+export function ThemeToggle() {
   const { theme, setTheme, resolved } = useTheme()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)

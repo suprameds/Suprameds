@@ -159,6 +159,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <Thumbnail
           thumbnail={product.thumbnail}
           alt={product.title}
+          dosageForm={drug?.dosage_form}
           className="absolute inset-0 object-contain object-center w-full h-full p-3 transition-transform duration-500 group-hover:scale-105"
         />
       </div>
