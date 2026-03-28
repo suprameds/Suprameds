@@ -94,54 +94,42 @@ const ProductCard = ({ product }: ProductCardProps) => {
       className="group relative flex flex-col w-full rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg"
       style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
     >
-      {/* ── Badges overlay ── */}
-      <div className="absolute top-0 left-0 right-0 z-10 flex items-start justify-between p-2.5 pointer-events-none">
-        {/* Left: discount badge */}
-        <div className="flex flex-col gap-1.5">
-          {discount && discount > 0 && (
-            <span
-              className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tracking-wide shadow-sm"
-              style={{
-                background: discount >= 40
-                  ? "var(--discount-bg)"
-                  : discount >= 20
-                    ? "var(--brand-green)"
-                    : "var(--brand-green)",
-                color: "var(--text-inverse)",
-              }}
-            >
-              {discount}% OFF
-            </span>
-          )}
-        </div>
-
-        {/* Right: Rx / OTC badge */}
-        <div className="flex flex-col items-end gap-1.5">
-          {isRx && (
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
-              style={{
-                background: "rgba(255,255,255,0.92)",
-                color: "var(--brand-amber-dark)",
-                border: "1.5px solid var(--brand-amber)",
-                backdropFilter: "blur(4px)",
-              }}
-            >
-              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M4 2v12M4 2h4.5a3.5 3.5 0 0 1 0 7H4m4 0 4 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Rx
-            </span>
-          )}
-          {isBlocked && (
-            <span
-              className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
-              style={{ background: "rgba(239,68,68,0.12)", color: "var(--brand-red-dark)", border: "1.5px solid rgba(239,68,68,0.2)" }}
-            >
-              Schedule X
-            </span>
-          )}
-        </div>
+      {/* ── Top-left badges ── */}
+      <div className="absolute top-0 left-0 z-10 flex flex-col gap-1.5 p-2.5 pointer-events-none">
+        {discount && discount > 0 && (
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tracking-wide shadow-sm"
+            style={{
+              background: discount >= 40
+                ? "var(--discount-bg)"
+                : "var(--brand-green)",
+              color: "var(--text-inverse)",
+            }}
+          >
+            {discount}% OFF
+          </span>
+        )}
+        {isRx && (
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
+            style={{
+              background: "rgba(255,255,255,0.92)",
+              color: "var(--brand-amber-dark)",
+              border: "1.5px solid var(--brand-amber)",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            Rx
+          </span>
+        )}
+        {isBlocked && (
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
+            style={{ background: "rgba(239,68,68,0.12)", color: "var(--brand-red-dark)", border: "1.5px solid rgba(239,68,68,0.2)" }}
+          >
+            Schedule X
+          </span>
+        )}
       </div>
 
       {/* ── Wishlist button ── */}
