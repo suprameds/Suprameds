@@ -23,6 +23,11 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   const logger = req.scope.resolve("logger")
   logger.info(`${LOG} Webhook received`)
 
+  if (!process.env.RAZORPAY_TEST_KEY_ID && !process.env.RAZORPAY_KEY_ID) {
+    logger.warn(`${LOG} Razorpay not configured — ignoring webhook`)
+    return res.status(200).json({ received: true })
+  }
+
   try {
     const rawBody: Buffer | undefined = (req as any).rawBody
     if (!rawBody) {

@@ -37,15 +37,23 @@ export const POST = async (
   const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "_")
   const key = `rx/${customerId}/${Date.now()}-${safeFilename}`
 
-  const file = await fileModuleService.createFiles({
-    filename: key,
-    mimeType: content_type || "application/octet-stream",
-    content,
-    access: "private",
-  })
+  try {
+    const file = await fileModuleService.createFiles({
+      filename: key,
+      mimeType: content_type || "application/octet-stream",
+      content,
+      access: "private",
+    })
 
-  return res.json({
-    file_key: file.id,
-    file_url: file.url,
-  })
+    return res.json({
+      file_key: file.id,
+      file_url: file.url,
+    })
+  } catch (err: any) {
+    const logger = req.scope.resolve("logger") as any
+    logger.error(`[upload-file] File upload failed: ${err.message}`)
+    return res.status(503).json({
+      error: "File upload service is temporarily unavailable. Please try again.",
+    })
+  }
 }

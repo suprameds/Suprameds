@@ -61,7 +61,7 @@ export default function ShippingConfirmation({
         />
       </Head>
       <Preview>
-        Your order #{display_id} is on its way via {carrier}!
+        {`Your order #${display_id} is on its way via ${carrier}!`}
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>

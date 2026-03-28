@@ -1,13 +1,17 @@
 const AFTERSHIP_BASE = "https://api.aftership.com/v4"
 const DEFAULT_CARRIER = "india-post"
 
+export function isAfterShipConfigured(): boolean {
+  return Boolean(process.env.AFTERSHIP_API_KEY)
+}
+
 function getHeaders(): Record<string, string> {
   const key = process.env.AFTERSHIP_API_KEY
   if (!key) {
-    console.warn("[aftership] AFTERSHIP_API_KEY is not set")
+    throw new Error("[aftership] AFTERSHIP_API_KEY is not set — cannot make API calls")
   }
   return {
-    "aftership-api-key": key ?? "",
+    "aftership-api-key": key,
     "Content-Type": "application/json",
   }
 }

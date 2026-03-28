@@ -49,57 +49,20 @@ const PaymentButton = ({ cart, className, disabled }: PaymentButtonProps) => {
 }
 
 const StripePaymentButton = ({
-  notReady,
   className,
 }: {
   notReady: boolean;
   className?: string;
 }) => {
-  const [submitting, setSubmitting] = useState(false)
-  const lockRef = useRef(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const navigate = useNavigate()
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname)
-  const completeOrderMutation = useCompleteCartOrder()
-
-  const handlePayment = async () => {
-    if (lockRef.current) return
-    lockRef.current = true
-    setSubmitting(true)
-    setErrorMessage(null)
-
-    try {
-      const order = await completeOrderMutation.mutateAsync()
-
-      navigate({
-        to: `/${countryCode}/order/${order.id}/confirmed`,
-        replace: true,
-      })
-    } catch (error) {
-      lockRef.current = false
-      setErrorMessage(
-        error instanceof Error ? error.message : "Payment failed"
-      )
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   return (
-    <>
-      <Button
-        disabled={notReady || submitting || completeOrderMutation.isPending}
-        onClick={handlePayment}
-        data-testid="place-order-button"
-        className={className}
-      >
-        {submitting ? "Processing…" : "Place Order"}
+    <div className="flex flex-col gap-2">
+      <div className="text-sm text-[var(--text-tertiary)]">
+        Card payments are coming soon. Please use Razorpay or Cash on Delivery.
+      </div>
+      <Button disabled className={className}>
+        Card payments coming soon
       </Button>
-      {errorMessage && (
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2 mt-2">{errorMessage}</div>
-      )}
-    </>
+    </div>
   )
 }
 

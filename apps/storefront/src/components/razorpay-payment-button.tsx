@@ -126,9 +126,14 @@ export function RazorpayPaymentButton({
       {errorMessage && (
         <div className="text-[var(--brand-red)] text-sm mt-2">{errorMessage}</div>
       )}
+      {!keyId && !razorpayError && (
+        <div className="text-amber-600 text-sm mt-2">
+          Online payment is currently unavailable. Please use Cash on Delivery.
+        </div>
+      )}
       {razorpayError && (
         <div className="text-amber-600 text-sm mt-2">
-          Razorpay failed to load. Please refresh the page.
+          Online payment failed to load. Please refresh or use Cash on Delivery.
         </div>
       )}
     </>

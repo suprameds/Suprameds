@@ -4,36 +4,40 @@ import { hydrateRoot } from "react-dom/client"
 import { StartClient } from "@tanstack/react-start/client"
 import { getRouter } from "./router"
 
-Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN,
-  enabled: import.meta.env.PROD,
-  environment: import.meta.env.MODE,
-  release: `suprameds-storefront@${import.meta.env.VITE_APP_VERSION || "0.0.0"}`,
+try {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    enabled: import.meta.env.PROD,
+    environment: import.meta.env.MODE,
+    release: `suprameds-storefront@${import.meta.env.VITE_APP_VERSION || "0.0.0"}`,
 
-  // Performance — sample 20% of page loads in production
-  tracesSampleRate: 0.2,
+    // Performance — sample 20% of page loads in production
+    tracesSampleRate: 0.2,
 
-  // Session Replay — capture 10% of sessions, 100% on error
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+    // Session Replay — capture 10% of sessions, 100% on error
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
 
-  integrations: [
-    Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
-  ],
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({
+        maskAllText: true,
+        blockAllMedia: true,
+      }),
+    ],
 
-  // Don't report network errors from ad-blockers or extension interference
-  beforeSend(event) {
-    const message = event.exception?.values?.[0]?.value || ""
-    if (message.includes("ResizeObserver") || message.includes("ChunkLoadError")) {
-      return null
-    }
-    return event
-  },
-})
+    // Don't report network errors from ad-blockers or extension interference
+    beforeSend(event) {
+      const message = event.exception?.values?.[0]?.value || ""
+      if (message.includes("ResizeObserver") || message.includes("ChunkLoadError")) {
+        return null
+      }
+      return event
+    },
+  })
+} catch (e) {
+  console.warn("[Sentry] Failed to initialize — error tracking disabled:", e)
+}
 
 /**
  * PWA Service Worker registration.
