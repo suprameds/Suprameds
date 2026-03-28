@@ -115,7 +115,9 @@ export default async function handler({
   // 2. Send push notification to customer
   try {
     const orderService = container.resolve(Modules.ORDER) as any
-    const order = await orderService.retrieveOrder(orderId, {})
+    const order = await orderService.retrieveOrder(orderId, {
+      relations: ["items"],
+    })
 
     if (!order?.customer_id) {
       console.info(`${LOG} Order ${orderId} has no customer_id, skipping push`)
@@ -136,6 +138,58 @@ export default async function handler({
       console.info(`${LOG} Push sent for order ${orderId}`)
     } else {
       console.warn(`${LOG} Push skipped for order ${orderId} (${result.reason})`)
+    }
+
+    // 3. Send email notification to customer
+    try {
+      const customerEmail = order.email ?? null
+      let emailTo = customerEmail
+
+      // If no email on order, look up customer
+      if (!emailTo && order.customer_id) {
+        try {
+          const customerService = container.resolve(Modules.CUSTOMER) as any
+          const customer = await customerService.retrieveCustomer(order.customer_id)
+          emailTo = customer?.email ?? null
+        } catch {
+          // Fall through
+        }
+      }
+
+      if (emailTo) {
+        const items = order.items?.map((item: any) => ({
+          title: item.title,
+          quantity: item.quantity,
+        })) ?? []
+
+        // Attempt to determine cancellation reason and refund amount
+        const cancellationReason =
+          (order.metadata as any)?.cancellation_reason ?? "Cancelled as requested"
+        const refundAmount = order.total != null
+          ? `₹${order.total}`
+          : null
+
+        const notificationService = container.resolve(Modules.NOTIFICATION) as any
+        await notificationService.createNotifications({
+          to: emailTo,
+          channel: "email",
+          template: "order-canceled",
+          data: {
+            order_id: orderId,
+            display_id: order.display_id ?? orderId,
+            cancellation_reason: cancellationReason,
+            refund_amount: refundAmount,
+            items,
+          },
+        })
+        console.info(`${LOG} Cancellation email sent to ${emailTo} for order ${orderId}`)
+      } else {
+        console.warn(`${LOG} No email found for order ${orderId} — skipping cancellation email`)
+      }
+    } catch (emailErr) {
+      console.warn(
+        `${LOG} Cancellation email failed for order ${orderId}: ${(emailErr as Error).message}`
+      )
     }
   } catch (err) {
     console.error(`${LOG} Push failed for order ${orderId}: ${(err as Error).message}`)
