@@ -116,7 +116,7 @@ const DeliveryStep = ({ cart, onNext, onBack }: DeliveryStepProps) => {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
         {!shippingOptions && (
-          <p className="text-sm text-zinc-500 animate-pulse">
+          <p className="text-sm text-[var(--text-tertiary)] animate-pulse">
             Loading shipping options…
           </p>
         )}

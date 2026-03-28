@@ -51,25 +51,25 @@ export const ConsentBanner = () => {
       role="dialog"
       aria-label="Cookie consent"
       className="fixed bottom-0 inset-x-0 z-50 border-t shadow-lg"
-      style={{ background: "#fff", borderColor: "#EDE9E1" }}
+      style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
     >
       <div className="content-container flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Your privacy matters
           </p>
-          <p className="text-xs mt-1 leading-relaxed" style={{ color: "#666" }}>
+          <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             Suprameds uses essential cookies and collects minimal personal data to operate this pharmacy
             platform, as required under the{" "}
-            <span className="font-medium" style={{ color: "#0D1B2A" }}>
+            <span className="font-medium" style={{ color: "var(--text-primary)" }}>
               Digital Personal Data Protection (DPDP) Act, 2023
             </span>
             . By continuing, you consent to our{" "}
-            <a href="/privacy" className="underline" style={{ color: "#0E7C86" }}>
+            <a href="/privacy" className="underline" style={{ color: "var(--brand-teal)" }}>
               Privacy Policy
             </a>{" "}
             and{" "}
-            <a href="/terms" className="underline" style={{ color: "#0E7C86" }}>
+            <a href="/terms" className="underline" style={{ color: "var(--brand-teal)" }}>
               Terms of Service
             </a>
             .
@@ -79,14 +79,14 @@ export const ConsentBanner = () => {
           <a
             href="/privacy"
             className="text-xs font-medium underline"
-            style={{ color: "#0E7C86" }}
+            style={{ color: "var(--brand-teal)" }}
           >
             Learn more
           </a>
           <button
             onClick={handleAccept}
             className="px-5 py-2 rounded text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ background: "#0E7C86", color: "#fff" }}
+            style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
           >
             Accept
           </button>

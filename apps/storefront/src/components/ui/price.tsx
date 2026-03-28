@@ -46,10 +46,10 @@ export const Price = ({
     }
   }, [price, originalPrice, currencyCode])
   return (
-    <div className={clsx("flex flex-col text-zinc-900", className)}>
+    <div className={clsx("flex flex-col text-[var(--text-primary)]", className)}>
       {originalPrice && (
         <p>
-          <span className="line-through text-zinc-600">
+          <span className="line-through text-[var(--text-secondary)]">
             {formattedSalePrice}
           </span>
         </p>

@@ -72,12 +72,12 @@ function formatDate(iso: string | null): string | null {
 
 // ---------- Colors ----------
 
-const TEAL = "#0E7C86"
+const TEAL = "var(--brand-teal)"
 const TEAL_BG = "#F0FDFA"
 const GREY = "#D1D5DB"
-const GREY_TEXT = "#9CA3AF"
-const NAVY = "#0D1B2A"
-const RTO_RED = "#C0392B"
+const GREY_TEXT = "var(--text-tertiary)"
+const NAVY = "var(--text-primary)"
+const RTO_RED = "var(--brand-red)"
 
 // ---------- Component ----------
 
@@ -109,7 +109,7 @@ export const ShipmentTracker = ({ orderId }: { orderId: string }) => {
 
   if (loading) {
     return (
-      <div className="rounded-xl border p-5" style={{ borderColor: "#EDE9E1", background: "#FAFAF8" }}>
+      <div className="rounded-xl border p-5" style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: TEAL, borderTopColor: "transparent" }} />
           <span className="text-sm" style={{ color: GREY_TEXT }}>Loading shipment info…</span>
@@ -122,7 +122,7 @@ export const ShipmentTracker = ({ orderId }: { orderId: string }) => {
 
   if (shipments.length === 0) {
     return (
-      <div className="rounded-xl border p-5" style={{ borderColor: "#EDE9E1", background: "#FAFAF8" }}>
+      <div className="rounded-xl border p-5" style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}>
         <div className="flex items-center gap-3">
           <PackageIcon />
           <div>
@@ -154,9 +154,9 @@ const ShipmentCard = ({ shipment }: { shipment: Shipment }) => {
   const deliveredDate = formatDate(shipment.actual_delivery)
 
   return (
-    <div className="rounded-xl border overflow-hidden" style={{ borderColor: "#EDE9E1", background: "#FAFAF8" }}>
+    <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}>
       {/* Header */}
-      <div className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" style={{ borderBottom: "1px solid #EDE9E1" }}>
+      <div className="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" style={{ borderBottom: "1px solid var(--border-primary)" }}>
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold" style={{ color: NAVY }}>
@@ -181,7 +181,7 @@ const ShipmentCard = ({ shipment }: { shipment: Shipment }) => {
             </span>
           )}
           {deliveredDate && shipment.status === "delivered" && (
-            <span className="text-xs" style={{ color: "#1A7A4A" }}>
+            <span className="text-xs" style={{ color: "var(--price-color)" }}>
               Delivered: <strong>{deliveredDate}</strong>
             </span>
           )}
@@ -237,7 +237,7 @@ const ShipmentCard = ({ shipment }: { shipment: Shipment }) => {
                     className="relative z-10 flex items-center justify-center w-6 h-6 rounded-full border-2 transition-all"
                     style={{
                       borderColor: isCompleted || isActive ? TEAL : GREY,
-                      background: isCompleted ? TEAL : isActive ? TEAL_BG : "#fff",
+                      background: isCompleted ? TEAL : isActive ? TEAL_BG : "var(--bg-secondary)",
                     }}
                   >
                     {isCompleted ? (
@@ -273,7 +273,7 @@ const ShipmentCard = ({ shipment }: { shipment: Shipment }) => {
                       className="flex items-center justify-center w-5 h-5 rounded-full border-2 flex-shrink-0"
                       style={{
                         borderColor: isCompleted || isActive ? TEAL : GREY,
-                        background: isCompleted ? TEAL : isActive ? TEAL_BG : "#fff",
+                        background: isCompleted ? TEAL : isActive ? TEAL_BG : "var(--bg-secondary)",
                       }}
                     >
                       {isCompleted ? (
@@ -312,7 +312,7 @@ const ShipmentCard = ({ shipment }: { shipment: Shipment }) => {
           <p className="text-xs font-semibold mb-2" style={{ color: NAVY }}>Items in this shipment</p>
           <div className="flex flex-col gap-1">
             {shipment.items.map((item, i) => (
-              <div key={i} className="flex items-center justify-between text-xs" style={{ color: "#6B7280" }}>
+              <div key={i} className="flex items-center justify-between text-xs" style={{ color: "var(--text-secondary)" }}>
                 <span>{item.product_title}</span>
                 <span>×{item.quantity}</span>
               </div>
@@ -351,7 +351,7 @@ const ReturnIcon = () => (
 )
 
 const StageCheckIcon = ({ size = 12 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--text-inverse)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 )

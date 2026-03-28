@@ -43,8 +43,8 @@ const ShippingItemSelector = ({
       <div
         className={`flex items-center justify-between p-5 border transition-colors ${
           isSelected
-            ? "border-zinc-900 bg-zinc-50"
-            : "border-zinc-200 hover:border-zinc-300"
+            ? "border-[var(--text-primary)] bg-[var(--bg-tertiary)]"
+            : "border-[var(--border-primary)] hover:border-[var(--text-tertiary)]"
         }`}
       >
         <div className="flex items-center gap-4">
@@ -56,12 +56,12 @@ const ShippingItemSelector = ({
 
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <p className="text-base font-semibold text-zinc-900">
+              <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
                 {shippingOption.name}
               </p>
             </div>
             {typeof shippingOption.data?.description === "string" && (
-              <p className="text-xs text-zinc-600 mt-1">
+              <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
                 {shippingOption.data.description}
               </p>
             )}
@@ -75,7 +75,7 @@ const ShippingItemSelector = ({
             price === 0 ? (
               <span
                 className="text-sm font-semibold"
-                style={{ color: "#27AE60" }}
+                style={{ color: "var(--brand-green)" }}
               >
                 FREE
               </span>
@@ -88,7 +88,7 @@ const ShippingItemSelector = ({
             )
           ) : (
             // Calculation failed or not applicable — allow selection, price resolved server-side
-            <span className="text-xs text-zinc-500">Price at checkout</span>
+            <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>Price at checkout</span>
           )}
         </div>
       </div>

@@ -22,13 +22,13 @@ type SubstitutesResponse = {
 
 // ---------- Colors ----------
 
-const TEAL = "#0E7C86"
+const TEAL = "var(--brand-teal)"
 const TEAL_LIGHT = "rgba(14,124,134,0.06)"
-const NAVY = "#0D1B2A"
-const GREEN = "#1A7A4A"
+const NAVY = "var(--text-primary)"
+const GREEN = "var(--price-color)"
 const GREEN_BG = "rgba(26,122,74,0.08)"
-const GREY_TEXT = "#6B7280"
-const BORDER = "#EDE9E1"
+const GREY_TEXT = "var(--text-secondary)"
+const BORDER = "var(--border-primary)"
 
 // ---------- Component ----------
 
@@ -76,7 +76,7 @@ export const ProductSubstitutes = ({
         style={{ border: `1px solid ${BORDER}` }}
       >
         {/* Header */}
-        <div className="px-4 py-3 flex items-center gap-2" style={{ background: "#F8F6F2", borderBottom: `1px solid ${BORDER}` }}>
+        <div className="px-4 py-3 flex items-center gap-2" style={{ background: "var(--bg-tertiary)", borderBottom: `1px solid ${BORDER}` }}>
           <PillIcon />
           <h2
             className="text-sm font-semibold"
@@ -90,7 +90,7 @@ export const ProductSubstitutes = ({
         </div>
 
         {/* Scrollable row */}
-        <div className="px-4 py-4 overflow-x-auto" style={{ background: "#fff" }}>
+        <div className="px-4 py-4 overflow-x-auto" style={{ background: "var(--bg-secondary)" }}>
           <div className="flex gap-3" style={{ minWidth: "max-content" }}>
             {substitutes.map((sub) => (
               <SubstituteCard
