@@ -1,7 +1,8 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { COMPLIANCE_MODULE } from "../../../../modules/compliance"
+import { createLogger } from "../../../../lib/logger"
 
-const LOG = "[admin:phi-logs]"
+const logger = createLogger("admin:compliance:phi-logs")
 
 /**
  * GET /admin/compliance/phi-logs
@@ -39,7 +40,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 
     res.json({ phi_logs: logs, count: logs.length, limit, offset })
   } catch (err) {
-    console.error(`${LOG} GET failed:`, (err as Error).message)
+    logger.error(`GET failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to fetch PHI audit logs" })
   }
 }
@@ -74,7 +75,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
     res.status(201).json({ phi_log: log })
   } catch (err) {
-    console.error(`${LOG} POST failed:`, (err as Error).message)
+    logger.error(`POST failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to create PHI audit log" })
   }
 }

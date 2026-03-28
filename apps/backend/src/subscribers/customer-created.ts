@@ -1,8 +1,9 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:customer-created]"
+const logger = createLogger("subscriber:customer-created")
 
 /**
  * Fires when a new customer registers on the storefront.
@@ -15,14 +16,14 @@ export default async function customerCreatedHandler({
   const customerId = data.id
   if (!customerId) return
 
-  console.info(`${LOG} New customer: ${customerId}`)
+  logger.info(`New customer: ${customerId}`)
 
   try {
     const customerService = container.resolve(Modules.CUSTOMER) as any
     const customer = await customerService.retrieveCustomer(customerId)
 
     if (!customer?.email) {
-      console.warn(`${LOG} Customer ${customerId} has no email — skipping welcome`)
+      logger.warn(`Customer ${customerId} has no email — skipping welcome`)
       return
     }
 
@@ -38,15 +39,15 @@ export default async function customerCreatedHandler({
           email: customer.email,
         },
       })
-      console.info(`${LOG} Welcome email queued for ${customer.email}`)
+      logger.info(`Welcome email queued for ${customer.email}`)
     } catch (err) {
-      console.warn(
-        `${LOG} Welcome email failed for ${customer.email}: ${(err as Error).message}`
+      logger.warn(
+        `Welcome email failed for ${customer.email}: ${(err as Error).message}`
       )
       captureException(err, { subscriber: "customer-created", customerId, step: "send-welcome-email" })
     }
   } catch (err) {
-    console.error(`${LOG} Failed for customer ${customerId}: ${(err as Error).message}`)
+    logger.error(`Failed for customer ${customerId}: ${(err as Error).message}`)
     captureException(err, { subscriber: "customer-created", customerId })
   }
 }

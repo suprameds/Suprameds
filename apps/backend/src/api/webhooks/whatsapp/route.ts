@@ -1,8 +1,9 @@
 import crypto from "crypto"
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { getVerifyToken, isWhatsAppConfigured, markMessageRead } from "../../../lib/whatsapp"
+import { createLogger } from "../../../lib/logger"
 
-const LOG = "[webhook:whatsapp]"
+const logger = createLogger("webhook:whatsapp")
 
 // ── Types for Meta webhook payloads ──────────────────────────────────────────
 
@@ -51,12 +52,12 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   const challenge = req.query["hub.challenge"] as string | undefined
 
   if (mode === "subscribe" && token === getVerifyToken()) {
-    console.info(`${LOG} Webhook verified`)
+    logger.info(`Webhook verified`)
     res.status(200).send(challenge ?? "OK")
     return
   }
 
-  console.warn(`${LOG} Verification failed — token mismatch or missing mode`)
+  logger.warn(`Verification failed — token mismatch or missing mode`)
   res.status(403).send("Forbidden")
 }
 
@@ -77,7 +78,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     const expected = "sha256=" + crypto.createHmac("sha256", appSecret).update(rawBody).digest("hex")
 
     if (!signature || signature !== expected) {
-      logger.warn(`${LOG} Invalid X-Hub-Signature-256 — rejecting`)
+      logger.warn(`Invalid X-Hub-Signature-256 — rejecting`)
       res.status(401).send("Invalid signature")
       return
     }
@@ -87,7 +88,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   res.status(200).send("OK")
 
   if (!isWhatsAppConfigured()) {
-    logger.warn(`${LOG} WhatsApp not configured, ignoring webhook`)
+    logger.warn(`WhatsApp not configured, ignoring webhook`)
     return
   }
 
@@ -95,7 +96,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     const body = req.body as WhatsAppWebhookBody
 
     if (body.object !== "whatsapp_business_account") {
-      logger.warn(`${LOG} Unexpected object type: ${body.object}`)
+      logger.warn(`Unexpected object type: ${body.object}`)
       return
     }
 
@@ -111,7 +112,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
             value.contacts?.find((c) => c.wa_id === msg.from)?.profile?.name ?? "Unknown"
 
           logger.info(
-            `${LOG} Incoming ${msg.type} from ${msg.from} (${senderName}): ` +
+            `Incoming ${msg.type} from ${msg.from} (${senderName}): ` +
               `${msg.text?.body?.slice(0, 100) ?? msg.type}`
           )
 
@@ -121,7 +122,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
           // Future: handle document/image uploads as prescription submissions
           if (msg.type === "image" || msg.type === "document") {
             logger.info(
-              `${LOG} Media received from ${msg.from} — type=${msg.type}, ` +
+              `Media received from ${msg.from} — type=${msg.type}, ` +
                 `mime=${msg.image?.mime_type ?? msg.document?.mime_type}`
             )
           }
@@ -130,13 +131,13 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
         // ── Handle outbound status updates ───────────────────────────
         for (const status of value.statuses ?? []) {
           logger.info(
-            `${LOG} Status update: msg=${status.id} → ${status.status} ` +
+            `Status update: msg=${status.id} → ${status.status} ` +
               `(recipient=${status.recipient_id})`
           )
 
           if (status.status === "failed" && status.errors?.length) {
             logger.warn(
-              `${LOG} Delivery failure for ${status.recipient_id}: ` +
+              `Delivery failure for ${status.recipient_id}: ` +
                 status.errors.map((e) => `${e.code} ${e.title}`).join(", ")
             )
           }
@@ -144,6 +145,6 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       }
     }
   } catch (err) {
-    logger.error(`${LOG} Error processing webhook: ${(err as Error).message}`)
+    logger.error(`Error processing webhook: ${(err as Error).message}`)
   }
 }

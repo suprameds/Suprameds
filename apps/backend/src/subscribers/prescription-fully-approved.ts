@@ -4,6 +4,9 @@ import { Modules } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
+
+const logger = createLogger("subscriber:prescription-fully-approved")
 
 /** Fires when all Rx lines approved. SMS T05. */
 export default async function prescriptionFullyApprovedHandler({
@@ -28,8 +31,8 @@ export default async function prescriptionFullyApprovedHandler({
         },
       })
     } catch (err) {
-      console.warn(
-        `[subscriber] prescription.fully-approved SMS skipped (no provider?): ${(err as Error).message}`
+      logger.warn(
+        `prescription.fully-approved SMS skipped (no provider?): ${(err as Error).message}`
       )
       captureException(err, { subscriber: "prescription-fully-approved", prescriptionId: data.id, step: "send-sms" })
     }
@@ -47,8 +50,8 @@ export default async function prescriptionFullyApprovedHandler({
     })
 
     if (!result.ok) {
-      console.warn(
-        `[subscriber] prescription.fully-approved push skipped for Rx ${data.id}: ${result.reason}`
+      logger.warn(
+        `prescription.fully-approved push skipped for Rx ${data.id}: ${result.reason}`
       )
     }
 
@@ -71,23 +74,23 @@ export default async function prescriptionFullyApprovedHandler({
             shop_url: `${process.env.STOREFRONT_URL || "https://suprameds.in"}/in/upload-rx`,
           },
         })
-        console.info(
-          `[subscriber] prescription.fully-approved email sent to ${customer.email} for Rx ${data.id}`
+        logger.info(
+          `prescription.fully-approved email sent to ${customer.email} for Rx ${data.id}`
         )
       } else {
-        console.warn(
-          `[subscriber] prescription.fully-approved: customer ${prescription.customer_id} has no email — skipping email`
+        logger.warn(
+          `prescription.fully-approved: customer ${prescription.customer_id} has no email — skipping email`
         )
       }
     } catch (emailErr) {
-      console.warn(
-        `[subscriber] prescription.fully-approved email failed for Rx ${data.id}: ${(emailErr as Error).message}`
+      logger.warn(
+        `prescription.fully-approved email failed for Rx ${data.id}: ${(emailErr as Error).message}`
       )
       captureException(emailErr, { subscriber: "prescription-fully-approved", prescriptionId: data.id, step: "send-email" })
     }
   }
 
-  console.info(`[subscriber] prescription.fully-approved handled for Rx: ${data.id}`)
+  logger.info(`prescription.fully-approved handled for Rx: ${data.id}`)
 }
 
 export const config: SubscriberConfig = {

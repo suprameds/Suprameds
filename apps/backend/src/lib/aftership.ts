@@ -1,3 +1,7 @@
+import { createLogger } from "./logger"
+
+const logger = createLogger("lib:aftership")
+
 const AFTERSHIP_BASE = "https://api.aftership.com/v4"
 const DEFAULT_CARRIER = "india-post"
 
@@ -8,7 +12,7 @@ export function isAfterShipConfigured(): boolean {
 function getHeaders(): Record<string, string> {
   const key = process.env.AFTERSHIP_API_KEY
   if (!key) {
-    throw new Error("[aftership] AFTERSHIP_API_KEY is not set — cannot make API calls")
+    throw new Error("AFTERSHIP_API_KEY is not set — cannot make API calls")
   }
   return {
     "aftership-api-key": key,
@@ -122,8 +126,8 @@ export async function createTracking(params: {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      console.warn(
-        `[aftership] createTracking failed (${res.status}):`,
+      logger.warn(
+        `createTracking failed (${res.status}):`,
         JSON.stringify(err)
       )
       return null
@@ -134,12 +138,12 @@ export async function createTracking(params: {
     }
     const tracking = json.data.tracking
 
-    console.info(
-      `[aftership] tracking created — id=${tracking.id} awb=${params.awb_number}`
+    logger.info(
+      `tracking created — id=${tracking.id} awb=${params.awb_number}`
     )
     return { tracking_id: tracking.id, slug: tracking.slug }
   } catch (error) {
-    console.warn("[aftership] createTracking error:", error)
+    logger.warn("createTracking error:", error)
     return null
   }
 }
@@ -170,8 +174,8 @@ export async function getTrackingStatus(
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      console.warn(
-        `[aftership] getTrackingStatus failed (${res.status}):`,
+      logger.warn(
+        `getTrackingStatus failed (${res.status}):`,
         JSON.stringify(err)
       )
       return null
@@ -206,7 +210,7 @@ export async function getTrackingStatus(
       })),
     }
   } catch (error) {
-    console.warn("[aftership] getTrackingStatus error:", error)
+    logger.warn("getTrackingStatus error:", error)
     return null
   }
 }
@@ -227,17 +231,17 @@ export async function deleteTracking(
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      console.warn(
-        `[aftership] deleteTracking failed (${res.status}):`,
+      logger.warn(
+        `deleteTracking failed (${res.status}):`,
         JSON.stringify(err)
       )
       return false
     }
 
-    console.info(`[aftership] tracking deleted — slug=${slug} awb=${awbNumber}`)
+    logger.info(`tracking deleted — slug=${slug} awb=${awbNumber}`)
     return true
   } catch (error) {
-    console.warn("[aftership] deleteTracking error:", error)
+    logger.warn("deleteTracking error:", error)
     return false
   }
 }
@@ -275,8 +279,8 @@ export async function listActiveTrackings(
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      console.warn(
-        `[aftership] listActiveTrackings failed (${res.status}):`,
+      logger.warn(
+        `listActiveTrackings failed (${res.status}):`,
         JSON.stringify(err)
       )
       return []
@@ -305,7 +309,7 @@ export async function listActiveTrackings(
       order_id: t.custom_fields?.order_id ?? t.order_id,
     }))
   } catch (error) {
-    console.warn("[aftership] listActiveTrackings error:", error)
+    logger.warn("listActiveTrackings error:", error)
     return []
   }
 }

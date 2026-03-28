@@ -1,15 +1,16 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:user-invited]"
+const logger = createLogger("subscriber:user-invited")
 
 export default async function inviteCreatedHandler({
   event: { data },
   container,
 }: SubscriberArgs<{ id: string }>) {
   const inviteId = data.id
-  console.info(`${LOG} Event fired for invite ${inviteId}`)
+  logger.info(`Event fired for invite ${inviteId}`)
 
   try {
     const query = container.resolve("query")
@@ -24,12 +25,12 @@ export default async function inviteCreatedHandler({
 
     const invite = (invites as any[])?.[0]
 
-    console.info(
-      `${LOG} Invite data: email=${invite?.email}, token=${invite?.token ? "present" : "MISSING"}, accepted=${invite?.accepted}`
+    logger.info(
+      `Invite data: email=${invite?.email}, token=${invite?.token ? "present" : "MISSING"}, accepted=${invite?.accepted}`
     )
 
     if (!invite?.email) {
-      console.warn(`${LOG} Invite ${inviteId} has no email — cannot send`)
+      logger.warn(`Invite ${inviteId} has no email — cannot send`)
       return
     }
 
@@ -58,7 +59,7 @@ export default async function inviteCreatedHandler({
       ? `${backendUrl}${adminPath}/invite?token=${invite.token}`
       : `${backendUrl}${adminPath}`
 
-    console.info(`${LOG} Sending invite email to ${invite.email}, url=${inviteUrl}`)
+    logger.info(`Sending invite email to ${invite.email}, url=${inviteUrl}`)
 
     await notificationModuleService.createNotifications({
       to: invite.email,
@@ -70,10 +71,10 @@ export default async function inviteCreatedHandler({
       },
     })
 
-    console.info(`${LOG} Invite email queued for ${invite.email}`)
+    logger.info(`Invite email queued for ${invite.email}`)
   } catch (error) {
     // Log the full error — don't swallow it
-    console.error(`${LOG} FAILED for invite ${inviteId}:`, error)
+    logger.error(`FAILED for invite ${inviteId}:`, error)
     captureException(error, { subscriber: "user-invited", inviteId })
   }
 }

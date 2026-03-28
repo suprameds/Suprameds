@@ -1,7 +1,8 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
+import { createLogger } from "../../../../lib/logger"
 
-const LOG = "[admin:sales-tax]"
+const logger = createLogger("admin:reports:sales-tax")
 
 /**
  * GET /admin/reports/sales-tax
@@ -32,7 +33,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
     const report = buildTaxReport(orders || [], from, to)
     res.json(report)
   } catch (err) {
-    console.error(`${LOG} GET failed:`, (err as Error).message)
+    logger.error(`GET failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to generate sales tax report" })
   }
 }
@@ -70,7 +71,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     const report = buildTaxReport(orders || [], from, to)
     res.json(report)
   } catch (err) {
-    console.error(`${LOG} POST failed:`, (err as Error).message)
+    logger.error(`POST failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to generate sales tax report" })
   }
 }

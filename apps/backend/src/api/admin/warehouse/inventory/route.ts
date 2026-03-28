@@ -1,5 +1,8 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { INVENTORY_BATCH_MODULE } from "../../../../modules/inventoryBatch"
+import { createLogger } from "../../../../lib/logger"
+
+const logger = createLogger("admin:warehouse:inventory")
 
 /**
  * GET /admin/warehouse/inventory
@@ -62,7 +65,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     return res.json({ data: list, count: list.length, limit, offset })
   } catch (err: any) {
-    console.error("[admin:warehouse:inventory] GET failed:", err?.message)
+    logger.error("GET failed:", err?.message)
     return res.status(500).json({ error: "Failed to fetch inventory batches" })
   }
 }

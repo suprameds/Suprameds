@@ -2,6 +2,9 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { INotificationModuleService } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
+
+const logger = createLogger("subscriber:prescription-uploaded")
 
 /**
  * Fires when a new prescription is uploaded.
@@ -29,13 +32,13 @@ export default async function prescriptionUploadedHandler({
       },
     })
   } catch (err) {
-    console.warn(
-      `[subscriber] prescription.uploaded email skipped: ${(err as Error).message}`
+    logger.warn(
+      `prescription.uploaded email skipped: ${(err as Error).message}`
     )
     captureException(err, { subscriber: "prescription-uploaded", prescriptionId: data.id })
   }
 
-  console.info(`[subscriber] prescription.uploaded handled for Rx: ${data.id}`)
+  logger.info(`prescription.uploaded handled for Rx: ${data.id}`)
 }
 
 export const config: SubscriberConfig = {

@@ -1,6 +1,9 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { MedusaError } from "@medusajs/framework/utils"
 import { DISPENSE_MODULE } from "../../../../modules/dispense"
+import { createLogger } from "../../../../lib/logger"
+
+const logger = createLogger("admin:dispense:notes")
 
 /**
  * GET /admin/dispense/notes
@@ -44,7 +47,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     return res.json({ data: list, count: list.length, limit, offset })
   } catch (err: any) {
-    console.error("[admin:dispense:notes] GET failed:", err?.message)
+    logger.error("GET failed:", err?.message)
     return res.status(500).json({ error: "Failed to fetch pharmacist notes" })
   }
 }
@@ -86,7 +89,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     return res.status(201).json({ note })
   } catch (err: any) {
-    console.error("[admin:dispense:notes] POST failed:", err?.message)
+    logger.error("POST failed:", err?.message)
     return res.status(400).json({ error: err?.message || "Failed to create note" })
   }
 }

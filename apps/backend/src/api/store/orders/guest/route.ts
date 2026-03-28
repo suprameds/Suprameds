@@ -1,6 +1,9 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../../../../modules/orders"
+import { createLogger } from "../../../../lib/logger"
+
+const logger = createLogger("store:orders:guest")
 
 /**
  * POST /store/orders/guest — creates a guest checkout session.
@@ -46,7 +49,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     })
   } catch (err) {
     const message = (err as Error).message
-    console.error("[store/orders/guest] POST error:", message)
+    logger.error("POST error:", message)
     res.status(500).json({ message: "Failed to create guest session" })
   }
 }
@@ -102,7 +105,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
     })
   } catch (err) {
     const message = (err as Error).message
-    console.error("[store/orders/guest] GET error:", message)
+    logger.error("GET error:", message)
     res.status(500).json({ message: "Failed to retrieve guest session" })
   }
 }

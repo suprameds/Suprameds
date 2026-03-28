@@ -2,8 +2,9 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:payment-failed]"
+const logger = createLogger("subscriber:payment-failed")
 
 type PaymentFailedData = {
   id?: string
@@ -17,7 +18,7 @@ export default async function handler({
 }: SubscriberArgs<PaymentFailedData>) {
   const paymentId = data?.id || data?.payment_session_id
   if (!paymentId) {
-    console.warn(`${LOG} Missing payment id in event payload`)
+    logger.warn(`Missing payment id in event payload`)
     return
   }
 
@@ -59,7 +60,7 @@ export default async function handler({
     }
 
     if (!customerId) {
-      console.info(`${LOG} Could not resolve customer for payment ${paymentId}, skipping push`)
+      logger.info(`Could not resolve customer for payment ${paymentId}, skipping push`)
       return
     }
 
@@ -74,12 +75,12 @@ export default async function handler({
     })
 
     if (result.ok) {
-      console.info(`${LOG} Push sent for payment ${paymentId}`)
+      logger.info(`Push sent for payment ${paymentId}`)
     } else {
-      console.warn(`${LOG} Push skipped for payment ${paymentId} (${result.reason})`)
+      logger.warn(`Push skipped for payment ${paymentId} (${result.reason})`)
     }
   } catch (err) {
-    console.error(`${LOG} Failed for payment ${paymentId}: ${(err as Error).message}`)
+    logger.error(`Failed for payment ${paymentId}: ${(err as Error).message}`)
     captureException(err, { subscriber: "payment-failed", paymentId })
   }
 }

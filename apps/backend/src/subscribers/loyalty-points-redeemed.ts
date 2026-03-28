@@ -1,8 +1,9 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG_PREFIX = "[subscriber:loyalty-redeemed]"
+const logger = createLogger("subscriber:loyalty-points-redeemed")
 
 type PointsRedeemedData = {
   customer_id: string
@@ -18,7 +19,7 @@ export default async function handler({
   event: { data },
 }: SubscriberArgs<PointsRedeemedData>) {
   const { customer_id, points, remaining_balance } = data
-  console.info(`${LOG_PREFIX} Customer ${customer_id} redeemed ${points} points`)
+  logger.info(`Customer ${customer_id} redeemed ${points} points`)
 
   if (!customer_id || !points || points <= 0) return
 
@@ -35,10 +36,10 @@ export default async function handler({
     })
 
     if (!result.ok) {
-      console.warn(`${LOG_PREFIX} Push not sent: ${result.reason}`)
+      logger.warn(`Push not sent: ${result.reason}`)
     }
   } catch (error) {
-    console.error(`${LOG_PREFIX} Failed to send push:`, (error as Error).message)
+    logger.error(`Failed to send push:`, (error as Error).message)
     captureException(error, { subscriber: "loyalty-points-redeemed", customerId: customer_id })
   }
 }

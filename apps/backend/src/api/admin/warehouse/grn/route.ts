@@ -1,7 +1,8 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { WAREHOUSE_MODULE } from "../../../../modules/warehouse"
+import { createLogger } from "../../../../lib/logger"
 
-const LOG = "[admin:warehouse-grn]"
+const logger = createLogger("admin:warehouse:grn")
 
 /**
  * GET /admin/warehouse/grn
@@ -34,7 +35,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 
     res.json({ grn_records: grns, count: grns.length, limit, offset })
   } catch (err) {
-    console.error(`${LOG} GET failed:`, (err as Error).message)
+    logger.error(`GET failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to list GRN records" })
   }
 }
@@ -79,10 +80,10 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       items: body.items,
     })
 
-    console.info(`${LOG} GRN created: ${grn.id} (${body.grn_number}) by ${actorId}`)
+    logger.info(`GRN created: ${grn.id} (${body.grn_number}) by ${actorId}`)
     res.status(201).json({ grn_record: grn })
   } catch (err) {
-    console.error(`${LOG} POST failed:`, (err as Error).message)
+    logger.error(`POST failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to create GRN" })
   }
 }

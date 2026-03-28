@@ -3,8 +3,9 @@ import { Modules } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:order-canceled]"
+const logger = createLogger("subscriber:order-canceled")
 
 type OrderCanceledData = {
   id?: string
@@ -28,8 +29,8 @@ async function reverseBatchDeductions(
       { take: null }
     )
   } catch (err: any) {
-    console.warn(
-      `${LOG} Could not list batch deductions for order ${orderId}: ${err?.message}`
+    logger.warn(
+      `Could not list batch deductions for order ${orderId}: ${err?.message}`
     )
     captureException(err, { subscriber: "order-canceled", orderId, step: "list-deductions" })
     return 0
@@ -76,13 +77,13 @@ async function reverseBatchDeductions(
       }
 
       reversed++
-      console.info(
-        `${LOG} Reversed ${deduction.quantity} units on batch ${batch.lot_number} ` +
+      logger.info(
+        `Reversed ${deduction.quantity} units on batch ${batch.lot_number} ` +
           `(${batch.id}) for order ${orderId}`
       )
     } catch (err: any) {
-      console.warn(
-        `${LOG} Failed to reverse deduction ${deduction.id}: ${err?.message}`
+      logger.warn(
+        `Failed to reverse deduction ${deduction.id}: ${err?.message}`
       )
       captureException(err, { subscriber: "order-canceled", orderId, deductionId: deduction.id, step: "reverse-deduction" })
     }
@@ -97,7 +98,7 @@ export default async function handler({
 }: SubscriberArgs<OrderCanceledData>) {
   const orderId = data?.id
   if (!orderId) {
-    console.warn(`${LOG} Missing order id in event payload`)
+    logger.warn(`Missing order id in event payload`)
     return
   }
 
@@ -105,13 +106,13 @@ export default async function handler({
   try {
     const reversed = await reverseBatchDeductions(container, orderId)
     if (reversed > 0) {
-      console.info(
-        `${LOG} Reversed ${reversed} batch deduction(s) for order ${orderId}`
+      logger.info(
+        `Reversed ${reversed} batch deduction(s) for order ${orderId}`
       )
     }
   } catch (err) {
-    console.error(
-      `${LOG} Batch reversal failed for order ${orderId}: ${(err as Error).message}`
+    logger.error(
+      `Batch reversal failed for order ${orderId}: ${(err as Error).message}`
     )
     captureException(err, { subscriber: "order-canceled", orderId, step: "batch-reversal" })
   }
@@ -124,7 +125,7 @@ export default async function handler({
     })
 
     if (!order?.customer_id) {
-      console.info(`${LOG} Order ${orderId} has no customer_id, skipping push`)
+      logger.info(`Order ${orderId} has no customer_id, skipping push`)
       return
     }
 
@@ -139,9 +140,9 @@ export default async function handler({
     })
 
     if (result.ok) {
-      console.info(`${LOG} Push sent for order ${orderId}`)
+      logger.info(`Push sent for order ${orderId}`)
     } else {
-      console.warn(`${LOG} Push skipped for order ${orderId} (${result.reason})`)
+      logger.warn(`Push skipped for order ${orderId} (${result.reason})`)
     }
 
     // 3. Send email notification to customer
@@ -186,18 +187,18 @@ export default async function handler({
             items,
           },
         })
-        console.info(`${LOG} Cancellation email sent to ${emailTo} for order ${orderId}`)
+        logger.info(`Cancellation email sent to ${emailTo} for order ${orderId}`)
       } else {
-        console.warn(`${LOG} No email found for order ${orderId} — skipping cancellation email`)
+        logger.warn(`No email found for order ${orderId} — skipping cancellation email`)
       }
     } catch (emailErr) {
-      console.warn(
-        `${LOG} Cancellation email failed for order ${orderId}: ${(emailErr as Error).message}`
+      logger.warn(
+        `Cancellation email failed for order ${orderId}: ${(emailErr as Error).message}`
       )
       captureException(emailErr, { subscriber: "order-canceled", orderId, step: "send-email" })
     }
   } catch (err) {
-    console.error(`${LOG} Push failed for order ${orderId}: ${(err as Error).message}`)
+    logger.error(`Push failed for order ${orderId}: ${(err as Error).message}`)
     captureException(err, { subscriber: "order-canceled", orderId })
   }
 }

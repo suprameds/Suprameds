@@ -1,3 +1,7 @@
+import { createLogger } from "./logger"
+
+const logger = createLogger("lib:whatsapp")
+
 /**
  * WhatsApp Business API client — Meta Cloud API integration.
  *
@@ -131,16 +135,16 @@ async function postMessage(body: Record<string, unknown>): Promise<SendResult> {
 
     if (!res.ok || json.error) {
       const errMsg = json.error?.message ?? `HTTP ${res.status}`
-      console.warn(`[whatsapp] Send failed: ${errMsg}`, JSON.stringify(json))
+      logger.warn(`Send failed: ${errMsg}`, JSON.stringify(json))
       return { ok: false, error: errMsg }
     }
 
     const messageId = json.messages?.[0]?.id
-    console.info(`[whatsapp] Message sent — id=${messageId}`)
+    logger.info(`Message sent — id=${messageId}`)
     return { ok: true, messageId }
   } catch (err) {
     const errMsg = (err as Error).message
-    console.error(`[whatsapp] Network error: ${errMsg}`)
+    logger.error(`Network error: ${errMsg}`)
     return { ok: false, error: errMsg }
   }
 }

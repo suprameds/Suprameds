@@ -1,5 +1,8 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { INVENTORY_BATCH_MODULE } from "../../../../../modules/inventoryBatch"
+import { createLogger } from "../../../../../lib/logger"
+
+const logger = createLogger("admin:pharma:batches")
 
 const AUDITABLE_FIELDS = [
   "lot_number",
@@ -105,7 +108,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
           await batchService.createBatchAuditLogs(entry)
         }
       } catch (err: any) {
-        console.warn(
+        logger.warn(
           `[batch-audit] Failed to write audit log: ${err?.message}`
         )
       }

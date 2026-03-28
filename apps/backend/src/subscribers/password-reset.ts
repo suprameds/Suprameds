@@ -1,7 +1,8 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:password-reset]"
+const logger = createLogger("subscriber:password-reset")
 
 /**
  * Handles auth.password_reset for both admin users and customers.
@@ -15,10 +16,10 @@ export default async function resetPasswordHandler({
   const token = data.token
   const actorType = data.actor_type
 
-  console.info(`${LOG} Reset requested for ${email} (actor: ${actorType})`)
+  logger.info(`Reset requested for ${email} (actor: ${actorType})`)
 
   if (!email || !token) {
-    console.warn(`${LOG} Missing email or token — skipping`)
+    logger.warn(`Missing email or token — skipping`)
     return
   }
 
@@ -67,9 +68,9 @@ export default async function resetPasswordHandler({
       },
     })
 
-    console.info(`${LOG} Reset email queued for ${email}`)
+    logger.info(`Reset email queued for ${email}`)
   } catch (err) {
-    console.error(`${LOG} Failed for ${email}:`, err instanceof Error ? err.message : err)
+    logger.error(`Failed for ${email}:`, err instanceof Error ? err.message : err)
     captureException(err, { subscriber: "password-reset", email, actorType })
   }
 }

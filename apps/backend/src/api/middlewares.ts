@@ -150,6 +150,11 @@ export default defineMiddlewares({
       matcher: "/store/wishlist*",
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
+    // Loyalty — authenticated customers only
+    {
+      matcher: "/store/loyalty/*",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
     // AfterShip webhook — preserve raw body for HMAC signature verification
     {
       matcher: "/webhooks/aftership",
@@ -187,6 +192,14 @@ export default defineMiddlewares({
       method: "POST",
       middlewares: [
         createRateLimiter({ windowMs: 60 * 1000, maxRequests: 5 }),
+      ],
+    },
+    // Loyalty: 10 req/min per IP
+    {
+      matcher: "/store/loyalty/*",
+      method: "GET",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 10 }),
       ],
     },
     // MSG91 webhook — no auth, but preserve body

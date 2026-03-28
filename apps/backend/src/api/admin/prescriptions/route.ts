@@ -7,6 +7,9 @@ import {
   PRESCRIPTION_PHI_FIELDS,
   isPhiEncryptionEnabled,
 } from "../../../lib/phi-crypto"
+import { createLogger } from "../../../lib/logger"
+
+const logger = createLogger("admin:prescriptions")
 
 /**
  * GET /admin/prescriptions
@@ -46,7 +49,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
       return res.json({ prescriptions: result, count: result.length })
     } catch (err: any) {
-      console.warn(
+      logger.warn(
         `[admin:prescriptions] Could not resolve prescriptions for order ${orderId}: ${err?.message}`
       )
       return res.json({ prescriptions: [], count: 0 })
@@ -76,7 +79,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     return res.json({ prescriptions: result, count: result.length })
   } catch (err: any) {
-    console.error("[admin:prescriptions] Failed to list prescriptions:", err?.message)
+    logger.error("Failed to list prescriptions:", err?.message)
     return res.status(500).json({ error: "Failed to load prescriptions" })
   }
 }
@@ -138,11 +141,11 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
         [Modules.ORDER]: { order_id },
         [PRESCRIPTION_MODULE]: { prescription_id: prescription.id },
       })
-      console.info(
+      logger.info(
         `[admin:prescriptions] Linked prescription ${prescription.id} to order ${order_id}`
       )
     } catch (linkErr: any) {
-      console.warn(
+      logger.warn(
         `[admin:prescriptions] Failed to link prescription to order: ${linkErr?.message}`
       )
     }

@@ -2,8 +2,9 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:order-updated]"
+const logger = createLogger("subscriber:order-updated")
 
 /**
  * Fires on any order update. Syncs the pharmaOrder extension status
@@ -27,8 +28,8 @@ export default async function orderUpdatedHandler({
       display_id,
     } = order
 
-    console.info(
-      `${LOG} Order ${display_id ?? orderId} updated — ` +
+    logger.info(
+      `Order ${display_id ?? orderId} updated — ` +
         `status: ${status}, fulfillment: ${fulfillment_status ?? "n/a"}, ` +
         `payment: ${payment_status ?? "n/a"}`
     )
@@ -63,17 +64,17 @@ export default async function orderUpdatedHandler({
           changed_by: "system:order-updated-subscriber",
           reason: `Medusa fulfillment_status → ${fulfillment_status}`,
         })
-        console.info(
-          `${LOG} Extension for ${orderId}: ${prevStatus} → ${newStatus}`
+        logger.info(
+          `Extension for ${orderId}: ${prevStatus} → ${newStatus}`
         )
       }
     } catch (err) {
       // pharmaOrder module may not be active
-      console.warn(`${LOG} Extension sync failed for ${orderId}: ${(err as Error).message}`)
+      logger.warn(`Extension sync failed for ${orderId}: ${(err as Error).message}`)
       captureException(err, { subscriber: "order-updated", orderId, step: "sync-extension" })
     }
   } catch (err) {
-    console.error(`${LOG} Failed for order ${orderId}: ${(err as Error).message}`)
+    logger.error(`Failed for order ${orderId}: ${(err as Error).message}`)
     captureException(err, { subscriber: "order-updated", orderId })
   }
 }

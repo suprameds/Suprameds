@@ -1,6 +1,9 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ModuleRegistrationName } from "@medusajs/framework/utils"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
+
+const logger = createLogger("subscriber:product-shipping-profile")
 
 /**
  * Auto-assigns the default shipping profile to newly created products.
@@ -40,11 +43,11 @@ export default async function handler({
       shipping_profile_id: defaultProfile.id,
     })
 
-    console.info(
+    logger.info(
       `[product-shipping-profile] Assigned profile ${defaultProfile.id} to product ${productId}`
     )
   } catch (err) {
-    console.error(
+    logger.error(
       `[product-shipping-profile] Failed to assign profile to ${productId}:`,
       err
     )

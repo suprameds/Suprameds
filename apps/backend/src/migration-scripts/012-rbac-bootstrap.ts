@@ -1,6 +1,9 @@
 import type { MedusaContainer } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
 import { RBAC_MODULE } from "../modules/rbac"
+import { createLogger } from "../lib/logger"
+
+const logger = createLogger("migration:012-rbac-bootstrap")
 
 /**
  * RBAC Bootstrap — runs automatically during `db:migrate`.
@@ -15,7 +18,6 @@ export default async function rbacBootstrap({
 }: {
   container: MedusaContainer
 }) {
-  const LOG = "[rbac-bootstrap]"
   const rbacService = container.resolve(RBAC_MODULE) as any
   const userService = container.resolve(Modules.USER) as any
 
@@ -23,9 +25,9 @@ export default async function rbacBootstrap({
 
   try {
     await rbacService.seedRolesAndPermissions()
-    console.info(`${LOG} Roles and permissions seeded successfully`)
+    logger.info(`Roles and permissions seeded successfully`)
   } catch (err: any) {
-    console.warn(`${LOG} Seed warning: ${err.message}`)
+    logger.warn(`Seed warning: ${err.message}`)
   }
 
   // ── 2. Auto-assign super_admin to first user if none exists ──────────────
@@ -37,7 +39,7 @@ export default async function rbacBootstrap({
     )) as any[]
 
     if (!superAdminRole) {
-      console.warn(`${LOG} super_admin role not found — skipping auto-assign`)
+      logger.warn(`super_admin role not found — skipping auto-assign`)
       return
     }
 
@@ -48,7 +50,7 @@ export default async function rbacBootstrap({
     )) as any[]
 
     if (existingSuperAdmins.length > 0) {
-      console.info(`${LOG} super_admin already assigned — skipping`)
+      logger.info(`super_admin already assigned — skipping`)
       return
     }
 
@@ -56,13 +58,13 @@ export default async function rbacBootstrap({
     const [users] = await userService.listAndCountUsers({}, { take: 10 })
 
     if (!users || users.length === 0) {
-      console.warn(`${LOG} No admin users found — super_admin will be assigned when first user is created`)
+      logger.warn(`No admin users found — super_admin will be assigned when first user is created`)
       return
     }
 
     // Pick the first user (oldest created)
     const firstUser = users[0]
-    console.info(`${LOG} No super_admin found — assigning to first user: ${firstUser.email} (${firstUser.id})`)
+    logger.info(`No super_admin found — assigning to first user: ${firstUser.email} (${firstUser.id})`)
 
     await rbacService.assignRole(
       firstUser.id,
@@ -70,12 +72,12 @@ export default async function rbacBootstrap({
       "system:bootstrap",
       "Auto-assigned during initial deployment — first admin user"
     )
-    console.info(`${LOG} super_admin assigned to ${firstUser.email}`)
+    logger.info(`super_admin assigned to ${firstUser.email}`)
   } catch (err: any) {
     if (err.message?.includes("already has active role")) {
-      console.info(`${LOG} First user already has super_admin — OK`)
+      logger.info(`First user already has super_admin — OK`)
     } else {
-      console.error(`${LOG} Failed to auto-assign super_admin: ${err.message}`)
+      logger.error(`Failed to auto-assign super_admin: ${err.message}`)
     }
   }
 }

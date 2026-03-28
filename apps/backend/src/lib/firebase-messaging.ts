@@ -1,5 +1,8 @@
 import { getApps, initializeApp, cert } from "firebase-admin/app"
 import { getMessaging, type Message } from "firebase-admin/messaging"
+import { createLogger } from "./logger"
+
+const logger = createLogger("lib:firebase-messaging")
 
 const FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID
 const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL
@@ -44,7 +47,7 @@ export async function subscribeTokenToCustomerTopic(customerId: string, token: s
     await messaging.subscribeToTopic([token], customerTopic(customerId))
     return { ok: true as const }
   } catch (err) {
-    console.error(`[fcm] subscribeToTopic failed: ${(err as Error).message}`)
+    logger.error(`subscribeToTopic failed: ${(err as Error).message}`)
     return { ok: false as const, reason: "fcm_error" as const }
   }
 }
@@ -59,7 +62,7 @@ export async function unsubscribeTokenFromCustomerTopic(customerId: string, toke
     await messaging.unsubscribeFromTopic([token], customerTopic(customerId))
     return { ok: true as const }
   } catch (err) {
-    console.error(`[fcm] unsubscribeFromTopic failed: ${(err as Error).message}`)
+    logger.error(`unsubscribeFromTopic failed: ${(err as Error).message}`)
     return { ok: false as const, reason: "fcm_error" as const }
   }
 }
@@ -99,7 +102,7 @@ export async function sendPushToCustomerTopic(
     const id = await messaging.send(message)
     return { ok: true as const, id }
   } catch (err) {
-    console.error(`[fcm] sendPush failed for ${customerId}: ${(err as Error).message}`)
+    logger.error(`sendPush failed for ${customerId}: ${(err as Error).message}`)
     return { ok: false as const, reason: "fcm_error" as const }
   }
 }

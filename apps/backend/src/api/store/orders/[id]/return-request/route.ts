@@ -1,5 +1,8 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
+import { createLogger } from "../../../../../lib/logger"
+
+const logger = createLogger("store:orders:return-request")
 
 type ReturnItem = {
   line_item_id: string
@@ -80,7 +83,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     return res.status(200).json({ message: "Return request received" })
   } catch (err) {
     const message = (err as Error).message
-    console.error(`[store/orders/${orderId}/return-request] POST error:`, message)
+    logger.error(`POST error for order ${orderId}:`, message)
     return res.status(500).json({ message: "Failed to process return request" })
   }
 }

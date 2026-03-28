@@ -70,6 +70,35 @@ function formatDate(iso: string | null): string | null {
   })
 }
 
+/** Build a direct tracking URL for known Indian carriers */
+function getCarrierTrackingUrl(carrier: string, awb: string): string | null {
+  const c = carrier?.toLowerCase()
+  if (c?.includes("india-post") || c?.includes("speed-post") || c?.includes("indiapost"))
+    return `https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx?search=${awb}`
+  if (c?.includes("dtdc"))
+    return `https://www.dtdc.in/tracking.asp?strCnno=${awb}`
+  if (c?.includes("delhivery"))
+    return `https://www.delhivery.com/track/package/${awb}`
+  if (c?.includes("bluedart"))
+    return `https://www.bluedart.com/tracking?handler=tnt&action=awbquery&awb=${awb}`
+  return null
+}
+
+/** Human-friendly delivery countdown / status string */
+function getDeliveryStatus(estimated: string | null, actual: string | null): string | null {
+  if (actual) {
+    return `Delivered on ${new Date(actual).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`
+  }
+  if (!estimated) return null
+  const est = new Date(estimated)
+  const now = new Date()
+  const diffDays = Math.ceil((est.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+  if (diffDays < 0) return "Delivery delayed"
+  if (diffDays === 0) return "Arriving today"
+  if (diffDays === 1) return "Arriving tomorrow"
+  return `Arriving in ${diffDays} days`
+}
+
 // ---------- Colors ----------
 
 const TEAL = "var(--brand-teal)"
@@ -148,10 +177,19 @@ export const ShipmentTracker = ({ orderId }: { orderId: string }) => {
 // ---------- Single Shipment Card ----------
 
 const ShipmentCard = ({ shipment }: { shipment: Shipment }) => {
+  const [copied, setCopied] = useState(false)
   const isRTO = shipment.status === "rto"
   const current = activeStageIndex(shipment.status)
   const estimatedDate = formatDate(shipment.estimated_delivery)
   const deliveredDate = formatDate(shipment.actual_delivery)
+  const carrierTrackingUrl = getCarrierTrackingUrl(shipment.carrier, shipment.awb_number)
+  const deliveryStatus = getDeliveryStatus(shipment.estimated_delivery, shipment.actual_delivery)
+
+  const handleCopyAwb = () => {
+    navigator.clipboard.writeText(shipment.awb_number)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="rounded-xl border overflow-hidden" style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}>
@@ -169,12 +207,42 @@ const ShipmentCard = ({ shipment }: { shipment: Shipment }) => {
               {STATUS_DISPLAY[shipment.status] ?? shipment.status}
             </span>
           </div>
-          <span className="text-xs" style={{ color: GREY_TEXT }}>
-            AWB: {shipment.awb_number}
-          </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={handleCopyAwb}
+              className="inline-flex items-center gap-1 text-xs font-mono transition-colors"
+              style={{ color: copied ? TEAL : GREY_TEXT }}
+              title="Copy tracking number"
+            >
+              AWB: {shipment.awb_number}
+              {copied ? (
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
+            </button>
+            {carrierTrackingUrl && (
+              <a
+                href={carrierTrackingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs hover:underline"
+                style={{ color: TEAL }}
+              >
+                Track on carrier website
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {estimatedDate && shipment.status !== "delivered" && (
             <span className="text-xs" style={{ color: GREY_TEXT }}>
               Est. delivery: <strong style={{ color: NAVY }}>{estimatedDate}</strong>
@@ -183,6 +251,25 @@ const ShipmentCard = ({ shipment }: { shipment: Shipment }) => {
           {deliveredDate && shipment.status === "delivered" && (
             <span className="text-xs" style={{ color: "var(--price-color)" }}>
               Delivered: <strong>{deliveredDate}</strong>
+            </span>
+          )}
+          {deliveryStatus && (
+            <span
+              className="inline-block px-2 py-0.5 rounded text-xs font-medium"
+              style={{
+                background: deliveryStatus.includes("Delivered")
+                  ? "rgba(39,174,96,0.10)"
+                  : deliveryStatus.includes("delayed")
+                    ? "rgba(192,57,43,0.10)"
+                    : "rgba(243,156,18,0.10)",
+                color: deliveryStatus.includes("Delivered")
+                  ? TEAL
+                  : deliveryStatus.includes("delayed")
+                    ? RTO_RED
+                    : "var(--brand-amber, #F39C12)",
+              }}
+            >
+              {deliveryStatus}
             </span>
           )}
           {shipment.tracking_url && (

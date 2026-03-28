@@ -17,6 +17,9 @@ import { MedusaContainer } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { createUserAccountWorkflow } from "@medusajs/medusa/core-flows"
 import { RBAC_MODULE } from "../modules/rbac"
+import { createLogger } from "../lib/logger"
+
+const logger = createLogger("migration:013-bootstrap-super-admin")
 
 const SUPER_ADMIN_EMAIL = "admin@suprameds.in"
 const SUPER_ADMIN_PASSWORD = "Suprameds@2026!"
@@ -28,7 +31,6 @@ export default async function bootstrapSuperAdmin({
 }: {
   container: MedusaContainer
 }) {
-  const LOG = "[bootstrap-super-admin]"
   const userService = container.resolve(Modules.USER) as any
   const authService = container.resolve(Modules.AUTH) as any
 
@@ -40,14 +42,14 @@ export default async function bootstrapSuperAdmin({
       { take: 1 }
     )
     if (existingUsers?.length > 0) {
-      console.info(`${LOG} User ${SUPER_ADMIN_EMAIL} already exists (${existingUsers[0].id}) — skipping`)
+      logger.info(`User ${SUPER_ADMIN_EMAIL} already exists (${existingUsers[0].id}) — skipping`)
 
       // Still ensure super_admin role is assigned
       await ensureSuperAdminRole(container, existingUsers[0].id)
       return
     }
   } catch (err: any) {
-    console.warn(`${LOG} Could not check existing users: ${err.message}`)
+    logger.warn(`Could not check existing users: ${err.message}`)
   }
 
   // ── 1. Register auth identity (emailpass provider) ───────────────────
@@ -69,11 +71,11 @@ export default async function bootstrapSuperAdmin({
     }
 
     authIdentityId = authIdentity.id
-    console.info(`${LOG} Auth identity created: ${authIdentityId}`)
+    logger.info(`Auth identity created: ${authIdentityId}`)
   } catch (err: any) {
     // If auth identity already exists, try to find it
     if (err.message?.includes("already") || err.message?.includes("exists") || err.message?.includes("Identity")) {
-      console.info(`${LOG} Auth identity for ${SUPER_ADMIN_EMAIL} may already exist, attempting to locate...`)
+      logger.info(`Auth identity for ${SUPER_ADMIN_EMAIL} may already exist, attempting to locate...`)
       try {
         const identities = await authService.listAuthIdentities(
           {},
@@ -86,16 +88,16 @@ export default async function bootstrapSuperAdmin({
         )
         if (existing) {
           authIdentityId = existing.id
-          console.info(`${LOG} Found existing auth identity: ${authIdentityId}`)
+          logger.info(`Found existing auth identity: ${authIdentityId}`)
         } else {
           throw new Error("Could not locate existing auth identity")
         }
       } catch (findErr: any) {
-        console.error(`${LOG} Failed to find/create auth identity: ${findErr.message}`)
+        logger.error(`Failed to find/create auth identity: ${findErr.message}`)
         return
       }
     } else {
-      console.error(`${LOG} Auth registration failed: ${err.message}`)
+      logger.error(`Auth registration failed: ${err.message}`)
       return
     }
   }
@@ -118,25 +120,25 @@ export default async function bootstrapSuperAdmin({
       },
     })
 
-    console.info(`${LOG} Admin user created: ${user.id} (${user.email})`)
+    logger.info(`Admin user created: ${user.id} (${user.email})`)
 
     // ── 3. Assign super_admin role ───────────────────────────────────────
     await ensureSuperAdminRole(container, user.id)
 
-    console.info(`${LOG} ┌─────────────────────────────────────────────┐`)
-    console.info(`${LOG} │  SUPER ADMIN ACCOUNT CREATED SUCCESSFULLY   │`)
-    console.info(`${LOG} │                                             │`)
-    console.info(`${LOG} │  Email:    ${SUPER_ADMIN_EMAIL.padEnd(28)}      │`)
-    console.info(`${LOG} │  Password: ${SUPER_ADMIN_PASSWORD.padEnd(28)}      │`)
-    console.info(`${LOG} │  MFA:      Not required until setup         │`)
-    console.info(`${LOG} │                                             │`)
-    console.info(`${LOG} │  ⚠  Change password after first login!      │`)
-    console.info(`${LOG} └─────────────────────────────────────────────┘`)
+    logger.info(`┌─────────────────────────────────────────────┐`)
+    logger.info(`│  SUPER ADMIN ACCOUNT CREATED SUCCESSFULLY   │`)
+    logger.info(`│                                             │`)
+    logger.info(`│  Email:    ${SUPER_ADMIN_EMAIL.padEnd(28)}      │`)
+    logger.info(`│  Password: ${SUPER_ADMIN_PASSWORD.padEnd(28)}      │`)
+    logger.info(`│  MFA:      Not required until setup         │`)
+    logger.info(`│                                             │`)
+    logger.info(`│  ⚠  Change password after first login!      │`)
+    logger.info(`└─────────────────────────────────────────────┘`)
   } catch (err: any) {
     if (err.message?.includes("already") || err.message?.includes("exists")) {
-      console.info(`${LOG} User may already exist — skipping creation`)
+      logger.info(`User may already exist — skipping creation`)
     } else {
-      console.error(`${LOG} Failed to create admin user: ${err.message}`)
+      logger.error(`Failed to create admin user: ${err.message}`)
     }
   }
 }
@@ -149,13 +151,12 @@ async function ensureSuperAdminRole(
   container: MedusaContainer,
   userId: string
 ): Promise<void> {
-  const LOG = "[bootstrap-super-admin]"
   try {
     const rbacService = container.resolve(RBAC_MODULE) as any
     const currentRoles = await rbacService.getUserRoles(userId)
 
     if (currentRoles.includes("super_admin")) {
-      console.info(`${LOG} User ${userId} already has super_admin role`)
+      logger.info(`User ${userId} already has super_admin role`)
       return
     }
 
@@ -165,12 +166,12 @@ async function ensureSuperAdminRole(
       "system:bootstrap",
       "Initial super_admin account — bootstrapped via migration"
     )
-    console.info(`${LOG} super_admin role assigned to ${userId}`)
+    logger.info(`super_admin role assigned to ${userId}`)
   } catch (err: any) {
     if (err.message?.includes("already has active role")) {
-      console.info(`${LOG} super_admin role already assigned`)
+      logger.info(`super_admin role already assigned`)
     } else {
-      console.warn(`${LOG} Could not assign super_admin role: ${err.message}`)
+      logger.warn(`Could not assign super_admin role: ${err.message}`)
     }
   }
 }

@@ -2,8 +2,9 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG_PREFIX = "[subscriber:payment-captured]"
+const logger = createLogger("subscriber:order-payment-captured")
 
 type PaymentCapturedData = {
   id: string
@@ -16,8 +17,8 @@ export default async function paymentCapturedHandler({
   container,
 }: SubscriberArgs<PaymentCapturedData>) {
   const orderId = data.id
-  console.info(
-    `${LOG_PREFIX} Received event for order ${orderId}` +
+  logger.info(
+    `Received event for order ${orderId}` +
       (data.amount != null ? ` — amount: ${data.amount} ${data.currency_code ?? ""}` : "")
   )
 
@@ -29,8 +30,8 @@ export default async function paymentCapturedHandler({
       relations: ["items", "items.variant"],
     })
 
-    console.info(
-      `${LOG_PREFIX} Order ${orderId}: ${order.items?.length ?? 0} item(s), total ${order.total}`
+    logger.info(
+      `Order ${orderId}: ${order.items?.length ?? 0} item(s), total ${order.total}`
     )
 
     // ── 2. Update pharmaOrder extension status ──────────────────────
@@ -44,7 +45,7 @@ export default async function paymentCapturedHandler({
       )
 
       if (!existing) {
-        console.warn(`${LOG_PREFIX} No OrderExtension found for order ${orderId}, creating one`)
+        logger.warn(`No OrderExtension found for order ${orderId}, creating one`)
         await pharmaOrderService.createOrderExtensions({
           order_id: orderId,
           status: "payment_captured",
@@ -76,20 +77,20 @@ export default async function paymentCapturedHandler({
             reason: `Payment captured: ${data.amount ?? order.total} ${data.currency_code ?? "INR"}`,
           })
 
-          console.info(
-            `${LOG_PREFIX} OrderExtension updated for ${orderId}: ` +
+          logger.info(
+            `OrderExtension updated for ${orderId}: ` +
               `${previousStatus} → payment_captured`
           )
         } else {
-          console.info(
-            `${LOG_PREFIX} Order ${orderId} already in status "${previousStatus}", ` +
+          logger.info(
+            `Order ${orderId} already in status "${previousStatus}", ` +
               `skipping transition to payment_captured`
           )
         }
       }
     } catch (extError) {
-      console.warn(
-        `${LOG_PREFIX} pharmaOrder extension update failed for ${orderId}:`,
+      logger.warn(
+        `pharmaOrder extension update failed for ${orderId}:`,
         (extError as Error).message
       )
       captureException(extError, { subscriber: "order-payment-captured", orderId, step: "update-extension" })
@@ -114,20 +115,20 @@ export default async function paymentCapturedHandler({
           currency_code: data.currency_code ?? "INR",
         },
       })
-      console.info(`${LOG_PREFIX} Payment confirmation notification sent for order ${orderId}`)
+      logger.info(`Payment confirmation notification sent for order ${orderId}`)
     } catch (notifError) {
-      console.warn(
-        `${LOG_PREFIX} Payment notification failed for ${orderId}:`,
+      logger.warn(
+        `Payment notification failed for ${orderId}:`,
         (notifError as Error).message
       )
       captureException(notifError, { subscriber: "order-payment-captured", orderId, step: "send-notification" })
     }
 
-    console.info(`${LOG_PREFIX} Completed processing for order ${orderId}`)
+    logger.info(`Completed processing for order ${orderId}`)
   } catch (error) {
     // Top-level catch — subscriber failures must NOT break the order flow
-    console.error(
-      `${LOG_PREFIX} Unhandled error processing order ${orderId}:`,
+    logger.error(
+      `Unhandled error processing order ${orderId}:`,
       (error as Error).message,
       (error as Error).stack
     )

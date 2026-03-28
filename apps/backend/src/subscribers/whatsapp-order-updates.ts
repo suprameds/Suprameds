@@ -8,9 +8,9 @@ import {
   type TemplateParameter,
 } from "../lib/whatsapp"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:whatsapp-order-updates]"
-
+const logger = createLogger("subscriber:whatsapp-order-updates")
 /**
  * Unified WhatsApp notification subscriber.
  *
@@ -98,12 +98,12 @@ async function safeSend(
   try {
     const result = await sendTemplateMessage(to, templateName, params)
     if (result.ok) {
-      console.info(`${LOG} [${eventLabel}] WhatsApp sent to ${to.slice(-4)}***`)
+      logger.info(`[${eventLabel}] WhatsApp sent to ${to.slice(-4)}***`)
     } else {
-      console.warn(`${LOG} [${eventLabel}] WhatsApp failed: ${result.error}`)
+      logger.warn(`[${eventLabel}] WhatsApp failed: ${result.error}`)
     }
   } catch (err) {
-    console.warn(`${LOG} [${eventLabel}] WhatsApp error: ${(err as Error).message}`)
+    logger.warn(`[${eventLabel}] WhatsApp error: ${(err as Error).message}`)
     captureException(err, { subscriber: "whatsapp-order-updates", eventLabel, to: to.slice(-4) + "***" })
   }
 }
@@ -123,6 +123,7 @@ export default async function whatsappOrderUpdatesHandler({
   const logger = container.resolve("logger") as {
     info: (msg: string) => void
     warn: (msg: string) => void
+    error: (msg: string) => void
   }
 
   try {
@@ -134,7 +135,7 @@ export default async function whatsappOrderUpdatesHandler({
 
         const { phone, displayId } = await getOrderPhone(container, orderId)
         if (!phone) {
-          logger.info(`${LOG} No phone for order ${orderId}, skipping WA`)
+          logger.info(`No phone for order ${orderId}, skipping WA`)
           break
         }
 
@@ -217,11 +218,11 @@ export default async function whatsappOrderUpdatesHandler({
       }
 
       default:
-        logger.warn(`${LOG} Unhandled event: ${name}`)
+        logger.warn(`Unhandled event: ${name}`)
     }
   } catch (err) {
     // Never break order flow due to WhatsApp failures
-    console.error(`${LOG} Unhandled error for ${name}: ${(err as Error).message}`)
+    logger.error(`Unhandled error for ${name}: ${(err as Error).message}`)
     captureException(err, { subscriber: "whatsapp-order-updates", event: name })
   }
 }

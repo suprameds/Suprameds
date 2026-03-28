@@ -7,6 +7,9 @@ import InviteRole from "./models/invite-role"
 import MfaSecret from "./models/mfa-secret"
 import StaffCredential from "./models/staff-credential"
 import { seedRolesAndPermissions } from "./seeds/roles-permissions.seed"
+import { createLogger } from "../../lib/logger"
+
+const logger = createLogger("module:rbac")
 
 // ---------------------------------------------------------------------------
 // Static Separation-of-Duty rules
@@ -448,8 +451,8 @@ class RbacModuleService extends MedusaService({
     } catch (err: any) {
       // If the specified role fails (e.g. SSD violation), fall back to viewer
       if (roleCode !== "viewer") {
-        console.warn(
-          `[rbac] Could not assign "${roleCode}" to ${userId}: ${err.message}. Falling back to viewer.`
+        logger.warn(
+          `Could not assign "${roleCode}" to ${userId}: ${err.message}. Falling back to viewer.`
         )
         await this.assignRole(userId, "viewer", "system:invite-accepted", `Fallback — original role "${roleCode}" failed: ${err.message}`)
         return "viewer"

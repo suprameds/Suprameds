@@ -1,6 +1,9 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { PRESCRIPTION_MODULE } from "../../../../modules/prescription"
 import { PHARMA_MODULE } from "../../../../modules/pharma"
+import { createLogger } from "../../../../lib/logger"
+
+const logger = createLogger("admin:pharmacist:rx-queue")
 
 /**
  * GET /admin/pharmacist/rx-queue
@@ -58,7 +61,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         }
       } catch (err: any) {
         // Non-fatal: if drug lookup fails, fall back to no H1 prioritisation
-        console.warn("[admin:pharmacist:rx-queue] Drug schedule lookup failed:", err?.message)
+        logger.warn("Drug schedule lookup failed:", err?.message)
       }
     }
 
@@ -83,7 +86,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     return res.json({ data, count: data.length })
   } catch (err: any) {
-    console.error("[admin:pharmacist:rx-queue] GET failed:", err?.message)
+    logger.error("GET failed:", err?.message)
     return res.status(500).json({ error: "Failed to fetch prescription queue" })
   }
 }
