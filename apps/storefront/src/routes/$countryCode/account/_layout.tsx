@@ -36,8 +36,8 @@ function AccountLayout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "#FAFAF8" }}>
-        <div className="text-sm" style={{ color: "#9CA3AF" }}>Loading...</div>
+      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "var(--bg-primary)" }}>
+        <div className="text-sm" style={{ color: "var(--text-tertiary)" }}>Loading...</div>
       </div>
     )
   }
@@ -55,28 +55,28 @@ function AccountLayout() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <div className="content-container py-8 lg:py-12">
         <div className="flex gap-8">
           {/* Sidebar */}
           <aside className="hidden lg:flex flex-col w-60 flex-shrink-0">
             <div
               className="bg-white border rounded-xl p-5 mb-3"
-              style={{ borderColor: "#EDE9E1" }}
+              style={{ borderColor: "var(--border-primary)" }}
             >
-              <div className="flex items-center gap-3 mb-4 pb-4 border-b" style={{ borderColor: "#EDE9E1" }}>
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b" style={{ borderColor: "var(--border-primary)" }}>
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-semibold"
-                  style={{ background: "#0D1B2A" }}
+                  style={{ background: "var(--bg-inverse)" }}
                 >
                   {customer.first_name?.[0]?.toUpperCase() ?? "U"}
                   {customer.last_name?.[0]?.toUpperCase() ?? ""}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate" style={{ color: "#111827" }}>
+                  <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
                     {customer.first_name} {customer.last_name}
                   </p>
-                  <p className="text-xs truncate" style={{ color: "#9CA3AF" }}>
+                  <p className="text-xs truncate" style={{ color: "var(--text-tertiary)" }}>
                     {customer.email}
                   </p>
                 </div>
@@ -91,8 +91,8 @@ function AccountLayout() {
                       to={to}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
                       style={{
-                        color: isActive ? "#0D1B2A" : "#6B7280",
-                        background: isActive ? "#F3F4F6" : "transparent",
+                        color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
+                        background: isActive ? "var(--bg-tertiary)" : "transparent",
                       }}
                     >
                       <Icon />
@@ -128,9 +128,9 @@ function AccountLayout() {
                     to={to}
                     className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-all"
                     style={{
-                      color: isActive ? "white" : "#374151",
-                      background: isActive ? "#0D1B2A" : "white",
-                      borderColor: isActive ? "#0D1B2A" : "#D1D5DB",
+                      color: isActive ? "var(--text-inverse)" : "var(--text-primary)",
+                      background: isActive ? "var(--bg-inverse)" : "var(--bg-secondary)",
+                      borderColor: isActive ? "var(--bg-inverse)" : "var(--border-primary)",
                     }}
                   >
                     {label}
@@ -140,7 +140,7 @@ function AccountLayout() {
               <button
                 onClick={handleLogout}
                 className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-all"
-                style={{ color: "#B91C1C", background: "white", borderColor: "#FECACA" }}
+                style={{ color: "#B91C1C", background: "var(--bg-secondary)", borderColor: "#FECACA" }}
               >
                 Sign out
               </button>

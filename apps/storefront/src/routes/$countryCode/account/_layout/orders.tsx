@@ -26,37 +26,37 @@ function OrdersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-serif font-semibold" style={{ color: "#0D1B2A" }}>
+        <h1 className="text-xl font-serif font-semibold" style={{ color: "var(--text-primary)" }}>
           My Orders
         </h1>
-        <p className="text-sm mt-1" style={{ color: "#9CA3AF" }}>
+        <p className="text-sm mt-1" style={{ color: "var(--text-tertiary)" }}>
           Track and manage your medicine orders
         </p>
       </div>
 
       {isLoading ? (
-        <div className="bg-white border rounded-xl p-8 text-center" style={{ borderColor: "#EDE9E1" }}>
-          <p className="text-sm" style={{ color: "#9CA3AF" }}>Loading your orders...</p>
+        <div className="bg-white border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
+          <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Loading your orders...</p>
         </div>
       ) : !orders?.length ? (
-        <div className="bg-white border rounded-xl p-12 text-center" style={{ borderColor: "#EDE9E1" }}>
+        <div className="bg-white border rounded-xl p-12 text-center" style={{ borderColor: "var(--border-primary)" }}>
           <div
             className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-4"
-            style={{ background: "#F3F4F6" }}
+            style={{ background: "var(--bg-tertiary)" }}
           >
             <BoxIcon />
           </div>
-          <h3 className="text-base font-semibold mb-1" style={{ color: "#111827" }}>
+          <h3 className="text-base font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
             No orders yet
           </h3>
-          <p className="text-sm mb-6" style={{ color: "#9CA3AF" }}>
+          <p className="text-sm mb-6" style={{ color: "var(--text-tertiary)" }}>
             Your orders will appear here once you place them.
           </p>
           <Link
             to="/$countryCode/store"
             params={{ countryCode }}
             className="inline-block px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
-            style={{ background: "#0D1B2A" }}
+            style={{ background: "var(--bg-inverse)" }}
           >
             Browse medicines
           </Link>
@@ -71,11 +71,11 @@ function OrdersPage() {
               <div
                 key={order.id}
                 className="bg-white border rounded-xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                style={{ borderColor: "#EDE9E1" }}
+                style={{ borderColor: "var(--border-primary)" }}
               >
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold" style={{ color: "#111827" }}>
+                    <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                       Order #{order.display_id}
                     </span>
                     <span
@@ -85,7 +85,7 @@ function OrdersPage() {
                       {summaryLabel}
                     </span>
                   </div>
-                  <p className="text-xs" style={{ color: "#9CA3AF" }}>
+                  <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                     Placed on {new Date(order.created_at).toLocaleDateString("en-IN", {
                       day: "numeric",
                       month: "short",
@@ -93,21 +93,21 @@ function OrdersPage() {
                     })}
                   </p>
                   {order.items && (
-                    <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                       {order.items.length} item{order.items.length !== 1 ? "s" : ""}
                     </p>
                   )}
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+                  <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                     {formatPrice(order.total, order.currency_code)}
                   </span>
                   <Link
                     to="/$countryCode/order/$orderId/confirmed"
                     params={{ countryCode, orderId: order.id }}
                     className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-gray-50"
-                    style={{ color: "#0D1B2A", borderColor: "#D1D5DB" }}
+                    style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)" }}
                   >
                     View details
                   </Link>
@@ -116,7 +116,7 @@ function OrdersPage() {
                       <button
                         onClick={() => setReturnModalOrderId(order.id)}
                         className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-teal-50"
-                        style={{ color: "#0E7C86", borderColor: "#0E7C86" }}
+                        style={{ color: "var(--brand-teal)", borderColor: "var(--brand-teal)" }}
                       >
                         Request Return
                       </button>
@@ -160,7 +160,7 @@ function formatPrice(amount: number, currencyCode: string) {
 }
 
 const BoxIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
   </svg>
 )

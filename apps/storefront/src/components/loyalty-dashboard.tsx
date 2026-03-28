@@ -25,9 +25,9 @@ interface LoyaltyAccount {
 // ── Tier config ──────────────────────────────────────────────────────
 
 const TIER_CONFIG: Record<string, { color: string; bg: string; border: string }> = {
-  Bronze:   { color: "#92400E", bg: "#FFFBEB", border: "#FDE68A" },
+  Bronze:   { color: "var(--brand-amber-dark)", bg: "#FFFBEB", border: "#FDE68A" },
   Silver:   { color: "#374151", bg: "#F3F4F6", border: "#D1D5DB" },
-  Gold:     { color: "#92400E", bg: "#FEF3C7", border: "#F59E0B" },
+  Gold:     { color: "var(--brand-amber-dark)", bg: "#FEF3C7", border: "var(--brand-amber)" },
   Platinum: { color: "#1E3A5F", bg: "#EFF6FF", border: "#60A5FA" },
 }
 
@@ -72,13 +72,13 @@ export default function LoyaltyDashboard() {
   return (
     <div className="flex flex-col gap-5">
       {/* Points balance + tier card */}
-      <div className="bg-white border rounded-xl p-6" style={{ borderColor: "#EDE9E1" }}>
+      <div className="bg-white border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
         <div className="flex items-start justify-between mb-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "#9CA3AF" }}>
+            <p className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-tertiary)" }}>
               Loyalty Points
             </p>
-            <p className="text-3xl font-bold mt-1" style={{ color: "#1A7A4A" }}>
+            <p className="text-3xl font-bold mt-1" style={{ color: "var(--price-color)" }}>
               {data.points_balance.toLocaleString("en-IN")}
             </p>
           </div>
@@ -96,7 +96,7 @@ export default function LoyaltyDashboard() {
         {data.next_tier && (
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-xs" style={{ color: "#6B7280" }}>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
                 Progress to {data.next_tier}
               </p>
               <p className="text-xs font-medium" style={{ color: "#374151" }}>
@@ -108,7 +108,7 @@ export default function LoyaltyDashboard() {
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${progressPercent}%`,
-                  background: "linear-gradient(90deg, #0E7C86, #1A7A4A)",
+                  background: "linear-gradient(90deg, var(--brand-teal), var(--price-color))",
                 }}
               />
             </div>
@@ -120,7 +120,7 @@ export default function LoyaltyDashboard() {
           className="mt-4 p-3 rounded-lg flex items-center gap-2"
           style={{ background: "#F0FDF4" }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A7A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--price-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 6v6l4 2"/>
           </svg>
@@ -132,7 +132,7 @@ export default function LoyaltyDashboard() {
 
       {/* Recent transactions */}
       {data.transactions.length > 0 && (
-        <div className="bg-white border rounded-xl p-6" style={{ borderColor: "#EDE9E1" }}>
+        <div className="bg-white border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
           <h3 className="text-sm font-semibold mb-4" style={{ color: "#374151" }}>
             Recent Activity
           </h3>
@@ -152,7 +152,7 @@ export function LoyaltyPointsBadge({ points }: { points: number }) {
   return (
     <span
       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold"
-      style={{ color: "#1A7A4A", background: "#DCFCE7" }}
+      style={{ color: "var(--price-color)", background: "#DCFCE7" }}
     >
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -175,9 +175,9 @@ function TransactionRow({ tx }: { tx: LoyaltyTransaction }) {
   }
 
   const typeColors: Record<string, string> = {
-    earn: "#1A7A4A",
-    redeem: "#C0392B",
-    expire: "#D68910",
+    earn: "var(--price-color)",
+    redeem: "var(--brand-red)",
+    expire: "var(--brand-amber)",
   }
 
   return (
@@ -190,17 +190,17 @@ function TransactionRow({ tx }: { tx: LoyaltyTransaction }) {
           }}
         >
           {tx.type === "earn" && (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A7A4A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--price-color)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           )}
           {tx.type === "redeem" && (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C0392B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--brand-red)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           )}
           {tx.type === "expire" && (
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D68910" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--brand-amber)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
             </svg>
           )}
@@ -209,7 +209,7 @@ function TransactionRow({ tx }: { tx: LoyaltyTransaction }) {
           <p className="text-sm font-medium truncate" style={{ color: "#111827" }}>
             {tx.description}
           </p>
-          <p className="text-xs" style={{ color: "#9CA3AF" }}>
+          <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
             {new Date(tx.date).toLocaleDateString("en-IN", {
               day: "numeric",
               month: "short",
@@ -222,7 +222,7 @@ function TransactionRow({ tx }: { tx: LoyaltyTransaction }) {
       </div>
       <span
         className="text-sm font-semibold flex-shrink-0 ml-3"
-        style={{ color: isPositive ? "#1A7A4A" : isNegative ? "#C0392B" : "#374151" }}
+        style={{ color: isPositive ? "var(--price-color)" : isNegative ? "var(--brand-red)" : "#374151" }}
       >
         {isPositive ? "+" : "-"}{Math.abs(tx.points).toLocaleString("en-IN")}
       </span>
@@ -231,9 +231,9 @@ function TransactionRow({ tx }: { tx: LoyaltyTransaction }) {
 }
 
 function TierIcon({ tier }: { tier: string }) {
-  const color = tier === "Gold" || tier === "Bronze" ? "#D68910"
+  const color = tier === "Gold" || tier === "Bronze" ? "var(--brand-amber)"
     : tier === "Platinum" ? "#3B82F6"
-    : "#6B7280"
+    : "var(--text-secondary)"
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill={color} stroke="none">
       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -243,7 +243,7 @@ function TierIcon({ tier }: { tier: string }) {
 
 function LoyaltySkeleton() {
   return (
-    <div className="bg-white border rounded-xl p-6 animate-pulse" style={{ borderColor: "#EDE9E1" }}>
+    <div className="bg-white border rounded-xl p-6 animate-pulse" style={{ borderColor: "var(--border-primary)" }}>
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="h-3 w-20 rounded" style={{ background: "#E5E7EB" }} />
@@ -260,20 +260,20 @@ function LoyaltyComingSoon() {
   return (
     <div
       className="bg-white border rounded-xl p-6 text-center"
-      style={{ borderColor: "#EDE9E1" }}
+      style={{ borderColor: "var(--border-primary)" }}
     >
       <div
         className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
         style={{ background: "#F0FDF4" }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A7A4A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--price-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
         </svg>
       </div>
-      <h3 className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+      <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
         Loyalty Program Coming Soon!
       </h3>
-      <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
+      <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
         Earn points on every OTC purchase and unlock exclusive rewards.
         We're rolling this out soon — stay tuned!
       </p>

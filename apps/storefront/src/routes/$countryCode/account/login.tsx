@@ -210,13 +210,13 @@ function LoginPage() {
     setEmailOtp("")
   }
 
-  const TEAL = "#0E7C86"
-  const NAVY = "#0D1B2A"
+  const TEAL = "var(--brand-teal)"
+  const NAVY = "var(--text-primary)"
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#F8F6F2" }}>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg-tertiary)" }}>
       <div className="w-full max-w-md">
-        <div className="bg-white border rounded-xl p-8 shadow-sm" style={{ borderColor: "#EDE9E1" }}>
+        <div className="bg-white border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
           {/* Header */}
           <div className="mb-6 text-center">
             <div
@@ -231,13 +231,13 @@ function LoginPage() {
             >
               Sign in to Suprameds
             </h1>
-            <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
+            <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
               Access your orders, prescriptions, and account
             </p>
           </div>
 
           {/* Mode toggle tabs (3-way) */}
-          <div className="flex rounded-lg p-1 mb-6" style={{ background: "#F3F4F6" }}>
+          <div className="flex rounded-lg p-1 mb-6" style={{ background: "var(--bg-tertiary)" }}>
             {([
               { key: "email" as const, label: "Password" },
               { key: "phone-otp" as const, label: "Phone OTP" },
@@ -249,8 +249,8 @@ function LoginPage() {
                 onClick={() => switchMode(tab.key)}
                 className="flex-1 py-2 text-sm font-medium rounded-md transition-all"
                 style={{
-                  background: mode === tab.key ? "#fff" : "transparent",
-                  color: mode === tab.key ? NAVY : "#6B7280",
+                  background: mode === tab.key ? "var(--bg-secondary)" : "transparent",
+                  color: mode === tab.key ? NAVY : "var(--text-secondary)",
                   boxShadow: mode === tab.key ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
                 }}
               >
@@ -263,7 +263,7 @@ function LoginPage() {
           {mode === "email" && (
             <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium" style={{ color: "#374151" }}>
+                <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                   Email address
                 </label>
                 <input
@@ -273,13 +273,13 @@ function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                  style={{ borderColor: "#D1D5DB", color: "#111827", "--tw-ring-color": TEAL } as React.CSSProperties}
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)", "--tw-ring-color": TEAL } as React.CSSProperties}
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium" style={{ color: "#374151" }}>Password</label>
+                  <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Password</label>
                   <Link
                     to="/$countryCode/account/forgot-password"
                     params={{ countryCode }}
@@ -296,7 +296,7 @@ function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                  style={{ borderColor: "#D1D5DB", color: "#111827", "--tw-ring-color": TEAL } as React.CSSProperties}
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)", "--tw-ring-color": TEAL } as React.CSSProperties}
                 />
               </div>
 
@@ -319,11 +319,11 @@ function LoginPage() {
               {phoneOtpStep === "input" && (
                 <>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: "#374151" }}>Mobile number</label>
+                    <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Mobile number</label>
                     <div className="flex">
                       <span
                         className="flex items-center px-3 rounded-l-lg border border-r-0 text-sm select-none"
-                        style={{ borderColor: "#D1D5DB", color: "#6B7280", background: "#F9FAFB" }}
+                        style={{ borderColor: "var(--border-primary)", color: "var(--text-secondary)", background: "var(--bg-tertiary)" }}
                       >
                         +91
                       </span>
@@ -335,10 +335,10 @@ function LoginPage() {
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
                         placeholder="98765 43210"
                         className="flex-1 px-3.5 py-2.5 rounded-r-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                        style={{ borderColor: "#D1D5DB", color: "#111827", "--tw-ring-color": TEAL } as React.CSSProperties}
+                        style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)", "--tw-ring-color": TEAL } as React.CSSProperties}
                       />
                     </div>
-                    <p className="text-xs" style={{ color: "#9CA3AF" }}>We'll send a 6-digit OTP via SMS</p>
+                    <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>We'll send a 6-digit OTP via SMS</p>
                   </div>
 
                   {phoneOtpError && <ErrorBanner message={phoneOtpError} />}
@@ -358,7 +358,7 @@ function LoginPage() {
               {phoneOtpStep === "verify" && (
                 <>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm" style={{ color: "#374151" }}>
+                    <p className="text-sm" style={{ color: "var(--text-primary)" }}>
                       OTP sent to <span className="font-semibold">+91 {phone}</span>
                     </p>
                     <button
@@ -397,7 +397,7 @@ function LoginPage() {
               {emailOtpStep === "input" && (
                 <>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: "#374151" }}>Email address</label>
+                    <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Email address</label>
                     <input
                       type="email"
                       autoComplete="email"
@@ -405,9 +405,9 @@ function LoginPage() {
                       onChange={(e) => setOtpEmail(e.target.value)}
                       placeholder="you@example.com"
                       className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                      style={{ borderColor: "#D1D5DB", color: "#111827", "--tw-ring-color": TEAL } as React.CSSProperties}
+                      style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)", "--tw-ring-color": TEAL } as React.CSSProperties}
                     />
-                    <p className="text-xs" style={{ color: "#9CA3AF" }}>
+                    <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                       We'll send a 6-digit OTP to your inbox — no password needed
                     </p>
                   </div>
@@ -429,7 +429,7 @@ function LoginPage() {
               {emailOtpStep === "verify" && (
                 <>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm" style={{ color: "#374151" }}>
+                    <p className="text-sm" style={{ color: "var(--text-primary)" }}>
                       OTP sent to <span className="font-semibold">{otpEmail}</span>
                     </p>
                     <button
@@ -444,7 +444,7 @@ function LoginPage() {
 
                   <OtpInput ref={emailOtpInputRef} value={emailOtp} onChange={setEmailOtp} />
 
-                  <p className="text-xs" style={{ color: "#9CA3AF" }}>
+                  <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                     Check your inbox and spam folder for the OTP email from Suprameds
                   </p>
 
@@ -467,8 +467,8 @@ function LoginPage() {
           )}
 
           {/* Register link */}
-          <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "#EDE9E1" }}>
-            <p className="text-sm" style={{ color: "#6B7280" }}>
+          <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "var(--border-primary)" }}>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
               New to Suprameds?{" "}
               <Link
                 to="/$countryCode/account/register"
@@ -483,8 +483,8 @@ function LoginPage() {
           </div>
 
           {/* Trust footer */}
-          <div className="mt-6 p-3 rounded-lg text-center" style={{ background: "#F8F9FA" }}>
-            <p className="text-xs" style={{ color: "#9CA3AF" }}>
+          <div className="mt-6 p-3 rounded-lg text-center" style={{ background: "var(--bg-tertiary)" }}>
+            <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
               Protected by 256-bit encryption · Licensed pharmacy under CDSCO
             </p>
           </div>
@@ -501,7 +501,7 @@ import { forwardRef } from "react"
 const OtpInput = forwardRef<HTMLInputElement, { value: string; onChange: (v: string) => void }>(
   ({ value, onChange }, ref) => (
     <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium" style={{ color: "#374151" }}>Enter OTP</label>
+      <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Enter OTP</label>
       <input
         ref={ref}
         type="text"
@@ -511,7 +511,7 @@ const OtpInput = forwardRef<HTMLInputElement, { value: string; onChange: (v: str
         onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
         placeholder="• • • • • •"
         className="w-full px-3.5 py-3 rounded-lg border text-center text-lg tracking-[0.4em] font-mono outline-none transition-all focus:ring-2 focus:ring-offset-1"
-        style={{ borderColor: "#D1D5DB", color: "#111827", "--tw-ring-color": "#0E7C86" } as React.CSSProperties}
+        style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)", "--tw-ring-color": "var(--brand-teal)" } as React.CSSProperties}
       />
     </div>
   )
@@ -533,8 +533,8 @@ function ResendTimer({ countdown, onResend, isPending }: { countdown: number; on
   return (
     <div className="text-center">
       {countdown > 0 ? (
-        <p className="text-xs" style={{ color: "#9CA3AF" }}>
-          Resend OTP in <span className="font-medium" style={{ color: "#0D1B2A" }}>{countdown}s</span>
+        <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+          Resend OTP in <span className="font-medium" style={{ color: "var(--text-primary)" }}>{countdown}s</span>
         </p>
       ) : (
         <button
@@ -542,7 +542,7 @@ function ResendTimer({ countdown, onResend, isPending }: { countdown: number; on
           onClick={onResend}
           disabled={isPending}
           className="text-xs font-medium hover:underline disabled:opacity-60"
-          style={{ color: "#0E7C86" }}
+          style={{ color: "var(--brand-teal)" }}
         >
           {isPending ? "Sending..." : "Resend OTP"}
         </button>

@@ -20,7 +20,7 @@ const severityConfig = {
     label: "MAJOR INTERACTION",
     bg: "rgba(192,57,43,0.08)",
     border: "rgba(192,57,43,0.30)",
-    labelColor: "#C0392B",
+    labelColor: "var(--brand-red)",
     textColor: "#7F1D1D",
   },
   moderate: {
@@ -28,7 +28,7 @@ const severityConfig = {
     label: "Moderate Interaction",
     bg: "rgba(214,137,16,0.08)",
     border: "rgba(214,137,16,0.30)",
-    labelColor: "#D68910",
+    labelColor: "var(--brand-amber)",
     textColor: "#78350F",
   },
   minor: {
@@ -36,7 +36,7 @@ const severityConfig = {
     label: "Minor Interaction",
     bg: "#F3F4F6",
     border: "#E5E7EB",
-    labelColor: "#6B7280",
+    labelColor: "var(--text-secondary)",
     textColor: "#374151",
   },
 } as const
@@ -68,7 +68,7 @@ export const DrugInteractionWarnings = ({
           height={compact ? "14" : "16"}
           viewBox="0 0 24 24"
           fill="none"
-          stroke={hasMajor ? "#C0392B" : "#D68910"}
+          stroke={hasMajor ? "var(--brand-red)" : "var(--brand-amber)"}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -82,7 +82,7 @@ export const DrugInteractionWarnings = ({
             "font-semibold",
             compact ? "text-xs" : "text-sm"
           )}
-          style={{ color: hasMajor ? "#C0392B" : "#D68910" }}
+          style={{ color: hasMajor ? "var(--brand-red)" : "var(--brand-amber)" }}
         >
           Drug Interaction{interactions.length > 1 ? "s" : ""} Detected
         </span>
@@ -137,7 +137,7 @@ export const DrugInteractionWarnings = ({
           "flex items-center gap-1.5",
           compact ? "text-[10px]" : "text-xs"
         )}
-        style={{ color: "#6B7280" }}
+        style={{ color: "var(--text-secondary)" }}
       >
         <svg
           width="12"

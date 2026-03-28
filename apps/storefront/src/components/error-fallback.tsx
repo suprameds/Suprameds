@@ -47,7 +47,7 @@ const ErrorFallback = ({ error, reset }: ErrorFallbackProps) => {
   return (
     <div className="content-container py-16">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white border shadow-sm p-8 rounded-xl" style={{ borderColor: "#EDE9E1" }}>
+        <div className="bg-white border shadow-sm p-8 rounded-xl" style={{ borderColor: "var(--border-primary)" }}>
 
           {/* Connection error */}
           {connectionDown && (
@@ -67,10 +67,10 @@ const ErrorFallback = ({ error, reset }: ErrorFallbackProps) => {
                 </svg>
               </div>
               <div className="text-center mb-8">
-                <h2 className="text-xl font-bold mb-3" style={{ color: "#0D1B2A" }}>
+                <h2 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>
                   Unable to connect
                 </h2>
-                <p className="text-base" style={{ color: "#666" }}>
+                <p className="text-base" style={{ color: "var(--text-secondary)" }}>
                   We're having trouble reaching our servers. This could be a temporary issue — please check your internet connection and try again.
                 </p>
               </div>
@@ -90,10 +90,10 @@ const ErrorFallback = ({ error, reset }: ErrorFallbackProps) => {
                 </svg>
               </div>
               <div className="text-center mb-8">
-                <h2 className="text-xl font-bold mb-3" style={{ color: "#0D1B2A" }}>
+                <h2 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>
                   Session expired
                 </h2>
-                <p className="text-base" style={{ color: "#666" }}>
+                <p className="text-base" style={{ color: "var(--text-secondary)" }}>
                   Your session has expired. Please sign in again to continue.
                 </p>
               </div>
@@ -107,15 +107,15 @@ const ErrorFallback = ({ error, reset }: ErrorFallbackProps) => {
                 className="w-16 h-16 mx-auto mb-6 rounded-full flex items-center justify-center"
                 style={{ background: "#FEE2E2" }}
               >
-                <svg className="w-8 h-8" fill="none" stroke="#DC2626" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-8 h-8" fill="none" stroke="var(--brand-red)" viewBox="0 0 24 24" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
               <div className="text-center mb-8">
-                <h2 className="text-xl font-bold mb-3" style={{ color: "#0D1B2A" }}>
+                <h2 className="text-xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>
                   Something went wrong
                 </h2>
-                <p className="text-base" style={{ color: "#666" }}>
+                <p className="text-base" style={{ color: "var(--text-secondary)" }}>
                   We encountered an unexpected error. Our team has been notified.
                 </p>
               </div>
@@ -148,7 +148,7 @@ const ErrorFallback = ({ error, reset }: ErrorFallbackProps) => {
           </div>
 
           {isDev && (
-            <div className="border-t pt-6" style={{ borderColor: "#EDE9E1" }}>
+            <div className="border-t pt-6" style={{ borderColor: "var(--border-primary)" }}>
               <Button
                 onClick={() => setShowDetails(!showDetails)}
                 variant="secondary"
@@ -168,22 +168,22 @@ const ErrorFallback = ({ error, reset }: ErrorFallbackProps) => {
               </Button>
 
               {showDetails && (
-                <div className="mt-4 p-4 rounded-lg" style={{ background: "#F8F6F2" }}>
+                <div className="mt-4 p-4 rounded-lg" style={{ background: "var(--bg-tertiary)" }}>
                   <div className="text-left space-y-3">
                     <div>
-                      <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: "#0D1B2A" }}>
+                      <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: "var(--text-primary)" }}>
                         Error
                       </p>
-                      <code className="text-sm break-all" style={{ color: "#DC2626" }}>
+                      <code className="text-sm break-all" style={{ color: "var(--brand-red)" }}>
                         {error.message}
                       </code>
                     </div>
                     {error.stack && (
                       <div>
-                        <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: "#0D1B2A" }}>
+                        <p className="text-xs font-medium uppercase tracking-wide mb-1" style={{ color: "var(--text-primary)" }}>
                           Stack Trace
                         </p>
-                        <pre className="text-xs border p-3 overflow-auto max-h-40 rounded" style={{ color: "#666", background: "#fff", borderColor: "#EDE9E1" }}>
+                        <pre className="text-xs border p-3 overflow-auto max-h-40 rounded" style={{ color: "var(--text-secondary)", background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}>
                           {error.stack}
                         </pre>
                       </div>

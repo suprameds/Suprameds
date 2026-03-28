@@ -62,7 +62,7 @@ const WarningIcon = () => (
     height="16"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#92400E"
+    stroke="var(--brand-amber-dark)"
     strokeWidth="2"
     strokeLinecap="round"
     strokeLinejoin="round"
@@ -235,12 +235,12 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
       {/* Modal panel */}
       <div
         className="relative w-full sm:max-w-lg max-h-[92vh] overflow-y-auto flex flex-col rounded-t-2xl sm:rounded-2xl shadow-2xl"
-        style={{ background: "#fff" }}
+        style={{ background: "var(--bg-secondary)" }}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ background: "#0D1B2A", borderRadius: "inherit" }}
+          style={{ background: "var(--bg-inverse)", borderRadius: "inherit" }}
         >
           <h2 className="text-base font-semibold text-white">Request a Return</h2>
           <button
@@ -262,7 +262,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                 <p className="text-base font-semibold" style={{ color: "#065F46" }}>
                   Return Request Submitted
                 </p>
-                <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
+                <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
                   Our team will review your request and contact you within 24 hours.
                   Pickup will be arranged if approved.
                 </p>
@@ -270,7 +270,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
               <button
                 onClick={handleClose}
                 className="mt-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
-                style={{ background: "#0D1B2A" }}
+                style={{ background: "var(--bg-inverse)" }}
               >
                 Close
               </button>
@@ -283,7 +283,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                 style={{ background: "#FEF3C7", border: "1px solid #FCD34D" }}
               >
                 <WarningIcon />
-                <p className="text-xs leading-relaxed" style={{ color: "#92400E" }}>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--brand-amber-dark)" }}>
                   Returns must be requested within 48 hours of delivery.{" "}
                   <strong>Opened medicines cannot be returned.</strong>
                 </p>
@@ -303,12 +303,12 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
 
               {/* Line items */}
               <div className="flex flex-col gap-3">
-                <p className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                   Select items to return
                 </p>
 
                 {(order.items ?? []).length === 0 && (
-                  <p className="text-sm" style={{ color: "#9CA3AF" }}>
+                  <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
                     No items found for this order.
                   </p>
                 )}
@@ -324,8 +324,8 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                       key={item.id}
                       className="rounded-xl border p-4 flex flex-col gap-3 transition-colors"
                       style={{
-                        borderColor: state.selected ? "#0E7C86" : "#EDE9E1",
-                        background: state.selected ? "#F0FDFA" : "#FAFAF8",
+                        borderColor: state.selected ? "var(--brand-teal)" : "var(--border-primary)",
+                        background: state.selected ? "#F0FDFA" : "var(--bg-primary)",
                       }}
                     >
                       {/* Item header: checkbox + name */}
@@ -336,7 +336,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                           onChange={() => handleToggle(item.id)}
                           disabled={!withinWindow}
                           className="mt-0.5 w-4 h-4 rounded accent-teal-600 flex-shrink-0"
-                          style={{ accentColor: "#0E7C86" }}
+                          style={{ accentColor: "var(--brand-teal)" }}
                         />
                         <div className="flex-1 min-w-0">
                           <p
@@ -347,11 +347,11 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                           </p>
                           {item.variant_title &&
                             item.variant_title !== "Default Variant" && (
-                              <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+                              <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
                                 {item.variant_title}
                               </p>
                             )}
-                          <p className="text-xs mt-0.5" style={{ color: "#9CA3AF" }}>
+                          <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
                             Qty ordered: {item.quantity}
                           </p>
                         </div>
@@ -385,7 +385,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                                 borderColor: "#D1D5DB",
                                 color: "#111827",
                                 // @ts-ignore
-                                "--tw-ring-color": "#0E7C86",
+                                "--tw-ring-color": "var(--brand-teal)",
                               }}
                             />
                           </div>
@@ -411,7 +411,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                                 borderColor: "#D1D5DB",
                                 color: "#111827",
                                 // @ts-ignore
-                                "--tw-ring-color": "#0E7C86",
+                                "--tw-ring-color": "var(--brand-teal)",
                               }}
                             >
                               {(
@@ -441,7 +441,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                   style={{ color: "#374151" }}
                 >
                   Additional details{" "}
-                  <span className="font-normal" style={{ color: "#9CA3AF" }}>
+                  <span className="font-normal" style={{ color: "var(--text-tertiary)" }}>
                     (optional)
                   </span>
                 </label>
@@ -457,7 +457,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                     borderColor: "#D1D5DB",
                     color: "#111827",
                     // @ts-ignore
-                    "--tw-ring-color": "#0E7C86",
+                    "--tw-ring-color": "var(--brand-teal)",
                   }}
                 />
               </div>
@@ -487,7 +487,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                     !withinWindow
                   }
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: "#0E7C86" }}
+                  style={{ background: "var(--brand-teal)" }}
                 >
                   {mutation.isPending && <SpinnerIcon />}
                   {mutation.isPending
@@ -498,7 +498,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                   onClick={handleClose}
                   disabled={mutation.isPending}
                   className="px-4 py-2.5 rounded-lg text-sm font-medium border transition-all hover:bg-gray-50 disabled:opacity-50"
-                  style={{ color: "#6B7280", borderColor: "#D1D5DB" }}
+                  style={{ color: "var(--text-secondary)", borderColor: "#D1D5DB" }}
                 >
                   Cancel
                 </button>

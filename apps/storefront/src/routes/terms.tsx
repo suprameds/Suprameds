@@ -12,11 +12,11 @@ export const Route = createFileRoute("/terms")({
 
 function Terms() {
   return (
-    <div style={{ background: "#F8F6F2", minHeight: "100vh" }}>
-      <div style={{ background: "#0D1B2A", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+    <div style={{ background: "var(--bg-tertiary)", minHeight: "100vh" }}>
+      <div style={{ background: "var(--bg-inverse)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <div className="content-container py-12">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#16a5b0" }}>Legal</p>
-          <h1 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal-light)" }}>Legal</p>
+          <h1 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>
             Terms of Service
           </h1>
           <p className="text-sm mt-2" style={{ color: "rgba(255,255,255,0.55)" }}>
@@ -69,9 +69,9 @@ function Terms() {
               content: `We may update these terms periodically. Continued use of the platform after notification of changes constitutes acceptance. Major changes will be notified via email.`,
             },
           ].map((section) => (
-            <div key={section.title} className="p-6 rounded-xl" style={{ background: "#fff", border: "1px solid #EDE9E1" }}>
-              <h2 className="text-base font-semibold mb-3" style={{ color: "#0D1B2A" }}>{section.title}</h2>
-              <p className="text-sm leading-relaxed" style={{ color: "#555" }} dangerouslySetInnerHTML={{ __html: section.content }} />
+            <div key={section.title} className="p-6 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+              <h2 className="text-base font-semibold mb-3" style={{ color: "var(--text-primary)" }}>{section.title}</h2>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }} dangerouslySetInnerHTML={{ __html: section.content }} />
             </div>
           ))}
         </div>

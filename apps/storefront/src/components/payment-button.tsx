@@ -145,7 +145,7 @@ const ManualPaymentButton = ({
     <div className="flex flex-col gap-3">
       <div
         className="p-3 rounded-lg border text-sm"
-        style={{ background: "#FFFBEB", borderColor: "#F59E0B", color: "#92400E" }}
+        style={{ background: "#FFFBEB", borderColor: "var(--brand-amber)", color: "var(--brand-amber-dark)" }}
       >
         <strong>Cash on Delivery</strong> — Pay in cash when your order arrives.
         Please keep the exact amount ready for a smooth handover.

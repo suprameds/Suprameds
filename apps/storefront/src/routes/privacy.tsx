@@ -12,11 +12,11 @@ export const Route = createFileRoute("/privacy")({
 
 function PrivacyPolicy() {
   return (
-    <div style={{ background: "#F8F6F2", minHeight: "100vh" }}>
-      <div style={{ background: "#0D1B2A", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+    <div style={{ background: "var(--bg-tertiary)", minHeight: "100vh" }}>
+      <div style={{ background: "var(--bg-inverse)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <div className="content-container py-12">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#16a5b0" }}>Legal</p>
-          <h1 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal-light)" }}>Legal</p>
+          <h1 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>
             Privacy Policy
           </h1>
           <p className="text-sm mt-2" style={{ color: "rgba(255,255,255,0.55)" }}>
@@ -28,7 +28,7 @@ function PrivacyPolicy() {
       <div className="content-container py-12">
         <div className="max-w-3xl flex flex-col gap-6">
 
-          <div className="p-5 rounded-xl" style={{ background: "#d5f0e2", border: "1px solid #1A7A4A" }}>
+          <div className="p-5 rounded-xl" style={{ background: "#d5f0e2", border: "1px solid var(--price-color)" }}>
             <p className="text-sm font-medium" style={{ color: "#0f4a2b" }}>
               Suprameds is committed to protecting your personal and health data under the DPDP Act, 2023.
               All sensitive personal data (prescriptions, health records) is stored in India (ap-south-1) and never exported.
@@ -80,7 +80,7 @@ function PrivacyPolicy() {
                 <li><strong>Right to grievance:</strong> Raise complaints with our Grievance Officer (see /grievance)</li>
                 <li><strong>Right to nominate:</strong> Nominate a person to exercise rights on your behalf</li>
               </ul>
-              <p class="mt-3">To exercise these rights, visit <a href="/account/privacy" style="color:#0E7C86">Account → Privacy Settings</a> or email privacy@suprameds.in.</p>`,
+              <p class="mt-3">To exercise these rights, visit <a href="/account/privacy" style="color:var(--brand-teal)">Account → Privacy Settings</a> or email privacy@suprameds.in.</p>`,
             },
             {
               title: "5. Data sharing",
@@ -102,7 +102,7 @@ function PrivacyPolicy() {
                 <li><strong>Analytics:</strong> PostHog page view analytics on non-PHI pages — requires consent, off by default</li>
                 <li><strong>Marketing:</strong> Abandoned cart, WhatsApp marketing — requires explicit consent, off by default</li>
               </ul>
-              <p class="mt-3">Manage your consent at any time: <a href="/account/privacy" style="color:#0E7C86">Account → Privacy Settings</a></p>`,
+              <p class="mt-3">Manage your consent at any time: <a href="/account/privacy" style="color:var(--brand-teal)">Account → Privacy Settings</a></p>`,
             },
             {
               title: "7. Data retention",
@@ -129,11 +129,11 @@ function PrivacyPolicy() {
               </ul>`,
             },
           ].map((section) => (
-            <div key={section.title} className="p-6 rounded-xl" style={{ background: "#fff", border: "1px solid #EDE9E1" }}>
-              <h2 className="text-base font-semibold mb-3" style={{ color: "#0D1B2A" }}>{section.title}</h2>
+            <div key={section.title} className="p-6 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+              <h2 className="text-base font-semibold mb-3" style={{ color: "var(--text-primary)" }}>{section.title}</h2>
               <div
                 className="text-sm leading-relaxed"
-                style={{ color: "#555" }}
+                style={{ color: "var(--text-secondary)" }}
                 dangerouslySetInnerHTML={{ __html: section.content }}
               />
             </div>
