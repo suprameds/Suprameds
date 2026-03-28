@@ -107,6 +107,11 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
     const title = `${product.title} | Suprameds`
     const desc = product.description || "Buy genuine medicines online from Suprameds."
 
+    const firstVariant = product.variants?.[0]
+    const isInStock =
+      firstVariant &&
+      (!firstVariant.manage_inventory || (firstVariant.inventory_quantity ?? 0) > 0)
+
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Product",
@@ -114,7 +119,7 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       description: product.description,
       image: product.images?.map((img) => img.url).filter(Boolean) || [],
       url: canonical,
-      sku: product.variants?.[0]?.sku || product.id,
+      sku: firstVariant?.sku || product.id,
       brand: {
         "@type": "Brand",
         name: "Suprameds",
@@ -122,10 +127,13 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       offers: {
         "@type": "Offer",
         url: canonical,
-        availability: "https://schema.org/InStock",
+        availability: isInStock
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+        itemCondition: "https://schema.org/NewCondition",
         priceCurrency: region?.currency_code?.toUpperCase() || "INR",
-        price: product.variants?.[0]?.calculated_price?.calculated_amount
-          ? product.variants[0].calculated_price.calculated_amount.toFixed(2)
+        price: firstVariant?.calculated_price?.calculated_amount
+          ? firstVariant.calculated_price.calculated_amount.toFixed(2)
           : undefined,
         seller: {
           "@type": "Organization",
@@ -186,6 +194,7 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
         { property: "twitter:card", content: "summary_large_image" },
         { property: "twitter:title", content: title },
         { property: "twitter:description", content: desc },
+        { name: "twitter:image", content: product.thumbnail || "" },
       ],
       links: [
         { rel: "canonical", href: canonical },

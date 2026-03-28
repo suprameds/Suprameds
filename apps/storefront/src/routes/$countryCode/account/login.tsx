@@ -5,6 +5,12 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/login")({
+  head: () => ({
+    meta: [
+      { title: "Sign In | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   validateSearch: (search: Record<string, unknown>) => ({
     redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
   }),

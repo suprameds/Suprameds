@@ -2,9 +2,16 @@ import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/prescription-policy")({
   head: () => ({
+    links: [
+      { rel: "canonical", href: "https://suprameds.in/prescription-policy" },
+    ],
     meta: [
       { title: "Prescription Policy — Suprameds" },
       { name: "description", content: "Suprameds prescription policy: how we accept, verify, and dispense prescription medicines as required by Indian pharmacy law." },
+      { property: "og:title", content: "Prescription Policy — Suprameds" },
+      { property: "og:description", content: "Suprameds prescription policy: how we accept, verify, and dispense prescription medicines as required by Indian pharmacy law." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://suprameds.in/prescription-policy" },
     ],
   }),
   component: PrescriptionPolicy,

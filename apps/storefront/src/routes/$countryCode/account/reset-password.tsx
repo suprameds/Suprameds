@@ -5,6 +5,12 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/reset-password")({
+  head: () => ({
+    meta: [
+      { title: "Reset Password | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search.token === "string" ? search.token : "",
   }),

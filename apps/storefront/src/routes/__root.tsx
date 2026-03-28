@@ -104,6 +104,9 @@ export const Route = createRootRouteWithContext<{
       },
       { property: "og:site_name", content: "Suprameds" },
       { property: "og:locale", content: "en_IN" },
+      { property: "og:image", content: "https://suprameds.in/og-default.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://suprameds.in/og-default.png" },
     ],
     scripts: [
       // Google Analytics 4 — async loader
@@ -127,7 +130,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext()
 
   return (
-    <html lang="en">
+    <html lang="en-IN">
       <head>
         <HeadContent />
       </head>

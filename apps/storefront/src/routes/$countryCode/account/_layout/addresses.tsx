@@ -9,6 +9,12 @@ import {
 export const Route = createFileRoute(
   "/$countryCode/account/_layout/addresses"
 )({
+  head: () => ({
+    meta: [
+      { title: "Addresses | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: AddressesPage,
 })
 

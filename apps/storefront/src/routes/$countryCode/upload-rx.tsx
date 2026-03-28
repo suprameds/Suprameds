@@ -27,6 +27,9 @@ export const Route = createFileRoute("/$countryCode/upload-rx")({
           "Upload your doctor's prescription for pharmacist review. Approved within 4 hours. CDSCO-registered pharmacy.",
       },
     ],
+    links: [
+      { rel: "canonical", href: "https://suprameds.com/in/upload-rx" },
+    ],
   }),
   component: UploadRx,
 })

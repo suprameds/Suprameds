@@ -13,6 +13,7 @@ export const Route = createFileRoute(
         content:
           "Manage your medicine refill reminders. Never run out of chronic medication.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 })

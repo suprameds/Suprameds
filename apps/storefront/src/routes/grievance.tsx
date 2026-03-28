@@ -3,9 +3,16 @@ import { useState } from "react"
 
 export const Route = createFileRoute("/grievance")({
   head: () => ({
+    links: [
+      { rel: "canonical", href: "https://suprameds.in/grievance" },
+    ],
     meta: [
       { title: "Grievance Officer — Suprameds" },
       { name: "description", content: "Contact Suprameds Grievance Officer. Consumer Protection (E-Commerce) Rules 2020 complaint mechanism. 48-hour resolution SLA." },
+      { property: "og:title", content: "Grievance Officer — Suprameds" },
+      { property: "og:description", content: "Contact Suprameds Grievance Officer. Consumer Protection (E-Commerce) Rules 2020 complaint mechanism. 48-hour resolution SLA." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://suprameds.in/grievance" },
     ],
   }),
   component: GrievancePage,

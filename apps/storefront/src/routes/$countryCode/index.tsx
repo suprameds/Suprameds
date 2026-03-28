@@ -56,7 +56,6 @@ export const Route = createFileRoute("/$countryCode/")({
         "@type": "PostalAddress",
         addressCountry: "IN",
       },
-      sameAs: [],
     }
 
     const websiteSchema = {

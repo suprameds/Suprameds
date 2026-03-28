@@ -13,6 +13,7 @@ export const Route = createFileRoute(
         content:
           "Your saved products. Get notified when prices drop on your favourite medicines.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
 })
