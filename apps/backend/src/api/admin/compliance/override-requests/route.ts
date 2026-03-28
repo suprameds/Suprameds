@@ -1,7 +1,8 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { COMPLIANCE_MODULE } from "../../../../modules/compliance"
+import { createLogger } from "../../../../lib/logger"
 
-const LOG = "[admin:override-requests]"
+const logger = createLogger("admin:compliance:override-requests")
 
 /**
  * GET /admin/compliance/override-requests
@@ -37,7 +38,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 
     res.json({ override_requests: requests, count: requests.length, limit, offset })
   } catch (err) {
-    console.error(`${LOG} GET failed:`, (err as Error).message)
+    logger.error(`GET failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to list override requests" })
   }
 }
@@ -101,10 +102,10 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       expires_at: expiresAt,
     })
 
-    console.info(`${LOG} Override request created: ${overrideReq.id} by ${actorId}`)
+    logger.info(`Override request created: ${overrideReq.id} by ${actorId}`)
     res.status(201).json({ override_request: overrideReq })
   } catch (err) {
-    console.error(`${LOG} POST failed:`, (err as Error).message)
+    logger.error(`POST failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to create override request" })
   }
 }

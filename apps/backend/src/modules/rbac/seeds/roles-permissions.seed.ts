@@ -1,3 +1,5 @@
+import { createLogger } from "../../../lib/logger"
+
 /**
  * Seed script for RBAC roles, permissions, and role→permission mappings.
  *
@@ -394,7 +396,8 @@ export async function seedRolesAndPermissions(
   rbacService: any,
   logger?: { info: (...args: any[]) => void; warn: (...args: any[]) => void }
 ): Promise<void> {
-  const log = logger ?? { info: console.log, warn: console.warn }
+  const defaultLogger = createLogger("module:rbac:seed")
+  const log = logger ?? { info: defaultLogger.info, warn: defaultLogger.warn }
 
   // --- 1. Seed permissions ------------------------------------------------
 

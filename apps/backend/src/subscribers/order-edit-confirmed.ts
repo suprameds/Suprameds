@@ -1,8 +1,9 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:order-edit-confirmed]"
+const logger = createLogger("subscriber:order-edit-confirmed")
 
 type OrderEditConfirmedData = {
   order_id?: string
@@ -19,7 +20,7 @@ export default async function handler({
 }: SubscriberArgs<OrderEditConfirmedData>) {
   const orderId = data?.order_id
   if (!orderId) {
-    console.warn(`${LOG} Missing order_id`)
+    logger.warn(`Missing order_id`)
     return
   }
 
@@ -63,9 +64,9 @@ export default async function handler({
       },
     })
 
-    console.info(`${LOG} Stamped edit metadata on order ${orderId}: "${summary}"`)
+    logger.info(`Stamped edit metadata on order ${orderId}: "${summary}"`)
   } catch (err) {
-    console.error(`${LOG} Failed for ${orderId}: ${(err as Error).message}`)
+    logger.error(`Failed for ${orderId}: ${(err as Error).message}`)
     captureException(err, { subscriber: "order-edit-confirmed", orderId })
   }
 }

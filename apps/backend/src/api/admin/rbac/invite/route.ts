@@ -4,9 +4,9 @@ import type {
 } from "@medusajs/framework/http"
 import { MedusaError, Modules } from "@medusajs/framework/utils"
 import { RBAC_MODULE } from "../../../../modules/rbac"
+import { createLogger } from "../../../../lib/logger"
 
-const LOG = "[rbac-invite]"
-
+const logger = createLogger("admin:rbac:invite")
 /**
  * POST /admin/rbac/invite — Create an admin invite with an intended RBAC role.
  * Body: { email: string, role_code: string }
@@ -138,10 +138,10 @@ async function sendInviteEmailDirect(
       },
     })
 
-    console.info(`${LOG} Invite email sent directly to ${email}`)
+    logger.info(`Invite email sent directly to ${email}`)
   } catch (err) {
-    console.error(
-      `${LOG} Direct email send failed for ${email}:`,
+    logger.error(
+      `Direct email send failed for ${email}:`,
       err instanceof Error ? err.message : err
     )
   }

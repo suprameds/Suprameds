@@ -1,6 +1,10 @@
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { createHmac } from "crypto"
 import { RBAC_MODULE } from "../../../modules/rbac"
+import { createLogger } from "../../../lib/logger"
+
+const logger = createLogger("admin:middleware:mfa-guard")
+
 const MFA_COOKIE_NAME = "smeds_mfa"
 const MFA_MAX_AGE_MS = 8 * 60 * 60 * 1000 // 8 hours
 
@@ -107,14 +111,14 @@ export function requireMfa() {
       // Log once-style warning instead of a full stack trace on every request.
       if (msg.includes("does not exist") || msg.includes("TableNotFoundException")) {
         if (!(requireMfa as any).__warnedMissingTable) {
-          console.warn(
-            "[mfa-guard] RBAC tables not yet migrated (mfa_secret missing). " +
+          logger.warn(
+            "RBAC tables not yet migrated (mfa_secret missing). " +
               "MFA enforcement is disabled until 'medusa db:migrate' is run."
           )
           ;(requireMfa as any).__warnedMissingTable = true
         }
       } else {
-        console.error("[mfa-guard] Unexpected error:", msg)
+        logger.error("Unexpected error:", msg)
       }
 
       return next() // Fail open to avoid completely locking out admins

@@ -1,6 +1,9 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { MedusaError } from "@medusajs/framework/utils"
 import { WAREHOUSE_MODULE } from "../../../../modules/warehouse"
+import { createLogger } from "../../../../lib/logger"
+
+const logger = createLogger("admin:warehouse:zones")
 
 /**
  * GET /admin/warehouse/zones
@@ -41,7 +44,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     return res.json({ data: list, count: list.length, limit, offset })
   } catch (err: any) {
-    console.error("[admin:warehouse:zones] GET failed:", err?.message)
+    logger.error("GET failed:", err?.message)
     return res.status(500).json({ error: "Failed to fetch warehouse zones" })
   }
 }
@@ -73,7 +76,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     return res.status(201).json({ zone })
   } catch (err: any) {
-    console.error("[admin:warehouse:zones] POST failed:", err?.message)
+    logger.error("POST failed:", err?.message)
     return res.status(400).json({ error: err?.message || "Failed to create zone" })
   }
 }

@@ -2,6 +2,9 @@ import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { PRESCRIPTION_MODULE } from "../../../../modules/prescription"
 import { DISPENSE_MODULE } from "../../../../modules/dispense"
 import { COMPLIANCE_MODULE } from "../../../../modules/compliance"
+import { createLogger } from "../../../../lib/logger"
+
+const logger = createLogger("admin:pharmacist:stats")
 
 /**
  * GET /admin/pharmacist/stats
@@ -65,7 +68,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       pre_dispatch_pending: preDispatchList.length,
     })
   } catch (err: any) {
-    console.error("[admin:pharmacist:stats] GET failed:", err?.message)
+    logger.error("GET failed:", err?.message)
     return res.status(500).json({ error: "Failed to fetch pharmacist stats" })
   }
 }

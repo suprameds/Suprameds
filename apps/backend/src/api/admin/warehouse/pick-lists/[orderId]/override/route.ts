@@ -1,7 +1,8 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { INVENTORY_BATCH_MODULE } from "../../../../../../modules/inventoryBatch"
+import { createLogger } from "../../../../../../lib/logger"
 
-const LOG = "[pick-list:override]"
+const logger = createLogger("admin:warehouse:pick-lists:override")
 
 /**
  * POST /admin/warehouse/pick-lists/:orderId/override
@@ -142,11 +143,11 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
         reason: `Fulfillment override: replaced batch ${oldBatch.lot_number} for order ${orderId}`,
       })
     } catch (err: any) {
-      console.warn(`${LOG} Audit log write failed: ${err?.message}`)
+      logger.warn(`Audit log write failed: ${err?.message}`)
     }
 
-    console.info(
-      `${LOG} Override for order ${orderId}: ${oldBatch.lot_number} → ${newBatch.lot_number} (${quantity} units) by ${actorId}`
+    logger.info(
+      `Override for order ${orderId}: ${oldBatch.lot_number} → ${newBatch.lot_number} (${quantity} units) by ${actorId}`
     )
 
     res.json({
@@ -157,7 +158,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       quantity,
     })
   } catch (err) {
-    console.error(`${LOG} Override failed:`, (err as Error).message)
+    logger.error(`Override failed:`, (err as Error).message)
     res.status(500).json({ error: "Batch override failed" })
   }
 }

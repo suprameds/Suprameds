@@ -2,6 +2,9 @@ import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
 import { WAREHOUSE_MODULE } from "../../../../../modules/warehouse"
 import { INVENTORY_BATCH_MODULE } from "../../../../../modules/inventoryBatch"
+import { createLogger } from "../../../../../lib/logger"
+
+const logger = createLogger("admin:warehouse:pick-lists:print")
 
 /**
  * GET /admin/warehouse/pick-lists/print?order_id=xxx
@@ -188,7 +191,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     res.setHeader("Content-Type", "text/html; charset=utf-8")
     return res.status(200).send(html)
   } catch (err: any) {
-    console.error("[admin:warehouse:pick-lists:print] GET failed:", err?.message)
+    logger.error("GET failed:", err?.message)
     return res.status(500).json({ error: "Failed to generate print pick list" })
   }
 }

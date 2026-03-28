@@ -3,8 +3,9 @@ import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { COD_MODULE } from "../modules/cod"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG_PREFIX = "[subscriber:cod-timeout]"
+const logger = createLogger("subscriber:cod-unconfirmed-timeout")
 
 type CodTimeoutData = {
   order_id: string
@@ -24,7 +25,7 @@ export default async function codUnconfirmedTimeoutHandler({
   container,
 }: SubscriberArgs<CodTimeoutData>) {
   const { order_id, cod_order_id } = data
-  console.info(`${LOG_PREFIX} Processing timeout for order ${order_id}`)
+  logger.info(`Processing timeout for order ${order_id}`)
 
   try {
     const codService = container.resolve(COD_MODULE) as any
@@ -33,15 +34,15 @@ export default async function codUnconfirmedTimeoutHandler({
     const codOrder = await codService.retrieveCodOrder(cod_order_id)
 
     if (codOrder.status !== "pending_confirmation") {
-      console.info(
-        `${LOG_PREFIX} COD order ${cod_order_id} already in status "${codOrder.status}", skipping timeout`
+      logger.info(
+        `COD order ${cod_order_id} already in status "${codOrder.status}", skipping timeout`
       )
       return
     }
 
     // Cancel the COD order
     await codService.updateCodOrders(cod_order_id, { status: "cancelled" })
-    console.info(`${LOG_PREFIX} COD order ${cod_order_id} cancelled due to timeout`)
+    logger.info(`COD order ${cod_order_id} cancelled due to timeout`)
 
     // Transition pharmaOrder extension
     try {
@@ -69,11 +70,11 @@ export default async function codUnconfirmedTimeoutHandler({
           reason: "COD confirmation timed out after 30 minutes",
         })
 
-        console.info(`${LOG_PREFIX} OrderExtension ${extension.id} cancelled`)
+        logger.info(`OrderExtension ${extension.id} cancelled`)
       }
     } catch (extErr) {
-      console.warn(
-        `${LOG_PREFIX} Failed to update order extension: ${(extErr as Error).message}`
+      logger.warn(
+        `Failed to update order extension: ${(extErr as Error).message}`
       )
       captureException(extErr, { subscriber: "cod-unconfirmed-timeout", orderId: order_id, codOrderId: cod_order_id, step: "update-extension" })
     }
@@ -88,16 +89,16 @@ export default async function codUnconfirmedTimeoutHandler({
         data: { order_id, cod_order_id },
       })
     } catch (notifErr) {
-      console.warn(
-        `${LOG_PREFIX} Notification failed: ${(notifErr as Error).message}`
+      logger.warn(
+        `Notification failed: ${(notifErr as Error).message}`
       )
       captureException(notifErr, { subscriber: "cod-unconfirmed-timeout", orderId: order_id, codOrderId: cod_order_id, step: "send-notification" })
     }
 
-    console.info(`${LOG_PREFIX} Completed timeout processing for order ${order_id}`)
+    logger.info(`Completed timeout processing for order ${order_id}`)
   } catch (error) {
-    console.error(
-      `${LOG_PREFIX} Unhandled error: ${(error as Error).message}`,
+    logger.error(
+      `Unhandled error: ${(error as Error).message}`,
       (error as Error).stack
     )
     captureException(error, { subscriber: "cod-unconfirmed-timeout", orderId: order_id, codOrderId: cod_order_id })

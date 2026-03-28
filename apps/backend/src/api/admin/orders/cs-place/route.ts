@@ -1,8 +1,9 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../../../../modules/orders"
+import { createLogger } from "../../../../lib/logger"
 
-const LOG = "[admin:cs-place]"
+const logger = createLogger("admin:orders:cs-place")
 
 /**
  * GET /admin/orders/cs-place
@@ -27,7 +28,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
 
     res.json({ cs_orders: csOrders, count, limit, offset })
   } catch (err) {
-    console.error(`${LOG} GET failed:`, (err as Error).message)
+    logger.error(`GET failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to list CS-placed orders" })
   }
 }
@@ -62,13 +63,13 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       status: "pending",
     })
 
-    console.info(
-      `${LOG} CS order created by ${authUser}: ${csOrder.id} for ${body.customer_phone}`
+    logger.info(
+      `CS order created by ${authUser}: ${csOrder.id} for ${body.customer_phone}`
     )
 
     res.status(201).json({ cs_order: csOrder })
   } catch (err) {
-    console.error(`${LOG} POST failed:`, (err as Error).message)
+    logger.error(`POST failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to create CS-placed order" })
   }
 }

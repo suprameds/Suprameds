@@ -1,5 +1,8 @@
 import { AbstractFulfillmentProviderService } from "@medusajs/framework/utils"
 import type { FulfillmentTypes } from "@medusajs/types"
+import { createLogger } from "../../lib/logger"
+
+const logger = createLogger("provider:fulfillment-conditional")
 
 /**
  * Custom fulfillment provider for conditional shipping pricing.
@@ -74,8 +77,8 @@ class ConditionalShippingService extends AbstractFulfillmentProviderService {
     const amount =
       itemTotal >= FREE_SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_CHARGE
 
-    console.info(
-      `[conditional-shipping] itemTotal=${itemTotal}, threshold=${FREE_SHIPPING_THRESHOLD}, charge=${amount}, ` +
+    logger.info(
+      `itemTotal=${itemTotal}, threshold=${FREE_SHIPPING_THRESHOLD}, charge=${amount}, ` +
       `contextKeys=${Object.keys(context || {}).join(",")}, itemsLen=${context?.items?.length ?? "none"}`
     )
 

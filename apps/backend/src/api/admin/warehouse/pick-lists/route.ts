@@ -2,8 +2,9 @@ import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../../../../modules/orders"
 import { INVENTORY_BATCH_MODULE } from "../../../../modules/inventoryBatch"
+import { createLogger } from "../../../../lib/logger"
 
-const LOG = "[admin:pick-lists]"
+const logger = createLogger("admin:warehouse:pick-lists")
 
 /**
  * GET /admin/warehouse/pick-lists
@@ -77,13 +78,13 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
           items: pickItems,
         })
       } catch (err) {
-        console.warn(`${LOG} Skipping order ${ext.order_id}: ${(err as Error).message}`)
+        logger.warn(`Skipping order ${ext.order_id}: ${(err as Error).message}`)
       }
     }
 
     res.json({ pick_lists: pickLists, count: pickLists.length })
   } catch (err) {
-    console.error(`${LOG} GET failed:`, (err as Error).message)
+    logger.error(`GET failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to generate pick lists" })
   }
 }
@@ -142,10 +143,10 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       })
     }
 
-    console.info(`${LOG} Pick completed for order ${body.order_id} by ${actorId}`)
+    logger.info(`Pick completed for order ${body.order_id} by ${actorId}`)
     res.status(200).json({ success: true, order_id: body.order_id, status: "packed" })
   } catch (err) {
-    console.error(`${LOG} POST failed:`, (err as Error).message)
+    logger.error(`POST failed:`, (err as Error).message)
     res.status(500).json({ error: "Failed to complete pick list" })
   }
 }

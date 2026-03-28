@@ -8,9 +8,9 @@ import {
 import { completeOrderWorkflow } from "@medusajs/medusa/core-flows"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:complete-order-on-delivery]"
-
+const logger = createLogger("subscriber:order-delivered")
 type DeliveryCreatedPayload = { id: string }
 
 /**
@@ -30,7 +30,7 @@ export default async function completeOrderOnDeliveryHandler({
 }: SubscriberArgs<DeliveryCreatedPayload>) {
   const fulfillmentId = data?.id
   if (!fulfillmentId) {
-    console.warn(`${LOG} Missing fulfillment id in event payload`)
+    logger.warn(`Missing fulfillment id in event payload`)
     return
   }
 
@@ -52,7 +52,7 @@ export default async function completeOrderOnDeliveryHandler({
     } }[])?.[0]?.order
 
     if (!order?.id) {
-      console.warn(`${LOG} Could not resolve order for fulfillment ${fulfillmentId}`)
+      logger.warn(`Could not resolve order for fulfillment ${fulfillmentId}`)
       return
     }
 
@@ -71,12 +71,12 @@ export default async function completeOrderOnDeliveryHandler({
           },
         })
         if (result.ok) {
-          console.info(`${LOG} Push sent for order ${orderId} delivery`)
+          logger.info(`Push sent for order ${orderId} delivery`)
         } else {
-          console.warn(`${LOG} Push skipped for order ${orderId} (${result.reason})`)
+          logger.warn(`Push skipped for order ${orderId} (${result.reason})`)
         }
       } catch (pushErr) {
-        console.warn(`${LOG} Push failed for order ${orderId}: ${(pushErr as Error).message}`)
+        logger.warn(`Push failed for order ${orderId}: ${(pushErr as Error).message}`)
         captureException(pushErr, { subscriber: "order-delivered", orderId: orderId, step: "push-notification" })
       }
 
@@ -139,34 +139,34 @@ export default async function completeOrderOnDeliveryHandler({
               items,
             },
           })
-          console.info(`${LOG} Delivery email sent to ${emailTo} for order ${orderId}`)
+          logger.info(`Delivery email sent to ${emailTo} for order ${orderId}`)
         } else {
-          console.warn(`${LOG} No email found for order ${orderId} — skipping delivery email`)
+          logger.warn(`No email found for order ${orderId} — skipping delivery email`)
         }
       } catch (emailErr) {
-        console.warn(`${LOG} Delivery email failed for order ${orderId}: ${(emailErr as Error).message}`)
+        logger.warn(`Delivery email failed for order ${orderId}: ${(emailErr as Error).message}`)
         captureException(emailErr, { subscriber: "order-delivered", orderId: orderId, step: "send-email" })
       }
     }
 
     // --- Auto-complete order ---
     if (status !== "pending") {
-      console.info(
-        `${LOG} Order ${orderId} status is "${status}" — skip auto-complete (only pending is updated)`
+      logger.info(
+        `Order ${orderId} status is "${status}" — skip auto-complete (only pending is updated)`
       )
       return
     }
 
     if (fulfillment_status !== "delivered") {
-      console.info(
-        `${LOG} Order ${orderId} fulfillment_status is "${fulfillment_status ?? "n/a"}" — ` +
+      logger.info(
+        `Order ${orderId} fulfillment_status is "${fulfillment_status ?? "n/a"}" — ` +
           `waiting until entire order is delivered before completing`
       )
       return
     }
 
-    console.info(
-      `${LOG} Completing order ${orderId} after delivery (fulfillment ${fulfillmentId})`
+    logger.info(
+      `Completing order ${orderId} after delivery (fulfillment ${fulfillmentId})`
     )
 
     await completeOrderWorkflow(container).run({
@@ -184,13 +184,13 @@ export default async function completeOrderOnDeliveryHandler({
     }
     const updated = await orderService.retrieveOrder(orderId, {})
 
-    console.info(
-      `${LOG} Order ${orderId} workflow finished — status is now "${updated.status}"`
+    logger.info(
+      `Order ${orderId} workflow finished — status is now "${updated.status}"`
     )
   } catch (err) {
     // Never break fulfillment flow
-    console.error(
-      `${LOG} Failed to auto-complete order for fulfillment ${fulfillmentId}:`,
+    logger.error(
+      `Failed to auto-complete order for fulfillment ${fulfillmentId}:`,
       (err as Error).message,
       (err as Error).stack
     )

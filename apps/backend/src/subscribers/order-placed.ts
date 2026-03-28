@@ -4,8 +4,9 @@ import { ORDERS_MODULE } from "../modules/orders"
 import { NOTIFICATION_MODULE } from "../modules/notification"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG_PREFIX = "[subscriber:order-placed]"
+const logger = createLogger("subscriber:order-placed")
 
 type OrderPlacedData = { id: string }
 
@@ -14,7 +15,7 @@ export default async function orderPlacedHandler({
   container,
 }: SubscriberArgs<OrderPlacedData>) {
   const orderId = data.id
-  console.info(`${LOG_PREFIX} Received event for order ${orderId}`)
+  logger.info(`Received event for order ${orderId}`)
 
   try {
     // ── 1. Retrieve full order details ──────────────────────────────
@@ -32,8 +33,8 @@ export default async function orderPlacedHandler({
 
     const itemCount = order.items?.length ?? 0
     const shippingCity = order.shipping_address?.city ?? "N/A"
-    console.info(
-      `${LOG_PREFIX} Order ${orderId}: ${itemCount} item(s), shipping to ${shippingCity}, total ${order.total}`
+    logger.info(
+      `Order ${orderId}: ${itemCount} item(s), shipping to ${shippingCity}, total ${order.total}`
     )
 
     // ── 1b. Link prescription to order (if attached during checkout) ─
@@ -52,18 +53,18 @@ export default async function orderPlacedHandler({
             [Modules.ORDER]: { order_id: orderId },
             [PRESCRIPTION_MODULE]: { prescription_id: prescriptionId },
           })
-          console.info(
-            `${LOG_PREFIX} Linked prescription ${prescriptionId} to order ${orderId}`
+          logger.info(
+            `Linked prescription ${prescriptionId} to order ${orderId}`
           )
         } else {
-          console.warn(
-            `${LOG_PREFIX} Prescription ${prescriptionId} referenced in order metadata not found`
+          logger.warn(
+            `Prescription ${prescriptionId} referenced in order metadata not found`
           )
         }
       }
     } catch (linkErr) {
-      console.warn(
-        `${LOG_PREFIX} Failed to link prescription to order ${orderId}:`,
+      logger.warn(
+        `Failed to link prescription to order ${orderId}:`,
         (linkErr as Error).message
       )
       captureException(linkErr, { subscriber: "order-placed", orderId, step: "link-prescription" })
@@ -89,16 +90,16 @@ export default async function orderPlacedHandler({
           shipping_address: order.shipping_address,
         },
       })
-      console.info(`${LOG_PREFIX} Confirmation notification sent for order ${orderId}`)
+      logger.info(`Confirmation notification sent for order ${orderId}`)
     } catch (notifError) {
       // Notification module may not be fully configured — log and continue
-      console.warn(
-        `${LOG_PREFIX} Notification send failed for order ${orderId}, logging summary instead:`,
+      logger.warn(
+        `Notification send failed for order ${orderId}, logging summary instead:`,
         (notifError as Error).message
       )
       captureException(notifError, { subscriber: "order-placed", orderId, step: "send-notification" })
-      console.info(
-        `${LOG_PREFIX} Order summary — ID: ${orderId}, ` +
+      logger.info(
+        `Order summary — ID: ${orderId}, ` +
           `Items: ${order.items?.map((i) => `${i.title} x${i.quantity}`).join(", ")}, ` +
           `Total: ₹${order.total}, ` +
           `Ship to: ${order.shipping_address?.address_1 ?? ""}, ${shippingCity}`
@@ -129,14 +130,14 @@ export default async function orderPlacedHandler({
         reason: "Order placed",
       })
 
-      console.info(
-        `${LOG_PREFIX} OrderExtension created for ${orderId} — ` +
+      logger.info(
+        `OrderExtension created for ${orderId} — ` +
           `is_rx: ${isRxOrder}, initial status: ${extension.status}`
       )
     } catch (extError) {
       // pharmaOrder module may not be active — log and continue
-      console.warn(
-        `${LOG_PREFIX} pharmaOrder extension creation failed for ${orderId}:`,
+      logger.warn(
+        `pharmaOrder extension creation failed for ${orderId}:`,
         (extError as Error).message
       )
       captureException(extError, { subscriber: "order-placed", orderId, step: "create-extension" })
@@ -155,20 +156,20 @@ export default async function orderPlacedHandler({
         reference_type: "order",
         reference_id: orderId,
       })
-      console.info(`${LOG_PREFIX} Internal notification created for order ${orderId}`)
+      logger.info(`Internal notification created for order ${orderId}`)
     } catch (internalNotifError) {
-      console.warn(
-        `${LOG_PREFIX} Internal notification failed for ${orderId}:`,
+      logger.warn(
+        `Internal notification failed for ${orderId}:`,
         (internalNotifError as Error).message
       )
       captureException(internalNotifError, { subscriber: "order-placed", orderId, step: "internal-notification" })
     }
 
-    console.info(`${LOG_PREFIX} Completed processing for order ${orderId}`)
+    logger.info(`Completed processing for order ${orderId}`)
   } catch (error) {
     // Top-level catch — subscriber failures must NOT break the order flow
-    console.error(
-      `${LOG_PREFIX} Unhandled error processing order ${orderId}:`,
+    logger.error(
+      `Unhandled error processing order ${orderId}:`,
       (error as Error).message,
       (error as Error).stack
     )

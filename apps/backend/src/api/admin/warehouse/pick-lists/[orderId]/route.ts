@@ -1,8 +1,9 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
 import { INVENTORY_BATCH_MODULE } from "../../../../../modules/inventoryBatch"
+import { createLogger } from "../../../../../lib/logger"
 
-const LOG = "[admin:pick-list:order]"
+const logger = createLogger("admin:warehouse:pick-lists")
 
 /**
  * GET /admin/warehouse/pick-lists/:orderId
@@ -134,7 +135,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
       total_deductions: deductions.length,
     })
   } catch (err) {
-    console.error(`${LOG} GET failed for ${orderId}:`, (err as Error).message)
+    logger.error(`GET failed for ${orderId}:`, (err as Error).message)
     res.status(500).json({ error: "Failed to generate pick list" })
   }
 }

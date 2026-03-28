@@ -1,8 +1,9 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG_PREFIX = "[subscriber:loyalty-earned]"
+const logger = createLogger("subscriber:loyalty-points-earned")
 
 type PointsEarnedData = {
   customer_id: string
@@ -20,7 +21,7 @@ export default async function handler({
   event: { data },
 }: SubscriberArgs<PointsEarnedData>) {
   const { customer_id, points, new_tier, previous_tier, order_id } = data
-  console.info(`${LOG_PREFIX} Customer ${customer_id} earned ${points} points from order ${order_id}`)
+  logger.info(`Customer ${customer_id} earned ${points} points from order ${order_id}`)
 
   if (!customer_id || !points || points <= 0) return
 
@@ -42,11 +43,11 @@ export default async function handler({
     })
 
     if (!result.ok) {
-      console.warn(`${LOG_PREFIX} Push not sent: ${result.reason}`)
+      logger.warn(`Push not sent: ${result.reason}`)
     }
   } catch (error) {
     // Push notification failure must NOT break the flow
-    console.error(`${LOG_PREFIX} Failed to send push:`, (error as Error).message)
+    logger.error(`Failed to send push:`, (error as Error).message)
     captureException(error, { subscriber: "loyalty-points-earned", customerId: customer_id, orderId: order_id })
   }
 }

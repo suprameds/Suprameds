@@ -3,8 +3,9 @@ import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { NOTIFICATION_MODULE } from "../modules/notification"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:dispense-decision]"
+const logger = createLogger("subscriber:dispense-decision-made")
 
 type DispenseDecisionData = {
   order_id: string
@@ -24,7 +25,7 @@ export default async function dispenseDecisionHandler({
   const { order_id, decision, pharmacist_id, reason } = data
   if (!order_id) return
 
-  console.info(`${LOG} Order ${order_id}: decision=${decision} by ${pharmacist_id ?? "unknown"}`)
+  logger.info(`Order ${order_id}: decision=${decision} by ${pharmacist_id ?? "unknown"}`)
 
   try {
     // Update pharmaOrder extension status based on decision
@@ -35,7 +36,7 @@ export default async function dispenseDecisionHandler({
     )
 
     if (!extension) {
-      console.warn(`${LOG} No OrderExtension found for ${order_id}`)
+      logger.warn(`No OrderExtension found for ${order_id}`)
       return
     }
 
@@ -60,7 +61,7 @@ export default async function dispenseDecisionHandler({
         changed_by: pharmacist_id ?? "system:dispense-decision",
         reason: reason ?? `Dispense ${decision}`,
       })
-      console.info(`${LOG} ${order_id}: ${prevStatus} → ${newStatus}`)
+      logger.info(`${order_id}: ${prevStatus} → ${newStatus}`)
     }
 
     // Notify warehouse team if approved for dispatch
@@ -80,12 +81,12 @@ export default async function dispenseDecisionHandler({
           reference_id: order_id,
         })
       } catch (err) {
-        console.warn(`${LOG} Internal notification failed: ${(err as Error).message}`)
+        logger.warn(`Internal notification failed: ${(err as Error).message}`)
         captureException(err, { subscriber: "dispense-decision-made", orderId: order_id, step: "internal-notification" })
       }
     }
   } catch (err) {
-    console.error(`${LOG} Failed for order ${order_id}: ${(err as Error).message}`)
+    logger.error(`Failed for order ${order_id}: ${(err as Error).message}`)
     captureException(err, { subscriber: "dispense-decision-made", orderId: order_id })
   }
 }

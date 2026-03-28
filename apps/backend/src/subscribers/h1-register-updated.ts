@@ -1,8 +1,9 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { NOTIFICATION_MODULE } from "../modules/notification"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
 
-const LOG = "[subscriber:h1-register-updated]"
+const logger = createLogger("subscriber:h1-register-updated")
 
 type H1RegisterData = {
   entry_id?: string
@@ -23,8 +24,8 @@ export default async function h1RegisterUpdatedHandler({
   container,
 }: SubscriberArgs<H1RegisterData>) {
   const entryId = data.entry_id
-  console.info(
-    `${LOG} H1 register entry ${entryId ?? "unknown"} — ` +
+  logger.info(
+    `H1 register entry ${entryId ?? "unknown"} — ` +
       `drug: ${data.drug_name ?? "n/a"}, qty: ${data.quantity_dispensed ?? "n/a"}, ` +
       `pharmacist: ${data.pharmacist_id ?? "unknown"}`
   )
@@ -39,16 +40,16 @@ export default async function h1RegisterUpdatedHandler({
       title: `H1 Register — ${data.drug_name ?? "Schedule H1 drug"} dispensed`,
       body:
         `Qty: ${data.quantity_dispensed ?? "—"}, ` +
-        `Patient: ${data.patient_name ? "[REDACTED]" : "n/a"}, ` +
+        `Patient: ${data.patient_name ? "" : "n/a"}, ` +
         `Order: ${data.order_id ?? "n/a"}, ` +
         `Pharmacist: ${data.pharmacist_id ?? "unknown"}`,
       reference_type: "h1_register_entry",
       reference_id: entryId ?? data.order_id ?? "unknown",
     })
 
-    console.info(`${LOG} Compliance notification created for entry ${entryId}`)
+    logger.info(`Compliance notification created for entry ${entryId}`)
   } catch (err) {
-    console.error(`${LOG} Failed: ${(err as Error).message}`)
+    logger.error(`Failed: ${(err as Error).message}`)
     captureException(err, { subscriber: "h1-register-updated", entryId, orderId: data.order_id })
   }
 }

@@ -4,6 +4,9 @@ import { Modules } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { captureException } from "../lib/sentry"
+import { createLogger } from "../lib/logger"
+
+const logger = createLogger("subscriber:prescription-rejected")
 
 /** Fires when Rx rejected. SMS T06. */
 export default async function prescriptionRejectedHandler({
@@ -41,8 +44,8 @@ export default async function prescriptionRejectedHandler({
     })
 
     if (!result.ok) {
-      console.warn(
-        `[subscriber] prescription.rejected push skipped for Rx ${data.id}: ${result.reason}`
+      logger.warn(
+        `prescription.rejected push skipped for Rx ${data.id}: ${result.reason}`
       )
     }
 
@@ -62,23 +65,23 @@ export default async function prescriptionRejectedHandler({
             reupload_url: `${process.env.STOREFRONT_URL || "https://suprameds.in"}/in/upload-rx`,
           },
         })
-        console.info(
-          `[subscriber] prescription.rejected email sent to ${customer.email} for Rx ${data.id}`
+        logger.info(
+          `prescription.rejected email sent to ${customer.email} for Rx ${data.id}`
         )
       } else {
-        console.warn(
-          `[subscriber] prescription.rejected: customer ${prescription.customer_id} has no email — skipping email`
+        logger.warn(
+          `prescription.rejected: customer ${prescription.customer_id} has no email — skipping email`
         )
       }
     } catch (emailErr) {
-      console.warn(
-        `[subscriber] prescription.rejected email failed for Rx ${data.id}: ${(emailErr as Error).message}`
+      logger.warn(
+        `prescription.rejected email failed for Rx ${data.id}: ${(emailErr as Error).message}`
       )
       captureException(emailErr, { subscriber: "prescription-rejected", prescriptionId: data.id, step: "send-email" })
     }
   }
 
-  console.info(`[subscriber] prescription.rejected handled for Rx: ${data.id}`)
+  logger.info(`prescription.rejected handled for Rx: ${data.id}`)
 }
 
 export const config: SubscriberConfig = {
