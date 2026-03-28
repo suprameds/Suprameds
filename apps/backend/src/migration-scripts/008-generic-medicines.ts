@@ -1185,7 +1185,6 @@ export default async function migration_008_generic_medicines({
           status: "published",
           sales_channels: [{ id: defaultSalesChannel.id }],
           collection_id: collectionIdByTitle.get(collectionTitle),
-          tags: p.tags.map((t) => ({ value: t })),
           options: [{ title: "Pack", values: ["default"] }],
           variants: [
             {

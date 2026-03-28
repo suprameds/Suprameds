@@ -131,7 +131,7 @@ export default async function runMigrations({
       completed++
     } catch (err) {
       const elapsed = Date.now() - start
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = err instanceof Error ? err.message : JSON.stringify(err, null, 2)
       logger.error(`✗  FAIL:  ${step.name} (${elapsed}ms) — ${msg}`)
       failed++
     }
