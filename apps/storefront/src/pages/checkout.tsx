@@ -15,6 +15,7 @@ import {
   useLocation,
   useNavigate,
 } from "@tanstack/react-router"
+import { formatPrice } from "@/lib/utils/price"
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react"
 
 const DeliveryStep = lazy(() => import("@/components/checkout-delivery-step"))
@@ -115,6 +116,7 @@ const Checkout = () => {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   const [guestLoading, setGuestLoading] = useState(false)
+  const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false)
   // Guest mode: customer is not logged in and either has a guest session or chose to continue as guest
   const [guestMode, setGuestMode] = useState(() => !!getGuestSession())
 
@@ -335,8 +337,8 @@ const Checkout = () => {
           </Suspense>
         </div>
 
-        {/* Right Column - Order Summary */}
-        <div>
+        {/* Right Column - Order Summary (desktop only) */}
+        <div className="hidden lg:block">
           <h2 className="text-lg sm:text-xl font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Order Summary</h2>
           <Suspense fallback={<Loading />}>
             {cartLoading && <Loading />}
@@ -345,6 +347,85 @@ const Checkout = () => {
           </Suspense>
         </div>
       </div>
+
+      {/* Mobile Sticky Summary Bar — visible only below lg breakpoint */}
+      {cart && (
+        <div
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
+          style={{
+            background: "var(--bg-primary)",
+            borderTop: "1px solid var(--border-primary)",
+            boxShadow: "0 -4px 20px rgba(0,0,0,0.10)",
+          }}
+        >
+          {/* Expanded panel — slides in above the bar */}
+          {mobileSummaryOpen && (
+            <div
+              className="overflow-y-auto px-4 pt-4 pb-2"
+              style={{
+                maxHeight: "60vh",
+                borderBottom: "1px solid var(--border-primary)",
+              }}
+            >
+              <Suspense fallback={<Loading />}>
+                <CheckoutSummary cart={cart} />
+              </Suspense>
+            </div>
+          )}
+
+          {/* Sticky bar row */}
+          <button
+            type="button"
+            onClick={() => setMobileSummaryOpen((prev) => !prev)}
+            className="w-full flex items-center justify-between px-4 py-3 gap-3"
+            aria-expanded={mobileSummaryOpen}
+            aria-label={mobileSummaryOpen ? "Hide order summary" : "View order summary"}
+          >
+            <div className="flex items-center gap-2">
+              {/* Chevron icon */}
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--text-secondary)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{
+                  transform: mobileSummaryOpen ? "rotate(180deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease",
+                  flexShrink: 0,
+                }}
+              >
+                <polyline points="18 15 12 9 6 15" />
+              </svg>
+              <span className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
+                {mobileSummaryOpen ? "Hide summary" : "View summary"}
+              </span>
+              <span
+                className="text-xs px-2 py-0.5 rounded-full font-medium"
+                style={{
+                  background: "var(--bg-secondary)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                {cart.items?.length ?? 0} {(cart.items?.length ?? 0) === 1 ? "item" : "items"}
+              </span>
+            </div>
+            <span className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+              {formatPrice({
+                amount: cart.total ?? 0,
+                currency_code: cart.currency_code?.toUpperCase() || "INR",
+                locale: "en-IN",
+              })}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Spacer so content isn't hidden behind the sticky bar on mobile */}
+      {cart && <div className="lg:hidden h-14" />}
     </div>
   )
 }
