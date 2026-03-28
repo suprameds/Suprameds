@@ -147,28 +147,14 @@ describe("PaymentButton", () => {
       } as any,
     })
 
-    it("renders Place Order button for Stripe", () => {
+    it("renders 'Card payments coming soon' message for Stripe", () => {
       render(<PaymentButton cart={stripeCart} />)
-      expect(screen.getByTestId("place-order-button")).toHaveTextContent("Place Order")
+      expect(screen.getByText(/Card payments are coming soon/i)).toBeInTheDocument()
     })
 
-    it("shows Processing… while submitting", async () => {
-      let resolveMutation: (val: any) => void
-      mockMutateAsync.mockImplementation(
-        () => new Promise((r) => { resolveMutation = r })
-      )
-
+    it("renders a disabled button for Stripe", () => {
       render(<PaymentButton cart={stripeCart} />)
-      await userEvent.click(screen.getByTestId("place-order-button"))
-
-      expect(screen.getByText("Processing…")).toBeInTheDocument()
-
-      resolveMutation!({ id: "order_456" })
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
-          expect.objectContaining({ to: "/in/order/order_456/confirmed" })
-        )
-      })
+      expect(screen.getByText("Card payments coming soon")).toBeDisabled()
     })
   })
 

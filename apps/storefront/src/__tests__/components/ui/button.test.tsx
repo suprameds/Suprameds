@@ -63,12 +63,12 @@ describe("Button", () => {
 
   it("applies primary variant styles by default", () => {
     render(<Button>Primary</Button>)
-    expect(screen.getByRole("button")).toHaveClass("bg-[#0E7C86]")
+    expect(screen.getByRole("button")).toHaveClass("bg-[var(--brand-teal)]")
   })
 
   it("applies secondary variant styles", () => {
     render(<Button variant="secondary">Secondary</Button>)
-    expect(screen.getByRole("button")).toHaveClass("bg-white")
+    expect(screen.getByRole("button")).toHaveClass("bg-[var(--bg-secondary)]")
   })
 
   it("applies danger variant styles", () => {
