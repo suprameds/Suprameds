@@ -19,6 +19,7 @@
     "db:seed": "medusa exec ./src/scripts/run-migrations.ts",
     "db:setup": "medusa db:migrate && medusa exec ./src/scripts/run-migrations.ts",
     "db:setup:prod": "medusa db:migrate && SKIP_PRODUCT_SEED=true medusa exec ./src/scripts/run-migrations.ts",
+    "db:fresh": "medusa db:migrate && FORCE_RESEED=true medusa exec ./src/scripts/run-migrations.ts",
     "import:products": "medusa exec ./src/scripts/import-products.ts",
     "start": "node ./src/scripts/cloud-start.mjs",
     "dev": "medusa develop",
