@@ -30,6 +30,7 @@ import fixAllProductInventory from "../migration-scripts/017-fix-all-product-inv
 import removeSampleProducts from "../migration-scripts/018-remove-sample-products"
 import fixCloudInventory from "../migration-scripts/019-fix-cloud-inventory"
 import fixInventoryTitles from "../migration-scripts/020-fix-inventory-titles"
+import genericMedicines from "../migration-scripts/008-generic-medicines"
 
 interface MigrationStep {
   name: string
@@ -86,6 +87,11 @@ const MIGRATIONS: MigrationStep[] = [
   {
     name: "11. Fix inventory item titles (set product name on each item)",
     fn: fixInventoryTitles,
+    isProductSeed: true,
+  },
+  {
+    name: "12. Generic medicines catalog (20 products across 6 categories, full clinical data)",
+    fn: genericMedicines,
     isProductSeed: true,
   },
 ]

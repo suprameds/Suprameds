@@ -14,6 +14,9 @@ export type DrugProductMeta = {
   unit_type: string | null
   therapeutic_class: string | null
   gst_rate: number | null
+  habit_forming: boolean | null
+  is_chronic: boolean | null
+  manufacturer: string | null
 }
 
 /**
