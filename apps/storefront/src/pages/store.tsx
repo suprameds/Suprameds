@@ -31,11 +31,15 @@ const Store = () => {
     queryParams: { parent_category_id: "null", limit: 12 },
   })
 
+  // When client-side filters are active, fetch more products so the filter
+  // has the full catalog to work with (schedule/form filters are client-side)
+  const hasClientFilter = scheduleFilter !== "all" || formFilter !== "all"
+
   // Pass `q` to Medusa API for server-side text search
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useProducts({
     region_id: region?.id,
     query_params: {
-      limit: 12,
+      limit: hasClientFilter ? 100 : 12,
       category_id: selectedCategory ? [selectedCategory] : undefined,
       ...(debouncedQuery ? { q: debouncedQuery } : {}),
     },
