@@ -102,6 +102,8 @@ export const Route = createRootRouteWithContext<{
         name: "apple-mobile-web-app-status-bar-style",
         content: "default",
       },
+      { property: "og:site_name", content: "Suprameds" },
+      { property: "og:locale", content: "en_IN" },
     ],
     scripts: [
       // Google Analytics 4 — async loader

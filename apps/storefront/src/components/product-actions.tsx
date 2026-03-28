@@ -11,6 +11,7 @@ import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
 import { isEqual } from "lodash-es"
 import { Minus, Plus } from "@medusajs/icons"
+import { trackAddToCart } from "@/lib/utils/analytics"
 import { memo, useEffect, useMemo, useState } from "react"
 
 type DrugSchedule = "OTC" | "H" | "H1" | "X"
@@ -131,6 +132,8 @@ const ProductActions = memo(function ProductActions({
         variant: selectedVariant,
         region,
       })
+      const variantIndex = product.variants?.findIndex((v) => v.id === selectedVariant.id) ?? 0
+      trackAddToCart(product, variantIndex, quantity, region?.currency_code?.toUpperCase() || "INR")
       setQuantity(1)
       openCart()
     } catch {

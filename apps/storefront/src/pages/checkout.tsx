@@ -4,6 +4,7 @@ import { Loading } from "@/components/ui/loading"
 import { useCart } from "@/lib/hooks/use-cart"
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCartRxStatus } from "@/lib/hooks/use-prescriptions"
+import { trackBeginCheckout } from "@/lib/utils/analytics"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { sdk } from "@/lib/utils/sdk"
 import { setStoredCart } from "@/lib/utils/cart"
@@ -120,6 +121,20 @@ const Checkout = () => {
   // Check whether the cart contains Rx items (determines prescription step)
   const { data: rxStatus } = useCartRxStatus(cart?.id)
   const hasRxItems = rxStatus?.has_rx_items ?? false
+
+  // GA4: track begin_checkout on mount
+  useEffect(() => {
+    if (!cart?.items?.length) return
+    trackBeginCheckout(
+      cart.items.map((item: any) => ({
+        product: { id: item.product_id, title: item.product_title, variants: [] },
+        variantIndex: 0,
+        quantity: item.quantity,
+      })),
+      cart.total ?? 0,
+      cart.currency_code?.toUpperCase() || "INR",
+    )
+  }, [cart?.id])
 
   /** Create a guest checkout session and store the session token */
   const handleGuestContinue = useCallback(async () => {

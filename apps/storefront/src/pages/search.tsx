@@ -1,5 +1,6 @@
 import ProductCard from "@/components/product-card"
 import { useSearch, type SearchProduct } from "@/lib/hooks/use-search"
+import { trackSearch } from "@/lib/utils/analytics"
 import { Link, useLoaderData, useNavigate } from "@tanstack/react-router"
 import { useState, useEffect, useRef, useCallback } from "react"
 
@@ -59,6 +60,7 @@ const Search = () => {
     e.preventDefault()
     const trimmed = input.trim()
     if (trimmed) {
+      trackSearch(trimmed)
       setOffset(0)
       navigate({
         to: "/$countryCode/search",

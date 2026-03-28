@@ -2,8 +2,9 @@ import ProductGrid from "@/components/product-grid"
 import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
+import { trackViewItemList } from "@/lib/utils/analytics"
 import { useLoaderData } from "@tanstack/react-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 const Store = () => {
   const { region } = useLoaderData({ from: "/$countryCode/store" })
@@ -23,6 +24,12 @@ const Store = () => {
   })
 
   const products = data?.pages.flatMap((page) => page.products) || []
+
+  useEffect(() => {
+    if (products.length) {
+      trackViewItemList(products, "All Medicines", region?.currency_code?.toUpperCase() || "INR")
+    }
+  }, [products.length])
 
   return (
     <div style={{ background: "#FAFAF8", minHeight: "80vh" }}>

@@ -92,81 +92,110 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       product: product as HttpTypes.StoreProduct,
     };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const { product, region } = loaderData || {};
+    const siteUrl = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+    const countryCode = params?.countryCode || "in"
 
     if (!product) {
       return {
-        meta: [
-          {
-            title: "Product Not Found | Suprameds",
-          },
-        ],
+        meta: [{ title: "Product Not Found | Suprameds" }],
       };
     }
 
-    // Create structured data for SEO
+    const canonical = `${siteUrl}/${countryCode}/products/${product.handle}`
+    const title = `${product.title} | Suprameds`
+    const desc = product.description || "Buy genuine medicines online from Suprameds."
+
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Product",
       name: product.title,
       description: product.description,
       image: product.images?.map((img) => img.url).filter(Boolean) || [],
+      url: canonical,
+      sku: product.variants?.[0]?.sku || product.id,
       brand: {
         "@type": "Brand",
         name: "Suprameds",
       },
       offers: {
         "@type": "Offer",
+        url: canonical,
         availability: "https://schema.org/InStock",
-        priceCurrency: region?.currency_code?.toUpperCase(),
+        priceCurrency: region?.currency_code?.toUpperCase() || "INR",
         price: product.variants?.[0]?.calculated_price?.calculated_amount
           ? product.variants[0].calculated_price.calculated_amount.toFixed(2)
           : undefined,
+        seller: {
+          "@type": "Organization",
+          name: "Suprameds",
+        },
       },
     };
 
-    // Get first product image for preloading (critical for LCP)
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: `${siteUrl}/${countryCode}`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Store",
+          item: `${siteUrl}/${countryCode}/store`,
+        },
+        ...(product.collection
+          ? [{
+              "@type": "ListItem",
+              position: 3,
+              name: product.collection.title,
+              item: `${siteUrl}/${countryCode}/categories/${product.collection.handle}`,
+            },
+            {
+              "@type": "ListItem",
+              position: 4,
+              name: product.title,
+              item: canonical,
+            }]
+          : [{
+              "@type": "ListItem",
+              position: 3,
+              name: product.title,
+              item: canonical,
+            }]),
+      ],
+    };
+
     const firstImageUrl = product.images?.[0]?.url || product.thumbnail;
 
     return {
       meta: [
-        {
-          title: `${product.title} | Suprameds`,
-        },
-        {
-          name: "description",
-          content: product.description || "Product details",
-        },
-        {
-          property: "og:title",
-          content: `${product.title} | Suprameds`,
-        },
-        {
-          property: "og:description",
-          content:
-            product.description || "Check out this product on Suprameds",
-        },
-        {
-          property: "og:image",
-          content: product.thumbnail || "",
-        },
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:image", content: product.thumbnail || "" },
+        { property: "og:url", content: canonical },
+        { property: "og:type", content: "product" },
+        { property: "twitter:card", content: "summary_large_image" },
+        { property: "twitter:title", content: title },
+        { property: "twitter:description", content: desc },
       ],
-      links: firstImageUrl
-        ? [
-            {
-              rel: "preload",
-              href: firstImageUrl,
-              as: "image",
-              fetchPriority: "high",
-            },
-          ]
-        : [],
+      links: [
+        { rel: "canonical", href: canonical },
+        ...(firstImageUrl
+          ? [{ rel: "preload", href: firstImageUrl, as: "image", fetchPriority: "high" as const }]
+          : []),
+      ],
       scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify(structuredData),
-        },
+        { type: "application/ld+json", children: JSON.stringify(structuredData) },
+        { type: "application/ld+json", children: JSON.stringify(breadcrumbSchema) },
       ],
     };
   },

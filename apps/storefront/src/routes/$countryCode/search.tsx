@@ -30,7 +30,9 @@ export const Route = createFileRoute("/$countryCode/search")({
       q: deps.q || "",
     }
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
+    const siteUrl = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+    const countryCode = params?.countryCode || "in"
     const q = loaderData?.q
     const title = q
       ? `"${q}" — Search Results | Suprameds`
@@ -40,6 +42,10 @@ export const Route = createFileRoute("/$countryCode/search")({
       meta: [
         { title },
         { name: "description", content: "Search prescription and OTC medicines on Suprameds." },
+        { name: "robots", content: "noindex, follow" },
+      ],
+      links: [
+        { rel: "canonical", href: `${siteUrl}/${countryCode}/search` },
       ],
     }
   },
