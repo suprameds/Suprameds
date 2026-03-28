@@ -11,6 +11,12 @@ const ORDER_FIELDS =
   "subtotal, shipping_total, discount_total, tax_total, total"
 
 export const Route = createFileRoute("/$countryCode/order/$orderId/confirmed")({
+  head: () => ({
+    meta: [
+      { title: "Order Confirmed | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   loader: async ({ params, context }) => {
     const { countryCode, orderId } = params
     const { queryClient } = context

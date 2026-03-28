@@ -5,6 +5,12 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/forgot-password")({
+  head: () => ({
+    meta: [
+      { title: "Forgot Password | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: ForgotPasswordPage,
 })
 

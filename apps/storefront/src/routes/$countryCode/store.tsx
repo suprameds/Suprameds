@@ -44,6 +44,20 @@ export const Route = createFileRoute("/$countryCode/store")({
     const title = `All Medicines — ${regionName} | Suprameds`
     const description = `Browse prescription and OTC medicines available in ${regionName}. Pharmacist-dispensed. Speed Post delivery across India.`
 
+    const { products } = loaderData || {}
+
+    const itemListSchema = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      itemListElement: products?.slice(0, 12).map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `${siteUrl}/${countryCode}/products/${p.handle}`,
+        name: p.title,
+        image: p.thumbnail || undefined,
+      })),
+    }
+
     return {
       meta: [
         { title },
@@ -58,6 +72,9 @@ export const Route = createFileRoute("/$countryCode/store")({
       ],
       links: [
         { rel: "canonical", href: canonical },
+      ],
+      scripts: [
+        { type: "application/ld+json", children: JSON.stringify(itemListSchema) },
       ],
     }
   },

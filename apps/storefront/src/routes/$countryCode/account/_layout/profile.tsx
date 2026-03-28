@@ -5,6 +5,12 @@ import { useCustomer, useUpdateCustomer } from "@/lib/hooks/use-customer"
 const LoyaltyDashboard = lazy(() => import("@/components/loyalty-dashboard"))
 
 export const Route = createFileRoute("/$countryCode/account/_layout/profile")({
+  head: () => ({
+    meta: [
+      { title: "Profile | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: ProfilePage,
 })
 

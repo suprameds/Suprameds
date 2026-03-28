@@ -2,9 +2,16 @@ import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/returns")({
   head: () => ({
+    links: [
+      { rel: "canonical", href: "https://suprameds.in/returns" },
+    ],
     meta: [
       { title: "Returns & Refund Policy — Suprameds" },
       { name: "description", content: "Suprameds returns and refund policy for medicines purchased online." },
+      { property: "og:title", content: "Returns & Refund Policy — Suprameds" },
+      { property: "og:description", content: "Suprameds returns and refund policy for medicines purchased online." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://suprameds.in/returns" },
     ],
   }),
   component: Returns,

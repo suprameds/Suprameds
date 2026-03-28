@@ -2,9 +2,16 @@ import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
+    links: [
+      { rel: "canonical", href: "https://suprameds.in/privacy" },
+    ],
     meta: [
       { title: "Privacy Policy — Suprameds" },
       { name: "description", content: "Suprameds privacy policy under the Digital Personal Data Protection (DPDP) Act, 2023. Your data rights and how we protect your health information." },
+      { property: "og:title", content: "Privacy Policy — Suprameds" },
+      { property: "og:description", content: "Suprameds privacy policy under the Digital Personal Data Protection (DPDP) Act, 2023. Your data rights and how we protect your health information." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://suprameds.in/privacy" },
     ],
   }),
   component: PrivacyPolicy,

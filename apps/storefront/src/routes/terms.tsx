@@ -2,9 +2,16 @@ import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/terms")({
   head: () => ({
+    links: [
+      { rel: "canonical", href: "https://suprameds.in/terms" },
+    ],
     meta: [
       { title: "Terms of Service — Suprameds" },
       { name: "description", content: "Suprameds terms of service for online pharmacy platform." },
+      { property: "og:title", content: "Terms of Service — Suprameds" },
+      { property: "og:description", content: "Suprameds terms of service for online pharmacy platform." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://suprameds.in/terms" },
     ],
   }),
   component: Terms,

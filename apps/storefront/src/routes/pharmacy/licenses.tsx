@@ -2,9 +2,16 @@ import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/pharmacy/licenses")({
   head: () => ({
+    links: [
+      { rel: "canonical", href: "https://suprameds.in/pharmacy/licenses" },
+    ],
     meta: [
       { title: "Pharmacy Licenses — Suprameds" },
       { name: "description", content: "Suprameds pharmacy licenses: Drug License, CDSCO Form 18AA registration, Registered Pharmacist details, LegitScript certification." },
+      { property: "og:title", content: "Pharmacy Licenses — Suprameds" },
+      { property: "og:description", content: "Suprameds pharmacy licenses: Drug License, CDSCO Form 18AA registration, Registered Pharmacist details, LegitScript certification." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://suprameds.in/pharmacy/licenses" },
     ],
   }),
   component: PharmacyLicenses,

@@ -3,6 +3,12 @@ import Cart from "@/pages/cart"
 import { getRegion } from "@/lib/data/regions"
 
 export const Route = createFileRoute("/$countryCode/cart")({
+  head: () => ({
+    meta: [
+      { title: "Shopping Cart | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   loader: async ({ params, context }) => {
     const { countryCode } = params
     const { queryClient } = context

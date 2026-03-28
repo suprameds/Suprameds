@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StoreRouteImport } from './routes/store'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrescriptionPolicyRouteImport } from './routes/prescription-policy'
@@ -30,6 +31,7 @@ import { Route as CountryCodeCheckoutRouteImport } from './routes/$countryCode/c
 import { Route as CountryCodeCartRouteImport } from './routes/$countryCode/cart'
 import { Route as CountryCodeAccountRouteImport } from './routes/$countryCode/account'
 import { Route as CountryCodeProductsHandleRouteImport } from './routes/$countryCode/products/$handle'
+import { Route as CountryCodeDrugsHandleRouteImport } from './routes/$countryCode/drugs/$handle'
 import { Route as CountryCodeCategoriesHandleRouteImport } from './routes/$countryCode/categories/$handle'
 import { Route as CountryCodeAccountResetPasswordRouteImport } from './routes/$countryCode/account/reset-password'
 import { Route as CountryCodeAccountRegisterRouteImport } from './routes/$countryCode/account/register'
@@ -53,6 +55,11 @@ const TermsRoute = TermsRouteImport.update({
 const StoreRoute = StoreRouteImport.update({
   id: '/store',
   path: '/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReturnsRoute = ReturnsRouteImport.update({
@@ -151,6 +158,11 @@ const CountryCodeProductsHandleRoute =
     path: '/products/$handle',
     getParentRoute: () => CountryCodeRoute,
   } as any)
+const CountryCodeDrugsHandleRoute = CountryCodeDrugsHandleRouteImport.update({
+  id: '/drugs/$handle',
+  path: '/drugs/$handle',
+  getParentRoute: () => CountryCodeRoute,
+} as any)
 const CountryCodeCategoriesHandleRoute =
   CountryCodeCategoriesHandleRouteImport.update({
     id: '/categories/$handle',
@@ -245,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
   '/$countryCode/account': typeof CountryCodeAccountLayoutRouteWithChildren
@@ -260,6 +273,7 @@ export interface FileRoutesByFullPath {
   '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
   '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
+  '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
@@ -280,6 +294,7 @@ export interface FileRoutesByTo {
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
   '/$countryCode/account': typeof CountryCodeAccountLayoutIndexRoute
@@ -295,6 +310,7 @@ export interface FileRoutesByTo {
   '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
   '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
+  '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
@@ -316,6 +332,7 @@ export interface FileRoutesById {
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
   '/$countryCode/account': typeof CountryCodeAccountRouteWithChildren
@@ -332,6 +349,7 @@ export interface FileRoutesById {
   '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
   '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
   '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
+  '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/_layout/addresses': typeof CountryCodeAccountLayoutAddressesRoute
   '/$countryCode/account/_layout/orders': typeof CountryCodeAccountLayoutOrdersRoute
@@ -355,6 +373,7 @@ export interface FileRouteTypes {
     | '/prescription-policy'
     | '/privacy'
     | '/returns'
+    | '/sitemap.xml'
     | '/store'
     | '/terms'
     | '/$countryCode/account'
@@ -370,6 +389,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account/register'
     | '/$countryCode/account/reset-password'
     | '/$countryCode/categories/$handle'
+    | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
     | '/$countryCode/account/orders'
@@ -390,6 +410,7 @@ export interface FileRouteTypes {
     | '/prescription-policy'
     | '/privacy'
     | '/returns'
+    | '/sitemap.xml'
     | '/store'
     | '/terms'
     | '/$countryCode/account'
@@ -405,6 +426,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account/register'
     | '/$countryCode/account/reset-password'
     | '/$countryCode/categories/$handle'
+    | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
     | '/$countryCode/account/orders'
@@ -425,6 +447,7 @@ export interface FileRouteTypes {
     | '/prescription-policy'
     | '/privacy'
     | '/returns'
+    | '/sitemap.xml'
     | '/store'
     | '/terms'
     | '/$countryCode/account'
@@ -441,6 +464,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account/register'
     | '/$countryCode/account/reset-password'
     | '/$countryCode/categories/$handle'
+    | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/_layout/addresses'
     | '/$countryCode/account/_layout/orders'
@@ -463,6 +487,7 @@ export interface RootRouteChildren {
   PrescriptionPolicyRoute: typeof PrescriptionPolicyRoute
   PrivacyRoute: typeof PrivacyRoute
   ReturnsRoute: typeof ReturnsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StoreRoute: typeof StoreRoute
   TermsRoute: typeof TermsRoute
   PharmacyLicensesRoute: typeof PharmacyLicensesRoute
@@ -482,6 +507,13 @@ declare module '@tanstack/react-router' {
       path: '/store'
       fullPath: '/store'
       preLoaderRoute: typeof StoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/returns': {
@@ -615,6 +647,13 @@ declare module '@tanstack/react-router' {
       path: '/products/$handle'
       fullPath: '/$countryCode/products/$handle'
       preLoaderRoute: typeof CountryCodeProductsHandleRouteImport
+      parentRoute: typeof CountryCodeRoute
+    }
+    '/$countryCode/drugs/$handle': {
+      id: '/$countryCode/drugs/$handle'
+      path: '/drugs/$handle'
+      fullPath: '/$countryCode/drugs/$handle'
+      preLoaderRoute: typeof CountryCodeDrugsHandleRouteImport
       parentRoute: typeof CountryCodeRoute
     }
     '/$countryCode/categories/$handle': {
@@ -776,6 +815,7 @@ interface CountryCodeRouteChildren {
   CountryCodeUploadRxRoute: typeof CountryCodeUploadRxRoute
   CountryCodeIndexRoute: typeof CountryCodeIndexRoute
   CountryCodeCategoriesHandleRoute: typeof CountryCodeCategoriesHandleRoute
+  CountryCodeDrugsHandleRoute: typeof CountryCodeDrugsHandleRoute
   CountryCodeProductsHandleRoute: typeof CountryCodeProductsHandleRoute
   CountryCodeOrderOrderIdConfirmedRoute: typeof CountryCodeOrderOrderIdConfirmedRoute
 }
@@ -789,6 +829,7 @@ const CountryCodeRouteChildren: CountryCodeRouteChildren = {
   CountryCodeUploadRxRoute: CountryCodeUploadRxRoute,
   CountryCodeIndexRoute: CountryCodeIndexRoute,
   CountryCodeCategoriesHandleRoute: CountryCodeCategoriesHandleRoute,
+  CountryCodeDrugsHandleRoute: CountryCodeDrugsHandleRoute,
   CountryCodeProductsHandleRoute: CountryCodeProductsHandleRoute,
   CountryCodeOrderOrderIdConfirmedRoute: CountryCodeOrderOrderIdConfirmedRoute,
 }
@@ -808,6 +849,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrescriptionPolicyRoute: PrescriptionPolicyRoute,
   PrivacyRoute: PrivacyRoute,
   ReturnsRoute: ReturnsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   StoreRoute: StoreRoute,
   TermsRoute: TermsRoute,
   PharmacyLicensesRoute: PharmacyLicensesRoute,

@@ -8,6 +8,12 @@ import { useLocation } from "@tanstack/react-router"
 import { HttpTypes } from "@medusajs/types"
 
 export const Route = createFileRoute("/$countryCode/account/_layout/orders")({
+  head: () => ({
+    meta: [
+      { title: "My Orders | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: OrdersPage,
 })
 

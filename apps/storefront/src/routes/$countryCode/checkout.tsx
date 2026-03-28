@@ -4,6 +4,12 @@ import { getRegion } from "@/lib/data/regions"
 import { CheckoutStepKey } from "@/lib/types/global"
 
 export const Route = createFileRoute("/$countryCode/checkout")({
+  head: () => ({
+    meta: [
+      { title: "Checkout | Suprameds" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   validateSearch: (search) => {
     let step = search.step
     if (!Object.values(CheckoutStepKey).includes(step as CheckoutStepKey)) {

@@ -37,6 +37,7 @@ pnpm db:setup:prod                              # Migrate + seed minus product d
 ```bash
 # Backend (Jest, from apps/backend/)
 pnpm test:unit                        # Unit tests
+npx jest --testMatch="**/*.unit.spec.ts"  # Windows-safe alternative
 pnpm test:integration:http            # HTTP integration tests
 pnpm test:integration:modules         # Module integration tests
 
@@ -113,6 +114,12 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 
 ## Gotchas
 
+- **MedusaService.updateXxxs()**: Takes a single object with `id` included — `this.updateXxxs({ id: someId, field: value })`. NOT `(id, data)` as separate args.
+- **MedusaService method pluralization**: Uses smart English plurals from the model registration key (not model name). `H1RegisterEntry` → `listH1RegisterEntries` (not `Entrys`). `SupplyMemo` → `createSupplyMemoes`. Import key determines name: `import Refund from "./models/refund"` → `createRefunds` (even though model is `PharmaRefund`).
+- **model.json() fields**: Typed as `Record<string, unknown>`. Pass arrays with `as any` cast.
+- **React Email Preview tag**: Use template literals for number interpolation: `` {`Your order #${display_id}`} `` not `Your order #{display_id}` (TS2322 — number not assignable to ReactNode & string).
+- **Import extensions (node16)**: Dynamic imports in notification-resend service need `.js` extensions: `import("../../email-templates/foo.js")`. Cast with `as any` for module namespace type mismatch.
+- **Windows test commands**: `TEST_TYPE=unit pnpm test` doesn't work on Windows. Use `npx jest --testMatch="**/*.unit.spec.ts"` directly.
 - **Module provider pattern**: Must use `ModuleProvider()` wrapper in index.ts + separate service.ts. Exporting the service class directly causes `moduleProviderServices is not iterable`.
 - **Stale `.medusa/` cache**: Medusa compiles to `.medusa/server/src/`. Delete stale compiled files when source changes aren't reflected at runtime.
 - **Redis in local dev**: Comment out `REDIS_URL` in `.env` when Redis isn't running — otherwise endless ioredis errors. Medusa falls back to in-memory event bus.
