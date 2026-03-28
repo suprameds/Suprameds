@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
+import { SHIPMENT_MODULE } from "../modules/shipment"
 
 type OrderDispatchedData = {
   id?: string
@@ -42,7 +43,9 @@ export default async function handler({
 
   try {
     const orderService = container.resolve(Modules.ORDER) as any
-    const order = await orderService.retrieveOrder(orderId, {})
+    const order = await orderService.retrieveOrder(orderId, {
+      relations: ["items"],
+    })
 
     if (!order?.customer_id) {
       logger.info(`[subscriber] order.dispatched: order ${orderId} has no customer_id, skipping push`)
@@ -67,6 +70,81 @@ export default async function handler({
     }
 
     logger.info(`[subscriber] order.dispatched: push sent for order ${orderId}`)
+
+    // Send email notification to customer
+    try {
+      const customerEmail = order.email ?? null
+      let emailTo = customerEmail
+
+      // If no email on order, look up customer
+      if (!emailTo && order.customer_id) {
+        try {
+          const customerService = container.resolve(Modules.CUSTOMER) as any
+          const customer = await customerService.retrieveCustomer(order.customer_id)
+          emailTo = customer?.email ?? null
+        } catch {
+          // Fall through — emailTo stays null
+        }
+      }
+
+      if (emailTo) {
+        // Look up shipment details for AWB/tracking data
+        let awbNumber: string | null = null
+        let carrier = "India Post"
+        let estimatedDelivery: string | null = null
+        let trackingUrl: string | null = null
+
+        try {
+          const shipmentService = container.resolve(SHIPMENT_MODULE) as any
+          const [shipment] = await shipmentService.listShipments(
+            { order_id: orderId },
+            { take: 1, order: { dispatched_at: "DESC" } }
+          )
+          if (shipment) {
+            awbNumber = shipment.awb_number ?? null
+            carrier = shipment.carrier ?? "India Post"
+            estimatedDelivery = shipment.estimated_delivery
+              ? new Date(shipment.estimated_delivery).toLocaleDateString("en-IN")
+              : null
+            trackingUrl = awbNumber
+              ? `https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx?articleid=${awbNumber}`
+              : null
+          }
+        } catch {
+          // Shipment lookup is best-effort
+        }
+
+        const items = order.items?.map((item: any) => ({
+          title: item.title,
+          quantity: item.quantity,
+        })) ?? []
+
+        const notificationService = container.resolve(Modules.NOTIFICATION) as any
+        await notificationService.createNotifications({
+          to: emailTo,
+          channel: "email",
+          template: "shipping-confirmation",
+          data: {
+            order_id: orderId,
+            display_id: order.display_id ?? orderId,
+            awb_number: awbNumber ?? "Pending",
+            carrier,
+            estimated_delivery: estimatedDelivery ?? "5-7 business days",
+            tracking_url: trackingUrl,
+            items,
+          },
+        })
+        logger.info(`[subscriber] order.dispatched: email sent to ${emailTo} for order ${orderId}`)
+      } else {
+        logger.warn(
+          `[subscriber] order.dispatched: no email found for order ${orderId} — skipping email`
+        )
+      }
+    } catch (emailErr) {
+      logger.warn(
+        `[subscriber] order.dispatched: email failed for order ${orderId}: ${(emailErr as Error).message}`
+      )
+    }
   } catch (err) {
     logger.error(
       `[subscriber] order.dispatched: failed for order ${orderId} - ${(err as Error).message}`

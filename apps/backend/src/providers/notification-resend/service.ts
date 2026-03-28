@@ -3,6 +3,7 @@ import {
   MedusaError,
 } from "@medusajs/framework/utils"
 import { Resend } from "resend"
+import { render } from "@react-email/render"
 
 type ResendOptions = {
   api_key: string
@@ -180,9 +181,27 @@ const templates: Record<string, TemplateRenderer> = {
   },
 }
 
+// ── React Email template registry ────────────────────────────────────
+// Maps template names to lazy-loaded React Email modules.
+// Each module must export: default (component) + subject (fn → string).
+
+type ReactEmailModule = {
+  default: (props: any) => React.ReactElement
+  subject: (data: Record<string, unknown>) => string
+}
+
+const reactEmailTemplates: Record<string, () => Promise<ReactEmailModule>> = {
+  "prescription-approved": () => import("../../email-templates/prescription-approved"),
+  "prescription-rejected": () => import("../../email-templates/prescription-rejected"),
+  "shipping-confirmation": () => import("../../email-templates/shipping-confirmation"),
+  "delivery-confirmation": () => import("../../email-templates/delivery-confirmation"),
+  "refund-processed": () => import("../../email-templates/refund-processed"),
+  "order-canceled": () => import("../../email-templates/order-canceled"),
+}
+
 /**
  * Resend-based email notification provider for Medusa v2.
- * Supports both raw html/subject and template-based rendering.
+ * Supports React Email components, inline templates, and raw html.
  *
  * Sender: support@supracynpharma.com (verified domain)
  */
@@ -220,14 +239,21 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
     let subject: string
     let html: string
 
-    if (templateName && templates[templateName]) {
+    if (templateName && reactEmailTemplates[templateName]) {
+      // Priority 1: React Email component
+      const mod = await reactEmailTemplates[templateName]()
+      const Component = mod.default
+      subject = mod.subject(templateData)
+      html = await render(Component(templateData as any))
+      this.logger.info(`[resend] Rendered React Email template "${templateName}" for ${to}`)
+    } else if (templateName && templates[templateName]) {
+      // Priority 2: Inline template
       const rendered = templates[templateName](templateData)
       subject = rendered.subject
       html = rendered.html
-      this.logger.info(`[resend] Rendering template "${templateName}" for ${to}`)
+      this.logger.info(`[resend] Rendering inline template "${templateName}" for ${to}`)
     } else {
-      // Fallback: look for subject/html in data (since Medusa's notification
-      // module only passes to/channel/template/data — not top-level fields)
+      // Fallback: look for subject/html in data
       subject =
         (notification.subject as string) ||
         (templateData.subject as string) ||
