@@ -48,9 +48,8 @@ async function getRedisClient(): Promise<any | null> {
   if (!url) return null
 
   try {
-    // ioredis is a Medusa transitive dependency — always available.
-    // Import both the default export and the named export to handle
-    // different ioredis versions / CJS interop shapes.
+    // ioredis is a Medusa transitive dependency — available at runtime.
+    // @ts-ignore — no direct type declarations; resolved via Medusa's ioredis
     const ioredis = await import("ioredis")
     const Redis: any = (ioredis as any).default ?? ioredis
 
