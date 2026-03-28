@@ -41,6 +41,7 @@ import { Route as CountryCodeOrderOrderIdConfirmedRouteImport } from './routes/$
 import { Route as CountryCodeAccountLayoutWishlistRouteImport } from './routes/$countryCode/account/_layout/wishlist'
 import { Route as CountryCodeAccountLayoutRemindersRouteImport } from './routes/$countryCode/account/_layout/reminders'
 import { Route as CountryCodeAccountLayoutProfileRouteImport } from './routes/$countryCode/account/_layout/profile'
+import { Route as CountryCodeAccountLayoutPrescriptionsRouteImport } from './routes/$countryCode/account/_layout/prescriptions'
 import { Route as CountryCodeAccountLayoutOrdersRouteImport } from './routes/$countryCode/account/_layout/orders'
 import { Route as CountryCodeAccountLayoutAddressesRouteImport } from './routes/$countryCode/account/_layout/addresses'
 
@@ -214,6 +215,12 @@ const CountryCodeAccountLayoutProfileRoute =
     path: '/profile',
     getParentRoute: () => CountryCodeAccountLayoutRoute,
   } as any)
+const CountryCodeAccountLayoutPrescriptionsRoute =
+  CountryCodeAccountLayoutPrescriptionsRouteImport.update({
+    id: '/prescriptions',
+    path: '/prescriptions',
+    getParentRoute: () => CountryCodeAccountLayoutRoute,
+  } as any)
 const CountryCodeAccountLayoutOrdersRoute =
   CountryCodeAccountLayoutOrdersRouteImport.update({
     id: '/orders',
@@ -256,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
+  '/$countryCode/account/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
   '/$countryCode/account/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
   '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
@@ -290,6 +298,7 @@ export interface FileRoutesByTo {
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
+  '/$countryCode/account/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
   '/$countryCode/account/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
   '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
@@ -326,6 +335,7 @@ export interface FileRoutesById {
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/_layout/addresses': typeof CountryCodeAccountLayoutAddressesRoute
   '/$countryCode/account/_layout/orders': typeof CountryCodeAccountLayoutOrdersRoute
+  '/$countryCode/account/_layout/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
   '/$countryCode/account/_layout/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/_layout/reminders': typeof CountryCodeAccountLayoutRemindersRoute
   '/$countryCode/account/_layout/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
@@ -363,6 +373,7 @@ export interface FileRouteTypes {
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
     | '/$countryCode/account/orders'
+    | '/$countryCode/account/prescriptions'
     | '/$countryCode/account/profile'
     | '/$countryCode/account/reminders'
     | '/$countryCode/account/wishlist'
@@ -397,6 +408,7 @@ export interface FileRouteTypes {
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
     | '/$countryCode/account/orders'
+    | '/$countryCode/account/prescriptions'
     | '/$countryCode/account/profile'
     | '/$countryCode/account/reminders'
     | '/$countryCode/account/wishlist'
@@ -432,6 +444,7 @@ export interface FileRouteTypes {
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/_layout/addresses'
     | '/$countryCode/account/_layout/orders'
+    | '/$countryCode/account/_layout/prescriptions'
     | '/$countryCode/account/_layout/profile'
     | '/$countryCode/account/_layout/reminders'
     | '/$countryCode/account/_layout/wishlist'
@@ -681,6 +694,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryCodeAccountLayoutProfileRouteImport
       parentRoute: typeof CountryCodeAccountLayoutRoute
     }
+    '/$countryCode/account/_layout/prescriptions': {
+      id: '/$countryCode/account/_layout/prescriptions'
+      path: '/prescriptions'
+      fullPath: '/$countryCode/account/prescriptions'
+      preLoaderRoute: typeof CountryCodeAccountLayoutPrescriptionsRouteImport
+      parentRoute: typeof CountryCodeAccountLayoutRoute
+    }
     '/$countryCode/account/_layout/orders': {
       id: '/$countryCode/account/_layout/orders'
       path: '/orders'
@@ -701,6 +721,7 @@ declare module '@tanstack/react-router' {
 interface CountryCodeAccountLayoutRouteChildren {
   CountryCodeAccountLayoutAddressesRoute: typeof CountryCodeAccountLayoutAddressesRoute
   CountryCodeAccountLayoutOrdersRoute: typeof CountryCodeAccountLayoutOrdersRoute
+  CountryCodeAccountLayoutPrescriptionsRoute: typeof CountryCodeAccountLayoutPrescriptionsRoute
   CountryCodeAccountLayoutProfileRoute: typeof CountryCodeAccountLayoutProfileRoute
   CountryCodeAccountLayoutRemindersRoute: typeof CountryCodeAccountLayoutRemindersRoute
   CountryCodeAccountLayoutWishlistRoute: typeof CountryCodeAccountLayoutWishlistRoute
@@ -712,6 +733,8 @@ const CountryCodeAccountLayoutRouteChildren: CountryCodeAccountLayoutRouteChildr
     CountryCodeAccountLayoutAddressesRoute:
       CountryCodeAccountLayoutAddressesRoute,
     CountryCodeAccountLayoutOrdersRoute: CountryCodeAccountLayoutOrdersRoute,
+    CountryCodeAccountLayoutPrescriptionsRoute:
+      CountryCodeAccountLayoutPrescriptionsRoute,
     CountryCodeAccountLayoutProfileRoute: CountryCodeAccountLayoutProfileRoute,
     CountryCodeAccountLayoutRemindersRoute:
       CountryCodeAccountLayoutRemindersRoute,

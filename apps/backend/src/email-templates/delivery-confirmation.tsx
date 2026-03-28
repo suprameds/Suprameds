@@ -68,7 +68,7 @@ export default function DeliveryConfirmation({
         />
       </Head>
       <Preview>
-        Your order #{display_id} has been delivered successfully.
+        {`Your order #${display_id} has been delivered successfully.`}
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
@@ -88,7 +88,7 @@ export default function DeliveryConfirmation({
                 Order Delivered
               </Text>
               <Text style={styles.orderBannerSub}>
-                Your order #{display_id} has been delivered successfully.
+                {`Your order #${display_id} has been delivered successfully.`}
               </Text>
             </Section>
 

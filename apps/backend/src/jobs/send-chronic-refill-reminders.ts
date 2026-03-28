@@ -15,6 +15,17 @@ const LOG_PREFIX = "[job:chronic-reminders]"
  */
 export default async function SendChronicRefillRemindersJob(container: MedusaContainer) {
   const logger = container.resolve("logger") as any
+
+  const hasFirebase = Boolean(
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
+  )
+  if (!hasFirebase) {
+    logger.info(`${LOG_PREFIX} Firebase not configured — skipping chronic refill reminders`)
+    return
+  }
+
   const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
   const crmService = container.resolve(CRM_MODULE) as any
   const pharmaService = container.resolve(PHARMA_MODULE) as any

@@ -45,8 +45,7 @@ export default function RefundProcessed({
         />
       </Head>
       <Preview>
-        Your refund of {formatINR(refund_amount)} for Order #{display_id} has
-        been processed.
+        {`Your refund of ${formatINR(refund_amount)} for Order #${display_id} has been processed.`}
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>

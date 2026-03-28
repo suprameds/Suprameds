@@ -54,19 +54,21 @@ export default defineConfig({
       dependencies: [Modules.PAYMENT, ContainerRegistrationKeys.LOGGER],
       options: {
         providers: [
-          {
-            resolve: "./src/providers/payment-razorpay",
-            id: "razorpay",
-            options: {
-              key_id: process.env.RAZORPAY_TEST_KEY_ID ?? process.env.RAZORPAY_KEY_ID,
-              key_secret: process.env.RAZORPAY_TEST_KEY_SECRET ?? process.env.RAZORPAY_KEY_SECRET,
-              razorpay_account: process.env.RAZORPAY_ACCOUNT ?? "",
-              automatic_expiry_period: 30,
-              manual_expiry_period: 20,
-              refund_speed: "normal",
-              webhook_secret: process.env.RAZORPAY_WEBHOOK_SECRET ?? "",
-            },
-          },
+          ...((process.env.RAZORPAY_TEST_KEY_ID || process.env.RAZORPAY_KEY_ID)
+            ? [{
+                resolve: "./src/providers/payment-razorpay",
+                id: "razorpay",
+                options: {
+                  key_id: process.env.RAZORPAY_TEST_KEY_ID ?? process.env.RAZORPAY_KEY_ID,
+                  key_secret: process.env.RAZORPAY_TEST_KEY_SECRET ?? process.env.RAZORPAY_KEY_SECRET,
+                  razorpay_account: process.env.RAZORPAY_ACCOUNT ?? "",
+                  automatic_expiry_period: 30,
+                  manual_expiry_period: 20,
+                  refund_speed: "normal",
+                  webhook_secret: process.env.RAZORPAY_WEBHOOK_SECRET ?? "",
+                },
+              }]
+            : []),
         ],
       },
     },

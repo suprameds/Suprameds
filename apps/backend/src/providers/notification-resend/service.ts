@@ -191,12 +191,12 @@ type ReactEmailModule = {
 }
 
 const reactEmailTemplates: Record<string, () => Promise<ReactEmailModule>> = {
-  "prescription-approved": () => import("../../email-templates/prescription-approved"),
-  "prescription-rejected": () => import("../../email-templates/prescription-rejected"),
-  "shipping-confirmation": () => import("../../email-templates/shipping-confirmation"),
-  "delivery-confirmation": () => import("../../email-templates/delivery-confirmation"),
-  "refund-processed": () => import("../../email-templates/refund-processed"),
-  "order-canceled": () => import("../../email-templates/order-canceled"),
+  "prescription-approved": () => import("../../email-templates/prescription-approved.js") as any,
+  "prescription-rejected": () => import("../../email-templates/prescription-rejected.js") as any,
+  "shipping-confirmation": () => import("../../email-templates/shipping-confirmation.js") as any,
+  "delivery-confirmation": () => import("../../email-templates/delivery-confirmation.js") as any,
+  "refund-processed": () => import("../../email-templates/refund-processed.js") as any,
+  "order-canceled": () => import("../../email-templates/order-canceled.js") as any,
 }
 
 /**
@@ -210,13 +210,15 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
   private resend: Resend
   private from: string
   private logger: any
+  private isConfigured: boolean
 
   constructor(container: InjectedDependencies, options: ResendOptions) {
     super()
     this.logger = container.logger
     this.from = options.from || "Suprameds <support@supracynpharma.com>"
+    this.isConfigured = Boolean(options.api_key)
 
-    if (!options.api_key) {
+    if (!this.isConfigured) {
       this.logger.warn(
         "[resend] No RESEND_API_KEY provided — emails will not be sent"
       )
@@ -226,6 +228,13 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
   }
 
   async send(notification: Record<string, unknown>): Promise<{ id: string }> {
+    if (!this.isConfigured) {
+      this.logger.warn(
+        `[resend] Skipping email to ${notification.to ?? "unknown"} — RESEND_API_KEY not configured`
+      )
+      return { id: "noop-not-configured" }
+    }
+
     const to = notification.to as string
     if (!to) {
       throw new MedusaError(

@@ -22,6 +22,17 @@ const MAX_IDLE_MS = 48 * 60 * 60 * 1000 // 48 hours
  */
 export default async function RemindAbandonedCartsJob(container: MedusaContainer) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
+
+  const hasFirebase = Boolean(
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
+  )
+  if (!hasFirebase) {
+    logger.info("[job:remind-carts] Firebase not configured — skipping abandoned cart reminders")
+    return
+  }
+
   logger.info("[job:remind-carts] Starting abandoned cart reminder run")
 
   try {

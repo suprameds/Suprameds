@@ -20,6 +20,11 @@ export default async function SyncAftershipStatusJob(
   const shipmentService = container.resolve(SHIPMENT_MODULE) as any
   const eventBus = container.resolve(Modules.EVENT_BUS) as any
 
+  if (!process.env.AFTERSHIP_API_KEY) {
+    logger.info("[sync-aftership] AFTERSHIP_API_KEY not configured — skipping sync")
+    return
+  }
+
   logger.info("[sync-aftership] Starting sync run")
 
   // Fetch all active (non-terminal) shipments that have an AWB
