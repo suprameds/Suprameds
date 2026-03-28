@@ -45,8 +45,7 @@ export default function RefundProcessed({
         />
       </Head>
       <Preview>
-        Your refund of {formatINR(refund_amount)} for Order #{display_id} has
-        been processed.
+        {`Your refund of ${formatINR(refund_amount)} for Order #${display_id} has been processed.`}
       </Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
@@ -87,8 +86,7 @@ export default function RefundProcessed({
                   margin: "4px 0 0",
                 }}
               >
-                Your refund for Order #{display_id} has been initiated
-                successfully.
+                {`Your refund for Order #${display_id} has been initiated successfully.`}
               </Text>
             </Section>
 
@@ -99,7 +97,7 @@ export default function RefundProcessed({
 
             <Section style={styles.addressBlock}>
               <Text style={{ ...styles.text, margin: "0 0 4px" }}>
-                <strong>Order #:</strong> {display_id}
+                <strong>Order #:</strong> {String(display_id)}
               </Text>
               <Text style={{ ...styles.text, margin: "0 0 4px" }}>
                 <strong>Refund Amount:</strong>{" "}

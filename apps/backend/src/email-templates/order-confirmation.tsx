@@ -50,6 +50,9 @@ interface OrderConfirmationProps {
   paymentStatus: string
 }
 
+export const subject = (data: OrderConfirmationProps) =>
+  `Suprameds — Order #${data.displayId || "N/A"} Confirmed`
+
 export default function OrderConfirmation({
   displayId = 10201,
   email = "customer@example.com",

@@ -1,5 +1,6 @@
 import ProductCard from "@/components/product-card"
 import { Button } from "@/components/ui/button"
+import { ProductGridSkeleton } from "@/components/ui/product-card-skeleton"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { trackViewItemList } from "@/lib/utils/analytics"
@@ -231,12 +232,7 @@ const Store = () => {
 
         {/* Products grid */}
         {isLoading && products.length === 0 ? (
-          <div className="flex items-center justify-center py-16">
-            <div
-              className="w-6 h-6 border-2 rounded-full animate-spin"
-              style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
-            />
-          </div>
+          <ProductGridSkeleton count={12} />
         ) : enrichedProducts.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>

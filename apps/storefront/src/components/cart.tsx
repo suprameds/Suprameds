@@ -152,14 +152,16 @@ export const CartItemQuantitySelector = ({
         type="button"
         onClick={() => handleQuantityChange(item.quantity - 1)}
         disabled={isMutating}
-        className="flex items-center justify-center w-8 h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
+        className="flex items-center justify-center w-10 h-10 transition-colors hover:bg-gray-50 disabled:opacity-30"
         style={{ color: "var(--text-primary)" }}
+        aria-label={item.quantity === 1 ? "Remove item" : "Decrease quantity"}
       >
         {item.quantity === 1 ? <Trash className="w-3.5 h-3.5" style={{ color: "var(--brand-red)" }} /> : <Minus className="w-3.5 h-3.5" />}
       </button>
       <span
-        className="w-8 text-center text-sm font-semibold tabular-nums"
+        className="w-10 text-center text-sm font-semibold tabular-nums"
         style={{ color: "var(--text-primary)", borderLeft: "1px solid var(--border-primary)", borderRight: "1px solid var(--border-primary)" }}
+        aria-label={`Quantity: ${item.quantity}`}
       >
         {item.quantity}
       </span>
@@ -167,8 +169,9 @@ export const CartItemQuantitySelector = ({
         type="button"
         onClick={() => handleQuantityChange(item.quantity + 1)}
         disabled={isMutating}
-        className="flex items-center justify-center w-8 h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
+        className="flex items-center justify-center w-10 h-10 transition-colors hover:bg-gray-50 disabled:opacity-30"
         style={{ color: "var(--text-primary)" }}
+        aria-label="Increase quantity"
       >
         <Plus className="w-3.5 h-3.5" />
       </button>
