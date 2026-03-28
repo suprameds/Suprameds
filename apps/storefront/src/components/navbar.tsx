@@ -177,30 +177,50 @@ export const Navbar = () => {
           WebkitBackdropFilter: scrolled ? "blur(20px) saturate(1.4)" : "none",
         }}
       >
-        <nav className="content-container flex items-center justify-between w-full h-16">
+        <nav className="content-container flex items-center gap-x-4 w-full h-16">
 
-          {/* Desktop Navigation (plain links to avoid Radix NavigationMenu render loop in React 19) */}
-          <div className="hidden lg:flex items-center gap-x-8 h-full">
+          {/* ── Logo (left-aligned on desktop) ── */}
+          <Link
+            to="/$countryCode"
+            params={{ countryCode }}
+            className="hidden lg:flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
+          >
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ background: "linear-gradient(135deg, #0E7C86, #0a9272)" }}
+            >
+              <PillIcon />
+            </div>
+            <span
+              className="text-lg font-semibold tracking-tight"
+              style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+            >
+              Suprameds
+            </span>
+          </Link>
+
+          {/* ── Desktop nav links ── */}
+          <div className="hidden lg:flex items-center gap-x-1 flex-shrink-0">
             <details ref={detailsRef} className="group relative">
               <summary
-                className="list-none flex items-center gap-1 text-sm font-medium cursor-pointer select-none"
+                className="list-none flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-medium cursor-pointer select-none transition-colors hover:bg-[#F8F6F2]"
                 style={{ color: "#0D1B2A" }}
                 aria-label="Medicines menu"
               >
                 Medicines
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform duration-200 group-open:rotate-180" style={{ marginTop: 1 }} aria-hidden="true">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="transition-transform duration-200 group-open:rotate-180" style={{ marginTop: 1 }} aria-hidden="true">
                   <path d="M6 9l6 6 6-6" />
                 </svg>
               </summary>
               <div
-                className="absolute left-0 mt-2 w-64 rounded-lg border bg-white shadow-lg p-3 z-50"
+                className="absolute left-0 mt-2 w-56 rounded-xl border bg-white shadow-lg p-2 z-50"
                 style={{ borderColor: "#EDE9E1" }}
               >
                 <Link
                   to="/$countryCode/store"
                   params={{ countryCode }}
                   onClick={closeDropdown}
-                  className="block px-2 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded"
+                  className="block px-3 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded-lg"
                   style={{ color: "#0D1B2A" }}
                 >
                   All Medicines
@@ -211,7 +231,7 @@ export const Navbar = () => {
                     to="/$countryCode/categories/$handle"
                     params={{ countryCode, handle: link.handle }}
                     onClick={closeDropdown}
-                    className="block px-2 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded"
+                    className="block px-3 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded-lg"
                     style={{ color: "#0D1B2A" }}
                   >
                     {link.name}
@@ -224,59 +244,60 @@ export const Navbar = () => {
               to="/$countryCode/store"
               params={{ countryCode }}
               search={{ schedule: "otc" } as any}
-              className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
+              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[#F8F6F2]"
               style={{ color: "#0D1B2A" }}
             >
-              OTC Products
+              OTC
             </Link>
 
             <Link
               to="/prescription-policy"
-              className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
+              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[#F8F6F2]"
               style={{ color: "#0D1B2A" }}
             >
-              Prescription Policy
+              Rx Policy
             </Link>
-
-            <form onSubmit={handleSearch} className="relative ml-2" role="search" aria-label="Search medicines">
-              <div
-                className="flex items-center rounded-lg overflow-hidden transition-all"
-                style={{
-                  background: searchFocused ? "#fff" : "#F8F6F2",
-                  border: searchFocused ? "1px solid #0E7C86" : "1px solid #EDE9E1",
-                  boxShadow: searchFocused ? "0 0 0 3px rgba(14,124,134,0.08)" : "none",
-                }}
-              >
-                <div className="pl-2.5" style={{ color: searchFocused ? "#0E7C86" : "#999" }}>
-                  <SearchIcon />
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setHighlightIndex(-1) }}
-                  onFocus={handleSearchFocus}
-                  onBlur={handleSearchBlur}
-                  onKeyDown={handleSearchKeyDown}
-                  placeholder="Search medicines..."
-                  className="px-2 py-1.5 text-xs outline-none bg-transparent w-36 xl:w-48"
-                  style={{ color: "#0D1B2A" }}
-                  autoComplete="off"
-                />
-              </div>
-
-              <SearchDropdown
-                query={searchQuery}
-                isOpen={searchFocused}
-                highlightIndex={highlightIndex}
-                onClose={() => setSearchFocused(false)}
-                onSelectProduct={handleSelectProduct}
-                onSubmitSearch={handleSubmitFromDropdown}
-                onSetHighlight={setHighlightIndex}
-                onFillRecent={handleFillRecent}
-                countryCode={countryCode}
-              />
-            </form>
           </div>
+
+          {/* ── Search bar (expanded, desktop) ── */}
+          <form onSubmit={handleSearch} className="hidden lg:block relative flex-1 max-w-lg mx-4" role="search" aria-label="Search medicines">
+            <div
+              className="flex items-center rounded-full overflow-hidden transition-all"
+              style={{
+                background: searchFocused ? "#fff" : "#F8F6F2",
+                border: searchFocused ? "1.5px solid #0E7C86" : "1.5px solid #EDE9E1",
+                boxShadow: searchFocused ? "0 0 0 3px rgba(14,124,134,0.08)" : "none",
+              }}
+            >
+              <div className="pl-3.5" style={{ color: searchFocused ? "#0E7C86" : "#9CA3AF" }}>
+                <SearchIcon />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setHighlightIndex(-1) }}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                onKeyDown={handleSearchKeyDown}
+                placeholder="Search medicines, e.g. Metformin, Paracetamol..."
+                className="flex-1 px-2.5 py-2 text-sm outline-none bg-transparent"
+                style={{ color: "#0D1B2A" }}
+                autoComplete="off"
+              />
+            </div>
+
+            <SearchDropdown
+              query={searchQuery}
+              isOpen={searchFocused}
+              highlightIndex={highlightIndex}
+              onClose={() => setSearchFocused(false)}
+              onSelectProduct={handleSelectProduct}
+              onSubmitSearch={handleSubmitFromDropdown}
+              onSetHighlight={setHighlightIndex}
+              onFillRecent={handleFillRecent}
+              countryCode={countryCode}
+            />
+          </form>
 
           {/* Mobile menu */}
           <Drawer>
@@ -385,21 +406,21 @@ export const Navbar = () => {
             </DrawerContent>
           </Drawer>
 
-          {/* Logo — centered */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2">
+          {/* Logo — mobile only (centered) */}
+          <div className="lg:hidden flex-1 flex justify-center">
             <Link
               to="/$countryCode"
               params={{ countryCode }}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               <div
-                className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0"
-                style={{ background: "#0D1B2A" }}
+                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ background: "linear-gradient(135deg, #0E7C86, #0a9272)" }}
               >
                 <PillIcon />
               </div>
               <span
-                className="font-serif text-xl font-semibold tracking-tight"
+                className="text-lg font-semibold tracking-tight"
                 style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
               >
                 Suprameds
@@ -408,7 +429,7 @@ export const Navbar = () => {
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-x-3 h-full justify-end">
+          <div className="flex items-center gap-x-2 lg:gap-x-3 flex-shrink-0">
             <Link
               to="/$countryCode/upload-rx"
               params={{ countryCode }}
