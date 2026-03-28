@@ -3,7 +3,9 @@ import ProductActions from "@/components/product-actions"
 import { ProductSubstitutes } from "@/components/product-substitutes"
 import { ImageGallery } from "@/components/ui/image-gallery"
 import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
+import { trackViewItem } from "@/lib/utils/analytics"
 import { useLoaderData } from "@tanstack/react-router"
+import { useEffect } from "react"
 
 type DrugProduct = {
   schedule?: "OTC" | "H" | "H1" | "X"
@@ -29,6 +31,10 @@ const ProductDetails = () => {
 
   const drug = (product as any)?.drug_product as DrugProduct | undefined
   const sched = scheduleCopy(drug?.schedule)
+
+  useEffect(() => {
+    trackViewItem(product, region?.currency_code?.toUpperCase() || "INR")
+  }, [product.id])
 
   const currentPrice =
     product.variants?.[0]?.calculated_price?.calculated_amount ?? 0

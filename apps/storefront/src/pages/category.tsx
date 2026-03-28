@@ -1,7 +1,9 @@
 import ProductGrid from "@/components/product-grid"
 import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
+import { trackViewItemList } from "@/lib/utils/analytics"
 import { useLoaderData } from "@tanstack/react-router"
+import { useEffect } from "react"
 
 /**
  * Category Page Pattern
@@ -25,6 +27,12 @@ const Category = () => {
   })
 
   const products = data?.pages.flatMap((page) => page.products) || []
+
+  useEffect(() => {
+    if (products.length && category?.name) {
+      trackViewItemList(products, category.name, region?.currency_code?.toUpperCase() || "INR")
+    }
+  }, [products.length, category?.name])
 
   return (
     <div className="content-container py-6">
