@@ -44,6 +44,36 @@ export default async function prescriptionRejectedHandler({
         `[subscriber] prescription.rejected push skipped for Rx ${data.id}: ${result.reason}`
       )
     }
+
+    // Send email notification to customer
+    try {
+      const customerService = container.resolve(Modules.CUSTOMER) as any
+      const customer = await customerService.retrieveCustomer(prescription.customer_id)
+
+      if (customer?.email) {
+        await notificationModuleService.createNotifications({
+          to: customer.email,
+          channel: "email",
+          template: "prescription-rejected",
+          data: {
+            prescription_id: data.id,
+            rejection_reason: prescription.rejection_reason || "The uploaded document could not be verified.",
+            reupload_url: `${process.env.STOREFRONT_URL || "https://suprameds.in"}/in/upload-rx`,
+          },
+        })
+        console.info(
+          `[subscriber] prescription.rejected email sent to ${customer.email} for Rx ${data.id}`
+        )
+      } else {
+        console.warn(
+          `[subscriber] prescription.rejected: customer ${prescription.customer_id} has no email — skipping email`
+        )
+      }
+    } catch (emailErr) {
+      console.warn(
+        `[subscriber] prescription.rejected email failed for Rx ${data.id}: ${(emailErr as Error).message}`
+      )
+    }
   }
 
   console.info(`[subscriber] prescription.rejected handled for Rx: ${data.id}`)

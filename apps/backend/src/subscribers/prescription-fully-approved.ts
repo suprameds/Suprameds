@@ -49,6 +49,39 @@ export default async function prescriptionFullyApprovedHandler({
         `[subscriber] prescription.fully-approved push skipped for Rx ${data.id}: ${result.reason}`
       )
     }
+
+    // Send email notification to customer
+    try {
+      const customerService = container.resolve(Modules.CUSTOMER) as any
+      const customer = await customerService.retrieveCustomer(prescription.customer_id)
+
+      if (customer?.email) {
+        await notificationModuleService.createNotifications({
+          to: customer.email,
+          channel: "email",
+          template: "prescription-approved",
+          data: {
+            prescription_id: data.id,
+            doctor_name: prescription.doctor_name || "your doctor",
+            valid_until: prescription.valid_until
+              ? new Date(prescription.valid_until).toLocaleDateString("en-IN")
+              : "N/A",
+            shop_url: `${process.env.STOREFRONT_URL || "https://suprameds.in"}/in/upload-rx`,
+          },
+        })
+        console.info(
+          `[subscriber] prescription.fully-approved email sent to ${customer.email} for Rx ${data.id}`
+        )
+      } else {
+        console.warn(
+          `[subscriber] prescription.fully-approved: customer ${prescription.customer_id} has no email — skipping email`
+        )
+      }
+    } catch (emailErr) {
+      console.warn(
+        `[subscriber] prescription.fully-approved email failed for Rx ${data.id}: ${(emailErr as Error).message}`
+      )
+    }
   }
 
   console.info(`[subscriber] prescription.fully-approved handled for Rx: ${data.id}`)

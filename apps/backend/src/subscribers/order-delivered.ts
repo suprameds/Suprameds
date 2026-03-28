@@ -1,4 +1,5 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
+import { INotificationModuleService } from "@medusajs/framework/types"
 import {
   ContainerRegistrationKeys,
   FulfillmentWorkflowEvents,
@@ -75,6 +76,73 @@ export default async function completeOrderOnDeliveryHandler({
         }
       } catch (pushErr) {
         console.warn(`${LOG} Push failed for order ${orderId}: ${(pushErr as Error).message}`)
+      }
+
+      // --- Email notification ---
+      try {
+        let emailTo: string | null = null
+
+        // Try to get email from the order, then fall back to customer lookup
+        try {
+          const orderService = container.resolve(Modules.ORDER) as any
+          const orderWithEmail = await orderService.retrieveOrder(orderId, {})
+          emailTo = orderWithEmail?.email ?? null
+        } catch {
+          // Fall through
+        }
+
+        if (!emailTo && customer_id) {
+          try {
+            const customerService = container.resolve(Modules.CUSTOMER) as any
+            const customer = await customerService.retrieveCustomer(customer_id)
+            emailTo = customer?.email ?? null
+          } catch {
+            // Fall through
+          }
+        }
+
+        if (emailTo) {
+          // Retrieve order items for the email
+          let items: { title: string; quantity: number }[] = []
+          try {
+            const orderService = container.resolve(Modules.ORDER) as any
+            const fullOrder = await orderService.retrieveOrder(orderId, {
+              relations: ["items"],
+            })
+            items = fullOrder?.items?.map((item: any) => ({
+              title: item.title,
+              quantity: item.quantity,
+            })) ?? []
+          } catch {
+            // Items are best-effort for the email
+          }
+
+          const notificationService: INotificationModuleService = container.resolve(
+            Modules.NOTIFICATION
+          )
+          await notificationService.createNotifications({
+            to: emailTo,
+            channel: "email",
+            template: "delivery-confirmation",
+            data: {
+              order_id: orderId,
+              display_id: display_id ?? orderId,
+              delivered_at: new Date().toLocaleDateString("en-IN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              items,
+            },
+          })
+          console.info(`${LOG} Delivery email sent to ${emailTo} for order ${orderId}`)
+        } else {
+          console.warn(`${LOG} No email found for order ${orderId} — skipping delivery email`)
+        }
+      } catch (emailErr) {
+        console.warn(`${LOG} Delivery email failed for order ${orderId}: ${(emailErr as Error).message}`)
       }
     }
 
