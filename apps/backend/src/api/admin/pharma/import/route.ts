@@ -126,6 +126,12 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     (cats as any[]).map((c) => [c.handle, c])
   )
 
+  // Existing collections
+  const { data: collections } = await query.graph({ entity: "product_collection", fields: ["id", "handle"] })
+  const collectionByHandle = new Map<string, any>(
+    (collections as any[]).map((c) => [c.handle, c])
+  )
+
   // Existing tags
   const { data: tags } = await query.graph({ entity: "product_tag", fields: ["id", "value"] })
   const tagByValue = new Map<string, any>((tags as any[]).map((t) => [t.value, t]))
@@ -220,6 +226,16 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         })
       }
 
+      // Collection link
+      const collectionHandle = row.collection ? slugify(row.collection) : null
+      if (collectionHandle) {
+        const collection = collectionByHandle.get(collectionHandle) || collectionByHandle.get(row.collection)
+        if (collection?.id) {
+          const productService = container.resolve(ModuleRegistrationName.PRODUCT) as any
+          await productService.updateProducts({ id: product.id, collection_id: collection.id })
+        }
+      }
+
       // Drug metadata
       await pharmaService.createDrugProducts({
         product_id: product.id,
@@ -232,7 +248,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         pack_size: row.pack_size || null,
         unit_type: row.unit_type || "strip",
         mrp_paise: mrpPrice * 100,
-        gst_rate: Number(row.gst_rate) || 12,
+        gst_rate: Number(row.gst_rate) || 5,
         hsn_code: row.hsn_code || null,
         indications: row.indications || null,
         contraindications: row.contraindications || null,

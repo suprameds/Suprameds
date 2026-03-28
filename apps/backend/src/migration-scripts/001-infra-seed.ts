@@ -15,6 +15,8 @@
  *   9. Calculated shipping option via conditional-shipping provider
  *      (free >= 300, 50 INR below) -- renames any old flat-rate options to legacy
  *  10. Sales channel linked to stock location
+ *  11. Product categories (hierarchical: Medicines with 14 subcategories + 4 parents)
+ *  12. Product collections (12 flat collections matching Cloud state)
  *
  * Idempotent -- every step uses check-before-create via query.graph().
  */
@@ -379,6 +381,119 @@ export default async function infraSeed({
       logger.info("Sales channel already linked to stock location.")
     } else {
       throw err
+    }
+  }
+
+  // ── 11. Product categories (hierarchical) ──────────────────────────────
+  const productService = container.resolve(ModuleRegistrationName.PRODUCT) as any
+
+  const existingCategories = await productService.listProductCategories(
+    {},
+    { take: 100 }
+  )
+  const existingByHandle = new Map(
+    existingCategories.map((c: any) => [c.handle, c])
+  )
+
+  const SUBCATEGORIES = [
+    { name: "Antibiotics", handle: "antibiotics" },
+    { name: "Diabetic", handle: "diabetic" },
+    { name: "Hypertension", handle: "hypertension" },
+    { name: "Cardiac Care", handle: "cardiac-care" },
+    { name: "Cholesterol", handle: "cholesterol" },
+    { name: "Gastroenterology", handle: "gastroenterology" },
+    { name: "General Medicines", handle: "general-medicines" },
+    { name: "Gynecology", handle: "gynecology" },
+    { name: "Nephrology", handle: "nephrology" },
+    { name: "Neurology", handle: "neurology" },
+    { name: "Respiratory", handle: "respiratory" },
+    { name: "Dermatology", handle: "dermatology" },
+    { name: "Pain & Fever", handle: "pain-fever" },
+    { name: "Vitamins & Supplements", handle: "vitamins-supplements" },
+  ]
+
+  // Create "Medicines" parent with subcategories
+  if (!existingByHandle.has("medicines")) {
+    logger.info("Creating parent category: Medicines")
+    const parent = await productService.createProductCategories({
+      name: "Medicines",
+      handle: "medicines",
+      is_active: true,
+      is_internal: false,
+      rank: 0,
+    })
+    for (const sub of SUBCATEGORIES) {
+      if (!existingByHandle.has(sub.handle)) {
+        await productService.createProductCategories({
+          name: sub.name,
+          handle: sub.handle,
+          parent_category_id: parent.id,
+          is_active: true,
+          is_internal: false,
+        })
+        logger.info(`  Created subcategory: ${sub.name}`)
+      }
+    }
+  } else {
+    logger.info("Category 'Medicines' already exists, skipping parent + subcategories.")
+  }
+
+  // Create standalone parent categories
+  const STANDALONE_PARENTS = [
+    { name: "Wellness", handle: "wellness", rank: 1 },
+    { name: "Personal Care", handle: "personal-care", rank: 2 },
+    { name: "Devices", handle: "devices", rank: 3 },
+    { name: "Mother & Baby", handle: "mother-baby", rank: 4 },
+  ]
+
+  for (const cat of STANDALONE_PARENTS) {
+    if (!existingByHandle.has(cat.handle)) {
+      await productService.createProductCategories({
+        name: cat.name,
+        handle: cat.handle,
+        is_active: true,
+        is_internal: false,
+        rank: cat.rank,
+      })
+      logger.info(`Created parent category: ${cat.name}`)
+    } else {
+      logger.info(`Category '${cat.name}' already exists, skipping.`)
+    }
+  }
+
+  // ── 12. Product collections (flat) ────────────────────────────────────
+  const COLLECTIONS = [
+    { title: "Antidiabetic", handle: "antidiabetic" },
+    { title: "Cardiology", handle: "cardiology" },
+    { title: "Pain Relief", handle: "pain-relief" },
+    { title: "Vitamins", handle: "vitamins" },
+    { title: "Dermatology", handle: "dermatology" },
+    { title: "Gastro", handle: "gastro" },
+    { title: "Antibiotics", handle: "antibiotics" },
+    { title: "Respiratory", handle: "respiratory" },
+    { title: "Cardiac", handle: "cardiac" },
+    { title: "Vitamins & Wellness", handle: "vitamins-wellness" },
+    { title: "Antihypertensive", handle: "antihypertensive" },
+    { title: "Pain & Fever", handle: "pain-fever" },
+  ]
+
+  const existingCollections = await productService.listProductCollections(
+    {},
+    { take: 100 }
+  )
+  const collectionByHandle = new Map(
+    existingCollections.map((c: any) => [c.handle, c])
+  )
+
+  for (const col of COLLECTIONS) {
+    if (!collectionByHandle.has(col.handle)) {
+      await productService.createProductCollections({
+        title: col.title,
+        handle: col.handle,
+      })
+      logger.info(`Created collection: ${col.title}`)
+    } else {
+      logger.info(`Collection '${col.title}' already exists, skipping.`)
     }
   }
 
