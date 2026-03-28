@@ -45,6 +45,14 @@ export const Navbar = () => {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data: customer } = useCustomer()
   const [searchQuery, setSearchQuery] = useState("")
+  const [scrolled, setScrolled] = useState(false)
+
+  // Backdrop blur effect on scroll
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 50)
+    window.addEventListener("scroll", onScroll, { passive: true })
+    return () => window.removeEventListener("scroll", onScroll)
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,7 +108,15 @@ export const Navbar = () => {
     <div className="sticky top-0 inset-x-0 z-40">
 
       {/* Main navigation */}
-      <header className="relative mx-auto border-b" style={{ background: "#fff", borderColor: "#EDE9E1" }}>
+      <header
+        className="relative mx-auto border-b transition-all duration-300"
+        style={{
+          background: scrolled ? "rgba(255,255,255,0.85)" : "#fff",
+          borderColor: scrolled ? "rgba(0,0,0,0.06)" : "#EDE9E1",
+          backdropFilter: scrolled ? "blur(20px) saturate(1.4)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(20px) saturate(1.4)" : "none",
+        }}
+      >
         <nav className="content-container flex items-center justify-between w-full h-16">
 
           {/* Desktop Navigation (plain links to avoid Radix NavigationMenu render loop in React 19) */}
