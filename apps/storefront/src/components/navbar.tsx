@@ -147,6 +147,7 @@ export const Navbar = () => {
             <Link
               to="/$countryCode/store"
               params={{ countryCode }}
+              search={{ schedule: "otc" } as any}
               className="text-sm font-medium transition-colors hover:text-[#0E7C86]"
               style={{ color: "#0D1B2A" }}
             >

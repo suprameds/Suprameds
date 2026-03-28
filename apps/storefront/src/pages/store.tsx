@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { trackViewItemList } from "@/lib/utils/analytics"
-import { useLoaderData } from "@tanstack/react-router"
+import { useLoaderData, useSearch } from "@tanstack/react-router"
 import { useEffect, useMemo, useState } from "react"
 import { useBulkPharma, usePharmaFilter, type DrugProductMeta } from "@/lib/hooks/use-pharma"
 import { HttpTypes } from "@medusajs/types"
@@ -14,10 +14,13 @@ type EnrichedProduct = HttpTypes.StoreProduct & { drug_product?: DrugProductMeta
 
 const Store = () => {
   const { region } = useLoaderData({ from: "/$countryCode/store" })
+  const searchParams = useSearch({ strict: false }) as Record<string, string>
+  const initialSchedule = (searchParams?.schedule as ScheduleFilter) || "all"
+
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>()
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedQuery, setDebouncedQuery] = useState("")
-  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>("all")
+  const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>(initialSchedule)
   const [formFilter, setFormFilter] = useState<string>("all")
 
   // Debounce search input
