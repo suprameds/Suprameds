@@ -1,18 +1,11 @@
 import { DeliveryEstimate } from "@/components/delivery-estimate"
 import ProductActions from "@/components/product-actions"
-import { ProductSubstitutes } from "@/components/product-substitutes"
 import { ImageGallery } from "@/components/ui/image-gallery"
+import TabSections from "@/components/pdp/tab-sections"
 import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
 import { trackViewItem } from "@/lib/utils/analytics"
 import { useLoaderData } from "@tanstack/react-router"
 import { useEffect } from "react"
-
-// PDP components (Tata 1mg inspired)
-import FactBox from "@/components/pdp/fact-box"
-import SafetyAdvice from "@/components/pdp/safety-advice"
-import ExpandableSection from "@/components/pdp/expandable-section"
-import QuickTips from "@/components/pdp/quick-tips"
-import FAQAccordion from "@/components/pdp/faq-accordion"
 
 type DrugProduct = {
   schedule?: "OTC" | "H" | "H1" | "X"
@@ -68,7 +61,7 @@ const ProductDetails = () => {
   const discount = calcDiscountFromMRP(drug?.mrp_paise, currentPrice)
 
   return (
-    <div style={{ background: "#FAFAF8" }}>
+    <div style={{ background: "var(--bg-primary)" }}>
       <div className="content-container py-8 lg:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           {/* Left: Image gallery */}
@@ -81,21 +74,21 @@ const ProductDetails = () => {
             <div>
               {/* Manufacturer */}
               {meta?.manufacturer && (
-                <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#0E7C86" }}>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--brand-teal)" }}>
                   {meta.manufacturer}
                 </p>
               )}
 
               <h1
                 className="text-2xl lg:text-3xl font-semibold mb-2"
-                style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+                style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
               >
                 {product.title}
               </h1>
 
               {/* Composition subtitle */}
               {drug?.composition && (
-                <p className="text-sm mb-3" style={{ color: "#6B7280" }}>
+                <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
                   {drug.composition}
                 </p>
               )}
@@ -106,9 +99,9 @@ const ProductDetails = () => {
                   <span
                     className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border"
                     style={{
-                      borderColor: sched.tone === "rx" ? "#F39C12" : sched.tone === "blocked" ? "#EF4444" : "#27AE60",
+                      borderColor: sched.tone === "rx" ? "var(--brand-amber)" : sched.tone === "blocked" ? "var(--brand-red)" : "var(--brand-green)",
                       background: sched.tone === "rx" ? "rgba(243,156,18,0.10)" : sched.tone === "blocked" ? "rgba(239,68,68,0.10)" : "rgba(39,174,96,0.08)",
-                      color: sched.tone === "rx" ? "#A16207" : sched.tone === "blocked" ? "#B91C1C" : "#1A7A4A",
+                      color: sched.tone === "rx" ? "var(--brand-amber-dark)" : sched.tone === "blocked" ? "var(--brand-red-dark)" : "var(--price-color)",
                     }}
                   >
                     {sched.label}
@@ -120,8 +113,8 @@ const ProductDetails = () => {
                     style={{
                       background: discount >= 40
                         ? "linear-gradient(135deg, #16A34A, #22C55E)"
-                        : "#27AE60",
-                      color: "#fff",
+                        : "var(--brand-green)",
+                      color: "var(--text-inverse)",
                     }}
                   >
                     {discount}% OFF
@@ -135,16 +128,16 @@ const ProductDetails = () => {
                   className="flex items-baseline gap-3 mb-4 px-4 py-3 rounded-lg"
                   style={{ background: "#F0FDF4", border: "1px solid #BBF7D0" }}
                 >
-                  <span className="text-2xl font-bold" style={{ color: "#16A34A" }}>
+                  <span className="text-2xl font-bold" style={{ color: "var(--price-color)" }}>
                     ₹{currentPrice.toLocaleString("en-IN")}
                   </span>
                   {mrpRupees && mrpRupees > currentPrice && (
-                    <span className="text-sm line-through" style={{ color: "#9CA3AF" }}>
+                    <span className="text-sm line-through" style={{ color: "var(--text-tertiary)" }}>
                       MRP ₹{mrpRupees.toLocaleString("en-IN")}
                     </span>
                   )}
                   {discount && discount > 0 && (
-                    <span className="text-sm font-semibold" style={{ color: "#16A34A" }}>
+                    <span className="text-sm font-semibold" style={{ color: "var(--price-color)" }}>
                       You save ₹{((mrpRupees ?? 0) - currentPrice).toLocaleString("en-IN")}
                     </span>
                   )}
@@ -152,7 +145,7 @@ const ProductDetails = () => {
               )}
 
               {product.description && (
-                <p className="text-sm leading-relaxed mb-4" style={{ color: "#2C3E50" }}>
+                <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-primary)" }}>
                   {product.description}
                 </p>
               )}
@@ -163,11 +156,11 @@ const ProductDetails = () => {
             {/* Delivery info box */}
             <div
               className="rounded-lg p-4 flex flex-col gap-2.5 mt-2"
-              style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+              style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
             >
               <DeliveryEstimate />
-              <div className="flex items-center gap-2.5 text-xs" style={{ color: "#2C3E50" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="flex items-center gap-2.5 text-xs" style={{ color: "var(--text-primary)" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-teal)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
                 <span>Genuine medicines · Pharmacist verified</span>
@@ -178,136 +171,14 @@ const ProductDetails = () => {
         </div>
         {/* ── End 2-column hero grid ── */}
 
-        {/* ══════════════════════════════════════════════════════
-             FULL-WIDTH SECTIONS BELOW THE FOLD (Tata 1mg style)
-             ══════════════════════════════════════════════════════ */}
-        <div className="flex flex-col gap-4 mt-8 max-w-3xl">
-          {/* Medicine details card */}
-          {drug && (
-            <div
-              className="rounded-lg overflow-hidden"
-              style={{ border: "1px solid #EDE9E1" }}
-            >
-              <div className="px-4 py-3" style={{ background: "#F8F6F2", borderBottom: "1px solid #EDE9E1" }}>
-                <h2
-                  className="text-sm font-semibold"
-                  style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
-                >
-                  Medicine Details
-                </h2>
-              </div>
-              <div className="px-4 py-4" style={{ background: "#fff" }}>
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                  {drug.generic_name && (
-                    <>
-                      <dt style={{ color: "#666" }}>Generic name</dt>
-                      <dd className="font-medium" style={{ color: "#0D1B2A" }}>{drug.generic_name}</dd>
-                    </>
-                  )}
-                  {drug.dosage_form && (
-                    <>
-                      <dt style={{ color: "#666" }}>Dosage form</dt>
-                      <dd className="font-medium capitalize" style={{ color: "#0D1B2A" }}>{drug.dosage_form}</dd>
-                    </>
-                  )}
-                  {drug.strength && (
-                    <>
-                      <dt style={{ color: "#666" }}>Strength</dt>
-                      <dd className="font-medium" style={{ color: "#0D1B2A" }}>{drug.strength}</dd>
-                    </>
-                  )}
-                  {drug.pack_size && (
-                    <>
-                      <dt style={{ color: "#666" }}>Pack size</dt>
-                      <dd className="font-medium capitalize" style={{ color: "#0D1B2A" }}>{drug.pack_size}</dd>
-                    </>
-                  )}
-                  {typeof drug.gst_rate === "number" && (
-                    <>
-                      <dt style={{ color: "#666" }}>GST</dt>
-                      <dd className="font-medium" style={{ color: "#0D1B2A" }}>{drug.gst_rate}%</dd>
-                    </>
-                  )}
-                  {drug.storage_instructions && (
-                    <>
-                      <dt style={{ color: "#666" }}>Storage</dt>
-                      <dd className="font-medium" style={{ color: "#0D1B2A" }}>{drug.storage_instructions}</dd>
-                    </>
-                  )}
-                </dl>
-
-                {drug.composition && (
-                  <div className="mt-4 pt-3" style={{ borderTop: "1px solid #EDE9E1" }}>
-                    <div className="text-sm mb-1" style={{ color: "#666" }}>Composition</div>
-                    <div className="text-sm font-medium" style={{ color: "#0D1B2A" }}>{drug.composition}</div>
-                  </div>
-                )}
-              </div>
-
-              {(drug.schedule === "H" || drug.schedule === "H1") && (
-                <div
-                  className="px-4 py-3 text-sm flex items-center gap-2"
-                  style={{ background: "rgba(243,156,18,0.06)", borderTop: "1px solid rgba(243,156,18,0.2)", color: "#0D1B2A" }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D68910" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                  This medicine requires a valid prescription. You can upload it during checkout.
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Fact Box */}
-          <FactBox
-            chemicalClass={meta?.chemical_class}
-            therapeuticClass={drug?.therapeutic_class}
-            actionClass={meta?.action_class}
-            habitForming={drug?.habit_forming}
+        {/* Tabbed sections (Details, Safety, Clinical, Tips & FAQ, Alternatives) */}
+        <div className="max-w-3xl">
+          <TabSections
+            drug={drug}
+            meta={meta}
+            productId={product.id}
+            currentPrice={currentPrice}
           />
-
-          {/* Safety Advice */}
-          <SafetyAdvice safetyAdvice={meta?.safety_advice} />
-
-          {/* Expandable clinical sections */}
-          {(drug?.indications || drug?.side_effects || drug?.dosage_instructions || drug?.drug_interactions || drug?.contraindications) && (
-            <div className="rounded-lg overflow-hidden" style={{ border: "1px solid #EDE9E1", background: "#fff" }}>
-              <ExpandableSection title="Uses & Indications" content={drug?.indications} defaultOpen />
-              <ExpandableSection title="Side Effects" content={drug?.side_effects} />
-              <ExpandableSection title="How to Use" content={drug?.dosage_instructions} />
-              <ExpandableSection title="Drug Interactions" content={drug?.drug_interactions} />
-              <ExpandableSection title="Contraindications" content={drug?.contraindications} />
-            </div>
-          )}
-
-          {/* Quick Tips */}
-          <QuickTips tips={meta?.quick_tips} />
-
-          {/* FAQs */}
-          <FAQAccordion faqs={meta?.faqs} />
-
-          {/* Therapeutic substitution suggestions */}
-          <ProductSubstitutes productId={product.id} currentPrice={currentPrice} />
-
-          {/* References */}
-          {meta?.references && meta.references.length > 0 && (
-            <div className="mt-2">
-              <h3 className="text-xs font-semibold mb-2" style={{ color: "#9CA3AF", fontFamily: "Fraunces, Georgia, serif" }}>
-                References
-              </h3>
-              <ul className="flex flex-wrap gap-1.5">
-                {meta.references.map((ref, i) => (
-                  <li
-                    key={i}
-                    className="text-[10px] px-2 py-1 rounded-full"
-                    style={{ background: "#F3F0EB", color: "#6B7280" }}
-                  >
-                    {ref}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
         </div>
       </div>
     </div>

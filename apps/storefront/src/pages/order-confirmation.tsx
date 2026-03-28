@@ -97,14 +97,14 @@ const CodConfirmationBanner = ({ order }: { order: any }) => {
   return (
     <div
       className="rounded-xl border-2 p-5 flex flex-col gap-4"
-      style={{ background: "#FFFBEB", borderColor: "#F59E0B" }}
+      style={{ background: "#FFFBEB", borderColor: "var(--brand-amber)" }}
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
           <CodBadgeIcon />
         </div>
         <div>
-          <p className="text-base font-semibold" style={{ color: "#92400E" }}>
+          <p className="text-base font-semibold" style={{ color: "var(--brand-amber-dark)" }}>
             Please confirm your Cash on Delivery order
           </p>
           <p className="text-sm mt-1" style={{ color: "#78350F" }}>
@@ -129,7 +129,7 @@ const CodConfirmationBanner = ({ order }: { order: any }) => {
           onClick={() => handleCodAction(true)}
           disabled={status === "confirming"}
           className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: "#1A7A4A" }}
+          style={{ background: "var(--price-color)" }}
         >
           {status === "confirming" ? "Confirming…" : "Confirm Order"}
         </button>
@@ -164,7 +164,7 @@ const XCircleIcon = ({ color = "#991B1B" }: { color?: string }) => (
 )
 
 const CodBadgeIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D68910" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--brand-amber)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
     <line x1="1" y1="10" x2="23" y2="10" />
   </svg>
@@ -206,9 +206,9 @@ const OrderEditBanner = ({ order }: { order: any }) => {
         </p>
         <p className="text-xs mt-0.5" style={{ color: "#3B82F6" }}>
           {editSummary || "Your order was updated by our pharmacy team."}{" "}
-          <span style={{ color: "#6B7280" }}>({formattedDate})</span>
+          <span style={{ color: "var(--text-secondary)" }}>({formattedDate})</span>
         </p>
-        <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
+        <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
           The items and total below reflect the latest version of your order.
           Contact us if you have questions.
         </p>
@@ -283,10 +283,10 @@ const ReturnSection = ({ order }: { order: any }) => {
         style={{ background: "#F0FDFA", borderColor: "#99F6E4" }}
       >
         <div className="flex-1">
-          <p className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Something wrong with your order?
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
             You have 48 hours from delivery to request a return. Opened medicines
             cannot be returned.
           </p>
@@ -294,7 +294,7 @@ const ReturnSection = ({ order }: { order: any }) => {
         <button
           onClick={() => setIsOpen(true)}
           className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold border transition-all hover:bg-teal-50"
-          style={{ color: "#0E7C86", borderColor: "#0E7C86", background: "#fff" }}
+          style={{ color: "var(--brand-teal)", borderColor: "var(--brand-teal)", background: "var(--bg-secondary)" }}
         >
           Request Return
         </button>
@@ -349,19 +349,19 @@ const OrderConfirmation = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "#FAFAF8" }}>
-        <p className="text-sm" style={{ color: "#9CA3AF" }}>Loading order details…</p>
+      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "var(--bg-primary)" }}>
+        <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Loading order details…</p>
       </div>
     )
   }
 
   if (!order) {
     return (
-      <div className="content-container py-12 text-center" style={{ background: "#FAFAF8" }}>
-        <h1 className="text-xl font-serif font-semibold mb-2" style={{ color: "#0D1B2A" }}>
+      <div className="content-container py-12 text-center" style={{ background: "var(--bg-primary)" }}>
+        <h1 className="text-xl font-serif font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
           Order Not Found
         </h1>
-        <p className="text-sm" style={{ color: "#9CA3AF" }}>
+        <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
           The order could not be found. Please check the link or contact support.
         </p>
       </div>
@@ -379,19 +379,19 @@ const OrderConfirmation = () => {
   const isCancelled = order.status === "canceled" || order.status === "cancelled"
 
   return (
-    <div className="min-h-screen" style={{ background: "#FAFAF8" }}>
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)" }}>
       <div className="content-container py-8">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-1">
-            <span style={{ color: "#27AE60" }}>
-              <CheckCircleIcon color="#27AE60" />
+            <span style={{ color: "var(--brand-green)" }}>
+              <CheckCircleIcon color="var(--brand-green)" />
             </span>
-            <h1 className="text-xl font-serif font-semibold" style={{ color: "#0D1B2A" }}>
+            <h1 className="text-xl font-serif font-semibold" style={{ color: "var(--text-primary)" }}>
               {summaryLabel === "Cancelled" ? "Order Cancelled" : "Order Confirmed"}
             </h1>
           </div>
-          <p className="text-sm" style={{ color: "#6B7280" }}>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
             Thank you for your order! We'll notify you as it progresses.
           </p>
         </div>

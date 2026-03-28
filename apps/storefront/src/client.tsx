@@ -61,8 +61,8 @@ if (import.meta.env.PROD && typeof window !== "undefined" && "serviceWorker" in 
               bottom: "1.5rem",
               left: "50%",
               transform: "translateX(-50%)",
-              background: "#1E2D5A",
-              color: "#fff",
+              background: "var(--bg-inverse, #1E2D5A)",
+              color: "var(--text-inverse, #fff)",
               padding: "0.75rem 1.25rem",
               borderRadius: "10px",
               boxShadow: "0 4px 20px rgba(0,0,0,0.18)",
@@ -76,7 +76,7 @@ if (import.meta.env.PROD && typeof window !== "undefined" && "serviceWorker" in 
             toast.innerHTML = `
               <span>A new version is available</span>
               <button id="pwa-update-btn" style="
-                background:#27AE60;color:#fff;border:none;padding:0.4rem 1rem;
+                background:var(--brand-green, #27AE60);color:var(--text-inverse, #fff);border:none;padding:0.4rem 1rem;
                 border-radius:6px;font-size:0.8125rem;font-weight:600;cursor:pointer;
               ">Update</button>
               <button id="pwa-dismiss-btn" style="

@@ -92,7 +92,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       to="/$countryCode/products/$handle"
       params={{ countryCode, handle: product.handle }}
       className="group relative flex flex-col w-full rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg"
-      style={{ background: "#fff", border: "1px solid #E8E4DD" }}
+      style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
     >
       {/* ── Top-left badges ── */}
       <div className="absolute top-0 left-0 z-10 flex flex-col gap-1.5 p-2.5 pointer-events-none">
@@ -101,11 +101,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
             className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold tracking-wide shadow-sm"
             style={{
               background: discount >= 40
-                ? "linear-gradient(135deg, #16A34A, #22C55E)"
-                : discount >= 20
-                  ? "#27AE60"
-                  : "#4ADE80",
-              color: "#fff",
+                ? "var(--discount-bg)"
+                : "var(--brand-green)",
+              color: "var(--text-inverse)",
             }}
           >
             {discount}% OFF
@@ -116,8 +114,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
             style={{
               background: "rgba(255,255,255,0.92)",
-              color: "#B45309",
-              border: "1.5px solid #F59E0B",
+              color: "var(--brand-amber-dark)",
+              border: "1.5px solid var(--brand-amber)",
               backdropFilter: "blur(4px)",
             }}
           >
@@ -127,7 +125,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {isBlocked && (
           <span
             className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold shadow-sm"
-            style={{ background: "#FEE2E2", color: "#991B1B", border: "1.5px solid #FECACA" }}
+            style={{ background: "rgba(239,68,68,0.12)", color: "var(--brand-red-dark)", border: "1.5px solid rgba(239,68,68,0.2)" }}
           >
             Schedule X
           </span>
@@ -145,39 +143,39 @@ const ProductCard = ({ product }: ProductCardProps) => {
       />
 
       {/* ── Thumbnail ── */}
-      <div className="aspect-square w-full overflow-hidden relative" style={{ background: "#FAFAF8" }}>
+      <div className="aspect-square w-full overflow-hidden relative" style={{ background: "var(--bg-primary)" }}>
         <Thumbnail
           thumbnail={product.thumbnail}
           alt={product.title}
-          dosageForm={form}
+          dosageForm={drug?.dosage_form}
           className="absolute inset-0 object-contain object-center w-full h-full p-3 transition-transform duration-500 group-hover:scale-105"
         />
       </div>
 
       {/* ── Card body ── */}
-      <div className="p-3 flex flex-col gap-1 flex-1" style={{ borderTop: "1px solid #F3F0EB" }}>
+      <div className="p-3 flex flex-col gap-1 flex-1" style={{ borderTop: "1px solid var(--border-secondary)" }}>
         {/* Manufacturer */}
         {manufacturer && (
-          <p className="text-[10px] font-semibold uppercase tracking-wider line-clamp-1" style={{ color: "#0E7C86" }}>
+          <p className="text-[10px] font-semibold uppercase tracking-wider line-clamp-1" style={{ color: "var(--brand-teal)" }}>
             {manufacturer}
           </p>
         )}
 
         {/* Product title */}
-        <h3 className="text-[13px] font-semibold leading-snug line-clamp-2 min-h-[2.5em]" style={{ color: "#0D1B2A" }}>
+        <h3 className="text-[13px] font-semibold leading-snug line-clamp-2 min-h-[2.5em]" style={{ color: "var(--text-primary)" }}>
           {product.title}
         </h3>
 
         {/* Form / strength / pack info */}
         {(form || strength || packSize) && (
-          <p className="text-[11px] line-clamp-1" style={{ color: "#6B7280" }}>
+          <p className="text-[11px] line-clamp-1" style={{ color: "var(--text-secondary)" }}>
             {[form, strength, packSize].filter(Boolean).join(" · ")}
           </p>
         )}
 
         {/* Generic name */}
         {genericName && (
-          <p className="text-[10px] italic line-clamp-1" style={{ color: "#9CA3AF" }}>
+          <p className="text-[10px] italic line-clamp-1" style={{ color: "var(--text-tertiary)" }}>
             {genericName}
           </p>
         )}
@@ -186,18 +184,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <div className="mt-auto pt-2 flex items-end justify-between gap-2">
           <div className="flex flex-col">
             {/* Current price */}
-            <span className="text-base font-bold" style={{ color: "#16A34A" }}>
+            <span className="text-base font-bold" style={{ color: "var(--price-color)" }}>
               {cheapestPrice?.calculated_price ?? "—"}
             </span>
 
             {/* MRP strikethrough — prefers pharma MRP, falls back to Medusa original price */}
             {hasMrpDiscount ? (
-              <span className="text-[11px] line-through" style={{ color: "#9CA3AF" }}>
+              <span className="text-[11px] line-through" style={{ color: "var(--text-tertiary)" }}>
                 MRP ₹{mrpRupees!.toLocaleString("en-IN")}
               </span>
             ) : (
               cheapestPrice && cheapestPrice.original_price_number > cheapestPrice.calculated_price_number && (
-                <span className="text-[11px] line-through" style={{ color: "#9CA3AF" }}>
+                <span className="text-[11px] line-through" style={{ color: "var(--text-tertiary)" }}>
                   MRP {cheapestPrice.original_price}
                 </span>
               )
@@ -210,7 +208,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full whitespace-nowrap"
               style={{
                 background: isRx ? "rgba(245,158,11,0.10)" : "rgba(14,124,134,0.08)",
-                color: isRx ? "#A16207" : "#0E7C86",
+                color: isRx ? "var(--brand-amber-dark)" : "var(--brand-teal)",
               }}
             >
               {isRx ? "Rx Required" : "OTC"}
@@ -227,8 +225,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
               disabled={addToCartMutation.isPending}
               className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50"
               style={{
-                background: "linear-gradient(135deg, #16A34A, #22C55E)",
-                color: "#fff",
+                background: "var(--discount-bg)",
+                color: "var(--text-inverse)",
               }}
             >
               {addToCartMutation.isPending ? (

@@ -97,10 +97,10 @@ export const DeliveryEstimate = ({
 
   if (!hasLocation || isError) {
     return (
-      <div className={clsx("flex items-center gap-2.5 text-xs", className)} style={{ color: "#2C3E50" }}>
+      <div className={clsx("flex items-center gap-2.5 text-xs", className)} style={{ color: "var(--text-primary)" }}>
         <TruckIcon />
         <span>
-          <strong style={{ color: "#0D1B2A" }}>Delivery in 2–7 business days</strong> across India
+          <strong style={{ color: "var(--text-primary)" }}>Delivery in 2–7 business days</strong> across India
         </span>
       </div>
     )
@@ -117,8 +117,8 @@ export const DeliveryEstimate = ({
 
   if (data && !data.serviceable) {
     return (
-      <div className={clsx("flex items-center gap-2.5 text-xs", className)} style={{ color: "#C0392B" }}>
-        <TruckIcon color="#C0392B" />
+      <div className={clsx("flex items-center gap-2.5 text-xs", className)} style={{ color: "var(--brand-red)" }}>
+        <TruckIcon color="var(--brand-red)" />
         <span>Delivery not available to this location</span>
       </div>
     )
@@ -134,17 +134,17 @@ export const DeliveryEstimate = ({
 
   return (
     <div className={clsx("flex flex-col gap-2", className)}>
-      <div className="flex items-center gap-2.5 text-xs" style={{ color: "#2C3E50" }}>
+      <div className="flex items-center gap-2.5 text-xs" style={{ color: "var(--text-primary)" }}>
         <TruckIcon />
         <span>
-          Estimated delivery: <strong style={{ color: "#0D1B2A" }}>{daysText}</strong>
+          Estimated delivery: <strong style={{ color: "var(--text-primary)" }}>{daysText}</strong>
         </span>
       </div>
       {free_delivery_threshold > 0 && (
-        <div className="flex items-center gap-2.5 text-xs" style={{ color: "#2C3E50" }}>
+        <div className="flex items-center gap-2.5 text-xs" style={{ color: "var(--text-primary)" }}>
           <TagIcon />
           <span>
-            <strong style={{ color: "#1A7A4A" }}>FREE delivery</strong> on orders above ₹{free_delivery_threshold}
+            <strong style={{ color: "var(--price-color)" }}>FREE delivery</strong> on orders above ₹{free_delivery_threshold}
           </span>
         </div>
       )}
@@ -159,7 +159,7 @@ function TruckIcon({ muted, color }: { muted?: boolean; color?: string }) {
       height="16"
       viewBox="0 0 24 24"
       fill="none"
-      stroke={color ?? (muted ? "#999" : "#0E7C86")}
+      stroke={color ?? (muted ? "#999" : "var(--brand-teal)")}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -180,7 +180,7 @@ function TagIcon() {
       height="16"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#27AE60"
+      stroke="var(--brand-green)"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"

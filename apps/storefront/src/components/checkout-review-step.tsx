@@ -23,7 +23,7 @@ const ReviewStep = ({ cart, onBack }: ReviewStepProps) => {
       {cart.shipping_address && (
         <>
           <div className="flex flex-col gap-2">
-            <h3 className="text-zinc-900 !text-base font-semibold">
+            <h3 className="!text-base font-semibold" style={{ color: "var(--text-primary)" }}>
               Shipping Address
             </h3>
             <Address address={cart.shipping_address} />
@@ -31,16 +31,16 @@ const ReviewStep = ({ cart, onBack }: ReviewStepProps) => {
 
           {cart.shipping_methods?.[0] && (
             <div className="flex flex-col gap-2">
-              <h3 className="text-zinc-900 !text-base font-semibold">
+              <h3 className="!text-base font-semibold" style={{ color: "var(--text-primary)" }}>
                 Shipping Method
               </h3>
-              <div className="text-sm text-zinc-600 flex items-center gap-2">
+              <div className="text-sm flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
                 <div>{cart.shipping_methods[0].name}</div>
                 <Price
                   price={cart.shipping_methods[0].amount}
                   currencyCode={cart.currency_code}
                   textWeight="plus"
-                  className="text-zinc-600"
+                  className="text-[var(--text-secondary)]"
                 />
               </div>
             </div>
@@ -51,19 +51,19 @@ const ReviewStep = ({ cart, onBack }: ReviewStepProps) => {
       {/* Prescription (shown only when cart has Rx items) */}
       {rxStatus?.has_rx_items && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-zinc-900 !text-base font-semibold">
+          <h3 className="!text-base font-semibold" style={{ color: "var(--text-primary)" }}>
             Prescription
           </h3>
           {rxStatus.prescription ? (
             <>
-              <div className="text-sm text-zinc-600 flex items-center gap-2">
+              <div className="text-sm flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
                 <span>
                   {rxStatus.prescription.original_filename || "Prescription"}
                 </span>
                 <span
                   className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase"
                   style={{
-                    color: rxStatus.prescription.status === "approved" ? "#065F46" : "#92400E",
+                    color: rxStatus.prescription.status === "approved" ? "var(--brand-green)" : "var(--brand-amber-dark)",
                     background: rxStatus.prescription.status === "approved" ? "#ECFDF5" : "#FEF3C7",
                   }}
                 >
@@ -82,17 +82,17 @@ const ReviewStep = ({ cart, onBack }: ReviewStepProps) => {
               )}
             </>
           ) : (
-            <p className="text-sm text-amber-700">No prescription attached</p>
+            <p className="text-sm" style={{ color: "var(--brand-amber-dark)" }}>No prescription attached</p>
           )}
         </div>
       )}
 
       {/* Payment Information */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-zinc-900 !text-base font-semibold">
+        <h3 className="!text-base font-semibold" style={{ color: "var(--text-primary)" }}>
           Billing Address
         </h3>
-        <div className="text-sm text-zinc-600">
+        <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
           {cart.billing_address ? (
             <Address address={cart.billing_address} />
           ) : (
@@ -101,10 +101,10 @@ const ReviewStep = ({ cart, onBack }: ReviewStepProps) => {
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <h3 className="text-zinc-900 !text-base font-semibold">
+        <h3 className="!text-base font-semibold" style={{ color: "var(--text-primary)" }}>
           Payment Method
         </h3>
-        <div className="text-sm text-zinc-600 flex items-center gap-2">
+        <div className="text-sm flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
           {activeSession && (
             <PaymentMethodInfo provider_id={activeSession.provider_id} />
           )}
@@ -113,12 +113,12 @@ const ReviewStep = ({ cart, onBack }: ReviewStepProps) => {
       </div>
 
       {isManual(activeSession?.provider_id) ? (
-        <p className="text-sm text-zinc-600">
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           You will pay <strong>in cash</strong> when your order is delivered.
           Our delivery partner will collect the exact amount at your doorstep.
         </p>
       ) : (
-        <p className="text-sm text-zinc-600">
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           When you place your order, your payment will be authorized and we'll
           start processing your order.
         </p>

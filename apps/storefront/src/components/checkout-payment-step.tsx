@@ -108,7 +108,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   return (
     <div className="flex flex-col gap-8">
       {!paidByGiftcard && availablePaymentMethods.length === 0 && (
-        <p className="text-sm text-zinc-500 animate-pulse">
+        <p className="text-sm text-[var(--text-tertiary)] animate-pulse">
           Loading payment methods…
         </p>
       )}
@@ -139,11 +139,11 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
       {paidByGiftcard && (
         <div className="flex flex-col w-1/3">
-          <p className="text-base font-semibold text-zinc-900 mb-1">
+          <p className="text-base font-semibold text-[var(--text-primary)] mb-1">
             Payment method
           </p>
           <p
-            className="text-base font-semibold text-zinc-600"
+            className="text-base font-semibold text-[var(--text-secondary)]"
             data-testid="payment-method-summary"
           >
             Gift card

@@ -63,13 +63,13 @@ export const InvoiceDownloadButton = ({ orderId }: { orderId: string }) => {
         onClick={handleDownload}
         disabled={downloading}
         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-        style={{ color: "#0E7C86", borderColor: "#0E7C86", background: "#F0FDFA" }}
+        style={{ color: "var(--brand-teal)", borderColor: "var(--brand-teal)", background: "#F0FDFA" }}
       >
         <DownloadIcon />
         {downloading ? "Downloading…" : "Download Invoice"}
       </button>
       {error && (
-        <span className="text-xs mt-1" style={{ color: "#EF4444" }}>{error}</span>
+        <span className="text-xs mt-1" style={{ color: "var(--brand-red)" }}>{error}</span>
       )}
     </div>
   )
@@ -185,7 +185,7 @@ export function deriveOrderProgress(order: HttpTypes.StoreOrder): {
   ]
 
   let summaryLabel = "Order Placed"
-  let summaryColor = "#92400E"
+  let summaryColor = "var(--brand-amber-dark)"
   let summaryBg = "#FEF3C7"
 
   if (isDelivered) {
@@ -198,7 +198,7 @@ export function deriveOrderProgress(order: HttpTypes.StoreOrder): {
     summaryBg = "#DBEAFE"
   } else if (paymentConfirmed) {
     summaryLabel = "Processing"
-    summaryColor = "#92400E"
+    summaryColor = "var(--brand-amber-dark)"
     summaryBg = "#FEF3C7"
   }
 
@@ -226,7 +226,7 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
                     left: "50%",
                     right: "-50%",
                     background: step.status === "completed" && steps[i + 1]?.status !== "upcoming"
-                      ? "#27AE60"
+                      ? "var(--brand-green)"
                       : "#E5E7EB",
                   }}
                 />
@@ -237,13 +237,13 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
                 className="relative z-10 flex items-center justify-center w-7 h-7 rounded-full border-2 transition-all"
                 style={{
                   borderColor:
-                    step.status === "completed" ? "#27AE60"
-                    : step.status === "active" ? (isCanceled ? "#DC2626" : "#F59E0B")
+                    step.status === "completed" ? "var(--brand-green)"
+                    : step.status === "active" ? (isCanceled ? "var(--brand-red)" : "var(--brand-amber)")
                     : "#D1D5DB",
                   background:
-                    step.status === "completed" ? "#27AE60"
+                    step.status === "completed" ? "var(--brand-green)"
                     : step.status === "active" ? (isCanceled ? "#FEF2F2" : "#FFFBEB")
-                    : "#fff",
+                    : "var(--bg-secondary)",
                 }}
               >
                 {step.status === "completed" ? (
@@ -251,7 +251,7 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
                 ) : step.status === "active" ? (
                   isCanceled
                     ? <XIcon />
-                    : <div className="w-2 h-2 rounded-full" style={{ background: "#F59E0B" }} />
+                    : <div className="w-2 h-2 rounded-full" style={{ background: "var(--brand-amber)" }} />
                 ) : (
                   <div className="w-2 h-2 rounded-full" style={{ background: "#D1D5DB" }} />
                 )}
@@ -263,20 +263,20 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
                 style={{
                   color:
                     step.status === "completed" ? "#065F46"
-                    : step.status === "active" ? (isCanceled ? "#991B1B" : "#92400E")
-                    : "#9CA3AF",
+                    : step.status === "active" ? (isCanceled ? "#991B1B" : "var(--brand-amber-dark)")
+                    : "var(--text-tertiary)",
                 }}
               >
                 {step.label}
               </p>
               <p
                 className="text-[10px] mt-0.5 text-center max-w-[110px] leading-tight"
-                style={{ color: step.status === "upcoming" ? "#D1D5DB" : "#9CA3AF" }}
+                style={{ color: step.status === "upcoming" ? "#D1D5DB" : "var(--text-tertiary)" }}
               >
                 {step.description}
               </p>
               {step.timestamp && step.status === "completed" && (
-                <p className="text-[10px] mt-0.5" style={{ color: "#9CA3AF" }}>
+                <p className="text-[10px] mt-0.5" style={{ color: "var(--text-tertiary)" }}>
                   {new Date(step.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                 </p>
               )}
@@ -297,13 +297,13 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
                   className="flex items-center justify-center w-6 h-6 rounded-full border-2 flex-shrink-0"
                   style={{
                     borderColor:
-                      step.status === "completed" ? "#27AE60"
-                      : step.status === "active" ? (isCanceled ? "#DC2626" : "#F59E0B")
+                      step.status === "completed" ? "var(--brand-green)"
+                      : step.status === "active" ? (isCanceled ? "var(--brand-red)" : "var(--brand-amber)")
                       : "#D1D5DB",
                     background:
-                      step.status === "completed" ? "#27AE60"
+                      step.status === "completed" ? "var(--brand-green)"
                       : step.status === "active" ? (isCanceled ? "#FEF2F2" : "#FFFBEB")
-                      : "#fff",
+                      : "var(--bg-secondary)",
                   }}
                 >
                   {step.status === "completed" ? (
@@ -311,7 +311,7 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
                   ) : step.status === "active" ? (
                     isCanceled
                       ? <XIcon size={10} />
-                      : <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#F59E0B" }} />
+                      : <div className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--brand-amber)" }} />
                   ) : (
                     <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#D1D5DB" }} />
                   )}
@@ -321,7 +321,7 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
                     className="w-0.5 flex-1 min-h-[24px]"
                     style={{
                       background: step.status === "completed" && steps[i + 1]?.status !== "upcoming"
-                        ? "#27AE60"
+                        ? "var(--brand-green)"
                         : "#E5E7EB",
                     }}
                   />
@@ -335,17 +335,17 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
                   style={{
                     color:
                       step.status === "completed" ? "#065F46"
-                      : step.status === "active" ? (isCanceled ? "#991B1B" : "#92400E")
-                      : "#9CA3AF",
+                      : step.status === "active" ? (isCanceled ? "#991B1B" : "var(--brand-amber-dark)")
+                      : "var(--text-tertiary)",
                   }}
                 >
                   {step.label}
                 </p>
-                <p className="text-xs" style={{ color: step.status === "upcoming" ? "#D1D5DB" : "#9CA3AF" }}>
+                <p className="text-xs" style={{ color: step.status === "upcoming" ? "#D1D5DB" : "var(--text-tertiary)" }}>
                   {step.description}
                 </p>
                 {step.timestamp && step.status === "completed" && (
-                  <p className="text-[10px] mt-0.5" style={{ color: "#9CA3AF" }}>
+                  <p className="text-[10px] mt-0.5" style={{ color: "var(--text-tertiary)" }}>
                     {new Date(step.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                   </p>
                 )}
@@ -359,7 +359,7 @@ export const OrderProgressTracker = ({ order }: { order: HttpTypes.StoreOrder })
 }
 
 const CheckIcon = ({ size = 14 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="var(--text-inverse)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12" />
   </svg>
 )
@@ -413,11 +413,11 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
       {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6">
         <div className="flex gap-2 items-center">
-          <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+          <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Order #{order.display_id ?? order.id}
           </span>
         </div>
-        <span className="text-xs" style={{ color: "#9CA3AF" }}>
+        <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
           Placed on{" "}
           {new Date(order.created_at!).toLocaleDateString("en-IN", {
             day: "numeric",
@@ -432,7 +432,7 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
       {/* Progress tracker */}
       <div
         className="rounded-xl border p-5"
-        style={{ borderColor: "#EDE9E1", background: "#FAFAF8" }}
+        style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
       >
         <OrderProgressTracker order={order} />
       </div>
@@ -443,18 +443,18 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
       {/* Fallback: Medusa fulfillment tracking links (shown only if present) */}
       {trackingEntries.length > 0 && (
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+          <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Tracking Number
           </span>
           {trackingEntries.map((t) => (
-            <span key={t.key} className="text-sm" style={{ color: "#6B7280" }}>
+            <span key={t.key} className="text-sm" style={{ color: "var(--text-secondary)" }}>
               {t.url ? (
                 <a
                   href={t.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline"
-                  style={{ color: "#0E7C86" }}
+                  style={{ color: "var(--brand-teal)" }}
                 >
                   {t.number}
                 </a>
@@ -468,8 +468,8 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
 
       {/* Contact info */}
       <div className="flex gap-2 items-center">
-        <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>Email:</span>
-        <span className="text-sm" style={{ color: "#6B7280" }}>
+        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Email:</span>
+        <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
           {order.customer?.email ?? order.email ?? "N/A"}
         </span>
       </div>
@@ -484,24 +484,24 @@ type OrderLineItemProps = {
 
 export const OrderLineItem = ({ item, order }: OrderLineItemProps) => {
   return (
-    <div className="flex items-center gap-4 py-3 border-b border-zinc-200 last:border-b-0">
+    <div className="flex items-center gap-4 py-3 border-b border-[var(--border-primary)] last:border-b-0">
       <Thumbnail
         thumbnail={item.thumbnail}
         alt={item.product_title || item.title}
         className="w-16 h-16"
       />
       <div className="flex-1 flex flex-col gap-y-1">
-        <span className="text-base font-semibold text-zinc-900">{item.product_title}</span>
+        <span className="text-base font-semibold text-[var(--text-primary)]">{item.product_title}</span>
         {item.variant_title && item.variant_title !== "Default Variant" && (
-          <span className="text-sm text-zinc-600">{item.variant_title}</span>
+          <span className="text-sm text-[var(--text-secondary)]">{item.variant_title}</span>
         )}
-        <span className="text-sm text-zinc-600">Quantity: {item.quantity}</span>
+        <span className="text-sm text-[var(--text-secondary)]">Quantity: {item.quantity}</span>
       </div>
       <div className="text-right">
         <Price
           price={item.total}
           currencyCode={order.currency_code}
-          className="text-zinc-600"
+          className="text-[var(--text-secondary)]"
         />
       </div>
     </div>
@@ -518,47 +518,47 @@ export const OrderSummary = ({ order }: OrderSummaryProps) => {
       <h3 className="mb-4 font-semibold">Summary</h3>
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Subtotal</span>
+          <span className="text-[var(--text-secondary)]">Subtotal</span>
           <Price
             price={order.subtotal}
             currencyCode={order.currency_code}
-            className="text-zinc-600"
+            className="text-[var(--text-secondary)]"
           />
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Shipping</span>
+          <span className="text-[var(--text-secondary)]">Shipping</span>
           <Price
             price={order.shipping_total}
             currencyCode={order.currency_code}
-            className="text-zinc-600"
+            className="text-[var(--text-secondary)]"
           />
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Discount</span>
+          <span className="text-[var(--text-secondary)]">Discount</span>
           <Price
             price={order.discount_total}
             currencyCode={order.currency_code}
             type="discount"
-            className="text-zinc-600"
+            className="text-[var(--text-secondary)]"
           />
         </div>
 
         <div className="flex justify-between text-sm">
-          <span className="text-zinc-600">Tax</span>
+          <span className="text-[var(--text-secondary)]">Tax</span>
           <Price
             price={order.tax_total}
             currencyCode={order.currency_code}
-            className="text-zinc-600"
+            className="text-[var(--text-secondary)]"
           />
         </div>
       </div>
 
-      <hr className="bg-zinc-200" />
+      <hr className="bg-[var(--border-primary)]" />
 
       <div className="flex justify-between">
-        <span className="text-zinc-900 text-sm">Total</span>
+        <span className="text-[var(--text-primary)] text-sm">Total</span>
         <Price price={order.total} currencyCode={order.currency_code} />
       </div>
     </div>
@@ -575,7 +575,7 @@ export const OrderShipping = ({ order }: OrderShippingProps) => {
       <h3 className="mb-4 font-semibold">Delivery Information</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <span className="text-base font-semibold text-zinc-900 mb-2">
+          <span className="text-base font-semibold text-[var(--text-primary)] mb-2">
             Shipping Address
           </span>
           {order.shipping_address && <Address address={order.shipping_address} />}
@@ -583,15 +583,15 @@ export const OrderShipping = ({ order }: OrderShippingProps) => {
 
         {order.shipping_methods?.[0] && (
           <div>
-            <span className="text-base font-semibold text-zinc-900 mb-2">
+            <span className="text-base font-semibold text-[var(--text-primary)] mb-2">
               Shipping Method
             </span>
-            <div className="text-sm text-zinc-600 flex items-center justify-between">
+            <div className="text-sm text-[var(--text-secondary)] flex items-center justify-between">
               <div>{order.shipping_methods[0].name}</div>
               <Price
                 price={order.shipping_methods[0].amount}
                 currencyCode={order.currency_code}
-                className="text-zinc-600"
+                className="text-[var(--text-secondary)]"
               />
             </div>
           </div>
@@ -613,10 +613,10 @@ export const OrderBilling = ({ order }: OrderBillingProps) => {
       <h3 className="mb-4">Billing Information</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <span className="text-base font-semibold text-zinc-900 mb-2">
+          <span className="text-base font-semibold text-[var(--text-primary)] mb-2">
             Billing Address
           </span>
-          <div className="text-sm text-zinc-600">
+          <div className="text-sm text-[var(--text-secondary)]">
             {order.billing_address ? (
               <Address address={order.billing_address} />
             ) : (
@@ -625,8 +625,8 @@ export const OrderBilling = ({ order }: OrderBillingProps) => {
           </div>
         </div>
         <div>
-          <span className="text-base font-semibold text-zinc-900 mb-2">Payment Method</span>
-          <div className="text-sm text-zinc-600">
+          <span className="text-base font-semibold text-[var(--text-primary)] mb-2">Payment Method</span>
+          <div className="text-sm text-[var(--text-secondary)]">
             {order.payment_collections?.[0].payment_sessions?.[0] && (
               <PaymentMethodInfo
                 provider_id={order.payment_collections[0].payment_sessions[0].provider_id}
@@ -649,18 +649,18 @@ export const OrderDetails = ({ order }: OrderDetailsProps) => {
     <div>
       <div className="flex flex-col gap-8">
         <OrderInfo order={order} />
-        <hr className="bg-zinc-200" />
+        <hr className="bg-[var(--border-primary)]" />
         <div className="flex flex-col gap-4">
           <h3 className="mb-4 font-semibold">Items</h3>
           {order.items?.map((item) => (
             <OrderLineItem key={item.id} item={item} order={order} />
           ))}
         </div>
-        <hr className="bg-zinc-200" />
+        <hr className="bg-[var(--border-primary)]" />
         <OrderShipping order={order} />
-        <hr className="bg-zinc-200" />
+        <hr className="bg-[var(--border-primary)]" />
         <OrderBilling order={order} />
-        <hr className="bg-zinc-200" />
+        <hr className="bg-[var(--border-primary)]" />
         <OrderSummary order={order} />
       </div>
     </div>

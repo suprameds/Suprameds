@@ -39,9 +39,9 @@ const Category = () => {
       <h1 className="text-xl mb-6">{category?.name || "Category"}</h1>
 
       {isFetching && products.length === 0 ? (
-        <div className="text-zinc-600">Loading...</div>
+        <div className="text-[var(--text-secondary)]">Loading...</div>
       ) : products.length === 0 ? (
-        <div className="text-zinc-600">No products found</div>
+        <div className="text-[var(--text-secondary)]">No products found</div>
       ) : (
         <>
           <ProductGrid products={products} className="grid grid-cols-2 md:grid-cols-4 gap-4" />

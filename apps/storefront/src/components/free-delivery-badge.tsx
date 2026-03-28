@@ -43,7 +43,7 @@ export const FreeDeliveryBadge = ({
       )}
       style={{
         background: "rgba(26,122,74,0.08)",
-        color: "#1A7A4A",
+        color: "var(--price-color)",
         border: "1px solid rgba(26,122,74,0.20)",
       }}
     >

@@ -8,8 +8,8 @@ import {
   type WishlistItem,
 } from "@/lib/hooks/use-wishlist"
 
-const TEAL = "#0E7C86"
-const NAVY = "#0D1B2A"
+const TEAL = "var(--brand-teal)"
+const NAVY = "var(--text-primary)"
 
 export default function WishlistPage() {
   const location = useLocation()
@@ -63,7 +63,7 @@ export default function WishlistPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-sm" style={{ color: "#9CA3AF" }}>
+        <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
           Loading wishlist...
         </p>
       </div>
@@ -81,7 +81,7 @@ export default function WishlistPage() {
           >
             My Wishlist
           </h1>
-          <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
+          <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
             {items.length > 0
               ? `${items.length} saved product${items.length !== 1 ? "s" : ""}`
               : "Save products to buy later"}
@@ -105,7 +105,7 @@ export default function WishlistPage() {
       {!isLoading && items.length === 0 && (
         <div
           className="text-center py-12 rounded-xl border"
-          style={{ background: "#fff", borderColor: "#EDE9E1" }}
+          style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
         >
           <div
             className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4"
@@ -116,7 +116,7 @@ export default function WishlistPage() {
           <h3 className="text-base font-semibold mb-1" style={{ color: NAVY }}>
             Your wishlist is empty
           </h3>
-          <p className="text-sm mb-5 max-w-sm mx-auto" style={{ color: "#6B7280" }}>
+          <p className="text-sm mb-5 max-w-sm mx-auto" style={{ color: "var(--text-secondary)" }}>
             Save products you like and we'll notify you when the price drops.
           </p>
           <Link
@@ -162,18 +162,18 @@ export default function WishlistPage() {
       {/* Remove confirmation modal */}
       {removeConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-[var(--bg-secondary)] rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-base font-semibold mb-2" style={{ color: NAVY }}>
               Remove from wishlist?
             </h3>
-            <p className="text-sm mb-5" style={{ color: "#6B7280" }}>
+            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
               This product will be removed from your wishlist. You can add it back any time.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setRemoveConfirmId(null)}
                 className="flex-1 px-4 py-2 rounded-lg text-sm font-medium border"
-                style={{ borderColor: "#D1D5DB", color: "#374151" }}
+                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
               >
                 Cancel
               </button>
@@ -223,12 +223,12 @@ function WishlistCard({
   return (
     <div
       className="rounded-xl border overflow-hidden flex flex-col"
-      style={{ background: "#fff", borderColor: "#EDE9E1" }}
+      style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
     >
       {/* Product image */}
       <div
         className="relative w-full aspect-square flex items-center justify-center"
-        style={{ background: "#FAFAF8" }}
+        style={{ background: "var(--bg-primary)" }}
       >
         {item.thumbnail ? (
           <img
@@ -244,7 +244,7 @@ function WishlistCard({
         {dropPct !== null && dropPct > 0 && (
           <span
             className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold text-white shadow-sm"
-            style={{ background: "#16A34A" }}
+            style={{ background: "var(--brand-green)" }}
           >
             <span>&#8595;</span> {dropPct}% drop
           </span>
@@ -255,7 +255,7 @@ function WishlistCard({
           onClick={onRemove}
           disabled={isRemoving}
           className="absolute top-2 right-2 p-1.5 rounded-full transition-colors hover:bg-red-50 disabled:opacity-50"
-          style={{ background: "rgba(255,255,255,0.9)", color: "#9CA3AF" }}
+          style={{ background: "rgba(255,255,255,0.9)", color: "var(--text-tertiary)" }}
           aria-label="Remove from wishlist"
         >
           <TrashIcon />
@@ -263,7 +263,7 @@ function WishlistCard({
       </div>
 
       {/* Card body */}
-      <div className="p-3 flex flex-col gap-2 flex-1" style={{ borderTop: "1px solid #F3F0EB" }}>
+      <div className="p-3 flex flex-col gap-2 flex-1" style={{ borderTop: "1px solid var(--border-secondary)" }}>
         {/* Product title */}
         {item.product_handle ? (
           <Link
@@ -292,7 +292,7 @@ function WishlistCard({
             item.price_at_addition !== item.current_price && (
               <span
                 className="text-xs line-through"
-                style={{ color: "#9CA3AF" }}
+                style={{ color: "var(--text-tertiary)" }}
               >
                 was {formatRupees(item.price_at_addition)}
               </span>
@@ -302,7 +302,7 @@ function WishlistCard({
         {/* Price alert toggle */}
         <div
           className="mt-auto pt-2 flex flex-col gap-1.5 border-t"
-          style={{ borderColor: "#F3F0EB" }}
+          style={{ borderColor: "var(--border-secondary)" }}
         >
           <div className="flex items-center gap-2">
             {/* Toggle switch */}
@@ -313,7 +313,7 @@ function WishlistCard({
               disabled={isAlertPending}
               className="relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50"
               style={{
-                background: item.alert_enabled ? TEAL : "#D1D5DB",
+                background: item.alert_enabled ? TEAL : "var(--border-primary)",
               }}
             >
               <span
@@ -323,14 +323,14 @@ function WishlistCard({
                 }}
               />
             </button>
-            <span className="text-xs" style={{ color: "#374151" }}>
+            <span className="text-xs" style={{ color: "var(--text-primary)" }}>
               Alert if price drops
             </span>
           </div>
 
           {item.alert_enabled && (
             <div className="flex items-center gap-1.5 pl-0.5">
-              <span className="text-xs" style={{ color: "#6B7280" }}>by at least</span>
+              <span className="text-xs" style={{ color: "var(--text-secondary)" }}>by at least</span>
               <input
                 type="number"
                 min={1}
@@ -339,9 +339,9 @@ function WishlistCard({
                 onChange={(e) => onThresholdChange(Number(e.target.value))}
                 onBlur={onThresholdBlur}
                 className="w-14 px-2 py-1 rounded border text-xs text-center outline-none focus:ring-1"
-                style={{ borderColor: "#D1D5DB", color: NAVY }}
+                style={{ borderColor: "var(--border-primary)", color: NAVY }}
               />
-              <span className="text-xs" style={{ color: "#6B7280" }}>%</span>
+              <span className="text-xs" style={{ color: "var(--text-secondary)" }}>%</span>
             </div>
           )}
         </div>
@@ -391,7 +391,7 @@ const PlaceholderImageIcon = () => (
     height="48"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#D1D5DB"
+    stroke="var(--border-primary)"
     strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"

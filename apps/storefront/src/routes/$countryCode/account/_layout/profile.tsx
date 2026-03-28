@@ -49,25 +49,25 @@ function ProfilePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-serif font-semibold" style={{ color: "#0D1B2A" }}>
+        <h1 className="text-xl font-serif font-semibold" style={{ color: "var(--text-primary)" }}>
           Profile
         </h1>
-        <p className="text-sm mt-1" style={{ color: "#9CA3AF" }}>
+        <p className="text-sm mt-1" style={{ color: "var(--text-tertiary)" }}>
           Manage your personal information
         </p>
       </div>
 
       {/* Personal info card */}
-      <div className="bg-white border rounded-xl p-6" style={{ borderColor: "#EDE9E1" }}>
+      <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-sm font-semibold" style={{ color: "#374151" }}>
+          <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Personal information
           </h2>
           {!editing && (
             <button
               onClick={handleEdit}
               className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-gray-50"
-              style={{ color: "#0D1B2A", borderColor: "#D1D5DB" }}
+              style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)" }}
             >
               Edit
             </button>
@@ -78,7 +78,7 @@ function ProfilePage() {
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium" style={{ color: "#6B7280" }}>
+                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                   First name
                 </label>
                 <input
@@ -86,11 +86,11 @@ function ProfilePage() {
                   value={form.first_name}
                   onChange={(e) => setForm((p) => ({ ...p, first_name: e.target.value }))}
                   className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-offset-1"
-                  style={{ borderColor: "#D1D5DB" }}
+                  style={{ borderColor: "var(--border-primary)" }}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium" style={{ color: "#6B7280" }}>
+                <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                   Last name
                 </label>
                 <input
@@ -98,18 +98,18 @@ function ProfilePage() {
                   value={form.last_name}
                   onChange={(e) => setForm((p) => ({ ...p, last_name: e.target.value }))}
                   className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-offset-1"
-                  style={{ borderColor: "#D1D5DB" }}
+                  style={{ borderColor: "var(--border-primary)" }}
                 />
               </div>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium" style={{ color: "#6B7280" }}>
+              <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                 Mobile number
               </label>
               <div className="relative flex">
                 <span
                   className="flex items-center px-3 rounded-l-lg border border-r-0 text-sm"
-                  style={{ borderColor: "#D1D5DB", color: "#6B7280", background: "#F9FAFB" }}
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-secondary)", background: "var(--bg-tertiary)" }}
                 >
                   +91
                 </span>
@@ -118,7 +118,7 @@ function ProfilePage() {
                   value={form.phone}
                   onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
                   className="flex-1 px-3 py-2 rounded-r-lg border text-sm outline-none focus:ring-2 focus:ring-offset-1"
-                  style={{ borderColor: "#D1D5DB" }}
+                  style={{ borderColor: "var(--border-primary)" }}
                 />
               </div>
             </div>
@@ -130,14 +130,14 @@ function ProfilePage() {
                 onClick={handleSave}
                 disabled={updateCustomer.isPending}
                 className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
-                style={{ background: "#0D1B2A" }}
+                style={{ background: "var(--bg-inverse)" }}
               >
                 {updateCustomer.isPending ? "Saving..." : "Save changes"}
               </button>
               <button
                 onClick={() => setEditing(false)}
                 className="px-4 py-2 rounded-lg text-sm font-medium border transition-all hover:bg-gray-50"
-                style={{ borderColor: "#D1D5DB", color: "#374151" }}
+                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
               >
                 Cancel
               </button>
@@ -163,16 +163,16 @@ function ProfilePage() {
       </div>
 
       {/* Email notice */}
-      <div className="bg-white border rounded-xl p-6" style={{ borderColor: "#EDE9E1" }}>
-        <h2 className="text-sm font-semibold mb-1" style={{ color: "#374151" }}>
+      <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
+        <h2 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
           Email address
         </h2>
-        <p className="text-sm" style={{ color: "#6B7280" }}>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           {customer?.email}
         </p>
-        <p className="text-xs mt-2" style={{ color: "#9CA3AF" }}>
+        <p className="text-xs mt-2" style={{ color: "var(--text-tertiary)" }}>
           Email cannot be changed. Contact{" "}
-          <a href="/grievance" className="underline" style={{ color: "#6B7280" }}>
+          <a href="/grievance" className="underline" style={{ color: "var(--text-secondary)" }}>
             support
           </a>{" "}
           if you need to update your email.
@@ -183,14 +183,14 @@ function ProfilePage() {
       <div>
         <h2
           className="text-lg font-semibold mb-3"
-          style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+          style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
         >
           Loyalty Rewards
         </h2>
         <Suspense
           fallback={
-            <div className="bg-white border rounded-xl p-6 animate-pulse" style={{ borderColor: "#EDE9E1" }}>
-              <div className="h-4 w-32 rounded" style={{ background: "#E5E7EB" }} />
+            <div className="bg-[var(--bg-secondary)] border rounded-xl p-6 animate-pulse" style={{ borderColor: "var(--border-primary)" }}>
+              <div className="h-4 w-32 rounded" style={{ background: "var(--border-primary)" }} />
             </div>
           }
         >
@@ -204,10 +204,10 @@ function ProfilePage() {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs font-medium mb-0.5" style={{ color: "#9CA3AF" }}>
+      <p className="text-xs font-medium mb-0.5" style={{ color: "var(--text-tertiary)" }}>
         {label}
       </p>
-      <p className="text-sm font-medium" style={{ color: "#111827" }}>
+      <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
         {value}
       </p>
     </div>

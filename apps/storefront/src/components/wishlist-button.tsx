@@ -50,8 +50,8 @@ export function WishlistButton({ productId, variantId, currentPrice, className }
       className={[
         "p-2 rounded-full transition-all duration-200 disabled:opacity-60",
         isWishlisted
-          ? "text-red-500 bg-white/90 shadow-sm hover:bg-white hover:text-red-600"
-          : "text-gray-400 bg-white/80 shadow-sm hover:bg-white hover:text-red-400",
+          ? "text-[var(--brand-red)] bg-white/90 shadow-sm hover:bg-white hover:text-[var(--brand-red)]"
+          : "text-[var(--text-tertiary)] bg-white/80 shadow-sm hover:bg-white hover:text-[var(--brand-red)]",
         className ?? "",
       ]
         .filter(Boolean)

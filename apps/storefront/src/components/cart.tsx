@@ -41,22 +41,22 @@ export const FreeDeliveryBar = ({ subtotal, currencyCode }: { subtotal: number; 
   return (
     <div
       className="rounded-lg px-3 py-2.5"
-      style={{ background: qualified ? "rgba(39,174,96,0.08)" : "#F8F6F2", border: `1px solid ${qualified ? "rgba(39,174,96,0.25)" : "#EDE9E1"}` }}
+      style={{ background: qualified ? "rgba(39,174,96,0.08)" : "var(--bg-tertiary)", border: `1px solid ${qualified ? "rgba(39,174,96,0.25)" : "var(--border-primary)"}` }}
     >
       <div className="flex items-center gap-2 text-xs font-medium mb-1.5">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={qualified ? "#27AE60" : "#0E7C86"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={qualified ? "var(--brand-green)" : "var(--brand-teal)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
         </svg>
         {qualified ? (
-          <span style={{ color: "#1A7A4A" }}>You qualify for FREE delivery!</span>
+          <span style={{ color: "var(--price-color)" }}>You qualify for FREE delivery!</span>
         ) : (
-          <span style={{ color: "#0D1B2A" }}>Add ₹{remaining.toFixed(0)} more for <strong>FREE delivery</strong></span>
+          <span style={{ color: "var(--text-primary)" }}>Add ₹{remaining.toFixed(0)} more for <strong>FREE delivery</strong></span>
         )}
       </div>
-      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "#EDE9E1" }}>
+      <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border-primary)" }}>
         <div
           className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${progress}%`, background: qualified ? "#27AE60" : "#0E7C86" }}
+          style={{ width: `${progress}%`, background: qualified ? "var(--brand-green)" : "var(--brand-teal)" }}
         />
       </div>
     </div>
@@ -104,7 +104,7 @@ export const CartDeleteItem = ({ item, fields }: CartDeleteItemProps) => {
     <Button
       onClick={() => deleteLineItemMutation.mutate({ line_id: item.id })}
       disabled={deleteLineItemMutation.isPending}
-      className="text-zinc-600 hover:text-zinc-500 transition-colors ml-2"
+      className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] transition-colors ml-2"
       variant="transparent"
       size="fit"
     >
@@ -146,20 +146,20 @@ export const CartItemQuantitySelector = ({
         "inline-flex items-center rounded-lg border",
         isMutating && "opacity-50 pointer-events-none"
       )}
-      style={{ borderColor: "#EDE9E1", background: "#fff" }}
+      style={{ borderColor: "var(--border-primary)", background: "var(--bg-secondary)" }}
     >
       <button
         type="button"
         onClick={() => handleQuantityChange(item.quantity - 1)}
         disabled={isMutating}
         className="flex items-center justify-center w-8 h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
-        style={{ color: "#2C3E50" }}
+        style={{ color: "var(--text-primary)" }}
       >
-        {item.quantity === 1 ? <Trash className="w-3.5 h-3.5" style={{ color: "#EF4444" }} /> : <Minus className="w-3.5 h-3.5" />}
+        {item.quantity === 1 ? <Trash className="w-3.5 h-3.5" style={{ color: "var(--brand-red)" }} /> : <Minus className="w-3.5 h-3.5" />}
       </button>
       <span
         className="w-8 text-center text-sm font-semibold tabular-nums"
-        style={{ color: "#0D1B2A", borderLeft: "1px solid #EDE9E1", borderRight: "1px solid #EDE9E1" }}
+        style={{ color: "var(--text-primary)", borderLeft: "1px solid var(--border-primary)", borderRight: "1px solid var(--border-primary)" }}
       >
         {item.quantity}
       </span>
@@ -168,7 +168,7 @@ export const CartItemQuantitySelector = ({
         onClick={() => handleQuantityChange(item.quantity + 1)}
         disabled={isMutating}
         className="flex items-center justify-center w-8 h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
-        style={{ color: "#2C3E50" }}
+        style={{ color: "var(--text-primary)" }}
       >
         <Plus className="w-3.5 h-3.5" />
       </button>
@@ -192,10 +192,10 @@ const CompactCartLineItem = ({ item, cart, fields }: CartLineItemProps) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h4 className="text-base font-medium line-clamp-1 text-zinc-900">
+            <h4 className="text-base font-medium line-clamp-1 text-[var(--text-primary)]">
               {item.product_title}
             </h4>
-            <div className="text-sm text-zinc-600">
+            <div className="text-sm text-[var(--text-secondary)]">
               {item.variant_title && item.variant_title !== "Default Variant" && (
                 <span>{item.variant_title}</span>
               )}
@@ -217,7 +217,7 @@ const DisplayCartLineItem = ({ item, cart, className }: CartLineItemProps) => {
   return (
     <div
       className={clsx(
-        "flex items-center gap-4 py-3 border-b border-zinc-300 last:border-b-0",
+        "flex items-center gap-4 py-3 border-b border-[var(--border-primary)] last:border-b-0",
         className
       )}
     >
@@ -227,11 +227,11 @@ const DisplayCartLineItem = ({ item, cart, className }: CartLineItemProps) => {
         className="w-16 h-16"
       />
       <div className="flex-1">
-        <p className="text-base font-semibold text-zinc-900">{item.product_title}</p>
+        <p className="text-base font-semibold text-[var(--text-primary)]">{item.product_title}</p>
         {item.variant_title && item.variant_title !== "Default Variant" && (
-          <p className="text-sm text-zinc-600">{item.variant_title}</p>
+          <p className="text-sm text-[var(--text-secondary)]">{item.variant_title}</p>
         )}
-        <p className="text-sm text-zinc-600">Quantity: {item.quantity}</p>
+        <p className="text-sm text-[var(--text-secondary)]">Quantity: {item.quantity}</p>
       </div>
       <div className="text-right">
         <Price price={item.total || 0} currencyCode={cart.currency_code} textWeight="plus" />
@@ -266,16 +266,16 @@ export const CartLineItem = ({
         </div>
 
         <div className="flex-1 min-w-0 flex flex-col gap-y-1">
-          <span className="text-zinc-900 text-sm sm:text-base font-semibold line-clamp-2">{item.product_title}</span>
+          <span className="text-[var(--text-primary)] text-sm sm:text-base font-semibold line-clamp-2">{item.product_title}</span>
           <div className="flex items-center gap-2">
             {item.variant_title && item.variant_title !== "Default Variant" && (
-              <span className="text-zinc-600 text-xs sm:text-sm">{item.variant_title}</span>
+              <span className="text-[var(--text-secondary)] text-xs sm:text-sm">{item.variant_title}</span>
             )}
             {isRx && (
               <span
                 className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border"
                 style={{
-                  borderColor: "#F39C12",
+                  borderColor: "var(--brand-amber)",
                   color: "#A16207",
                   background: "rgba(243,156,18,0.10)",
                 }}
@@ -315,16 +315,16 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
 
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span style={{ color: "#2C3E50" }}>Subtotal</span>
+          <span style={{ color: "var(--text-primary)" }}>Subtotal</span>
           <Price price={cart.subtotal} currencyCode={cart.currency_code} />
         </div>
         <div className="flex justify-between text-sm">
-          <span style={{ color: "#2C3E50" }}>Shipping</span>
+          <span style={{ color: "var(--text-primary)" }}>Shipping</span>
           {(() => {
             const hasShippingMethod = (cart.shipping_methods?.length ?? 0) > 0
 
             if (hasShippingMethod && cart.shipping_total === 0) {
-              return <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
+              return <span className="text-sm font-semibold" style={{ color: "var(--brand-green)" }}>FREE</span>
             }
             if (hasShippingMethod) {
               return <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
@@ -333,24 +333,24 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
             // No shipping method selected — show contextual estimate
             const itemTotal = cart.item_subtotal ?? cart.subtotal ?? 0
             return itemTotal >= FREE_DELIVERY_THRESHOLD
-              ? <span className="text-sm font-semibold" style={{ color: "#27AE60" }}>FREE</span>
-              : <span className="text-sm" style={{ color: "#999" }}>Calculated at checkout</span>
+              ? <span className="text-sm font-semibold" style={{ color: "var(--brand-green)" }}>FREE</span>
+              : <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>Calculated at checkout</span>
           })()}
         </div>
         <div className="flex justify-between text-sm">
-          <span style={{ color: "#2C3E50" }}>Discount</span>
+          <span style={{ color: "var(--text-primary)" }}>Discount</span>
           <Price price={cart.discount_total} currencyCode={cart.currency_code} type="discount" />
         </div>
         <div className="flex justify-between text-sm">
-          <span style={{ color: "#2C3E50" }}>Tax</span>
+          <span style={{ color: "var(--text-primary)" }}>Tax</span>
           <Price price={cart.tax_total} currencyCode={cart.currency_code} />
         </div>
       </div>
 
-      <hr style={{ borderColor: "#EDE9E1" }} />
+      <hr style={{ borderColor: "var(--border-primary)" }} />
 
       <div className="flex justify-between text-sm font-semibold">
-        <span style={{ color: "#0D1B2A" }}>Total</span>
+        <span style={{ color: "var(--text-primary)" }}>Total</span>
         <Price price={cart.total} currencyCode={cart.currency_code} />
       </div>
 
@@ -410,7 +410,7 @@ export const CartPromo = ({ cart }: CartPromoProps) => {
               {promotion.code}
               <XMark
                 onClick={() => handleRemove(promotion.code || "")}
-                className="ml-2 text-zinc-600 hover:text-zinc-500 cursor-pointer"
+                className="ml-2 text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] cursor-pointer"
               />
             </Button>
           ))}
@@ -421,7 +421,7 @@ export const CartPromo = ({ cart }: CartPromoProps) => {
         <Button
           onClick={() => setShowInput(true)}
           variant="transparent"
-          className="text-zinc-600 p-0 underline hover:bg-transparent hover:text-zinc-500"
+          className="text-[var(--text-secondary)] p-0 underline hover:bg-transparent hover:text-[var(--text-tertiary)]"
           size="fit"
         >
           Add promo code
@@ -468,12 +468,12 @@ export const CartEmpty = () => {
 
   return (
     <div className="text-center py-16 flex flex-col items-center justify-center gap-4">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#EDE9E1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--border-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
         <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
       </svg>
-      <h2 className="text-lg font-bold" style={{ color: "#0D1B2A" }}>Your cart is empty</h2>
-      <p className="text-sm" style={{ color: "#666" }}>Browse our medicines and add items to your cart</p>
+      <h2 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Your cart is empty</h2>
+      <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Browse our medicines and add items to your cart</p>
       <Link to="/$countryCode/store" params={{ countryCode }}>
         <Button variant="primary" size="fit">
           Browse Medicines
@@ -500,7 +500,7 @@ export const CartDropdown = () => {
   return (
     <Drawer open={isOpen} onOpenChange={(open) => (open ? openCart() : closeCart())}>
       <DrawerTrigger asChild>
-        <button className="text-zinc-600 hover:text-zinc-500 h-full">
+        <button className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] h-full">
           Cart ({itemCount})
         </button>
       </DrawerTrigger>
@@ -512,13 +512,13 @@ export const CartDropdown = () => {
 
         {isCartLoading && (
           <div className="flex items-center justify-center flex-1 p-6">
-            <span className="text-sm text-zinc-500 animate-pulse">Loading cart…</span>
+            <span className="text-sm text-[var(--text-tertiary)] animate-pulse">Loading cart…</span>
           </div>
         )}
 
         {!isCartLoading && (!cart || itemCount === 0) && (
           <div className="flex flex-col items-center justify-center flex-1 p-6">
-            <span className="text-base font-medium text-zinc-600 mb-4">
+            <span className="text-base font-medium text-[var(--text-secondary)] mb-4">
               Your cart is empty
             </span>
             <Link to="/$countryCode/store" params={{ countryCode }} onClick={closeCart}>
@@ -547,7 +547,7 @@ export const CartDropdown = () => {
             <DrawerFooter>
               <FreeDeliveryBar subtotal={cart.item_subtotal ?? 0} currencyCode={cart.currency_code} />
               <div className="flex items-center justify-between mb-4 mt-3">
-                <span className="text-base font-medium" style={{ color: "#2C3E50" }}>Subtotal</span>
+                <span className="text-base font-medium" style={{ color: "var(--text-primary)" }}>Subtotal</span>
                 <Price price={cart.item_subtotal} currencyCode={cart.currency_code} />
               </div>
 

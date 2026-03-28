@@ -54,20 +54,20 @@ function ResetPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#FAFAF8" }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg-primary)" }}>
         <div className="w-full max-w-md">
-          <div className="bg-white border rounded-xl p-8 shadow-sm" style={{ borderColor: "#EDE9E1" }}>
+          <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
             <div className="mb-6 text-center">
               <div
                 className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-4"
-                style={{ background: "#27AE60" }}
+                style={{ background: "var(--brand-green)" }}
               >
                 <CheckIcon />
               </div>
-              <h1 className="text-xl font-serif font-semibold" style={{ color: "#0D1B2A" }}>
+              <h1 className="text-xl font-serif font-semibold" style={{ color: "var(--text-primary)" }}>
                 Password updated
               </h1>
-              <p className="text-sm mt-2" style={{ color: "#6B7280" }}>
+              <p className="text-sm mt-2" style={{ color: "var(--text-secondary)" }}>
                 You can now sign in with your new password.
               </p>
             </div>
@@ -76,7 +76,7 @@ function ResetPasswordPage() {
               params={{ countryCode }}
               search={{ redirectTo: undefined }}
               className="block w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-center text-white transition-all hover:opacity-90"
-              style={{ background: "#0D1B2A" }}
+              style={{ background: "var(--bg-inverse)" }}
             >
               Sign in
             </Link>
@@ -88,12 +88,12 @@ function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#FAFAF8" }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg-primary)" }}>
         <div className="w-full max-w-md">
-          <div className="bg-white border rounded-xl p-8 shadow-sm" style={{ borderColor: "#EDE9E1" }}>
-            <p className="text-sm text-center" style={{ color: "#6B7280" }}>
+          <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
+            <p className="text-sm text-center" style={{ color: "var(--text-secondary)" }}>
               This reset link is invalid or has expired.{" "}
-              <Link to="/$countryCode/account/forgot-password" params={{ countryCode }} className="font-medium" style={{ color: "#27AE60" }}>
+              <Link to="/$countryCode/account/forgot-password" params={{ countryCode }} className="font-medium" style={{ color: "var(--brand-green)" }}>
                 Request a new one
               </Link>
             </p>
@@ -104,27 +104,27 @@ function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#FAFAF8" }}>
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg-primary)" }}>
       <div className="w-full max-w-md">
-        <div className="bg-white border rounded-xl p-8 shadow-sm" style={{ borderColor: "#EDE9E1" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
           <div className="mb-8 text-center">
             <div
               className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-4"
-              style={{ background: "#0D1B2A" }}
+              style={{ background: "var(--bg-inverse)" }}
             >
               <PillIcon />
             </div>
-            <h1 className="text-2xl font-serif font-semibold" style={{ color: "#0D1B2A" }}>
+            <h1 className="text-2xl font-serif font-semibold" style={{ color: "var(--text-primary)" }}>
               Set new password
             </h1>
-            <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
+            <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
               Enter your new password below.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium" style={{ color: "#374151" }}>
+              <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                 New password
               </label>
               <input
@@ -135,14 +135,14 @@ function ResetPasswordPage() {
                 placeholder="Min. 8 characters"
                 className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
                 style={{
-                  borderColor: "#D1D5DB",
-                  color: "#111827",
-                  "--tw-ring-color": "#27AE60",
+                  borderColor: "var(--border-primary)",
+                  color: "var(--text-primary)",
+                  "--tw-ring-color": "var(--brand-green)",
                 } as React.CSSProperties}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium" style={{ color: "#374151" }}>
+              <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                 Confirm password
               </label>
               <input
@@ -153,9 +153,9 @@ function ResetPasswordPage() {
                 placeholder="••••••••"
                 className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
                 style={{
-                  borderColor: "#D1D5DB",
-                  color: "#111827",
-                  "--tw-ring-color": "#27AE60",
+                  borderColor: "var(--border-primary)",
+                  color: "var(--text-primary)",
+                  "--tw-ring-color": "var(--brand-green)",
                 } as React.CSSProperties}
               />
             </div>
@@ -173,19 +173,19 @@ function ResetPasswordPage() {
               type="submit"
               disabled={resetPassword.isPending}
               className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
-              style={{ background: "#0D1B2A" }}
+              style={{ background: "var(--bg-inverse)" }}
             >
               {resetPassword.isPending ? "Updating..." : "Update password"}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "#EDE9E1" }}>
+          <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "var(--border-primary)" }}>
             <Link
               to="/$countryCode/account/login"
               params={{ countryCode }}
               search={{ redirectTo: undefined }}
               className="text-sm font-medium hover:underline"
-              style={{ color: "#27AE60" }}
+              style={{ color: "var(--brand-green)" }}
             >
               Back to sign in
             </Link>

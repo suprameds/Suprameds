@@ -254,7 +254,7 @@ const AddressForm = ({
       <div className="flex flex-col gap-2">
         <label
           htmlFor="country_code"
-          className="block text-sm font-medium text-zinc-900 mb-2"
+          className="block text-sm font-medium text-[var(--text-primary)] mb-2"
         >
           Country
         </label>
@@ -263,7 +263,7 @@ const AddressForm = ({
           value={addressFormData.country_code}
           onValueChange={(value) => handleChange("country_code", value)}
         >
-          <SelectTrigger className="!border-zinc-200 !rounded-none !text-base !font-medium !px-4 !py-2 !h-auto !shadow-none !ring-0 focus:!ring-0">
+          <SelectTrigger className="!border-[var(--border-primary)] !rounded-none !text-base !font-medium !px-4 !py-2 !h-auto !shadow-none !ring-0 focus:!ring-0">
             <SelectValue placeholder="Select country" />
           </SelectTrigger>
           <SelectContent>

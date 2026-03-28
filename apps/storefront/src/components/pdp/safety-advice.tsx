@@ -65,22 +65,22 @@ const PANELS: { key: string; label: string; icon: ReactNode }[] = [
 ]
 
 const ratingStyles: Record<string, { bg: string; color: string; label: string }> = {
-  safe: { bg: "#DCFCE7", color: "#16A34A", label: "Safe" },
+  safe: { bg: "#DCFCE7", color: "var(--price-color)", label: "Safe" },
   caution: { bg: "#FEF3C7", color: "#D97706", label: "Caution" },
-  unsafe: { bg: "#FEE2E2", color: "#DC2626", label: "Unsafe" },
+  unsafe: { bg: "#FEE2E2", color: "var(--brand-red)", label: "Unsafe" },
 }
 
 export default function SafetyAdvice({ safetyAdvice }: SafetyAdviceProps) {
   if (!safetyAdvice || Object.keys(safetyAdvice).length === 0) return null
 
   return (
-    <div className="rounded-lg overflow-hidden" style={{ border: "1px solid #EDE9E1" }}>
-      <div className="px-4 py-3" style={{ background: "#F8F6F2", borderBottom: "1px solid #EDE9E1" }}>
-        <h2 className="text-sm font-semibold" style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}>
+    <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border-primary)" }}>
+      <div className="px-4 py-3" style={{ background: "var(--bg-tertiary)", borderBottom: "1px solid var(--border-primary)" }}>
+        <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>
           Safety Advice
         </h2>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0" style={{ background: "#fff" }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0" style={{ background: "var(--bg-secondary)" }}>
         {PANELS.map((panel) => {
           const entry = safetyAdvice[panel.key]
           if (!entry) return null
@@ -90,14 +90,14 @@ export default function SafetyAdvice({ safetyAdvice }: SafetyAdviceProps) {
             <div
               key={panel.key}
               className="px-4 py-3.5 flex gap-3"
-              style={{ borderBottom: "1px solid #F3F0EB" }}
+              style={{ borderBottom: "1px solid var(--border-secondary)" }}
             >
               <div className="flex-shrink-0 mt-0.5" style={{ color: style.color }}>
                 {panel.icon}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold" style={{ color: "#0D1B2A" }}>
+                  <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
                     {panel.label}
                   </span>
                   <span
@@ -107,7 +107,7 @@ export default function SafetyAdvice({ safetyAdvice }: SafetyAdviceProps) {
                     {style.label}
                   </span>
                 </div>
-                <p className="text-[11px] leading-relaxed" style={{ color: "#6B7280" }}>
+                <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                   {entry.note}
                 </p>
               </div>

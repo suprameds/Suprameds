@@ -48,10 +48,10 @@ const FileIcon = () => (
 // ── Status badge ───────────────────────────────────────────────────
 
 const STATUS_STYLES: Record<string, { label: string; color: string; bg: string }> = {
-  pending_review: { label: "Pending review", color: "#92400E", bg: "#FEF3C7" },
-  approved: { label: "Approved", color: "#065F46", bg: "#ECFDF5" },
+  pending_review: { label: "Pending review", color: "var(--brand-amber-dark)", bg: "#FEF3C7" },
+  approved: { label: "Approved", color: "var(--brand-green)", bg: "#ECFDF5" },
   rejected: { label: "Rejected", color: "#991B1B", bg: "#FEF2F2" },
-  expired: { label: "Expired", color: "#6B7280", bg: "#F3F4F6" },
+  expired: { label: "Expired", color: "var(--text-secondary)", bg: "#F3F4F6" },
   used: { label: "Used", color: "#1E40AF", bg: "#DBEAFE" },
 }
 
@@ -246,7 +246,7 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
       <div className="flex items-center justify-center py-16">
         <div
           className="w-6 h-6 border-2 rounded-full animate-spin"
-          style={{ borderColor: "#EDE9E1", borderTopColor: "#0E7C86" }}
+          style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
         />
       </div>
     )
@@ -258,16 +258,16 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
       <div className="flex flex-col gap-6">
         <div
           className="rounded-lg border p-4 flex items-start gap-3"
-          style={{ borderColor: "#F39C12", background: "rgba(243,156,18,0.06)" }}
+          style={{ borderColor: "var(--brand-amber)", background: "rgba(243,156,18,0.06)" }}
         >
-          <div className="mt-0.5" style={{ color: "#92400E" }}>
+          <div className="mt-0.5" style={{ color: "var(--brand-amber-dark)" }}>
             <RxIcon />
           </div>
           <div>
-            <p className="text-sm font-medium" style={{ color: "#92400E" }}>
+            <p className="text-sm font-medium" style={{ color: "var(--brand-amber-dark)" }}>
               Your cart contains prescription medicines
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
               A valid prescription is required to purchase Rx medicines.
             </p>
           </div>
@@ -275,12 +275,12 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
 
         <div
           className="rounded-xl p-6 text-center"
-          style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+          style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
         >
-          <p className="text-sm font-medium mb-1" style={{ color: "#0D1B2A" }}>
+          <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
             Please sign in to attach a prescription
           </p>
-          <p className="text-xs mb-5" style={{ color: "#6B7280" }}>
+          <p className="text-xs mb-5" style={{ color: "var(--text-secondary)" }}>
             Prescriptions are linked to your account for traceability, pharmacist review, and reordering.
           </p>
           <Link
@@ -288,7 +288,7 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
             params={{ countryCode }}
             search={{ redirectTo: location.href }}
             className="inline-flex px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ background: "#0E7C86", color: "#fff" }}
+            style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
           >
             Sign in to continue
           </Link>
@@ -308,16 +308,16 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
       {/* Header info */}
       <div
         className="rounded-lg border p-4 flex items-start gap-3"
-        style={{ borderColor: "#F39C12", background: "rgba(243,156,18,0.06)" }}
+        style={{ borderColor: "var(--brand-amber)", background: "rgba(243,156,18,0.06)" }}
       >
-        <div className="mt-0.5" style={{ color: "#92400E" }}>
+        <div className="mt-0.5" style={{ color: "var(--brand-amber-dark)" }}>
           <RxIcon />
         </div>
         <div>
-          <p className="text-sm font-medium" style={{ color: "#92400E" }}>
+          <p className="text-sm font-medium" style={{ color: "var(--brand-amber-dark)" }}>
             Your cart contains prescription medicines
           </p>
-          <p className="text-xs mt-0.5" style={{ color: "#6B7280" }}>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
             Attach one prescription to cover all Rx items. A pharmacist will verify it before dispatch.
             You can add any number of medicines under a single prescription.
           </p>
@@ -327,7 +327,7 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
       {/* Saved prescriptions list */}
       {selectablePrescriptions.length > 0 && (
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+          <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
             Your saved prescriptions
           </h3>
 
@@ -346,10 +346,10 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
       {/* No prescriptions message */}
       {selectablePrescriptions.length === 0 && !showUpload && (
         <div className="text-center py-6">
-          <p className="text-sm" style={{ color: "#6B7280" }}>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
             You don't have any saved prescriptions yet.
           </p>
-          <p className="text-xs mt-1" style={{ color: "#999" }}>
+          <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
             Upload a new prescription below to continue.
           </p>
         </div>
@@ -362,8 +362,8 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
           onClick={() => setShowUpload(true)}
           className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-medium transition-colors"
           style={{
-            border: "1px dashed #D1D5DB",
-            color: "#0E7C86",
+            border: "1px dashed var(--border-primary)",
+            color: "var(--brand-teal)",
             background: "transparent",
           }}
         >
@@ -373,10 +373,10 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
       ) : (
         <div
           className="rounded-lg overflow-hidden"
-          style={{ border: "1px solid #EDE9E1", background: "#fff" }}
+          style={{ border: "1px solid var(--border-primary)", background: "var(--bg-secondary)" }}
         >
-          <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid #EDE9E1" }}>
-            <h4 className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+          <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border-primary)" }}>
+            <h4 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
               Upload new prescription
             </h4>
             <button
@@ -386,7 +386,7 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
                 setUploadError("")
               }}
               className="text-xs underline"
-              style={{ color: "#6B7280" }}
+              style={{ color: "var(--text-secondary)" }}
             >
               Cancel
             </button>
@@ -416,13 +416,13 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
               }}
               className="hidden"
             />
-            <div className="flex justify-center mb-2" style={{ color: "#0E7C86" }}>
+            <div className="flex justify-center mb-2" style={{ color: "var(--brand-teal)" }}>
               <UploadIcon />
             </div>
-            <p className="text-sm" style={{ color: "#0D1B2A" }}>
+            <p className="text-sm" style={{ color: "var(--text-primary)" }}>
               {uploadFile ? uploadFile.name : "Click or drag to select file"}
             </p>
-            <p className="text-xs mt-1" style={{ color: "#999" }}>
+            <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
               JPG, PNG, WebP, or PDF — max 10 MB
             </p>
           </div>
@@ -431,15 +431,15 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
           {uploadFile && (
             <div
               className="px-4 py-3 flex items-center justify-between"
-              style={{ borderTop: "1px solid #EDE9E1" }}
+              style={{ borderTop: "1px solid var(--border-primary)" }}
             >
               <div className="flex items-center gap-2 min-w-0">
                 <FileIcon />
                 <div className="min-w-0">
-                  <p className="text-xs font-medium truncate" style={{ color: "#0D1B2A" }}>
+                  <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
                     {uploadFile.name}
                   </p>
-                  <p className="text-[10px]" style={{ color: "#999" }}>
+                  <p className="text-[10px]" style={{ color: "var(--text-tertiary)" }}>
                     {formatFileSize(uploadFile.size)}
                   </p>
                 </div>
@@ -450,7 +450,7 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
                   if (fileInputRef.current) fileInputRef.current.value = ""
                 }}
                 className="text-[10px] underline flex-shrink-0"
-                style={{ color: "#C0392B" }}
+                style={{ color: "var(--brand-red)" }}
               >
                 Remove
               </button>
@@ -459,23 +459,23 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
 
           {uploadError && (
             <div className="px-4 py-2" style={{ background: "rgba(192,57,43,0.06)" }}>
-              <p className="text-xs" style={{ color: "#C0392B" }}>{uploadError}</p>
+              <p className="text-xs" style={{ color: "var(--brand-red)" }}>{uploadError}</p>
             </div>
           )}
 
           {uploadFile && (
-            <div className="px-4 py-3" style={{ borderTop: "1px solid #EDE9E1" }}>
+            <div className="px-4 py-3" style={{ borderTop: "1px solid var(--border-primary)" }}>
               <button
                 onClick={handleUploadSubmit}
                 disabled={uploadMutation.isPending}
                 className="w-full py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
-                style={{ background: "#0E7C86", color: "#fff" }}
+                style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
               >
                 {uploadMutation.isPending ? (
                   <span className="flex items-center justify-center gap-2">
                     <span
                       className="w-3.5 h-3.5 border-2 rounded-full animate-spin"
-                      style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }}
+                      style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "var(--text-inverse)" }}
                     />
                     Uploading...
                   </span>
@@ -492,12 +492,12 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
       {selectedId && (
         <div
           className="rounded-lg border p-3 flex items-center gap-2"
-          style={{ borderColor: "#27AE60", background: "rgba(39,174,96,0.06)" }}
+          style={{ borderColor: "var(--brand-green)", background: "rgba(39,174,96,0.06)" }}
         >
-          <div style={{ color: "#065F46" }}>
+          <div style={{ color: "var(--brand-green)" }}>
             <CheckIcon />
           </div>
-          <p className="text-xs font-medium" style={{ color: "#065F46" }}>
+          <p className="text-xs font-medium" style={{ color: "var(--brand-green)" }}>
             Prescription attached to this order
           </p>
         </div>
@@ -542,9 +542,9 @@ const PrescriptionCard = ({
       disabled={isAttaching}
       className="w-full text-left rounded-lg border p-4 transition-all disabled:opacity-60"
       style={{
-        borderColor: isSelected ? "#27AE60" : "#E5E7EB",
-        background: isSelected ? "rgba(39,174,96,0.04)" : "#fff",
-        boxShadow: isSelected ? "0 0 0 1px #27AE60" : "none",
+        borderColor: isSelected ? "var(--brand-green)" : "var(--border-primary)",
+        background: isSelected ? "rgba(39,174,96,0.04)" : "var(--bg-secondary)",
+        boxShadow: isSelected ? "0 0 0 1px var(--brand-green)" : "none",
       }}
     >
       <div className="flex items-start justify-between gap-3">
@@ -553,12 +553,12 @@ const PrescriptionCard = ({
           <div
             className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5"
             style={{
-              borderColor: isSelected ? "#27AE60" : "#D1D5DB",
-              background: isSelected ? "#27AE60" : "transparent",
+              borderColor: isSelected ? "var(--brand-green)" : "var(--border-primary)",
+              background: isSelected ? "var(--brand-green)" : "transparent",
             }}
           >
             {isSelected && (
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--text-inverse)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             )}
@@ -566,7 +566,7 @@ const PrescriptionCard = ({
 
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-medium" style={{ color: "#0D1B2A" }}>
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                 {prescription.original_filename || "Prescription"}
               </p>
               <StatusBadge status={prescription.status} />
@@ -574,20 +574,20 @@ const PrescriptionCard = ({
 
             <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1">
               {prescription.doctor_name && (
-                <p className="text-xs" style={{ color: "#6B7280" }}>
+                <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
                   Dr. {prescription.doctor_name}
                 </p>
               )}
               {prescription.patient_name && (
-                <p className="text-xs" style={{ color: "#6B7280" }}>
+                <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
                   Patient: {prescription.patient_name}
                 </p>
               )}
-              <p className="text-xs" style={{ color: "#999" }}>
+              <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                 Uploaded {formatDate(prescription.created_at)}
               </p>
               {prescription.valid_until && (
-                <p className="text-xs" style={{ color: "#999" }}>
+                <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                   Valid until {formatDate(prescription.valid_until)}
                 </p>
               )}
@@ -596,7 +596,7 @@ const PrescriptionCard = ({
             {prescription.status === "pending_review" && (
               <p
                 className="text-[10px] mt-1.5 px-2 py-0.5 rounded inline-block"
-                style={{ background: "#FEF3C7", color: "#92400E" }}
+                style={{ background: "#FEF3C7", color: "var(--brand-amber-dark)" }}
               >
                 Pharmacist review usually takes up to 4 hours
               </p>

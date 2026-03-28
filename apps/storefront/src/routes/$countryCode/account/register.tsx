@@ -79,20 +79,20 @@ function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: "#FAFAF8" }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ background: "var(--bg-primary)" }}>
       <div className="w-full max-w-md">
-        <div className="bg-white border rounded-xl p-8 shadow-sm" style={{ borderColor: "#EDE9E1" }}>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
           <div className="mb-8 text-center">
             <div
               className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-4"
-              style={{ background: "#0D1B2A" }}
+              style={{ background: "var(--bg-inverse)" }}
             >
               <PillIcon />
             </div>
-            <h1 className="text-2xl font-serif font-semibold" style={{ color: "#0D1B2A" }}>
+            <h1 className="text-2xl font-serif font-semibold" style={{ color: "var(--text-primary)" }}>
               Create your account
             </h1>
-            <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
+            <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
               Join Suprameds for safe, licensed pharmacy delivery
             </p>
           </div>
@@ -100,8 +100,8 @@ function RegisterPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium" style={{ color: "#374151" }}>
-                  First name <span style={{ color: "#EF4444" }}>*</span>
+                <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                  First name <span style={{ color: "var(--brand-red)" }}>*</span>
                 </label>
                 <input
                   name="first_name"
@@ -111,12 +111,12 @@ function RegisterPage() {
                   onChange={handleChange}
                   placeholder="Aarav"
                   className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                  style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium" style={{ color: "#374151" }}>
-                  Last name <span style={{ color: "#EF4444" }}>*</span>
+                <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                  Last name <span style={{ color: "var(--brand-red)" }}>*</span>
                 </label>
                 <input
                   name="last_name"
@@ -126,14 +126,14 @@ function RegisterPage() {
                   onChange={handleChange}
                   placeholder="Sharma"
                   className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                  style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium" style={{ color: "#374151" }}>
-                Email address <span style={{ color: "#EF4444" }}>*</span>
+              <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                Email address <span style={{ color: "var(--brand-red)" }}>*</span>
               </label>
               <input
                 name="email"
@@ -143,18 +143,18 @@ function RegisterPage() {
                 onChange={handleChange}
                 placeholder="you@example.com"
                 className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium" style={{ color: "#374151" }}>
+              <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                 Mobile number
               </label>
               <div className="relative flex">
                 <span
                   className="flex items-center px-3 rounded-l-lg border border-r-0 text-sm"
-                  style={{ borderColor: "#D1D5DB", color: "#6B7280", background: "#F9FAFB" }}
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-secondary)", background: "var(--bg-tertiary)" }}
                 >
                   +91
                 </span>
@@ -166,14 +166,14 @@ function RegisterPage() {
                   onChange={handleChange}
                   placeholder="98765 43210"
                   className="flex-1 px-3.5 py-2.5 rounded-r-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                  style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium" style={{ color: "#374151" }}>
-                Password <span style={{ color: "#EF4444" }}>*</span>
+              <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                Password <span style={{ color: "var(--brand-red)" }}>*</span>
               </label>
               <input
                 name="password"
@@ -183,13 +183,13 @@ function RegisterPage() {
                 onChange={handleChange}
                 placeholder="Min. 8 characters"
                 className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium" style={{ color: "#374151" }}>
-                Confirm password <span style={{ color: "#EF4444" }}>*</span>
+              <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                Confirm password <span style={{ color: "var(--brand-red)" }}>*</span>
               </label>
               <input
                 name="confirm_password"
@@ -199,7 +199,7 @@ function RegisterPage() {
                 onChange={handleChange}
                 placeholder="••••••••"
                 className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                style={{ borderColor: "#D1D5DB", color: "#111827" }}
+                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
               />
             </div>
 
@@ -212,13 +212,13 @@ function RegisterPage() {
               </div>
             )}
 
-            <p className="text-xs leading-relaxed" style={{ color: "#9CA3AF" }}>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--text-tertiary)" }}>
               By creating an account, you agree to our{" "}
-              <a href="/terms" className="underline hover:opacity-80" style={{ color: "#6B7280" }}>
+              <a href="/terms" className="underline hover:opacity-80" style={{ color: "var(--text-secondary)" }}>
                 Terms of Service
               </a>{" "}
               and{" "}
-              <a href="/privacy" className="underline hover:opacity-80" style={{ color: "#6B7280" }}>
+              <a href="/privacy" className="underline hover:opacity-80" style={{ color: "var(--text-secondary)" }}>
                 Privacy Policy
               </a>
               .
@@ -228,21 +228,21 @@ function RegisterPage() {
               type="submit"
               disabled={register.isPending}
               className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
-              style={{ background: "#0D1B2A" }}
+              style={{ background: "var(--bg-inverse)" }}
             >
               {register.isPending ? "Creating account..." : "Create account"}
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "#EDE9E1" }}>
-            <p className="text-sm" style={{ color: "#6B7280" }}>
+          <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "var(--border-primary)" }}>
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
               Already have an account?{" "}
               <Link
                 to="/$countryCode/account/login"
                 params={{ countryCode }}
                 search={{ redirectTo }}
                 className="font-medium hover:underline"
-                style={{ color: "#27AE60" }}
+                style={{ color: "var(--brand-green)" }}
               >
                 Sign in
               </Link>

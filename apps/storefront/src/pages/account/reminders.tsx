@@ -10,8 +10,8 @@ import {
 } from "@/lib/hooks/use-reminders"
 import { sdk } from "@/lib/utils/sdk"
 
-const TEAL = "#0E7C86"
-const NAVY = "#0D1B2A"
+const TEAL = "var(--brand-teal)"
+const NAVY = "var(--text-primary)"
 
 const FREQUENCY_PRESETS = [
   { label: "Weekly", days: 7 },
@@ -144,7 +144,7 @@ export default function RemindersPage() {
     nextExpected: string,
     isActive: boolean
   ): { label: string; color: string; bg: string } => {
-    if (!isActive) return { label: "Paused", color: "#6B7280", bg: "#F3F4F6" }
+    if (!isActive) return { label: "Paused", color: "var(--text-secondary)", bg: "var(--bg-tertiary)" }
     const now = Date.now()
     const next = new Date(nextExpected).getTime()
     const daysLeft = Math.ceil((next - now) / (1000 * 60 * 60 * 24))
@@ -156,7 +156,7 @@ export default function RemindersPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-sm" style={{ color: "#9CA3AF" }}>
+        <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
           Loading reminders...
         </p>
       </div>
@@ -174,7 +174,7 @@ export default function RemindersPage() {
           >
             Refill Reminders
           </h1>
-          <p className="text-sm mt-1" style={{ color: "#6B7280" }}>
+          <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
             {reminders.length > 0
               ? `${activeReminders.length} active reminder${activeReminders.length !== 1 ? "s" : ""}`
               : "Never run out of your regular medicines"}
@@ -198,7 +198,7 @@ export default function RemindersPage() {
       {showAddForm && (
         <div
           className="mb-6 p-5 rounded-xl border"
-          style={{ background: "#fff", borderColor: "#EDE9E1" }}
+          style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold" style={{ color: NAVY }}>
@@ -211,7 +211,7 @@ export default function RemindersPage() {
                 setSearchQuery("")
               }}
               className="text-xs font-medium hover:underline"
-              style={{ color: "#6B7280" }}
+              style={{ color: "var(--text-secondary)" }}
             >
               Cancel
             </button>
@@ -220,7 +220,7 @@ export default function RemindersPage() {
           {/* Step 1: Search for medicine */}
           {!selectedProduct ? (
             <div>
-              <label className="text-sm font-medium block mb-1.5" style={{ color: "#374151" }}>
+              <label className="text-sm font-medium block mb-1.5" style={{ color: "var(--text-primary)" }}>
                 Search for a medicine
               </label>
               <div className="relative">
@@ -230,7 +230,7 @@ export default function RemindersPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Type medicine name, e.g. Metformin..."
                   className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2"
-                  style={{ borderColor: "#D1D5DB" }}
+                  style={{ borderColor: "var(--border-primary)" }}
                 />
                 {isSearching && (
                   <div className="absolute right-3 top-3">
@@ -242,26 +242,26 @@ export default function RemindersPage() {
               {searchResults.length > 0 && (
                 <div
                   className="mt-2 border rounded-lg overflow-hidden"
-                  style={{ borderColor: "#EDE9E1" }}
+                  style={{ borderColor: "var(--border-primary)" }}
                 >
                   {searchResults.map((product) => (
                     <button
                       key={product.id}
                       onClick={() => handleSelectProduct(product)}
-                      className="w-full flex items-center gap-3 p-3 text-left hover:bg-[#FAFAF8] transition-colors border-b last:border-b-0"
-                      style={{ borderColor: "#F3F0EB" }}
+                      className="w-full flex items-center gap-3 p-3 text-left hover:bg-[var(--bg-primary)] transition-colors border-b last:border-b-0"
+                      style={{ borderColor: "var(--border-secondary)" }}
                     >
                       {product.thumbnail ? (
                         <img
                           src={product.thumbnail}
                           alt=""
                           className="w-10 h-10 rounded object-cover flex-shrink-0"
-                          style={{ background: "#F3F0EB" }}
+                          style={{ background: "var(--border-secondary)" }}
                         />
                       ) : (
                         <div
                           className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0"
-                          style={{ background: "#F3F0EB" }}
+                          style={{ background: "var(--border-secondary)" }}
                         >
                           <PillIcon />
                         </div>
@@ -270,7 +270,7 @@ export default function RemindersPage() {
                         <p className="text-sm font-medium truncate" style={{ color: NAVY }}>
                           {product.title}
                         </p>
-                        <p className="text-xs" style={{ color: "#9CA3AF" }}>
+                        <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                           {product.variants.length} variant{product.variants.length !== 1 ? "s" : ""}
                         </p>
                       </div>
@@ -280,7 +280,7 @@ export default function RemindersPage() {
               )}
 
               {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-                <p className="mt-2 text-sm" style={{ color: "#9CA3AF" }}>
+                <p className="mt-2 text-sm" style={{ color: "var(--text-tertiary)" }}>
                   No medicines found for "{searchQuery}"
                 </p>
               )}
@@ -288,11 +288,11 @@ export default function RemindersPage() {
           ) : (
             <div>
               {/* Selected product */}
-              <div className="flex items-center gap-3 p-3 rounded-lg mb-4" style={{ background: "#F8F6F2" }}>
+              <div className="flex items-center gap-3 p-3 rounded-lg mb-4" style={{ background: "var(--bg-tertiary)" }}>
                 {selectedProduct.thumbnail ? (
                   <img src={selectedProduct.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
                 ) : (
-                  <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: "#EDE9E1" }}><PillIcon /></div>
+                  <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: "var(--border-primary)" }}><PillIcon /></div>
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate" style={{ color: NAVY }}>{selectedProduct.title}</p>
@@ -309,7 +309,7 @@ export default function RemindersPage() {
               {/* Variant selection (if multiple) */}
               {selectedProduct.variants.length > 1 && (
                 <div className="mb-4">
-                  <label className="text-sm font-medium block mb-1.5" style={{ color: "#374151" }}>
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: "var(--text-primary)" }}>
                     Select variant
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -319,9 +319,9 @@ export default function RemindersPage() {
                         onClick={() => setSelectedVariantId(v.id)}
                         className="px-3 py-1.5 rounded-lg text-sm font-medium border transition-all"
                         style={{
-                          borderColor: selectedVariantId === v.id ? TEAL : "#D1D5DB",
-                          background: selectedVariantId === v.id ? "#E0F7FA" : "#fff",
-                          color: selectedVariantId === v.id ? TEAL : "#374151",
+                          borderColor: selectedVariantId === v.id ? TEAL : "var(--border-primary)",
+                          background: selectedVariantId === v.id ? "#E0F7FA" : "var(--bg-secondary)",
+                          color: selectedVariantId === v.id ? TEAL : "var(--text-primary)",
                         }}
                       >
                         {v.title}
@@ -333,7 +333,7 @@ export default function RemindersPage() {
 
               {/* Frequency */}
               <div className="mb-4">
-                <label className="text-sm font-medium block mb-1.5" style={{ color: "#374151" }}>
+                <label className="text-sm font-medium block mb-1.5" style={{ color: "var(--text-primary)" }}>
                   Remind me every
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -343,9 +343,9 @@ export default function RemindersPage() {
                       onClick={() => { setFrequencyDays(preset.days); setCustomDays("") }}
                       className="px-3 py-1.5 rounded-lg text-sm font-medium border transition-all"
                       style={{
-                        borderColor: frequencyDays === preset.days ? TEAL : "#D1D5DB",
-                        background: frequencyDays === preset.days ? "#E0F7FA" : "#fff",
-                        color: frequencyDays === preset.days ? TEAL : "#374151",
+                        borderColor: frequencyDays === preset.days ? TEAL : "var(--border-primary)",
+                        background: frequencyDays === preset.days ? "#E0F7FA" : "var(--bg-secondary)",
+                        color: frequencyDays === preset.days ? TEAL : "var(--text-primary)",
                       }}
                     >
                       {preset.label}
@@ -355,9 +355,9 @@ export default function RemindersPage() {
                     onClick={() => setFrequencyDays(-1)}
                     className="px-3 py-1.5 rounded-lg text-sm font-medium border transition-all"
                     style={{
-                      borderColor: frequencyDays === -1 ? TEAL : "#D1D5DB",
-                      background: frequencyDays === -1 ? "#E0F7FA" : "#fff",
-                      color: frequencyDays === -1 ? TEAL : "#374151",
+                      borderColor: frequencyDays === -1 ? TEAL : "var(--border-primary)",
+                      background: frequencyDays === -1 ? "#E0F7FA" : "var(--bg-secondary)",
+                      color: frequencyDays === -1 ? TEAL : "var(--text-primary)",
                     }}
                   >
                     Custom
@@ -373,9 +373,9 @@ export default function RemindersPage() {
                       onChange={(e) => setCustomDays(e.target.value)}
                       placeholder="e.g. 45"
                       className="w-24 px-3 py-2 rounded-lg border text-sm outline-none"
-                      style={{ borderColor: "#D1D5DB" }}
+                      style={{ borderColor: "var(--border-primary)" }}
                     />
-                    <span className="text-sm" style={{ color: "#6B7280" }}>days</span>
+                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>days</span>
                   </div>
                 )}
               </div>
@@ -411,7 +411,7 @@ export default function RemindersPage() {
       {!isLoading && reminders.length === 0 && !showAddForm && (
         <div
           className="text-center py-12 rounded-xl border"
-          style={{ background: "#fff", borderColor: "#EDE9E1" }}
+          style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
         >
           <div
             className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4"
@@ -424,7 +424,7 @@ export default function RemindersPage() {
           <h3 className="text-base font-semibold mb-1" style={{ color: NAVY }}>
             No reminders yet
           </h3>
-          <p className="text-sm mb-4 max-w-sm mx-auto" style={{ color: "#6B7280" }}>
+          <p className="text-sm mb-4 max-w-sm mx-auto" style={{ color: "var(--text-secondary)" }}>
             Add a refill reminder for your regular medicines so you never run out.
             We'll also automatically detect patterns once you've ordered 3+ times.
           </p>
@@ -453,7 +453,7 @@ export default function RemindersPage() {
           {/* Active reminders */}
           {activeReminders.length > 0 && (
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#6B7280" }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>
                 Active ({activeReminders.length})
               </h3>
               <div className="space-y-2">
@@ -476,7 +476,7 @@ export default function RemindersPage() {
           {/* Paused reminders */}
           {pausedReminders.length > 0 && (
             <div className="mt-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "#9CA3AF" }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-tertiary)" }}>
                 Paused ({pausedReminders.length})
               </h3>
               <div className="space-y-2">
@@ -501,11 +501,11 @@ export default function RemindersPage() {
       {/* Delete confirmation modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
+          <div className="bg-[var(--bg-secondary)] rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl">
             <h3 className="text-base font-semibold mb-2" style={{ color: NAVY }}>
               Delete reminder?
             </h3>
-            <p className="text-sm mb-5" style={{ color: "#6B7280" }}>
+            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
               This will permanently remove this refill reminder. You can always
               create a new one later.
             </p>
@@ -513,7 +513,7 @@ export default function RemindersPage() {
               <button
                 onClick={() => setDeleteConfirmId(null)}
                 className="flex-1 px-4 py-2 rounded-lg text-sm font-medium border"
-                style={{ borderColor: "#D1D5DB", color: "#374151" }}
+                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
               >
                 Cancel
               </button>
@@ -556,8 +556,8 @@ function ReminderCard({
     <div
       className="flex items-start gap-3 p-4 rounded-xl border transition-all"
       style={{
-        background: "#fff",
-        borderColor: "#EDE9E1",
+        background: "var(--bg-secondary)",
+        borderColor: "var(--border-primary)",
         opacity: reminder.is_active ? 1 : 0.7,
       }}
     >
@@ -567,12 +567,12 @@ function ReminderCard({
           src={reminder.thumbnail}
           alt=""
           className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-          style={{ background: "#F3F0EB" }}
+          style={{ background: "var(--border-secondary)" }}
         />
       ) : (
         <div
           className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: "#F3F0EB" }}
+          style={{ background: "var(--border-secondary)" }}
         >
           <PillIcon />
         </div>
@@ -597,7 +597,7 @@ function ReminderCard({
               </p>
             )}
             {reminder.variant_title && (
-              <p className="text-xs" style={{ color: "#9CA3AF" }}>
+              <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
                 {reminder.variant_title}
               </p>
             )}
@@ -614,16 +614,16 @@ function ReminderCard({
 
         {/* Frequency + dates */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
-          <span className="text-xs" style={{ color: "#6B7280" }}>
+          <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
             Every {reminder.frequency_days} days
           </span>
-          <span className="text-xs" style={{ color: "#9CA3AF" }}>
+          <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
             Next: {formatDate(reminder.next_expected_at)}
           </span>
           {!reminder.is_manual && (
             <span
               className="text-[10px] font-medium px-1.5 py-0.5 rounded"
-              style={{ background: "#F3F4F6", color: "#6B7280" }}
+              style={{ background: "var(--bg-tertiary)", color: "var(--text-secondary)" }}
             >
               Auto-detected
             </span>
@@ -664,7 +664,7 @@ function ReminderCard({
 }
 
 const PillIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="1.8">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.8">
     <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
     <line x1="8.5" y1="8.5" x2="15.5" y2="15.5" />
   </svg>

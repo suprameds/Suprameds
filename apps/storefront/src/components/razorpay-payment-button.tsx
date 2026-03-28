@@ -124,7 +124,7 @@ export function RazorpayPaymentButton({
         {submitting || razorpayLoading ? "Processing…" : "Place Order"}
       </Button>
       {errorMessage && (
-        <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
+        <div className="text-[var(--brand-red)] text-sm mt-2">{errorMessage}</div>
       )}
       {razorpayError && (
         <div className="text-amber-600 text-sm mt-2">

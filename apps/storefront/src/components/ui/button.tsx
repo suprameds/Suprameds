@@ -44,13 +44,13 @@ export const Button = ({
         size === "full" && "w-full",
         size === "fit" && "w-fit",
         {
-          "bg-[#0E7C86] text-white hover:bg-[#0B6A73] active:bg-[#094F56] border-transparent":
+          "bg-[var(--brand-teal)] text-white hover:bg-[var(--brand-teal-dark)] active:bg-[var(--brand-teal-dark)] border-transparent":
             variant === "primary",
-          "bg-white text-[#0D1B2A] hover:bg-[#F8F6F2] active:bg-[#EDE9E1] border-[#0D1B2A]":
+          "bg-[var(--bg-secondary)] text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] active:bg-[var(--border-primary)] border-[var(--text-primary)]":
             variant === "secondary",
           "bg-rose-500 text-white hover:bg-rose-600 active:bg-rose-900 border-transparent":
             variant === "danger",
-          "bg-transparent text-[#0D1B2A] hover:bg-transparent active:bg-transparent border-transparent":
+          "bg-transparent text-[var(--text-primary)] hover:bg-transparent active:bg-transparent border-transparent":
             variant === "transparent",
         },
         className

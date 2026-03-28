@@ -1,5 +1,6 @@
 import { CartDropdown } from "@/components/cart"
 import { SearchDropdown, saveRecentSearch } from "@/components/search-dropdown"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   Drawer,
   DrawerClose,
@@ -82,7 +83,6 @@ export const Navbar = () => {
   }
 
   const handleSearchBlur = () => {
-    // Delay to allow click on dropdown items to register
     blurTimeout.current = setTimeout(() => setSearchFocused(false), 200)
   }
 
@@ -171,8 +171,8 @@ export const Navbar = () => {
       <header
         className="relative mx-auto border-b transition-all duration-300"
         style={{
-          background: scrolled ? "rgba(255,255,255,0.85)" : "#fff",
-          borderColor: scrolled ? "rgba(0,0,0,0.06)" : "#EDE9E1",
+          background: scrolled ? "color-mix(in srgb, var(--bg-secondary) 85%, transparent)" : "var(--bg-secondary)",
+          borderColor: scrolled ? "color-mix(in srgb, var(--border-primary) 40%, transparent)" : "var(--border-primary)",
           backdropFilter: scrolled ? "blur(20px) saturate(1.4)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(20px) saturate(1.4)" : "none",
         }}
@@ -187,13 +187,13 @@ export const Navbar = () => {
           >
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #0E7C86, #0a9272)" }}
+              style={{ background: "linear-gradient(135deg, var(--brand-teal), #0a9272)" }}
             >
               <PillIcon />
             </div>
             <span
               className="text-lg font-semibold tracking-tight"
-              style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+              style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
             >
               Suprameds
             </span>
@@ -203,8 +203,8 @@ export const Navbar = () => {
           <div className="hidden lg:flex items-center gap-x-1 flex-shrink-0">
             <details ref={detailsRef} className="group relative">
               <summary
-                className="list-none flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-medium cursor-pointer select-none transition-colors hover:bg-[#F8F6F2]"
-                style={{ color: "#0D1B2A" }}
+                className="list-none flex items-center gap-1 px-3 py-1.5 rounded-full text-[13px] font-medium cursor-pointer select-none transition-colors hover:bg-[var(--bg-tertiary)]"
+                style={{ color: "var(--text-primary)" }}
                 aria-label="Medicines menu"
               >
                 Medicines
@@ -213,15 +213,15 @@ export const Navbar = () => {
                 </svg>
               </summary>
               <div
-                className="absolute left-0 mt-2 w-56 rounded-xl border bg-white shadow-lg p-2 z-50"
-                style={{ borderColor: "#EDE9E1" }}
+                className="absolute left-0 mt-2 w-56 rounded-xl border shadow-lg p-2 z-50"
+                style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
               >
                 <Link
                   to="/$countryCode/store"
                   params={{ countryCode }}
                   onClick={closeDropdown}
-                  className="block px-3 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded-lg"
-                  style={{ color: "#0D1B2A" }}
+                  className="block px-3 py-2 text-sm font-medium hover:bg-[var(--bg-tertiary)] rounded-lg"
+                  style={{ color: "var(--text-primary)" }}
                 >
                   All Medicines
                 </Link>
@@ -231,8 +231,8 @@ export const Navbar = () => {
                     to="/$countryCode/categories/$handle"
                     params={{ countryCode, handle: link.handle }}
                     onClick={closeDropdown}
-                    className="block px-3 py-2 text-sm font-medium hover:bg-[#F8F6F2] rounded-lg"
-                    style={{ color: "#0D1B2A" }}
+                    className="block px-3 py-2 text-sm font-medium hover:bg-[var(--bg-tertiary)] rounded-lg"
+                    style={{ color: "var(--text-primary)" }}
                   >
                     {link.name}
                   </Link>
@@ -244,16 +244,16 @@ export const Navbar = () => {
               to="/$countryCode/store"
               params={{ countryCode }}
               search={{ schedule: "otc" } as any}
-              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[#F8F6F2]"
-              style={{ color: "#0D1B2A" }}
+              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[var(--bg-tertiary)]"
+              style={{ color: "var(--text-primary)" }}
             >
               OTC
             </Link>
 
             <Link
               to="/prescription-policy"
-              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[#F8F6F2]"
-              style={{ color: "#0D1B2A" }}
+              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[var(--bg-tertiary)]"
+              style={{ color: "var(--text-primary)" }}
             >
               Rx Policy
             </Link>
@@ -264,12 +264,12 @@ export const Navbar = () => {
             <div
               className="flex items-center rounded-full overflow-hidden transition-all"
               style={{
-                background: searchFocused ? "#fff" : "#F8F6F2",
-                border: searchFocused ? "1.5px solid #0E7C86" : "1.5px solid #EDE9E1",
+                background: searchFocused ? "var(--bg-secondary)" : "var(--bg-tertiary)",
+                border: searchFocused ? "1.5px solid var(--brand-teal)" : "1.5px solid var(--border-primary)",
                 boxShadow: searchFocused ? "0 0 0 3px rgba(14,124,134,0.08)" : "none",
               }}
             >
-              <div className="pl-3.5" style={{ color: searchFocused ? "#0E7C86" : "#9CA3AF" }}>
+              <div className="pl-3.5" style={{ color: searchFocused ? "var(--brand-teal)" : "var(--text-tertiary)" }}>
                 <SearchIcon />
               </div>
               <input
@@ -281,7 +281,7 @@ export const Navbar = () => {
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Search medicines, e.g. Metformin, Paracetamol..."
                 className="flex-1 px-2.5 py-2 text-sm outline-none bg-transparent"
-                style={{ color: "#0D1B2A" }}
+                style={{ color: "var(--text-primary)" }}
                 autoComplete="off"
               />
             </div>
@@ -301,12 +301,12 @@ export const Navbar = () => {
 
           {/* Mobile menu */}
           <Drawer>
-            <DrawerTrigger className="lg:hidden" style={{ color: "#0D1B2A" }}>
+            <DrawerTrigger className="lg:hidden" style={{ color: "var(--text-primary)" }}>
               <MenuIcon />
             </DrawerTrigger>
             <DrawerContent side="left">
               <DrawerHeader>
-                <DrawerTitle className="font-serif text-lg" style={{ color: "#0D1B2A" }}>
+                <DrawerTitle className="font-serif text-lg" style={{ color: "var(--text-primary)" }}>
                   Suprameds
                 </DrawerTitle>
               </DrawerHeader>
@@ -319,9 +319,9 @@ export const Navbar = () => {
                 >
                   <div
                     className="flex items-center rounded-lg overflow-hidden"
-                    style={{ background: "#F8F6F2", border: "1px solid #EDE9E1" }}
+                    style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-primary)" }}
                   >
-                    <div className="pl-3" style={{ color: "#999" }}>
+                    <div className="pl-3" style={{ color: "var(--text-tertiary)" }}>
                       <SearchIcon />
                     </div>
                     <input
@@ -330,11 +330,11 @@ export const Navbar = () => {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search medicines..."
                       className="px-2.5 py-2.5 text-sm outline-none bg-transparent flex-1"
-                      style={{ color: "#0D1B2A" }}
+                      style={{ color: "var(--text-primary)" }}
                     />
                   </div>
                 </form>
-                <div className="px-6 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: "#0E7C86" }}>
+                <div className="px-6 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--brand-teal)" }}>
                   Medicines
                 </div>
                 <div className="flex flex-col">
@@ -342,8 +342,8 @@ export const Navbar = () => {
                     <Link
                       to="/$countryCode/store"
                       params={{ countryCode }}
-                      className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors"
-                      style={{ color: "#0D1B2A" }}
+                      className="px-8 py-3 text-sm font-medium hover:bg-[var(--bg-tertiary)] transition-colors"
+                      style={{ color: "var(--text-primary)" }}
                     >
                       All Medicines
                     </Link>
@@ -353,8 +353,8 @@ export const Navbar = () => {
                       <Link
                         to="/$countryCode/categories/$handle"
                         params={{ countryCode, handle: link.handle }}
-                        className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors"
-                        style={{ color: "#0D1B2A" }}
+                        className="px-8 py-3 text-sm font-medium hover:bg-[var(--bg-tertiary)] transition-colors"
+                        style={{ color: "var(--text-primary)" }}
                       >
                         {link.name}
                       </Link>
@@ -362,7 +362,7 @@ export const Navbar = () => {
                   ))}
                 </div>
                 <div className="px-6 pt-4 pb-2">
-                  <div className="border-t" style={{ borderColor: "#EDE9E1" }} />
+                  <div className="border-t" style={{ borderColor: "var(--border-primary)" }} />
                 </div>
                 {[
                   { label: "Prescription Policy", href: "/prescription-policy" },
@@ -372,35 +372,35 @@ export const Navbar = () => {
                   <DrawerClose key={item.label} asChild>
                     <Link
                       to={item.href}
-                      className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors"
-                      style={{ color: "#0D1B2A" }}
+                      className="px-8 py-3 text-sm font-medium hover:bg-[var(--bg-tertiary)] transition-colors"
+                      style={{ color: "var(--text-primary)" }}
                     >
                       {item.label}
                     </Link>
                   </DrawerClose>
                 ))}
                 <div className="px-6 pt-4 pb-2">
-                  <div className="border-t" style={{ borderColor: "#EDE9E1" }} />
+                  <div className="border-t" style={{ borderColor: "var(--border-primary)" }} />
                 </div>
                 <DrawerClose asChild>
                   <Link
                     to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
                     params={{ countryCode }}
                     search={customer ? {} as any : { redirectTo: location.pathname } as any}
-                    className="px-8 py-3 text-sm font-medium hover:bg-[#F8F6F2] transition-colors flex items-center gap-2"
-                    style={{ color: "#0D1B2A" }}
+                    className="px-8 py-3 text-sm font-medium hover:bg-[var(--bg-tertiary)] transition-colors flex items-center gap-2"
+                    style={{ color: "var(--text-primary)" }}
                   >
                     <PersonIcon />
                     {customer ? `${customer.first_name}'s Account` : "Sign in / Register"}
                   </Link>
                 </DrawerClose>
 
-                <div className="mx-8 mt-4 p-4 rounded-lg" style={{ background: "#F8F6F2" }}>
-                  <p className="text-xs leading-relaxed" style={{ color: "#0D1B2A" }}>
+                <div className="mx-8 mt-4 p-4 rounded-lg" style={{ background: "var(--bg-tertiary)" }}>
+                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-primary)" }}>
                     <span className="font-semibold">Helpline: </span>
                     <a href="tel:+918008001234" className="underline">+91 800 800 1234</a>
                   </p>
-                  <p className="text-xs mt-1" style={{ color: "#666" }}>9 AM–9 PM · Mon–Sat</p>
+                  <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>9 AM-9 PM · Mon-Sat</p>
                 </div>
               </div>
             </DrawerContent>
@@ -415,13 +415,13 @@ export const Navbar = () => {
             >
               <div
                 className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #0E7C86, #0a9272)" }}
+                style={{ background: "linear-gradient(135deg, var(--brand-teal), #0a9272)" }}
               >
                 <PillIcon />
               </div>
               <span
                 className="text-lg font-semibold tracking-tight"
-                style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+                style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
               >
                 Suprameds
               </span>
@@ -434,7 +434,7 @@ export const Navbar = () => {
               to="/$countryCode/upload-rx"
               params={{ countryCode }}
               className="hidden lg:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded transition-all"
-              style={{ color: "#0E7C86", background: "#d5f0e2" }}
+              style={{ color: "var(--brand-teal)", background: "#d5f0e2" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -443,19 +443,19 @@ export const Navbar = () => {
               Upload Rx
             </Link>
 
-            {/* Account / Sign in — visible label so users can find login */}
+            {/* Account / Sign in */}
             <Link
               to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
               params={{ countryCode }}
               search={customer ? {} as any : { redirectTo: location.pathname } as any}
-              className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-gray-100"
-              style={{ color: "#0D1B2A" }}
+              className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-[var(--bg-tertiary)]"
+              style={{ color: "var(--text-primary)" }}
               title={customer ? `${customer.first_name} ${customer.last_name}` : "Sign in or register"}
             >
               {customer ? (
                 <span
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
-                  style={{ background: "#27AE60" }}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                  style={{ background: "var(--brand-green)", color: "var(--text-inverse)" }}
                 >
                   {customer.first_name?.[0]?.toUpperCase() ?? "U"}
                 </span>
@@ -467,6 +467,7 @@ export const Navbar = () => {
               </span>
             </Link>
 
+            <ThemeToggle />
             <CartDropdown />
           </div>
         </nav>

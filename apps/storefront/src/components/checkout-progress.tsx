@@ -26,9 +26,9 @@ const CheckoutProgress = ({
               className={clsx(
                 "p-0 hover:bg-transparent text-xs sm:text-sm whitespace-nowrap",
                 index !== currentStepIndex &&
-                  "text-zinc-600 hover:text-zinc-500",
+                  "text-[var(--text-secondary)] hover:text-[var(--text-tertiary)]",
                 index === currentStepIndex &&
-                  "text-zinc-900 hover:text-zinc-600 font-semibold"
+                  "text-[var(--text-primary)] hover:text-[var(--text-secondary)] font-semibold"
               )}
               disabled={index > currentStepIndex}
             >
@@ -36,9 +36,9 @@ const CheckoutProgress = ({
                 <span
                   className={clsx(
                     "w-5 h-5 rounded-full text-[10px] font-bold inline-flex items-center justify-center flex-shrink-0",
-                    index < currentStepIndex && "bg-[#27AE60] text-white",
-                    index === currentStepIndex && "bg-[#0D1B2A] text-white",
-                    index > currentStepIndex && "bg-zinc-200 text-zinc-500"
+                    index < currentStepIndex && "bg-[var(--brand-green)] text-[var(--text-inverse)]",
+                    index === currentStepIndex && "bg-[var(--bg-inverse)] text-[var(--text-inverse)]",
+                    index > currentStepIndex && "bg-[var(--border-primary)] text-[var(--text-tertiary)]"
                   )}
                 >
                   {index < currentStepIndex ? (
@@ -51,7 +51,7 @@ const CheckoutProgress = ({
               </span>
             </Button>
             {index < steps.length - 1 && (
-              <div className="w-6 sm:w-8 h-px bg-zinc-200 flex-shrink-0" />
+              <div className="w-6 sm:w-8 h-px bg-[var(--border-primary)] flex-shrink-0" />
             )}
           </div>
         ))}

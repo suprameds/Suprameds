@@ -173,23 +173,23 @@ const ProductActions = memo(function ProductActions({
       {/* Quantity selector */}
       {!isBlocked && selectedVariant && inStock && (
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium" style={{ color: "#2C3E50" }}>Qty</span>
+          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Qty</span>
           <div
             className="inline-flex items-center rounded-lg border"
-            style={{ borderColor: "#EDE9E1", background: "#fff" }}
+            style={{ borderColor: "var(--border-primary)", background: "var(--bg-secondary)" }}
           >
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               disabled={quantity <= 1 || addToCartMutation.isPending}
               className="flex items-center justify-center w-9 h-9 transition-colors disabled:opacity-30"
-              style={{ color: "#2C3E50" }}
+              style={{ color: "var(--text-primary)" }}
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
             <span
               className="w-10 text-center text-sm font-semibold tabular-nums"
-              style={{ color: "#0D1B2A", borderLeft: "1px solid #EDE9E1", borderRight: "1px solid #EDE9E1" }}
+              style={{ color: "var(--text-primary)", borderLeft: "1px solid var(--border-primary)", borderRight: "1px solid var(--border-primary)" }}
             >
               {quantity}
             </span>
@@ -198,7 +198,7 @@ const ProductActions = memo(function ProductActions({
               onClick={() => setQuantity((q) => q + 1)}
               disabled={addToCartMutation.isPending}
               className="flex items-center justify-center w-9 h-9 transition-colors disabled:opacity-30"
-              style={{ color: "#2C3E50" }}
+              style={{ color: "var(--text-primary)" }}
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -209,12 +209,12 @@ const ProductActions = memo(function ProductActions({
       {isBlocked ? (
         <div
           className="rounded-lg border p-4 text-center"
-          style={{ borderColor: "#EF4444", background: "rgba(239,68,68,0.06)" }}
+          style={{ borderColor: "var(--brand-red)", background: "rgba(239,68,68,0.06)" }}
         >
           <p className="text-sm font-medium" style={{ color: "#B91C1C" }}>
             This product cannot be sold online
           </p>
-          <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
+          <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
             NDPS Act, 1985 prohibits online sale of Schedule X substances.
           </p>
         </div>
@@ -222,12 +222,12 @@ const ProductActions = memo(function ProductActions({
         <div className="flex flex-col gap-3">
           <div
             className="rounded-lg border p-4"
-            style={{ borderColor: "#F39C12", background: "rgba(243,156,18,0.06)" }}
+            style={{ borderColor: "var(--brand-amber)", background: "rgba(243,156,18,0.06)" }}
           >
-            <p className="text-sm font-medium" style={{ color: "#92400E" }}>
+            <p className="text-sm font-medium" style={{ color: "var(--brand-amber-dark)" }}>
               Prescription required
             </p>
-            <p className="text-xs mt-1" style={{ color: "#6B7280" }}>
+            <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
               Upload a valid prescription to add this medicine to your cart.
               A pharmacist will verify it before your order ships.
             </p>
@@ -240,7 +240,7 @@ const ProductActions = memo(function ProductActions({
             <Button
               variant="primary"
               className="w-full"
-              style={{ background: "#F39C12" }}
+              style={{ background: "var(--brand-amber)" }}
             >
               Upload Prescription
             </Button>

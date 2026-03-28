@@ -18,7 +18,7 @@ const UploadIcon = () => (
 )
 
 const CheckCircleIcon = () => (
-  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1A7A4A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--price-color)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" />
     <polyline points="9 12 11 14 15 10" />
   </svg>
@@ -154,23 +154,23 @@ const UploadRx = () => {
   }
 
   return (
-    <div style={{ background: "#F8F6F2", minHeight: "70vh" }}>
+    <div style={{ background: "var(--bg-tertiary)", minHeight: "70vh" }}>
       <div className="content-container py-10 max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
           <p
             className="text-xs font-semibold uppercase tracking-widest mb-2"
-            style={{ color: "#0E7C86" }}
+            style={{ color: "var(--brand-teal)" }}
           >
             Prescription Upload
           </p>
           <h1
             className="text-2xl lg:text-3xl font-semibold mb-3"
-            style={{ color: "#0D1B2A", fontFamily: "Fraunces, Georgia, serif" }}
+            style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
           >
             Upload your prescription
           </h1>
-          <p className="text-sm" style={{ color: "#666" }}>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
             A registered pharmacist will review your prescription within 4 hours.
             You'll receive an SMS/email once approved.
           </p>
@@ -180,12 +180,12 @@ const UploadRx = () => {
         {!customer ? (
           <div
             className="rounded-xl p-8 text-center"
-            style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+            style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
           >
-            <p className="text-sm font-medium mb-2" style={{ color: "#0D1B2A" }}>
+            <p className="text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
               Please sign in to upload a prescription
             </p>
-            <p className="text-xs mb-6" style={{ color: "#666" }}>
+            <p className="text-xs mb-6" style={{ color: "var(--text-secondary)" }}>
               Your prescription is linked to your account for traceability and reordering.
             </p>
             <Link
@@ -193,7 +193,7 @@ const UploadRx = () => {
               params={{ countryCode }}
               search={{ redirectTo: `/${countryCode}/upload-rx` }}
               className="inline-flex px-6 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ background: "#0E7C86", color: "#fff" }}
+              style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
             >
               Sign in to continue
             </Link>
@@ -202,15 +202,15 @@ const UploadRx = () => {
           /* Success state */
           <div
             className="rounded-xl p-10 text-center"
-            style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+            style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
           >
             <div className="flex justify-center mb-4">
               <CheckCircleIcon />
             </div>
-            <h2 className="text-lg font-semibold mb-2" style={{ color: "#0D1B2A" }}>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
               Prescription uploaded
             </h2>
-            <p className="text-sm mb-6" style={{ color: "#666" }}>
+            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
               Our pharmacist will review your prescription and get back to you within 4 hours.
               You'll receive an SMS and email notification once it's approved.
             </p>
@@ -218,7 +218,7 @@ const UploadRx = () => {
               <button
                 onClick={handleReset}
                 className="px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90"
-                style={{ background: "#0E7C86", color: "#fff" }}
+                style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
               >
                 Upload another
               </button>
@@ -226,7 +226,7 @@ const UploadRx = () => {
                 to="/$countryCode/store"
                 params={{ countryCode }}
                 className="px-5 py-2.5 rounded text-sm font-medium transition-all"
-                style={{ color: "#0D1B2A", border: "1px solid #EDE9E1", background: "#fff" }}
+                style={{ color: "var(--text-primary)", border: "1px solid var(--border-primary)", background: "var(--bg-secondary)" }}
               >
                 Browse medicines
               </Link>
@@ -236,14 +236,14 @@ const UploadRx = () => {
           /* Upload form */
           <div
             className="rounded-xl overflow-hidden"
-            style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+            style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
           >
             {/* Drop zone */}
             <div
               className="p-8 text-center cursor-pointer transition-colors"
               style={{
                 background: dragOver ? "rgba(14,124,134,0.05)" : "transparent",
-                borderBottom: selectedFile ? "1px solid #EDE9E1" : "none",
+                borderBottom: selectedFile ? "1px solid var(--border-primary)" : "none",
               }}
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
@@ -265,10 +265,10 @@ const UploadRx = () => {
                 onChange={handleInputChange}
                 className="hidden"
               />
-              <div className="flex justify-center mb-4" style={{ color: "#0E7C86" }}>
+              <div className="flex justify-center mb-4" style={{ color: "var(--brand-teal)" }}>
                 <UploadIcon />
               </div>
-              <p className="text-sm font-medium mb-1" style={{ color: "#0D1B2A" }}>
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
                 {selectedFile ? "Click or drag to replace" : "Drag & drop your prescription here"}
               </p>
               <p className="text-xs mb-3" style={{ color: "#999" }}>
@@ -282,7 +282,7 @@ const UploadRx = () => {
                     cameraInputRef.current?.click()
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90"
-                  style={{ background: "#1E2D5A", color: "#fff" }}
+                  style={{ background: "var(--bg-inverse)", color: "var(--text-inverse)" }}
                 >
                   <CameraIcon />
                   Take Photo
@@ -294,11 +294,11 @@ const UploadRx = () => {
             {selectedFile && (
               <div className="px-8 py-4 flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div style={{ color: "#0E7C86" }}>
+                  <div style={{ color: "var(--brand-teal)" }}>
                     <FileIcon />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "#0D1B2A" }}>
+                    <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
                       {selectedFile.name}
                     </p>
                     <p className="text-xs" style={{ color: "#999" }}>
@@ -309,7 +309,7 @@ const UploadRx = () => {
                 <button
                   onClick={handleReset}
                   className="text-xs font-medium underline flex-shrink-0"
-                  style={{ color: "#C0392B" }}
+                  style={{ color: "var(--brand-red)" }}
                 >
                   Remove
                 </button>
@@ -319,7 +319,7 @@ const UploadRx = () => {
             {/* Error */}
             {errorMsg && (
               <div className="px-8 py-3" style={{ background: "rgba(192,57,43,0.06)" }}>
-                <p className="text-xs font-medium" style={{ color: "#C0392B" }}>
+                <p className="text-xs font-medium" style={{ color: "var(--brand-red)" }}>
                   {errorMsg}
                 </p>
               </div>
@@ -327,18 +327,18 @@ const UploadRx = () => {
 
             {/* Submit */}
             {selectedFile && state !== "error" && (
-              <div className="px-8 py-5" style={{ borderTop: "1px solid #EDE9E1" }}>
+              <div className="px-8 py-5" style={{ borderTop: "1px solid var(--border-primary)" }}>
                 <button
                   onClick={handleUpload}
                   disabled={state === "uploading"}
                   className="w-full py-3 rounded text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
-                  style={{ background: "#0E7C86", color: "#fff" }}
+                  style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
                 >
                   {state === "uploading" ? (
                     <span className="flex items-center justify-center gap-2">
                       <span
                         className="w-4 h-4 border-2 rounded-full animate-spin"
-                        style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }}
+                        style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "var(--text-inverse)" }}
                       />
                       Uploading...
                     </span>
@@ -370,12 +370,12 @@ const UploadRx = () => {
             <div
               key={item.title}
               className="p-4 rounded-lg"
-              style={{ background: "#fff", border: "1px solid #EDE9E1" }}
+              style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
             >
-              <h3 className="text-xs font-semibold mb-1.5" style={{ color: "#0D1B2A" }}>
+              <h3 className="text-xs font-semibold mb-1.5" style={{ color: "var(--text-primary)" }}>
                 {item.title}
               </h3>
-              <p className="text-xs leading-relaxed" style={{ color: "#666" }}>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                 {item.body}
               </p>
             </div>

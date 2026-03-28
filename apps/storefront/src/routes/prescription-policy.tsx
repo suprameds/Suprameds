@@ -12,11 +12,11 @@ export const Route = createFileRoute("/prescription-policy")({
 
 function PrescriptionPolicy() {
   return (
-    <div style={{ background: "#F8F6F2", minHeight: "100vh" }}>
-      <div style={{ background: "#0D1B2A", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+    <div style={{ background: "var(--bg-tertiary)", minHeight: "100vh" }}>
+      <div style={{ background: "var(--bg-inverse)", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
         <div className="content-container py-12">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "#16a5b0" }}>Legal</p>
-          <h1 className="text-2xl lg:text-3xl font-semibold" style={{ color: "#fff", fontFamily: "Fraunces, Georgia, serif" }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal-light)" }}>Legal</p>
+          <h1 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>
             Prescription Policy
           </h1>
           <p className="text-sm mt-2" style={{ color: "rgba(255,255,255,0.55)" }}>
@@ -28,9 +28,9 @@ function PrescriptionPolicy() {
       <div className="content-container py-12">
         <div className="max-w-3xl flex flex-col gap-8">
 
-          <div className="p-5 rounded-xl" style={{ background: "#fdebd0", border: "1px solid #D68910" }}>
+          <div className="p-5 rounded-xl" style={{ background: "#fdebd0", border: "1px solid var(--brand-amber)" }}>
             <div className="flex items-start gap-3">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D68910" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand-amber)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
               <div>
@@ -115,17 +115,17 @@ function PrescriptionPolicy() {
               `,
             },
           ].map((section) => (
-            <div key={section.title} className="p-6 rounded-xl" style={{ background: "#fff", border: "1px solid #EDE9E1" }}>
-              <h2 className="text-base font-semibold mb-4" style={{ color: "#0D1B2A" }}>{section.title}</h2>
+            <div key={section.title} className="p-6 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
+              <h2 className="text-base font-semibold mb-4" style={{ color: "var(--text-primary)" }}>{section.title}</h2>
               <div
                 className="text-sm leading-relaxed"
-                style={{ color: "#555" }}
+                style={{ color: "var(--text-secondary)" }}
                 dangerouslySetInnerHTML={{ __html: section.content }}
               />
             </div>
           ))}
 
-          <div className="text-xs" style={{ color: "#aaa" }}>
+          <div className="text-xs" style={{ color: "var(--text-tertiary)" }}>
             <p>For questions about this policy, contact our pharmacist helpline at +91 800 800 1234 (9 AM–9 PM, Mon–Sat) or WhatsApp us.</p>
           </div>
         </div>

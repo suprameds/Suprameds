@@ -33,13 +33,13 @@ export default function ExpandableSection({ title, content, defaultOpen = false 
   if (!content) return null
 
   return (
-    <div style={{ borderBottom: "1px solid #EDE9E1" }}>
+    <div style={{ borderBottom: "1px solid var(--border-primary)" }}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between px-4 py-3.5 text-left transition-colors hover:bg-gray-50/50"
       >
-        <span className="text-sm font-semibold" style={{ color: "#0D1B2A" }}>
+        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
           {title}
         </span>
         <svg
@@ -47,7 +47,7 @@ export default function ExpandableSection({ title, content, defaultOpen = false 
           height="16"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#9CA3AF"
+          stroke="var(--text-tertiary)"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -63,7 +63,7 @@ export default function ExpandableSection({ title, content, defaultOpen = false 
         style={{ maxHeight }}
       >
         <div className="px-4 pb-4">
-          <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "#2C3E50" }}>
+          <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: "var(--text-primary)" }}>
             {content}
           </p>
         </div>
