@@ -32,7 +32,7 @@ type SearchResult = {
 export default function RemindersPage() {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
-  const { data, isLoading, isError } = useReminders()
+  const { data, isLoading, isError, refetch } = useReminders()
   const createReminder = useCreateReminder()
   const updateReminder = useUpdateReminder()
   const deleteReminder = useDeleteReminder()
@@ -400,10 +400,17 @@ export default function RemindersPage() {
 
       {/* Error state */}
       {isError && (
-        <div className="p-4 rounded-lg mb-6" style={{ background: "#FEF2F2", border: "1px solid #FECACA" }}>
-          <p className="text-sm" style={{ color: "#B91C1C" }}>
-            Failed to load reminders. Please try again later.
+        <div className="text-center py-16">
+          <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
+            Something went wrong loading reminders.
           </p>
+          <button
+            onClick={() => refetch()}
+            className="text-sm font-medium underline transition-opacity hover:opacity-70"
+            style={{ color: "var(--brand-teal)" }}
+          >
+            Try again
+          </button>
         </div>
       )}
 
@@ -456,7 +463,7 @@ export default function RemindersPage() {
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-secondary)" }}>
                 Active ({activeReminders.length})
               </h3>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {activeReminders.map((r) => (
                   <ReminderCard
                     key={r.id}
@@ -479,7 +486,7 @@ export default function RemindersPage() {
               <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-tertiary)" }}>
                 Paused ({pausedReminders.length})
               </h3>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {pausedReminders.map((r) => (
                   <ReminderCard
                     key={r.id}

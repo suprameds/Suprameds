@@ -18,7 +18,7 @@ const Category = () => {
     from: "/$countryCode/categories/$handle",
   })
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useProducts({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isError, refetch } = useProducts({
     region_id: region?.id,
     query_params: {
       category_id: category?.id ? [category.id] : undefined,
@@ -40,11 +40,24 @@ const Category = () => {
 
       {isFetching && products.length === 0 ? (
         <div className="text-[var(--text-secondary)]">Loading...</div>
+      ) : isError ? (
+        <div className="text-center py-16">
+          <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
+            Something went wrong loading products.
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="text-sm font-medium underline transition-opacity hover:opacity-70"
+            style={{ color: "var(--brand-teal)" }}
+          >
+            Try again
+          </button>
+        </div>
       ) : products.length === 0 ? (
         <div className="text-[var(--text-secondary)]">No products found</div>
       ) : (
         <>
-          <ProductGrid products={products} className="grid grid-cols-2 md:grid-cols-4 gap-4" />
+          <ProductGrid products={products} className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4" />
 
           {hasNextPage && (
             <Button

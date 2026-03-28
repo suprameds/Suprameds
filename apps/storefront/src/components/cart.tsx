@@ -107,6 +107,7 @@ export const CartDeleteItem = ({ item, fields }: CartDeleteItemProps) => {
       className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] transition-colors ml-2"
       variant="transparent"
       size="fit"
+      aria-label="Remove item"
     >
       <Trash />
     </Button>
@@ -152,13 +153,14 @@ export const CartItemQuantitySelector = ({
         type="button"
         onClick={() => handleQuantityChange(item.quantity - 1)}
         disabled={isMutating}
-        className="flex items-center justify-center w-8 h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
+        aria-label="Decrease quantity"
+        className="flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
         style={{ color: "var(--text-primary)" }}
       >
         {item.quantity === 1 ? <Trash className="w-3.5 h-3.5" style={{ color: "var(--brand-red)" }} /> : <Minus className="w-3.5 h-3.5" />}
       </button>
       <span
-        className="w-8 text-center text-sm font-semibold tabular-nums"
+        className="w-10 sm:w-8 text-center text-sm font-semibold tabular-nums"
         style={{ color: "var(--text-primary)", borderLeft: "1px solid var(--border-primary)", borderRight: "1px solid var(--border-primary)" }}
       >
         {item.quantity}
@@ -167,7 +169,8 @@ export const CartItemQuantitySelector = ({
         type="button"
         onClick={() => handleQuantityChange(item.quantity + 1)}
         disabled={isMutating}
-        className="flex items-center justify-center w-8 h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
+        aria-label="Increase quantity"
+        className="flex items-center justify-center w-10 h-10 sm:w-8 sm:h-8 transition-colors hover:bg-gray-50 disabled:opacity-30"
         style={{ color: "var(--text-primary)" }}
       >
         <Plus className="w-3.5 h-3.5" />
@@ -290,7 +293,7 @@ export const CartLineItem = ({
       <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pl-0 sm:pl-0">
         <CartItemQuantitySelector item={item} fields={fields} />
 
-        <div className="text-right min-w-[60px]">
+        <div className="text-right min-w-[50px] sm:min-w-[60px]">
           <LineItemPrice item={item} currencyCode={cart.currency_code} />
         </div>
 
@@ -500,8 +503,11 @@ export const CartDropdown = () => {
   return (
     <Drawer open={isOpen} onOpenChange={(open) => (open ? openCart() : closeCart())}>
       <DrawerTrigger asChild>
-        <button className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] h-full">
-          Cart ({itemCount})
+        <button
+          className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] h-full"
+          aria-label={`Cart ${itemCount} items`}
+        >
+          <span aria-live="polite">Cart ({itemCount})</span>
         </button>
       </DrawerTrigger>
 
@@ -532,7 +538,7 @@ export const CartDropdown = () => {
         {/* Cart Items */}
         {cart && itemCount > 0 && (
           <>
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
               {sortedItems?.map((item) => (
                 <CartLineItem
                   key={item.id}

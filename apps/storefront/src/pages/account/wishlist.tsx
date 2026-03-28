@@ -14,7 +14,7 @@ const NAVY = "var(--text-primary)"
 export default function WishlistPage() {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
-  const { data, isLoading, isError } = useWishlist()
+  const { data, isLoading, isError, refetch } = useWishlist()
   const removeMutation = useRemoveFromWishlist()
   const toggleAlert = useToggleWishlistAlert()
 
@@ -91,13 +91,17 @@ export default function WishlistPage() {
 
       {/* Error state */}
       {isError && (
-        <div
-          className="p-4 rounded-lg mb-6"
-          style={{ background: "#FEF2F2", border: "1px solid #FECACA" }}
-        >
-          <p className="text-sm" style={{ color: "#B91C1C" }}>
-            Failed to load wishlist. Please try again later.
+        <div className="text-center py-16">
+          <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
+            Something went wrong loading your wishlist.
           </p>
+          <button
+            onClick={() => refetch()}
+            className="text-sm font-medium underline transition-opacity hover:opacity-70"
+            style={{ color: "var(--brand-teal)" }}
+          >
+            Try again
+          </button>
         </div>
       )}
 
@@ -132,7 +136,7 @@ export default function WishlistPage() {
 
       {/* Wishlist grid */}
       {items.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((item) => {
             const dropPct = getPriceDropPct(item)
             const threshold = thresholdEdits[item.id] ?? item.alert_threshold_pct
