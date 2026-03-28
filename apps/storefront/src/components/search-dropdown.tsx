@@ -142,9 +142,11 @@ export function SearchDropdown({
     if (isOpen) setRecents(getRecents())
   }, [isOpen])
 
-  if (!isOpen) return null
-
   const products = data?.products ?? []
+
+  // Don't render empty container — only show when there's content
+  if (!isOpen) return null
+  if (!hasQuery && recents.length === 0) return null
   const totalCount = data?.count ?? 0
   const showRecents = !hasQuery && recents.length > 0
   const showResults = hasQuery
@@ -157,13 +159,15 @@ export function SearchDropdown({
 
   return (
     <div
-      className="absolute top-full left-0 right-0 mt-1.5 rounded-xl overflow-hidden z-50"
+      className="absolute top-full left-0 mt-2 rounded-xl overflow-hidden z-50"
       style={{
         background: "#fff",
         border: "1px solid #EDE9E1",
-        boxShadow: "0 8px 40px rgba(0,0,0,0.1)",
+        boxShadow: "0 12px 48px rgba(0,0,0,0.12)",
         maxHeight: 420,
         overflowY: "auto",
+        minWidth: 360,
+        width: "100%",
       }}
       onMouseDown={(e) => e.preventDefault()} // prevent blur before click registers
     >
