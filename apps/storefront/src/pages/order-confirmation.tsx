@@ -1,10 +1,11 @@
 import { OrderDetails, deriveOrderProgress } from "@/components/order"
 import { useOrder } from "@/lib/hooks/use-orders"
+import { trackPurchase } from "@/lib/utils/analytics"
 import { sdk } from "@/lib/utils/sdk"
 import { isManual } from "@/lib/utils/checkout"
 import { useLoaderData } from "@tanstack/react-router"
 import { ORDER_FIELDS } from "@/routes/$countryCode/order/$orderId/confirmed"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { ReturnRequestForm, isOrderReturnable, isWithinReturnWindow } from "@/components/return-request-form"
 
 // ============ COD CONFIRMATION BANNER ============
@@ -325,6 +326,26 @@ const OrderConfirmation = () => {
     order_id: orderId,
     fields: ORDER_FIELDS,
   })
+
+  // GA4: track purchase event once per order
+  const purchaseTracked = useRef(false)
+  useEffect(() => {
+    if (!order || purchaseTracked.current) return
+    purchaseTracked.current = true
+    trackPurchase(
+      order.display_id?.toString() || order.id,
+      (order as any).total ?? 0,
+      ((order as any).items || []).map((item: any) => ({
+        item_id: item.product_id || item.id,
+        item_name: item.product_title || item.title || "",
+        price: item.unit_price ?? 0,
+        quantity: item.quantity ?? 1,
+      })),
+      (order as any).currency_code?.toUpperCase() || "INR",
+      (order as any).tax_total ?? 0,
+      (order as any).shipping_total ?? 0,
+    )
+  }, [order])
 
   if (isLoading) {
     return (

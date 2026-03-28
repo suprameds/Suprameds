@@ -38,44 +38,61 @@ export const Route = createFileRoute("/$countryCode/")({
       region,
     }
   },
-  head: () => {
+  head: ({ loaderData }) => {
+    const siteUrl = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+    const countryCode = loaderData?.countryCode || "in"
+    const canonical = `${siteUrl}/${countryCode}`
     const title = `Suprameds — India's Licensed Online Pharmacy`
     const description = `Buy prescription and OTC medicines online from a CDSCO-registered, LegitScript-certified pharmacy. Pharmacist-dispensed. Speed Post delivery across India.`
 
+    const organizationSchema = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Suprameds",
+      url: siteUrl,
+      logo: `${siteUrl}/images/suprameds.svg`,
+      description: "CDSCO-registered online pharmacy delivering pharmacist-dispensed medicines across India.",
+      address: {
+        "@type": "PostalAddress",
+        addressCountry: "IN",
+      },
+      sameAs: [],
+    }
+
+    const websiteSchema = {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Suprameds",
+      url: siteUrl,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${siteUrl}/${countryCode}/search?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    }
+
     return {
       meta: [
-        {
-          title,
-        },
-        {
-          name: "description",
-          content: description,
-        },
-        {
-          property: "og:title",
-          content: title,
-        },
-        {
-          property: "og:description",
-          content: description,
-        },
-        {
-          property: "og:type",
-          content: "website",
-        },
-        {
-          property: "twitter:card",
-          content: "summary_large_image",
-        },
-        {
-          property: "twitter:title",
-          content: title,
-        },
-        {
-          property: "twitter:description",
-          content: description,
-        },
-      ]
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: canonical },
+        { property: "twitter:card", content: "summary_large_image" },
+        { property: "twitter:title", content: title },
+        { property: "twitter:description", content: description },
+      ],
+      links: [
+        { rel: "canonical", href: canonical },
+      ],
+      scripts: [
+        { type: "application/ld+json", children: JSON.stringify(organizationSchema) },
+        { type: "application/ld+json", children: JSON.stringify(websiteSchema) },
+      ],
     }
   },
   component: Home,

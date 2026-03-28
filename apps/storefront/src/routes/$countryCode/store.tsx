@@ -35,46 +35,30 @@ export const Route = createFileRoute("/$countryCode/store")({
       products: products as HttpTypes.StoreProduct[],
     }
   },
-  head: ({ loaderData }) => {
-    const { region, countryCode } = loaderData || {}
-    const regionName = region?.name || countryCode?.toUpperCase()
+  head: ({ loaderData, params }) => {
+    const { region } = loaderData || {}
+    const siteUrl = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+    const countryCode = params?.countryCode || "in"
+    const regionName = region?.name || countryCode.toUpperCase()
+    const canonical = `${siteUrl}/${countryCode}/store`
     const title = `All Medicines — ${regionName} | Suprameds`
     const description = `Browse prescription and OTC medicines available in ${regionName}. Pharmacist-dispensed. Speed Post delivery across India.`
 
     return {
       meta: [
-        {
-          title,
-        },
-        {
-          name: "description",
-          content: description,
-        },
-        {
-          property: "og:title",
-          content: title,
-        },
-        {
-          property: "og:description",
-          content: description,
-        },
-        {
-          property: "og:type",
-          content: "website",
-        },
-        {
-          property: "twitter:card",
-          content: "summary_large_image",
-        },
-        {
-          property: "twitter:title",
-          content: title,
-        },
-        {
-          property: "twitter:description",
-          content: description,
-        },
-      ]
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: canonical },
+        { property: "twitter:card", content: "summary_large_image" },
+        { property: "twitter:title", content: title },
+        { property: "twitter:description", content: description },
+      ],
+      links: [
+        { rel: "canonical", href: canonical },
+      ],
     }
   },
   component: Store,
