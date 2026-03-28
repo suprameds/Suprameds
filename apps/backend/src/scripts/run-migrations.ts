@@ -19,6 +19,7 @@
 import { MedusaContainer } from "@medusajs/framework"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 
+import resetData from "../migration-scripts/000-reset-data"
 import infraSeed from "../migration-scripts/001-infra-seed"
 import rbacSeed from "../migration-scripts/002-rbac-seed"
 import ftsIndex from "../migration-scripts/003-fts-index"
@@ -48,6 +49,9 @@ export default async function runMigrations({
 
   const skipProducts = process.env.SKIP_PRODUCT_SEED === "true"
   const forceReseed = process.env.FORCE_RESEED === "true"
+
+  // Pre-step: database reset (only when RESET_DATABASE=true)
+  await resetData({ container })
 
   // 1. Create tracking table (idempotent)
   await pgConnection.raw(`

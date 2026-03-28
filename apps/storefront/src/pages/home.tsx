@@ -34,20 +34,158 @@ const ChevronDown = ({ open }: { open: boolean }) => (
   </svg>
 )
 
-/* ── Category icon map ── */
+/* ── Category icon map (keyed by category handle) ── */
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  tablets: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="15" y2="14"/></svg>,
-  capsules: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>,
-  syrups: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M8 2h8v4H8z"/><path d="M6 6h12v16H6z"/><path d="M10 12h4"/></svg>,
-  default: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>,
+  // Medicines subcategories
+  antibiotics: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="M8.5 8.5l7 7"/>
+      <path d="M5 2l1.5 1.5"/><path d="M2 5l1.5-1.5"/><path d="M4 4l-.5-.5"/>
+    </svg>
+  ),
+  diabetic: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2c0 0-6 6.5-6 11a6 6 0 0 0 12 0c0-4.5-6-11-6-11z"/>
+      <path d="M12 17v-4"/><path d="M10 15h4"/>
+    </svg>
+  ),
+  hypertension: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19.5 12.572l-7.5 7.428-7.5-7.428A5 5 0 1 1 12 5.006a5 5 0 1 1 7.5 7.566z"/>
+      <polyline points="8 14 10 12 12 15 14 11 16 14"/>
+    </svg>
+  ),
+  "cardiac-care": (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19.5 12.572l-7.5 7.428-7.5-7.428A5 5 0 1 1 12 5.006a5 5 0 1 1 7.5 7.566z"/>
+    </svg>
+  ),
+  cholesterol: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12c0-3 2-6 4-7.5"/><path d="M20 12c0-3-2-6-4-7.5"/>
+      <path d="M4 12c0 3 2 6 4 7.5"/><path d="M20 12c0 3-2 6-4 7.5"/>
+      <ellipse cx="12" cy="12" rx="3" ry="6"/>
+      <line x1="4" y1="12" x2="20" y2="12"/>
+    </svg>
+  ),
+  gastroenterology: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 4c-2 0-4 2-4 5s2 5 4 5h1c0 3 1.5 6 3 6s3-3 3-6h1c2 0 4-2 4-5s-2-5-4-5"/>
+      <path d="M10 9c0 1.5.5 3 2 3s2-1.5 2-3"/>
+    </svg>
+  ),
+  "general-medicines": (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 2h8v4H8z"/><rect x="6" y="6" width="12" height="16" rx="1"/>
+      <path d="M10 12h4"/><path d="M12 10v4"/>
+    </svg>
+  ),
+  gynecology: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="9" r="6"/>
+      <line x1="12" y1="15" x2="12" y2="22"/>
+      <line x1="9" y1="19" x2="15" y2="19"/>
+    </svg>
+  ),
+  nephrology: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 3C6.5 3 4 5.5 4 9c0 4 2 8 5 12"/>
+      <path d="M15 3c2.5 0 5 2.5 5 6c0 4-2 8-5 12"/>
+      <path d="M9 3c1.5 2 2 4 2 6s-.5 4-2 6"/>
+      <path d="M15 3c-1.5 2-2 4-2 6s.5 4 2 6"/>
+    </svg>
+  ),
+  neurology: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2a7 7 0 0 0-7 7c0 2.5 1.5 4.5 3 5.5V17h8v-2.5c1.5-1 3-3 3-5.5a7 7 0 0 0-7-7z"/>
+      <path d="M9 14c1-1 1.5-2.5 1.5-4"/><path d="M15 14c-1-1-1.5-2.5-1.5-4"/>
+      <line x1="9" y1="20" x2="15" y2="20"/><line x1="10" y1="22" x2="14" y2="22"/>
+    </svg>
+  ),
+  respiratory: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v7"/>
+      <path d="M12 10c-3 0-5 3-5 6c0 2 1 3 3 3h2"/>
+      <path d="M12 10c3 0 5 3 5 6c0 2-1 3-3 3h-2"/>
+      <path d="M8 14c-1.5.5-3 1.5-3 3s1.5 2 3 2"/>
+      <path d="M16 14c1.5.5 3 1.5 3 3s-1.5 2-3 2"/>
+    </svg>
+  ),
+  dermatology: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 11V6a2 2 0 0 0-2-2h0a2 2 0 0 0-2 2v0"/>
+      <path d="M14 10V4a2 2 0 0 0-2-2h0a2 2 0 0 0-2 2v2"/>
+      <path d="M10 10.5V6a2 2 0 0 0-2-2h0a2 2 0 0 0-2 2v8"/>
+      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 17"/>
+    </svg>
+  ),
+  "pain-fever": (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 4v4a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V3"/>
+      <rect x="10" y="2" width="4" height="4" rx="1"/>
+      <path d="M12 6v5"/>
+      <circle cx="12" cy="16" r="5"/>
+      <path d="M12 14v4"/><path d="M10 16h4"/>
+    </svg>
+  ),
+  "vitamins-supplements": (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
+      <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
+      <circle cx="11" cy="6" r="1.2"/><circle cx="17" cy="12" r="1.2"/>
+    </svg>
+  ),
+  // Parent categories
+  medicines: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3"/>
+      <path d="M9 8h1.5c1.5 0 3 .5 3 2.5s-1.5 2.5-3 2.5H9V8z"/>
+      <path d="M9 13l3.5 3"/>
+      <path d="M15 17l2-5 2 5"/><path d="M15.75 15.5h2.5"/>
+    </svg>
+  ),
+  wellness: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22c-4-4-8-7-8-12C4 5.5 7.5 2 12 2"/>
+      <path d="M12 22c4-4 8-7 8-12c0-4.5-3.5-8-8-8"/>
+      <path d="M12 2v20"/>
+      <path d="M5 9c2 .5 4 1 7 1s5-.5 7-1"/>
+      <path d="M6 15c2-.5 4-1 6-1s4 .5 6 1"/>
+    </svg>
+  ),
+  "personal-care": (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="5"/>
+      <path d="M20 21a8 8 0 1 0-16 0"/>
+      <path d="M12 11v2"/><path d="M11 12h2"/>
+    </svg>
+  ),
+  devices: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4.8 2.3A7 7 0 1 0 17 14.6L21 22l-3.5-1.5L16 22l-1.2-3.5A7 7 0 0 0 4.8 2.3z"/>
+      <circle cx="11" cy="9" r="2"/>
+      <path d="M11 7v-2"/><path d="M11 13v-2"/>
+    </svg>
+  ),
+  "mother-baby": (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="10" cy="6" r="3.5"/>
+      <path d="M5 22v-3a5 5 0 0 1 10 0v3"/>
+      <circle cx="17" cy="11" r="2.5"/>
+      <path d="M17 13.5c1.5 0 3 1.2 3 3v1"/>
+    </svg>
+  ),
+  // Fallback
+  default: (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M8 12h8"/><path d="M12 8v8"/>
+    </svg>
+  ),
 }
 
 function getCategoryIcon(handle: string): React.ReactNode {
-  const lower = handle.toLowerCase()
-  if (lower.includes("tablet")) return CATEGORY_ICONS.tablets
-  if (lower.includes("capsule")) return CATEGORY_ICONS.capsules
-  if (lower.includes("syrup") || lower.includes("liquid")) return CATEGORY_ICONS.syrups
-  return CATEGORY_ICONS.default
+  return CATEGORY_ICONS[handle] || CATEGORY_ICONS.default
 }
 
 /* ── FAQ data ── */
