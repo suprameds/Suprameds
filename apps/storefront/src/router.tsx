@@ -6,6 +6,8 @@ import { lazy } from "react"
 
 const NotFound = lazy(() => import("@/components/not-found"))
 
+const isCapacitor = !!import.meta.env.VITE_CAPACITOR
+
 export function createRouter() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -30,14 +32,19 @@ export function createRouter() {
   const router = createTanStackRouter({
     routeTree,
     context: { queryClient },
-    defaultPreload: false, // SSR handles data fetching on the server
+    defaultPreload: isCapacitor ? "intent" : false,
+    ...(isCapacitor ? { defaultSsr: false } : {}),
     defaultNotFoundComponent: NotFound,
     scrollRestoration: true,
   })
-  setupRouterSsrQueryIntegration({
-    router,
-    queryClient,
-  })
+
+  // SSR query integration only for web (not Capacitor SPA)
+  if (!isCapacitor) {
+    setupRouterSsrQueryIntegration({
+      router,
+      queryClient,
+    })
+  }
 
   return router
 }

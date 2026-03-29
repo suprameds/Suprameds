@@ -10,9 +10,20 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "build:mobile": "cross-env VITE_CAPACITOR=true vite build --config vite.config.capacitor.ts && node scripts/generate-capacitor-index.mjs",
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android",
+    "cap:run": "cap run android",
+    "mobile": "pnpm build:mobile && pnpm cap:sync"
   },
   "dependencies": {
+    "@capacitor/android": "^8.3.0",
+    "@capacitor/camera": "^8.0.2",
+    "@capacitor/core": "^8.3.0",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@medusajs/icons": "2.13.4",
     "@medusajs/js-sdk": "2.13.4",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -38,6 +49,7 @@
     "vite-tsconfig-paths": "5.1.4"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.3.0",
     "@eslint/js": "9.33.0",
     "@medusajs-ai/tags": "next",
     "@medusajs/types": "2.13.4",
@@ -50,6 +62,7 @@
     "@types/react": "19.1.1",
     "@types/react-dom": "19.1.1",
     "@vitejs/plugin-react": "5.0.1",
+    "cross-env": "^10.1.0",
     "eslint": "9.33.0",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-react-hooks": "5.2.0",
