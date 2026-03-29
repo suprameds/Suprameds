@@ -10,6 +10,7 @@ const ReturnsInspection = model.define("returns_inspection", {
   return_reason: model.enum(["wrong_product", "damaged", "recalled", "near_expiry", "other"]),
   result: model.enum(["saleable", "damaged", "opened", "near_expiry", "recalled", "doubtful"]),
   action_taken: model.enum(["restocked", "quarantined", "destroyed"]),
+  status: model.enum(["pending", "approved", "rejected", "partial"]).default("pending"),
   approved_by: model.text(),
   evidence_urls: model.json().nullable(),
   inspected_at: model.dateTime(),

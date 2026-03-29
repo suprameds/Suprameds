@@ -56,7 +56,8 @@ export default async function codUnconfirmedTimeoutHandler({
       if (extension && extension.status === "pending_cod_confirmation") {
         const previousStatus = extension.status
 
-        await orderService.updateOrderExtensions(extension.id, {
+        await orderService.updateOrderExtensions({
+          id: extension.id,
           status: "cancelled",
           cod_confirmation_status: "auto_cancelled",
           cancellation_reason: "COD confirmation timed out after 30 minutes",

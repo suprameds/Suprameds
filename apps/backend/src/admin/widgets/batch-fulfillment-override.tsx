@@ -5,6 +5,8 @@ import {
   Text,
   Badge,
   Button,
+  Input,
+  Label,
   toast,
 } from "@medusajs/ui"
 import { useEffect, useState, useCallback } from "react"
@@ -13,6 +15,7 @@ type BatchAllocation = {
   line_item_id: string
   product_title: string
   variant_id: string
+  product_id: string
   variant_sku: string | null
   quantity_ordered: number
   quantity_unallocated: number
@@ -25,6 +28,14 @@ type BatchAllocation = {
     available_after_pick: number | null
     supplier: string | null
   }>
+}
+
+type NewBatchForm = {
+  lot_number: string
+  expiry_date: string
+  quantity: string
+  supplier_name: string
+  batch_mrp: string
 }
 
 type AvailableBatch = {
@@ -71,6 +82,39 @@ const BatchFulfillmentOverride = ({ data }: { data: { id: string } }) => {
     []
   )
   const [loadingBatches, setLoadingBatches] = useState(false)
+  const [allocating, setAllocating] = useState(false)
+  const [addBatchItem, setAddBatchItem] = useState<string | null>(null)
+  const [newBatch, setNewBatch] = useState<NewBatchForm>({
+    lot_number: "",
+    expiry_date: "",
+    quantity: "",
+    supplier_name: "",
+    batch_mrp: "",
+  })
+  const [savingBatch, setSavingBatch] = useState(false)
+  const [orderItems, setOrderItems] = useState<Array<{ id: string; title: string; variant_id: string; product_id: string; quantity: number }>>([])
+
+  // Fetch order items for the "add batch" form in empty state
+  const fetchOrderItems = useCallback(async () => {
+    try {
+      const resp = await fetch(
+        `/admin/orders/${orderId}?fields=id,items.*`,
+        { credentials: "include" }
+      )
+      if (resp.ok) {
+        const json = await resp.json()
+        setOrderItems(
+          (json.order?.items ?? []).map((i: any) => ({
+            id: i.id,
+            title: i.title,
+            variant_id: i.variant_id,
+            product_id: i.product_id,
+            quantity: i.quantity,
+          }))
+        )
+      }
+    } catch { /* best effort */ }
+  }, [orderId])
 
   const fetchPickList = useCallback(async () => {
     try {
@@ -114,6 +158,112 @@ const BatchFulfillmentOverride = ({ data }: { data: { id: string } }) => {
       toast.error("Failed to load available batches")
     } finally {
       setLoadingBatches(false)
+    }
+  }
+
+  const handleAllocateNow = async () => {
+    setAllocating(true)
+    try {
+      const resp = await fetch(
+        `/admin/warehouse/pick-lists/${orderId}/allocate`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      )
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}))
+        throw new Error(err.error || "Allocation failed")
+      }
+      const result = await resp.json()
+      if (result.fully_allocated) {
+        toast.success(`All items allocated (${result.total_allocated} units)`)
+      } else if (result.total_allocated > 0) {
+        toast.success(`Partially allocated: ${result.total_allocated} units. Some items have insufficient stock.`)
+      } else {
+        toast.error("No batches available for allocation. Check inventory.")
+      }
+      fetchPickList()
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to allocate batches")
+    } finally {
+      setAllocating(false)
+    }
+  }
+
+  const handleAddBatch = async (item: BatchAllocation) => {
+    if (!newBatch.lot_number || !newBatch.expiry_date || !newBatch.quantity) {
+      toast.error("Lot number, expiry date, and quantity are required")
+      return
+    }
+
+    const qty = Number(newBatch.quantity)
+    if (qty <= 0 || isNaN(qty)) {
+      toast.error("Quantity must be a positive number")
+      return
+    }
+
+    setSavingBatch(true)
+    try {
+      // 1. Create the batch
+      const batchResp = await fetch("/admin/pharma/batches", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          product_variant_id: item.variant_id,
+          product_id: item.product_id,
+          lot_number: newBatch.lot_number,
+          expiry_date: newBatch.expiry_date,
+          received_quantity: qty,
+          supplier_name: newBatch.supplier_name || null,
+          batch_mrp_paise: newBatch.batch_mrp
+            ? Math.round(Number(newBatch.batch_mrp) * 100)
+            : null,
+          status: "active",
+          _reason: `Created from order page for order ${orderId}`,
+        }),
+      })
+
+      if (!batchResp.ok) {
+        const err = await batchResp.json().catch(() => ({}))
+        throw new Error(err.message || "Failed to create batch")
+      }
+
+      const { batch } = await batchResp.json()
+
+      // 2. Allocate from this batch to the order line item
+      const allocQty = Math.min(qty, item.quantity_unallocated || item.quantity_ordered)
+      if (allocQty > 0) {
+        const allocResp = await fetch(
+          `/admin/warehouse/pick-lists/${orderId}/allocate`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+          }
+        )
+        if (!allocResp.ok) {
+          toast.success(`Batch ${newBatch.lot_number} created. Auto-allocation may have partial results.`)
+        } else {
+          const result = await allocResp.json()
+          toast.success(
+            `Batch ${newBatch.lot_number} created & ${result.total_allocated} unit(s) allocated`
+          )
+        }
+      } else {
+        toast.success(`Batch ${newBatch.lot_number} created (${qty} units in stock)`)
+      }
+
+      // Reset form
+      setNewBatch({ lot_number: "", expiry_date: "", quantity: "", supplier_name: "", batch_mrp: "" })
+      setAddBatchItem(null)
+      fetchPickList()
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to add batch")
+    } finally {
+      setSavingBatch(false)
     }
   }
 
@@ -165,18 +315,127 @@ const BatchFulfillmentOverride = ({ data }: { data: { id: string } }) => {
     }
   }
 
-  // Don't render if no items and not loading
+  // Show empty state with manual allocation trigger + add batch
   if (!loading && !pickList.length) {
     return (
       <Container>
         <Heading level="h2" className="mb-2">
           Batch Allocation
         </Heading>
-        <Text className="text-ui-fg-subtle text-sm">
-          No batch allocations yet. Allocations are created automatically when
-          payment is captured (auto-allocate job) or during fulfillment (FEFO
-          hook).
+        <Text className="text-ui-fg-subtle text-sm mb-3">
+          No batch allocations yet. You can trigger FEFO allocation or add a new batch manually.
         </Text>
+        <div className="flex gap-2 mb-4">
+          <Button
+            variant="primary"
+            size="small"
+            isLoading={allocating}
+            disabled={allocating}
+            onClick={handleAllocateNow}
+          >
+            Allocate Now (FEFO)
+          </Button>
+          <Button
+            variant="secondary"
+            size="small"
+            onClick={() => {
+              if (!orderItems.length) fetchOrderItems()
+              setAddBatchItem(addBatchItem ? null : "__empty__")
+            }}
+          >
+            {addBatchItem ? "Cancel" : "+ Add New Batch"}
+          </Button>
+        </div>
+
+        {addBatchItem && orderItems.length > 0 && (
+          <div className="border border-dashed border-ui-border-strong rounded-lg p-4">
+            <Text className="text-xs font-semibold mb-3">
+              Select item to add batch for:
+            </Text>
+            {orderItems.map((oi) => (
+              <div key={oi.id} className="mb-4 border rounded p-3" style={{ background: "#FAFAFA" }}>
+                <Text className="text-sm font-medium mb-2">{oi.title} (x{oi.quantity})</Text>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs" htmlFor={`lot_${oi.id}`}>Lot / Batch No. *</Label>
+                    <Input
+                      id={`lot_${oi.id}`}
+                      size="small"
+                      placeholder="e.g. BN2026-0401"
+                      value={newBatch.lot_number}
+                      onChange={(e) => setNewBatch({ ...newBatch, lot_number: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs" htmlFor={`exp_${oi.id}`}>Expiry Date *</Label>
+                    <Input
+                      id={`exp_${oi.id}`}
+                      size="small"
+                      type="date"
+                      value={newBatch.expiry_date}
+                      onChange={(e) => setNewBatch({ ...newBatch, expiry_date: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs" htmlFor={`qty_${oi.id}`}>Quantity *</Label>
+                    <Input
+                      id={`qty_${oi.id}`}
+                      size="small"
+                      type="number"
+                      min="1"
+                      placeholder="Units"
+                      value={newBatch.quantity}
+                      onChange={(e) => setNewBatch({ ...newBatch, quantity: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs" htmlFor={`mrp_${oi.id}`}>MRP (₹)</Label>
+                    <Input
+                      id={`mrp_${oi.id}`}
+                      size="small"
+                      type="number"
+                      step="0.01"
+                      placeholder="e.g. 45.00"
+                      value={newBatch.batch_mrp}
+                      onChange={(e) => setNewBatch({ ...newBatch, batch_mrp: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label className="text-xs" htmlFor={`sup_${oi.id}`}>Supplier</Label>
+                    <Input
+                      id={`sup_${oi.id}`}
+                      size="small"
+                      placeholder="e.g. Cipla Ltd"
+                      value={newBatch.supplier_name}
+                      onChange={(e) => setNewBatch({ ...newBatch, supplier_name: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <Button
+                  variant="primary"
+                  size="small"
+                  className="mt-3"
+                  isLoading={savingBatch}
+                  disabled={savingBatch}
+                  onClick={() =>
+                    handleAddBatch({
+                      line_item_id: oi.id,
+                      product_title: oi.title,
+                      variant_id: oi.variant_id,
+                      product_id: oi.product_id,
+                      variant_sku: null,
+                      quantity_ordered: oi.quantity,
+                      quantity_unallocated: oi.quantity,
+                      batches: [],
+                    })
+                  }
+                >
+                  Create Batch & Allocate
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </Container>
     )
   }
@@ -198,6 +457,17 @@ const BatchFulfillmentOverride = ({ data }: { data: { id: string } }) => {
             )}
           </Text>
         </div>
+        {!fullyAllocated && (
+          <Button
+            variant="secondary"
+            size="small"
+            isLoading={allocating}
+            disabled={allocating}
+            onClick={handleAllocateNow}
+          >
+            Allocate Remaining
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -225,24 +495,42 @@ const BatchFulfillmentOverride = ({ data }: { data: { id: string } }) => {
                     )}
                   </Text>
                 </div>
-                {item.batches.length > 0 && (
+                <div className="flex gap-2">
                   <Button
                     variant="secondary"
                     size="small"
                     onClick={() => {
-                      if (overrideItem === item.line_item_id) {
-                        setOverrideItem(null)
+                      if (addBatchItem === item.line_item_id) {
+                        setAddBatchItem(null)
                       } else {
-                        setOverrideItem(item.line_item_id)
-                        loadAvailableBatches(item.variant_id)
+                        setAddBatchItem(item.line_item_id)
+                        setOverrideItem(null)
+                        setNewBatch({ lot_number: "", expiry_date: "", quantity: "", supplier_name: "", batch_mrp: "" })
                       }
                     }}
                   >
-                    {overrideItem === item.line_item_id
-                      ? "Cancel Override"
-                      : "Override Batch"}
+                    {addBatchItem === item.line_item_id ? "Cancel" : "+ Add Batch"}
                   </Button>
-                )}
+                  {item.batches.length > 0 && (
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      onClick={() => {
+                        if (overrideItem === item.line_item_id) {
+                          setOverrideItem(null)
+                        } else {
+                          setOverrideItem(item.line_item_id)
+                          setAddBatchItem(null)
+                          loadAvailableBatches(item.variant_id)
+                        }
+                      }}
+                    >
+                      {overrideItem === item.line_item_id
+                        ? "Cancel Override"
+                        : "Override Batch"}
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Current allocations */}
@@ -394,6 +682,89 @@ const BatchFulfillmentOverride = ({ data }: { data: { id: string } }) => {
                       </tbody>
                     </table>
                   )}
+                </div>
+              )}
+              {/* Add New Batch form */}
+              {addBatchItem === item.line_item_id && (
+                <div className="mt-3 border-t pt-3">
+                  <Text className="text-xs font-semibold mb-3">
+                    Add New Batch for {item.product_title}
+                  </Text>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs" htmlFor="lot_number">Lot / Batch No. *</Label>
+                      <Input
+                        id="lot_number"
+                        size="small"
+                        placeholder="e.g. BN2026-0401"
+                        value={newBatch.lot_number}
+                        onChange={(e) => setNewBatch({ ...newBatch, lot_number: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs" htmlFor="expiry_date">Expiry Date *</Label>
+                      <Input
+                        id="expiry_date"
+                        size="small"
+                        type="date"
+                        value={newBatch.expiry_date}
+                        onChange={(e) => setNewBatch({ ...newBatch, expiry_date: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs" htmlFor="quantity">Quantity *</Label>
+                      <Input
+                        id="quantity"
+                        size="small"
+                        type="number"
+                        min="1"
+                        placeholder="Units received"
+                        value={newBatch.quantity}
+                        onChange={(e) => setNewBatch({ ...newBatch, quantity: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs" htmlFor="batch_mrp">MRP (₹)</Label>
+                      <Input
+                        id="batch_mrp"
+                        size="small"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 45.00"
+                        value={newBatch.batch_mrp}
+                        onChange={(e) => setNewBatch({ ...newBatch, batch_mrp: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-xs" htmlFor="supplier_name">Supplier</Label>
+                      <Input
+                        id="supplier_name"
+                        size="small"
+                        placeholder="e.g. Cipla Ltd"
+                        value={newBatch.supplier_name}
+                        onChange={(e) => setNewBatch({ ...newBatch, supplier_name: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      variant="primary"
+                      size="small"
+                      isLoading={savingBatch}
+                      disabled={savingBatch}
+                      onClick={() => handleAddBatch(item)}
+                    >
+                      Create Batch & Allocate
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="small"
+                      disabled={savingBatch}
+                      onClick={() => setAddBatchItem(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

@@ -13,6 +13,32 @@ interface LoyaltyTransaction {
   description: string
 }
 
+/** Shape returned by GET /store/loyalty/account */
+interface LoyaltyApiResponse {
+  account: {
+    id: string
+    points_balance: number
+    tier: string
+    lifetime_points: number
+    referral_code?: string
+  }
+  transactions: Array<{
+    id: string
+    type: string
+    points: number
+    reason: string
+    reference_type?: string
+    reference_id?: string
+    created_at: string
+  }>
+  tier_progress: {
+    current_tier: string
+    next_tier: string | null
+    points_to_next_tier: number
+    progress_percent: number
+  }
+}
+
 interface LoyaltyAccount {
   points_balance: number
   tier: "Bronze" | "Silver" | "Gold" | "Platinum"
@@ -34,18 +60,38 @@ const TIER_CONFIG: Record<string, { color: string; bg: string; border: string }>
 // ── Hook ─────────────────────────────────────────────────────────────
 
 function useLoyaltyAccount() {
-  return useQuery({
+  return useQuery<LoyaltyAccount>({
     queryKey: queryKeys.loyalty.account(),
     queryFn: async () => {
       const otpToken = getStoredOtpToken()
       const headers: Record<string, string> = {}
       if (otpToken) headers.Authorization = `Bearer ${otpToken}`
 
-      const data = await sdk.client.fetch<LoyaltyAccount>(
+      const raw = await sdk.client.fetch<LoyaltyApiResponse>(
         "/store/loyalty/account",
         { method: "GET", headers }
       )
-      return data
+
+      // Capitalize tier name to match TIER_CONFIG keys (backend stores lowercase)
+      const tierRaw = raw.account?.tier ?? "bronze"
+      const tier = (tierRaw.charAt(0).toUpperCase() + tierRaw.slice(1)) as LoyaltyAccount["tier"]
+
+      return {
+        points_balance: raw.account?.points_balance ?? 0,
+        tier,
+        tier_progress: raw.tier_progress?.progress_percent ?? 0,
+        next_tier: raw.tier_progress?.next_tier
+          ? raw.tier_progress.next_tier.charAt(0).toUpperCase() + raw.tier_progress.next_tier.slice(1)
+          : null,
+        points_to_next_tier: raw.tier_progress?.points_to_next_tier ?? 0,
+        transactions: (raw.transactions ?? []).map((t) => ({
+          id: t.id,
+          date: t.created_at,
+          type: t.type as LoyaltyTransaction["type"],
+          points: t.points,
+          description: t.reason ?? "",
+        })),
+      }
     },
     staleTime: 5 * 60 * 1000,
     retry: 1,
@@ -61,13 +107,13 @@ export default function LoyaltyDashboard() {
     return <LoyaltySkeleton />
   }
 
-  // Graceful fallback if the API isn't available yet
-  if (isError || !data) {
+  // Graceful fallback if the API isn't available yet or data is malformed
+  if (isError || !data || typeof data.points_balance !== "number") {
     return <LoyaltyComingSoon />
   }
 
   const tierStyle = TIER_CONFIG[data.tier] ?? TIER_CONFIG.Bronze
-  const progressPercent = Math.min(Math.max(data.tier_progress, 0), 100)
+  const progressPercent = Math.min(Math.max(data.tier_progress ?? 0, 0), 100)
 
   return (
     <div className="flex flex-col gap-5">

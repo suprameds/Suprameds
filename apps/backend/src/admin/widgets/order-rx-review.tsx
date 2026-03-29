@@ -76,6 +76,7 @@ const OrderRxReviewWidget = () => {
   const { id: orderId } = useParams<{ id: string }>()
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
   const [loading, setLoading] = useState(true)
+  const [isRxOrder, setIsRxOrder] = useState<boolean | null>(null)
 
   // Per-prescription review form state keyed by prescription ID
   const [reviewForms, setReviewForms] = useState<
@@ -94,6 +95,33 @@ const OrderRxReviewWidget = () => {
     if (!orderId) return
     try {
       setLoading(true)
+
+      // Fetch order items to check drug schedules
+      const orderResp = await fetch(
+        `/admin/orders/${orderId}?fields=id,items.*`,
+        { credentials: "include" }
+      )
+      if (orderResp.ok) {
+        const orderJson = await orderResp.json()
+        const orderItems = orderJson.order?.items ?? []
+        const productIds = orderItems.map((i: any) => i.product_id).filter(Boolean)
+        let hasRx = false
+        if (productIds.length > 0) {
+          try {
+            const drugResp = await fetch(
+              `/admin/pharma/drug-products?product_id=${productIds.join(",")}`,
+              { credentials: "include" }
+            )
+            if (drugResp.ok) {
+              const drugJson = await drugResp.json()
+              const drugs = drugJson.drug_products ?? []
+              hasRx = drugs.some((d: any) => d.schedule === "H" || d.schedule === "H1")
+            }
+          } catch { hasRx = true }
+        }
+        setIsRxOrder(hasRx)
+      }
+
       const resp = await fetch(`/admin/prescriptions?order_id=${orderId}`, {
         credentials: "include",
       })
@@ -198,6 +226,9 @@ const OrderRxReviewWidget = () => {
       setSubmitting(null)
     }
   }
+
+  // Hide widget entirely for OTC-only orders
+  if (isRxOrder === false) return null
 
   if (loading) {
     return (

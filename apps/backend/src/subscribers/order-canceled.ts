@@ -117,7 +117,43 @@ export default async function handler({
     captureException(err, { subscriber: "order-canceled", orderId, step: "batch-reversal" })
   }
 
-  // 2. Send push notification to customer
+  // 2. Auto-refund Razorpay payments on cancellation
+  try {
+    const orderService = container.resolve(Modules.ORDER) as any
+    const paymentModule = container.resolve(Modules.PAYMENT) as any
+
+    const order = await orderService.retrieveOrder(orderId, {
+      relations: ["payment_collections", "payment_collections.payments"],
+    })
+
+    const payments = order.payment_collections
+      ?.flatMap((pc: any) => pc.payments ?? [])
+      ?.filter((p: any) => p.captured_at && !p.canceled_at) ?? []
+
+    for (const payment of payments) {
+      try {
+        await paymentModule.refundPayment({
+          payment_id: payment.id,
+          amount: payment.amount,
+        })
+        logger.info(
+          `Auto-refunded ₹${payment.amount} for payment ${payment.id} on cancelled order ${orderId}`
+        )
+      } catch (refundErr: any) {
+        logger.warn(
+          `Auto-refund failed for payment ${payment.id}: ${refundErr?.message}. Manual refund required.`
+        )
+        captureException(refundErr, { subscriber: "order-canceled", orderId, paymentId: payment.id, step: "auto-refund" })
+      }
+    }
+  } catch (refundErr) {
+    logger.warn(
+      `Payment refund check failed for order ${orderId}: ${(refundErr as Error).message}`
+    )
+    captureException(refundErr, { subscriber: "order-canceled", orderId, step: "auto-refund-check" })
+  }
+
+  // 3. Send push notification to customer
   try {
     const orderService = container.resolve(Modules.ORDER) as any
     const order = await orderService.retrieveOrder(orderId, {

@@ -118,7 +118,8 @@ const updateOrderExtensionStep = createStep(
         ? "pending_rx_review"
         : "fully_approved"
 
-      await orderService.updateOrderExtensions(extension.id, {
+      await orderService.updateOrderExtensions({
+        id: extension.id,
         cod_confirmation_status: "confirmed",
         cod_confirmed_at: new Date(),
         status: nextStatus,
@@ -137,7 +138,8 @@ const updateOrderExtensionStep = createStep(
     }
 
     // Customer declined — cancel
-    await orderService.updateOrderExtensions(extension.id, {
+    await orderService.updateOrderExtensions({
+      id: extension.id,
       cod_confirmation_status: "auto_cancelled",
       status: "cancelled",
       cancellation_reason: "Customer declined COD confirmation",

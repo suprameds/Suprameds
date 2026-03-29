@@ -63,7 +63,8 @@ export default async function paymentCapturedHandler({
         ]
 
         if (prePaymentStatuses.includes(previousStatus)) {
-          await pharmaOrderService.updateOrderExtensions(existing.id, {
+          await pharmaOrderService.updateOrderExtensions({
+            id: existing.id,
             status: "payment_captured",
             payment_captured_amount: data.amount ?? Number(order.total) ?? 0,
           })

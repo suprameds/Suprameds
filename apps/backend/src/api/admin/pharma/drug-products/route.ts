@@ -27,7 +27,8 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
 /**
  * GET /admin/pharma/drug-products?product_id=xxx
- * Retrieves drug metadata for a given product.
+ * GET /admin/pharma/drug-products?product_id=id1,id2,id3
+ * Retrieves drug metadata for one or more products.
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const pharmaService = req.scope.resolve(PHARMA_MODULE) as any
@@ -38,9 +39,19 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return res.json({ drug_products: all })
   }
 
+  // Support comma-separated product IDs
+  const ids = productId.split(",").map((id) => id.trim()).filter(Boolean)
+
+  if (ids.length === 1) {
+    const results = await pharmaService.listDrugProducts({
+      product_id: ids[0],
+    })
+    return res.json({ drug_products: results, drug_product: results[0] || null })
+  }
+
   const results = await pharmaService.listDrugProducts({
-    product_id: productId,
+    product_id: ids,
   })
 
-  return res.json({ drug_product: results[0] || null })
+  return res.json({ drug_products: results })
 }

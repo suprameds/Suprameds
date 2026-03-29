@@ -131,7 +131,8 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
     if (ext) {
       const prevStatus = ext.status
-      await pharmaOrderService.updateOrderExtensions(ext.id, {
+      await pharmaOrderService.updateOrderExtensions({
+        id: ext.id,
         status: "packed",
       })
       await pharmaOrderService.createOrderStateHistorys({

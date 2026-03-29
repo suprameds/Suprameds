@@ -15,7 +15,7 @@ const logger = createLogger("migration:000-reset-data")
  *   - Reference data tables (country, currency) — seeded by db:migrate,
  *     NOT by workflows. Without these, createRegionsWorkflow fails.
  *
- * Uses DISABLE/ENABLE TRIGGER to bypass FK constraints instead of CASCADE,
+ * Uses session_replication_role to bypass FK constraints instead of CASCADE,
  * which would cascade-delete country data via region_country.
  */
 export default async function resetData({ container }: { container: MedusaContainer }) {
@@ -27,7 +27,7 @@ export default async function resetData({ container }: { container: MedusaContai
   const pgConnection = container.resolve(ContainerRegistrationKeys.PG_CONNECTION)
 
   logger.warn("╔══════════════════════════════════════════════════╗")
-  logger.warn("║  ⚠  DATABASE RESET — DELETING ALL DATA          ║")
+  logger.warn("║  DATABASE RESET — DELETING ALL DATA             ║")
   logger.warn("╚══════════════════════════════════════════════════╝")
 
   // 1. Drop the _seed_migrations tracking table so all seeds re-run
@@ -53,7 +53,6 @@ export default async function resetData({ container }: { container: MedusaContai
   logger.info(`Found ${tableNames.length} tables to truncate (preserving ${PRESERVED_TABLES.join(", ")})`)
 
   // 3. Disable FK triggers, truncate each table, re-enable triggers.
-  //    This avoids CASCADE which would wipe the preserved country/currency tables.
   try {
     await pgConnection.raw(`SET session_replication_role = 'replica'`)
 

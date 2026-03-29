@@ -108,7 +108,8 @@ const updateOrderStatusStep = createStep(
     if (!ext) return new StepResponse(null)
 
     const prevStatus = ext.status
-    await pharmaOrderService.updateOrderExtensions(ext.id, {
+    await pharmaOrderService.updateOrderExtensions({
+      id: ext.id,
       status: "dispatched",
     })
 

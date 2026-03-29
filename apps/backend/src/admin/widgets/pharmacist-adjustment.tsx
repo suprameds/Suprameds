@@ -87,6 +87,7 @@ const PharmacistAdjustmentWidget = () => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
   const [decisions, setDecisions] = useState<DispenseDecision[]>([])
   const [loading, setLoading] = useState(true)
+  const [isRxOrder, setIsRxOrder] = useState<boolean | null>(null)
 
   // Per-item form state keyed by line item ID
   const [forms, setForms] = useState<
@@ -120,10 +121,31 @@ const PharmacistAdjustmentWidget = () => {
         }),
       ])
 
+      let orderItems: OrderLineItem[] = []
       if (orderResp.ok) {
         const orderJson = await orderResp.json()
-        setItems(orderJson.order?.items ?? [])
+        orderItems = orderJson.order?.items ?? []
+        setItems(orderItems)
       }
+
+      // Check if any item is Schedule H/H1 (Rx) — hide widget for OTC-only orders
+      const productIds = orderItems.map((i) => i.product_id).filter(Boolean)
+      let hasRx = false
+      if (productIds.length > 0) {
+        try {
+          const drugResp = await fetch(
+            `/admin/pharma/drug-products?product_id=${productIds.join(",")}`,
+            { credentials: "include" }
+          )
+          if (drugResp.ok) {
+            const drugJson = await drugResp.json()
+            const drugs = drugJson.drug_products ?? []
+            hasRx = drugs.some((d: any) => d.schedule === "H" || d.schedule === "H1")
+          }
+        } catch { /* proceed — show widget if drug check fails */ hasRx = true }
+      }
+      setIsRxOrder(hasRx)
+
       if (rxResp.ok) {
         const rxJson = await rxResp.json()
         setPrescriptions(rxJson.prescriptions ?? [])
@@ -254,6 +276,9 @@ const PharmacistAdjustmentWidget = () => {
       </Container>
     )
   }
+
+  // Hide widget entirely for OTC-only orders
+  if (isRxOrder === false) return null
 
   if (items.length === 0) {
     return (

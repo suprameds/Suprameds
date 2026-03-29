@@ -50,7 +50,8 @@ export default async function dispenseDecisionHandler({
     const prevStatus = extension.status
 
     if (prevStatus !== newStatus) {
-      await pharmaOrderService.updateOrderExtensions(extension.id, {
+      await pharmaOrderService.updateOrderExtensions({
+        id: extension.id,
         status: newStatus,
         dispensed_by: pharmacist_id,
       })

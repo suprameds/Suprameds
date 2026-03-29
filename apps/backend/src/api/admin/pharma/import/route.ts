@@ -120,6 +120,15 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     (existingProducts as any[]).map((p) => [p.handle, p.id])
   )
 
+  // Existing drug_product records (to detect which products need pharma metadata)
+  const existingDrugProducts = new Set<string>()
+  try {
+    const allDrugs = await pharmaService.listDrugProducts({}, { take: 10000 })
+    for (const dp of (Array.isArray(allDrugs) ? allDrugs : (allDrugs?.[0] ?? [])) as any[]) {
+      if (dp?.product_id) existingDrugProducts.add(dp.product_id)
+    }
+  } catch { /* pharma module may not be ready */ }
+
   // Existing categories
   const { data: cats } = await query.graph({ entity: "product_category", fields: ["id", "handle"] })
   const categoryByHandle = new Map<string, any>(
@@ -143,59 +152,82 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     const sku = makeSku(handle)
 
     try {
-      if (existingByHandle.has(handle)) {
-        results.push({ brand_name: row.brand_name, status: "skipped", message: "Product already exists" })
-        continue
-      }
-
       const sellingPrice = Number(row.selling_price_inr) || 1
       const mrpPrice = Number(row.mrp_inr) || sellingPrice
-      const category = row.category
-        ? categoryByHandle.get(slugify(row.category)) || categoryByHandle.get(row.category)
-        : null
-      const tagValues = row.tags ? row.tags.split(";").map((t: string) => t.trim()).filter(Boolean) : []
-      const tagIds = tagValues.map((tv: string) => tagByValue.get(tv)?.id).filter(Boolean)
-      const description = row.description || `${row.brand_name} — ${row.composition || row.generic_name}`
 
-      // Create product
-      const { result: createdProducts } = await createProductsWorkflow(container).run({
-        input: {
-          products: [{
-            title: row.brand_name,
-            handle,
-            description,
-            status: "published",
-            sales_channels: [{ id: defaultSalesChannel.id }],
-            tag_ids: tagIds,
-            options: [{ title: "Pack", values: ["default"] }],
-            variants: [{
+      let productId: string
+      let isNew = false
+
+      if (existingByHandle.has(handle)) {
+        // Product exists — use its ID but still backfill pharma metadata if missing
+        productId = existingByHandle.get(handle)!
+      } else {
+        // Create new product
+        isNew = true
+        const category = row.category
+          ? categoryByHandle.get(slugify(row.category)) || categoryByHandle.get(row.category)
+          : null
+        const tagValues = row.tags ? row.tags.split(";").map((t: string) => t.trim()).filter(Boolean) : []
+        const tagIds = tagValues.map((tv: string) => tagByValue.get(tv)?.id).filter(Boolean)
+        const description = row.description || `${row.brand_name} — ${row.composition || row.generic_name}`
+
+        const { result: createdProducts } = await createProductsWorkflow(container).run({
+          input: {
+            products: [{
               title: row.brand_name,
-              sku,
-              options: { Pack: "default" },
-              prices: [{ currency_code: "inr", amount: sellingPrice }],
-              manage_inventory: true,
-              allow_backorder: false,
+              handle,
+              description,
+              status: "published",
+              sales_channels: [{ id: defaultSalesChannel.id }],
+              tag_ids: tagIds,
+              options: [{ title: "Pack", values: ["default"] }],
+              variants: [{
+                title: row.brand_name,
+                sku,
+                options: { Pack: "default" },
+                prices: [{ currency_code: "inr", amount: sellingPrice }],
+                manage_inventory: true,
+                allow_backorder: false,
+              }],
+              shipping_profile_id: shippingProfile.id,
+              metadata: { source: "admin-csv-import", pharma: true, manufacturer: row.manufacturer || null },
             }],
-            shipping_profile_id: shippingProfile.id,
-            metadata: { source: "admin-csv-import", pharma: true, manufacturer: row.manufacturer || null },
-          }],
-        },
-      })
+          },
+        })
 
-      const product = (createdProducts as any[])[0]
-      if (!product?.id) throw new Error("Product creation returned no ID")
+        const product = (createdProducts as any[])[0]
+        if (!product?.id) throw new Error("Product creation returned no ID")
+        productId = product.id
+        existingByHandle.set(handle, productId)
 
-      existingByHandle.set(handle, product.id)
+        // Category link (new products only)
+        if (category?.id) {
+          await batchLinkProductsToCategoryWorkflow(container).run({
+            input: { id: category.id, add: [productId], remove: [] },
+          })
+        }
 
-      // Inventory
+        // Collection link (new products only)
+        const collectionHandle = row.collection ? slugify(row.collection) : null
+        if (collectionHandle) {
+          const collection = collectionByHandle.get(collectionHandle) || collectionByHandle.get(row.collection)
+          if (collection?.id) {
+            const productService = container.resolve(ModuleRegistrationName.PRODUCT) as any
+            await productService.updateProducts({ id: productId, collection_id: collection.id })
+          }
+        }
+      }
+
+      // Get variant for this product
       const { data: variants } = await query.graph({
         entity: "variant",
         fields: ["id", "sku", "product_id"],
-        filters: { product_id: [product.id] },
+        filters: { product_id: [productId] },
       })
       const variant = (variants as any[])[0]
 
-      if (variant?.id) {
+      // Inventory — create if this is a new product
+      if (isNew && variant?.id) {
         const { result: invItems } = await createInventoryItemsWorkflow(container).run({
           input: { items: [{ sku }] as any },
         })
@@ -219,48 +251,35 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         }
       }
 
-      // Category link
-      if (category?.id) {
-        await batchLinkProductsToCategoryWorkflow(container).run({
-          input: { id: category.id, add: [product.id], remove: [] },
+      // Drug metadata — create if missing for this product
+      if (!existingDrugProducts.has(productId)) {
+        await pharmaService.createDrugProducts({
+          product_id: productId,
+          schedule: row.schedule || "OTC",
+          generic_name: row.generic_name,
+          therapeutic_class: row.therapeutic_class || null,
+          dosage_form: row.dosage_form || "tablet",
+          strength: row.strength || null,
+          composition: row.composition || null,
+          pack_size: row.pack_size || null,
+          unit_type: row.unit_type || "strip",
+          mrp_paise: mrpPrice * 100,
+          gst_rate: Number(row.gst_rate) || 5,
+          hsn_code: row.hsn_code || null,
+          indications: row.indications || null,
+          contraindications: row.contraindications || null,
+          side_effects: row.side_effects || null,
+          storage_instructions: row.storage_instructions || null,
+          dosage_instructions: row.dosage_instructions || null,
+          requires_refrigeration: toBool(row.requires_refrigeration),
+          is_narcotic: toBool(row.is_narcotic),
+          habit_forming: toBool(row.habit_forming),
+          is_chronic: toBool(row.is_chronic),
+          metadata: { source: "admin-csv-import", manufacturer: row.manufacturer || null },
         })
+        existingDrugProducts.add(productId)
+        logger.info(`[csv-import]   ↳ Drug metadata created for ${row.brand_name}`)
       }
-
-      // Collection link
-      const collectionHandle = row.collection ? slugify(row.collection) : null
-      if (collectionHandle) {
-        const collection = collectionByHandle.get(collectionHandle) || collectionByHandle.get(row.collection)
-        if (collection?.id) {
-          const productService = container.resolve(ModuleRegistrationName.PRODUCT) as any
-          await productService.updateProducts({ id: product.id, collection_id: collection.id })
-        }
-      }
-
-      // Drug metadata
-      await pharmaService.createDrugProducts({
-        product_id: product.id,
-        schedule: row.schedule || "OTC",
-        generic_name: row.generic_name,
-        therapeutic_class: row.therapeutic_class || null,
-        dosage_form: row.dosage_form || "tablet",
-        strength: row.strength || null,
-        composition: row.composition || null,
-        pack_size: row.pack_size || null,
-        unit_type: row.unit_type || "strip",
-        mrp_paise: mrpPrice * 100,
-        gst_rate: Number(row.gst_rate) || 5,
-        hsn_code: row.hsn_code || null,
-        indications: row.indications || null,
-        contraindications: row.contraindications || null,
-        side_effects: row.side_effects || null,
-        storage_instructions: row.storage_instructions || null,
-        dosage_instructions: row.dosage_instructions || null,
-        requires_refrigeration: toBool(row.requires_refrigeration),
-        is_narcotic: toBool(row.is_narcotic),
-        habit_forming: toBool(row.habit_forming),
-        is_chronic: toBool(row.is_chronic),
-        metadata: { source: "admin-csv-import", manufacturer: row.manufacturer || null },
-      })
 
       // Inventory batch if lot data provided
       if (row.batch_lot_number && row.batch_expiry_date && variant?.id) {
@@ -270,29 +289,33 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
           ? Number(row.batch_purchase_price_inr) * 100
           : null
 
-        await batchService.createBatches({
-          product_variant_id: variant.id,
-          product_id: product.id,
-          lot_number: row.batch_lot_number,
-          manufactured_on: row.batch_manufactured_on || null,
-          expiry_date: row.batch_expiry_date,
-          received_quantity: batchQty,
-          available_quantity: batchQty,
-          reserved_quantity: 0,
-          batch_mrp_paise: batchMrp,
-          purchase_price_paise: batchPurchase,
-          location_id: stockLocation.id,
-          supplier_name: row.batch_supplier || row.manufacturer || null,
-          grn_number: row.batch_grn_number || null,
-          received_on: new Date().toISOString(),
-          status: "active",
-          metadata: { source: "admin-csv-import" },
-        })
-        logger.info(`[csv-import]   ↳ Batch ${row.batch_lot_number}`)
+        try {
+          await batchService.createBatches({
+            product_variant_id: variant.id,
+            product_id: productId,
+            lot_number: row.batch_lot_number,
+            manufactured_on: row.batch_manufactured_on || null,
+            expiry_date: row.batch_expiry_date,
+            received_quantity: batchQty,
+            available_quantity: batchQty,
+            reserved_quantity: 0,
+            batch_mrp_paise: batchMrp,
+            purchase_price_paise: batchPurchase,
+            location_id: stockLocation.id,
+            supplier_name: row.batch_supplier || row.manufacturer || null,
+            grn_number: row.batch_grn_number || null,
+            received_on: new Date().toISOString(),
+            status: "active",
+            metadata: { source: "admin-csv-import" },
+          })
+          logger.info(`[csv-import]   ↳ Batch ${row.batch_lot_number}`)
+        } catch {
+          // Batch may already exist for this lot — skip
+        }
       }
 
-      results.push({ brand_name: row.brand_name, status: "created" })
-      logger.info(`[csv-import] Created: ${row.brand_name}`)
+      results.push({ brand_name: row.brand_name, status: isNew ? "created" : "updated" })
+      logger.info(`[csv-import] ${isNew ? "Created" : "Updated"}: ${row.brand_name}`)
     } catch (err: any) {
       results.push({ brand_name: row.brand_name, status: "error", message: err?.message || String(err) })
       logger.error(`[csv-import] Error (${row.brand_name}): ${err?.message}`)
@@ -300,11 +323,11 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   const created = results.filter((r) => r.status === "created").length
-  const skipped = results.filter((r) => r.status === "skipped").length
+  const updated = results.filter((r) => r.status === "updated").length
   const errored = results.filter((r) => r.status === "error").length
 
   return res.json({
-    summary: { total: rows.length, created, skipped, errors: errored },
+    summary: { total: rows.length, created, updated, errors: errored },
     results,
     // Echo back progress metadata when provided (used by chunked UI)
     row_index: body.row_index,
