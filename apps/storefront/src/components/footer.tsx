@@ -98,10 +98,10 @@ const Footer = () => {
             <div className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
               <p className="font-medium mb-1" style={{ color: "rgba(255,255,255,0.7)" }}>Registered Office</p>
               <address style={{ fontStyle: "normal" }}>
-                Supracyn Private Limited<br />
-                D.No.7-2-544, SRT 323, Room No.1, 1st Floor<br />
-                Opp Lodha Apartments, Sanathnagar<br />
-                Hyderabad, Telangana
+                Supracyn Pharma Pvt Ltd<br />
+                1st Floor, H.No 7-2-544, SRT 323<br />
+                Sanathnagar, Hyderabad – 500018<br />
+                Telangana · GSTIN: 36ABGCS8302R1ZP
               </address>
             </div>
             <CountrySelect regions={regions ?? []} />
@@ -189,7 +189,7 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex flex-col gap-1">
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                © {new Date().getFullYear()} Supracyn Private Limited. All rights reserved.
+                © {new Date().getFullYear()} Supracyn Pharma Pvt Ltd. All rights reserved.
               </p>
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
                 Drug License No. TS/HYD/2021-82149 &nbsp;·&nbsp;
@@ -206,7 +206,7 @@ const Footer = () => {
             </div>
           </div>
           <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.25)" }}>
-            Helpdesk: suprameds@gmail.in · +91 76749 62758 · Response within 48 hours
+            Helpdesk: suprameds@gmail.com · +91 76749 62758 · Response within 48 hours
           </p>
         </div>
       </div>

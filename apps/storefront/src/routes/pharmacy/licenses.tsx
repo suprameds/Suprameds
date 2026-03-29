@@ -67,7 +67,7 @@ function PharmacyLicenses() {
                   ["License Type", "Form 20 &amp; 21 (Retail Sale of Drugs)"],
                   ["Date of Issue", "20 September 2021"],
                   ["Next Retention Fee Due", "19 September 2026"],
-                  ["Licensed Premises", "D.No.7-2-544, SRT 323, Room No.1, 1st Floor, Opp Lodha Apartments, Sanathnagar, Hyderabad, Telangana"],
+                  ["Licensed Premises", "1st Floor, H.No 7-2-544, SRT 323, Sanathnagar, Hyderabad – 500018, Telangana"],
                   ["Schedule Authorisation", "Schedules C, C(1) — excluding Schedule X (Form 20 &amp; 21)"],
                 ].map(([label, value]) => (
                   <tr key={label} style={{ borderTop: "1px solid var(--bg-tertiary)" }}>
@@ -123,11 +123,12 @@ function PharmacyLicenses() {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               {[
-                ["Legal Name", "Supracyn Private Limited"],
+                ["Legal Name", "Supracyn Pharma Pvt Ltd"],
+                ["GSTIN", "36ABGCS8302R1ZP"],
                 ["Directors", "Guntupalli Mallishwari · Bollempalli Satyanarayana"],
-                ["Registered Address", "D.No.7-2-544, SRT 323, Room No.1, 1st Floor, Opp Lodha Apartments, Sanathnagar, Hyderabad, Telangana"],
+                ["Registered Address", "1st Floor, H.No 7-2-544, SRT 323, Sanathnagar, Hyderabad – 500018, Telangana"],
                 ["Customer Care", "+91 76749 62758"],
-                ["Helpdesk Email", "suprameds@gmail.in"],
+                ["Helpdesk Email", "suprameds@gmail.com"],
               ].map(([label, value]) => (
                 <div key={label}>
                   <p className="text-xs font-medium mb-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</p>
