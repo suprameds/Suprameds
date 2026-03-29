@@ -266,18 +266,6 @@ const Home = () => {
 
         <div className="content-container relative z-10 py-16 lg:py-24">
           <div className="max-w-2xl">
-            <div className="flex items-center gap-2 mb-5">
-              <span
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                style={{ background: "rgba(14,124,134,0.2)", color: "var(--brand-teal-light)", border: "1px solid rgba(14,124,134,0.3)" }}
-              >
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
-                </svg>
-                CDSCO Licensed · Drug License TS/HYD/2021-82149
-              </span>
-            </div>
-
             <h1
               className="text-3xl sm:text-4xl lg:text-5xl font-semibold leading-[1.15] mb-3"
               style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif", letterSpacing: "-0.02em" }}
