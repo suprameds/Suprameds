@@ -33,7 +33,6 @@ import {
   createShippingProfilesWorkflow,
   createStockLocationsWorkflow,
   createTaxRegionsWorkflow,
-  linkSalesChannelsToStockLocationWorkflow,
   updateStoresWorkflow,
 } from "@medusajs/medusa/core-flows"
 import { createLogger } from "../lib/logger"
@@ -368,21 +367,30 @@ export default async function infraSeed({
   }
 
   // ── 10. Link sales channel to stock location ────────────────────────────
-  try {
-    await linkSalesChannelsToStockLocationWorkflow(container).run({
-      input: {
-        id: stockLocation.id,
-        add: [defaultSalesChannel[0].id],
+  // Use direct link.create() — the workflow wrapper can silently fail
+  // to persist the link that the storefront inventory queries rely on.
+  const { data: existingSCLinks } = await query.graph({
+    entity: "stock_location",
+    fields: ["id", "sales_channels.id"],
+    filters: { id: stockLocation.id },
+  })
+
+  const alreadyLinked = (existingSCLinks[0] as any)?.sales_channels?.some(
+    (sc: any) => sc.id === defaultSalesChannel[0].id
+  )
+
+  if (!alreadyLinked) {
+    await link.create({
+      [Modules.STOCK_LOCATION]: {
+        stock_location_id: stockLocation.id,
+      },
+      [Modules.SALES_CHANNEL]: {
+        sales_channel_id: defaultSalesChannel[0].id,
       },
     })
     logger.info("Sales channel linked to stock location.")
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    if (msg.includes("already") || msg.includes("duplicate")) {
-      logger.info("Sales channel already linked to stock location.")
-    } else {
-      throw err
-    }
+  } else {
+    logger.info("Sales channel already linked to stock location, skipping.")
   }
 
   // ── 11. Product categories (hierarchical) ──────────────────────────────

@@ -176,7 +176,8 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
         }
 
         if (allItemsAllocated) {
-          await pharmaOrderService.updateOrderExtensions(ext.id, {
+          await pharmaOrderService.updateOrderExtensions({
+            id: ext.id,
             status: "ready_for_dispatch",
           })
           await pharmaOrderService.createOrderStateHistorys({

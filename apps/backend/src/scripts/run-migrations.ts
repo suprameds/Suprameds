@@ -11,8 +11,7 @@
  *   FORCE_RESEED=true        — Ignore tracking table and re-run all scripts (local dev)
  *
  * Prerequisites:
- *   - `npx medusa db:migrate` must be run first (MikroORM schema migrations)
- *   - Environment variables must be set (DATABASE_URL, RAZORPAY_*, etc.)
+ *   - `npx medusa db:migrate` must run first (MikroORM schema migrations)
  */
 
 import { MedusaContainer } from "@medusajs/framework"
@@ -42,10 +41,13 @@ export default async function runMigrations({
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   const pgConnection = container.resolve(ContainerRegistrationKeys.PG_CONNECTION)
 
-  const forceReseed = process.env.FORCE_RESEED === "true"
+  const resetDb = process.env.RESET_DATABASE === "true"
+  const forceReseed = process.env.FORCE_RESEED === "true" || resetDb
 
-  // Pre-step: database reset (only when RESET_DATABASE=true)
-  await resetData({ container })
+  // 0. Optionally reset all data (RESET_DATABASE=true)
+  if (resetDb) {
+    await resetData({ container })
+  }
 
   // 1. Create tracking table (idempotent)
   await pgConnection.raw(`
@@ -60,6 +62,7 @@ export default async function runMigrations({
   logger.info("║       SUPRAMEDS — Migration Runner v2           ║")
   logger.info("╚══════════════════════════════════════════════════╝")
   logger.info(`  FORCE_RESEED = ${forceReseed}`)
+  logger.info(`  RESET_DATABASE = ${resetDb}`)
 
   let completed = 0
   let skipped = 0

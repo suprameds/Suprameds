@@ -58,6 +58,7 @@ const PrescriptionUploadWidget = () => {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
   const [customerId, setCustomerId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isRxOrder, setIsRxOrder] = useState<boolean | null>(null)
   const [uploading, setUploading] = useState(false)
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -70,7 +71,7 @@ const PrescriptionUploadWidget = () => {
     try {
       const [orderResp, rxResp] = await Promise.all([
         fetch(
-          `/admin/orders/${orderId}?fields=id,customer_id,email`,
+          `/admin/orders/${orderId}?fields=id,customer_id,email,items.*`,
           { credentials: "include" }
         ),
         fetch(`/admin/prescriptions?order_id=${orderId}`, {
@@ -81,6 +82,25 @@ const PrescriptionUploadWidget = () => {
       if (orderResp.ok) {
         const orderJson = await orderResp.json()
         setCustomerId(orderJson.order?.customer_id ?? null)
+
+        // Check if any item is Schedule H/H1 (Rx)
+        const orderItems = orderJson.order?.items ?? []
+        const productIds = orderItems.map((i: any) => i.product_id).filter(Boolean)
+        let hasRx = false
+        if (productIds.length > 0) {
+          try {
+            const drugResp = await fetch(
+              `/admin/pharma/drug-products?product_id=${productIds.join(",")}`,
+              { credentials: "include" }
+            )
+            if (drugResp.ok) {
+              const drugJson = await drugResp.json()
+              const drugs = drugJson.drug_products ?? []
+              hasRx = drugs.some((d: any) => d.schedule === "H" || d.schedule === "H1")
+            }
+          } catch { hasRx = true }
+        }
+        setIsRxOrder(hasRx)
       }
 
       if (rxResp.ok) {
@@ -179,6 +199,9 @@ const PrescriptionUploadWidget = () => {
     setPreviewUrl(null)
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
+
+  // Hide widget entirely for OTC-only orders
+  if (isRxOrder === false) return null
 
   if (loading) {
     return (

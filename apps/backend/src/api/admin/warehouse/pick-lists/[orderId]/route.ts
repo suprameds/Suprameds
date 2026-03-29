@@ -1,5 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { Modules } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { INVENTORY_BATCH_MODULE } from "../../../../../modules/inventoryBatch"
 import { createLogger } from "../../../../../lib/logger"
 
@@ -34,12 +34,14 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   try {
-    const orderService = req.scope.resolve(Modules.ORDER) as any
+    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
     const batchService = req.scope.resolve(INVENTORY_BATCH_MODULE) as any
 
-    const order = await orderService.retrieveOrder(orderId, {
-      relations: ["items", "items.variant", "shipping_address"],
-    })
+    const { data: [order] } = await query.graph({
+      entity: "order",
+      fields: ["id", "display_id", "items.*", "items.variant_id", "items.variant.sku", "shipping_address.*"],
+      filters: { id: orderId },
+    }) as any
 
     if (!order) {
       return res.status(404).json({ error: "Order not found" })
@@ -89,6 +91,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
         product_title: item.title,
         variant_sku: item.variant?.sku || null,
         variant_id: item.variant_id,
+        product_id: item.product_id,
         quantity_ordered: item.quantity,
         quantity_unallocated: Math.max(0, item.quantity - totalAllocated),
         batches: itemDeductions.map((d: any) => {

@@ -100,7 +100,8 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     )
   }
 
-  await orderService.updateOrderExtensions(extension.id, {
+  await orderService.updateOrderExtensions({
+    id: extension.id,
     gstin: normalizedGstin,
   })
 

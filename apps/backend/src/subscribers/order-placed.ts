@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { NOTIFICATION_MODULE } from "../modules/notification"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
+import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 import { captureException } from "../lib/sentry"
 import { createLogger } from "../lib/logger"
 
@@ -134,6 +135,96 @@ export default async function orderPlacedHandler({
         `OrderExtension created for ${orderId} — ` +
           `is_rx: ${isRxOrder}, initial status: ${extension.status}`
       )
+
+      // ── 3b. Inline FEFO allocation for non-Rx orders ────────────
+      // For OTC orders (including COD), allocate batches immediately
+      // instead of waiting for the 5-minute auto-allocate job.
+      if (!isRxOrder && order.items?.length) {
+        try {
+          const batchService = container.resolve(INVENTORY_BATCH_MODULE) as any
+
+          const MIN_SHELF_LIFE_DAYS = Number(process.env.BATCH_MIN_SHELF_LIFE_DAYS ?? 60)
+          const mslCutoff = new Date()
+          mslCutoff.setHours(0, 0, 0, 0)
+          mslCutoff.setDate(mslCutoff.getDate() + MIN_SHELF_LIFE_DAYS)
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+
+          let allAllocated = true
+
+          for (const item of order.items) {
+            const variantId = item.variant_id
+            if (!variantId) continue
+
+            const batches = await batchService.listBatches(
+              { product_variant_id: variantId, status: "active" },
+              { take: null, order: { expiry_date: "ASC" } }
+            )
+
+            let eligible = (batches as any[]).filter((b: any) => {
+              const exp = new Date(b.expiry_date)
+              exp.setHours(0, 0, 0, 0)
+              const avail = Number(b.available_quantity) - Number(b.reserved_quantity ?? 0)
+              return exp >= mslCutoff && avail > 0
+            })
+            if (!eligible.length) {
+              eligible = (batches as any[]).filter((b: any) => {
+                const exp = new Date(b.expiry_date)
+                exp.setHours(0, 0, 0, 0)
+                const avail = Number(b.available_quantity) - Number(b.reserved_quantity ?? 0)
+                return exp >= today && avail > 0
+              })
+            }
+
+            let remaining = Number(item.quantity)
+            for (const batch of eligible) {
+              if (remaining <= 0) break
+              const avail = Number(batch.available_quantity) - Number(batch.reserved_quantity ?? 0)
+              if (avail <= 0) continue
+              const allocQty = Math.min(remaining, avail)
+              const newAvail = Number(batch.available_quantity) - allocQty
+
+              await batchService.updateBatches({
+                id: batch.id,
+                available_quantity: newAvail,
+                version: Number(batch.version ?? 0) + 1,
+                ...(newAvail === 0 ? { status: "depleted" } : {}),
+              })
+              await batchService.createBatchDeductions({
+                batch_id: batch.id,
+                order_line_item_id: item.id,
+                order_id: orderId,
+                quantity: allocQty,
+                deduction_type: "sale",
+              })
+              remaining -= allocQty
+            }
+            if (remaining > 0) allAllocated = false
+          }
+
+          if (allAllocated) {
+            await pharmaOrderService.updateOrderExtensions({
+              id: extension.id,
+              status: "ready_for_dispatch",
+            })
+            await pharmaOrderService.createOrderStateHistorys({
+              order_id: orderId,
+              from_status: "payment_captured",
+              to_status: "ready_for_dispatch",
+              changed_by: "system:order-placed-inline-fefo",
+              reason: "Immediate FEFO allocation on order placement",
+            })
+            logger.info(`Inline FEFO allocation complete for order ${orderId}`)
+          } else {
+            logger.warn(`Partial allocation for order ${orderId} — job will retry`)
+          }
+        } catch (allocErr) {
+          logger.warn(
+            `Inline FEFO allocation failed for ${orderId}, job will retry:`,
+            (allocErr as Error).message
+          )
+        }
+      }
     } catch (extError) {
       // pharmaOrder module may not be active — log and continue
       logger.warn(

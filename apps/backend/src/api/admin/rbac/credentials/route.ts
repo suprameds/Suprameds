@@ -78,6 +78,19 @@ export async function POST(
   if (!credential_type) {
     throw new MedusaError(MedusaError.Types.INVALID_DATA, "credential_type is required")
   }
+
+  const VALID_CREDENTIAL_TYPES = [
+    "pharmacist_registration",
+    "mci_registration",
+    "drug_license",
+    "other",
+  ] as const
+  if (!VALID_CREDENTIAL_TYPES.includes(credential_type)) {
+    throw new MedusaError(
+      MedusaError.Types.INVALID_DATA,
+      `Invalid credential_type "${credential_type}". Valid types are: ${VALID_CREDENTIAL_TYPES.join(", ")}`
+    )
+  }
   if (!credential_value) {
     throw new MedusaError(MedusaError.Types.INVALID_DATA, "credential_value is required")
   }
