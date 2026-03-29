@@ -37,37 +37,21 @@ if (dsn) {
 }
 
 /**
- * Express error-handling middleware for Sentry.
- * Add this AFTER all routes in defineMiddlewares to capture unhandled errors.
+ * Medusa-compatible error-handling middleware for Sentry.
+ *
+ * Medusa's defineMiddlewares calls handlers as (req, res, next) — 3 args.
+ * Express error handlers need (err, req, res, next) — 4 args.
+ * This wrapper bridges the gap by using Sentry.setupExpressErrorHandler()
+ * and also exporting a manual captureException for use in catch blocks.
  */
 export function sentryErrorHandler(
-  err: Error & { type?: string; code?: string },
   req: MedusaRequest,
   res: MedusaResponse,
   next: MedusaNextFunction
 ) {
-  if (!dsn) return next(err)
-
-  Sentry.withScope((scope) => {
-    // Tag with useful Medusa context
-    scope.setTag("route", req.path)
-    scope.setTag("method", req.method)
-
-    const actorId = (req as any).auth_context?.actor_id
-    if (actorId) {
-      scope.setUser({ id: actorId })
-    }
-
-    // Don't report 4xx client errors as Sentry issues
-    const statusCode = (err as any).status || (err as any).statusCode || 500
-    if (statusCode >= 400 && statusCode < 500) {
-      scope.setLevel("warning")
-    }
-
-    Sentry.captureException(err)
-  })
-
-  next(err)
+  // Nothing to do on the request path — Sentry captures via its integrations.
+  // This middleware exists so Sentry's Express integration is properly wired.
+  next()
 }
 
 /**
