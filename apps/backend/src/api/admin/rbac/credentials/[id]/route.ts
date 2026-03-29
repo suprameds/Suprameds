@@ -45,7 +45,7 @@ export async function POST(
       }
     }
 
-    const credential = await rbacService.updateStaffCredentials(id, updates)
+    const credential = await rbacService.updateStaffCredentials({ id, ...updates })
 
     return res.json({ credential })
   } catch (error: any) {

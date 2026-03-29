@@ -54,7 +54,7 @@ export const POST = async (
     updatePayload.alert_threshold_pct = threshold_pct
   }
 
-  const updated = await wishlistService.updateWishlistItems(id, updatePayload)
+  const updated = await wishlistService.updateWishlistItems({ id, ...updatePayload })
 
   return res.json({ wishlist_item: updated })
 }

@@ -54,7 +54,7 @@ export const POST = async (
     return res.status(400).json({ error: "No valid fields to update" })
   }
 
-  await crmService.updateChronicReorderPatterns(id, updates)
+  await crmService.updateChronicReorderPatterns({ id, ...updates })
 
   return res.json({ reminder: { ...pattern, ...updates } })
 }
