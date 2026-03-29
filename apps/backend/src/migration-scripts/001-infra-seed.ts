@@ -70,6 +70,7 @@ export default async function infraSeed({
     input: {
       selector: { id: store.id },
       update: {
+        name: "Suprameds",
         supported_currencies: [
           { currency_code: "inr", is_default: true },
         ],
@@ -412,30 +413,45 @@ export default async function infraSeed({
     { name: "Vitamins & Supplements", handle: "vitamins-supplements" },
   ]
 
-  // Create "Medicines" parent with subcategories
-  if (!existingByHandle.has("medicines")) {
-    logger.info("Creating parent category: Medicines")
-    const parent = await productService.createProductCategories({
-      name: "Medicines",
-      handle: "medicines",
-      is_active: true,
-      is_internal: false,
-      rank: 0,
-    })
-    for (const sub of SUBCATEGORIES) {
-      if (!existingByHandle.has(sub.handle)) {
-        await productService.createProductCategories({
-          name: sub.name,
-          handle: sub.handle,
-          parent_category_id: parent.id,
-          is_active: true,
-          is_internal: false,
-        })
-        logger.info(`  Created subcategory: ${sub.name}`)
-      }
+  // Helper: create category if it doesn't exist (handles race conditions + stale cache)
+  async function ensureCategory(data: {
+    name: string
+    handle: string
+    is_active?: boolean
+    is_internal?: boolean
+    rank?: number
+    parent_category_id?: string
+  }) {
+    if (existingByHandle.has(data.handle)) {
+      return existingByHandle.get(data.handle)
     }
-  } else {
-    logger.info("Category 'Medicines' already exists, skipping parent + subcategories.")
+    try {
+      const created = await productService.createProductCategories({
+        ...data,
+        is_active: data.is_active ?? true,
+        is_internal: data.is_internal ?? false,
+      })
+      existingByHandle.set(data.handle, created)
+      logger.info(`  Created category: ${data.name}`)
+      return created
+    } catch (err: any) {
+      if (err.message?.includes("already exists")) {
+        logger.info(`  Category '${data.name}' already exists, skipping.`)
+        // Fetch it so we have the ID for subcategories
+        const [found] = await productService.listProductCategories({ handle: data.handle }, { take: 1 })
+        if (found) existingByHandle.set(data.handle, found)
+        return found
+      }
+      throw err
+    }
+  }
+
+  // Create "Medicines" parent with subcategories
+  const medicinesParent = await ensureCategory({ name: "Medicines", handle: "medicines", rank: 0 })
+  if (medicinesParent?.id) {
+    for (const sub of SUBCATEGORIES) {
+      await ensureCategory({ ...sub, parent_category_id: medicinesParent.id })
+    }
   }
 
   // Create standalone parent categories
@@ -447,18 +463,7 @@ export default async function infraSeed({
   ]
 
   for (const cat of STANDALONE_PARENTS) {
-    if (!existingByHandle.has(cat.handle)) {
-      await productService.createProductCategories({
-        name: cat.name,
-        handle: cat.handle,
-        is_active: true,
-        is_internal: false,
-        rank: cat.rank,
-      })
-      logger.info(`Created parent category: ${cat.name}`)
-    } else {
-      logger.info(`Category '${cat.name}' already exists, skipping.`)
-    }
+    await ensureCategory(cat)
   }
 
   // ── 12. Product collections (flat) ────────────────────────────────────
@@ -487,11 +492,19 @@ export default async function infraSeed({
 
   for (const col of COLLECTIONS) {
     if (!collectionByHandle.has(col.handle)) {
-      await productService.createProductCollections({
-        title: col.title,
-        handle: col.handle,
-      })
-      logger.info(`Created collection: ${col.title}`)
+      try {
+        await productService.createProductCollections({
+          title: col.title,
+          handle: col.handle,
+        })
+        logger.info(`Created collection: ${col.title}`)
+      } catch (err: any) {
+        if (err.message?.includes("already exists")) {
+          logger.info(`Collection '${col.title}' already exists, skipping.`)
+        } else {
+          throw err
+        }
+      }
     } else {
       logger.info(`Collection '${col.title}' already exists, skipping.`)
     }

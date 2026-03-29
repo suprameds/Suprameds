@@ -8,7 +8,6 @@
  *   npx medusa exec ./src/scripts/run-migrations.ts
  *
  * Environment variables:
- *   SKIP_PRODUCT_SEED=true   — Skip 004-product-catalog (prod after initial setup)
  *   FORCE_RESEED=true        — Ignore tracking table and re-run all scripts (local dev)
  *
  * Prerequisites:
@@ -23,20 +22,16 @@ import resetData from "../migration-scripts/000-reset-data"
 import infraSeed from "../migration-scripts/001-infra-seed"
 import rbacSeed from "../migration-scripts/002-rbac-seed"
 import ftsIndex from "../migration-scripts/003-fts-index"
-import productCatalog from "../migration-scripts/004-product-catalog"
 
 interface MigrationStep {
   name: string
   fn: (ctx: { container: MedusaContainer }) => Promise<void>
-  /** If true, skipped when SKIP_PRODUCT_SEED=true */
-  isProductSeed?: boolean
 }
 
 const MIGRATIONS: MigrationStep[] = [
   { name: "001-infra-seed", fn: infraSeed },
   { name: "002-rbac-seed", fn: rbacSeed },
   { name: "003-fts-index", fn: ftsIndex },
-  { name: "004-product-catalog", fn: productCatalog, isProductSeed: true },
 ]
 
 export default async function runMigrations({
@@ -47,7 +42,6 @@ export default async function runMigrations({
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
   const pgConnection = container.resolve(ContainerRegistrationKeys.PG_CONNECTION)
 
-  const skipProducts = process.env.SKIP_PRODUCT_SEED === "true"
   const forceReseed = process.env.FORCE_RESEED === "true"
 
   // Pre-step: database reset (only when RESET_DATABASE=true)
@@ -65,21 +59,13 @@ export default async function runMigrations({
   logger.info("╔══════════════════════════════════════════════════╗")
   logger.info("║       SUPRAMEDS — Migration Runner v2           ║")
   logger.info("╚══════════════════════════════════════════════════╝")
-  logger.info(`  SKIP_PRODUCT_SEED = ${skipProducts}`)
-  logger.info(`  FORCE_RESEED      = ${forceReseed}`)
+  logger.info(`  FORCE_RESEED = ${forceReseed}`)
 
   let completed = 0
   let skipped = 0
   let failed = 0
 
   for (const step of MIGRATIONS) {
-    // Skip product seeds if flag set
-    if (skipProducts && step.isProductSeed) {
-      logger.info(`⏭  SKIP: ${step.name} (SKIP_PRODUCT_SEED=true)`)
-      skipped++
-      continue
-    }
-
     // Check tracking table (unless force reseed)
     if (!forceReseed) {
       const { rows } = await pgConnection.raw(
