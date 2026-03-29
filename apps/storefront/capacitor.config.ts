@@ -5,11 +5,9 @@ const config: CapacitorConfig = {
   appName: "Suprameds",
   webDir: "dist/client",
   server: {
-    // In dev, point WebView at Vite dev server on the host machine
-    // (10.0.2.2 = Android emulator alias for host localhost)
-    ...(process.env.CAPACITOR_DEV
-      ? { url: "http://10.0.2.2:5176", cleartext: true }
-      : {}),
+    // Load the live hosted site — SSR works, always up-to-date content.
+    // Native Capacitor plugins (camera, status bar, push) still work on top.
+    url: "https://store.supracynpharma.com",
     androidScheme: "https",
   },
   plugins: {
