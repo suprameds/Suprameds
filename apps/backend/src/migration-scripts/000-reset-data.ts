@@ -10,10 +10,13 @@ const logger = createLogger("migration:000-reset-data")
  * Only runs when RESET_DATABASE=true is set. Designed for Medusa Cloud
  * where SSH access is unavailable.
  *
- * Approach: queries pg_tables for every table in the public schema
- * (excluding MikroORM migration tracking) and truncates them all in
- * one CASCADE statement. This avoids the fragile pattern of listing
- * individual table names which inevitably misses some.
+ * Preserves:
+ *   - MikroORM migration tracking tables (mikro_orm_*)
+ *   - Reference data tables (country, currency) — seeded by db:migrate,
+ *     NOT by workflows. Without these, createRegionsWorkflow fails.
+ *
+ * Uses DISABLE/ENABLE TRIGGER to bypass FK constraints instead of CASCADE,
+ * which would cascade-delete country data via region_country.
  */
 export default async function resetData({ container }: { container: MedusaContainer }) {
   if (process.env.RESET_DATABASE !== "true") {
@@ -31,11 +34,14 @@ export default async function resetData({ container }: { container: MedusaContai
   await pgConnection.raw(`DROP TABLE IF EXISTS _seed_migrations`)
   logger.info("Dropped _seed_migrations table")
 
-  // 2. Get ALL user tables in the public schema (excluding MikroORM migration log)
+  // 2. Get all user tables EXCEPT reference data and migration tracking
+  const PRESERVED_TABLES = ["country", "currency"]
+
   const { rows: tables } = await pgConnection.raw(`
     SELECT tablename FROM pg_tables
     WHERE schemaname = 'public'
       AND tablename NOT LIKE 'mikro_orm_%'
+      AND tablename NOT IN (${PRESERVED_TABLES.map(t => `'${t}'`).join(", ")})
   `)
 
   if (!tables.length) {
@@ -43,25 +49,30 @@ export default async function resetData({ container }: { container: MedusaContai
     return
   }
 
-  const tableNames = tables.map((t: { tablename: string }) => `"${t.tablename}"`)
-  logger.info(`Found ${tableNames.length} tables to truncate`)
+  const tableNames = tables.map((t: { tablename: string }) => t.tablename)
+  logger.info(`Found ${tableNames.length} tables to truncate (preserving ${PRESERVED_TABLES.join(", ")})`)
 
-  // 3. Truncate ALL tables in a single statement — CASCADE handles FKs
+  // 3. Disable FK triggers, truncate each table, re-enable triggers.
+  //    This avoids CASCADE which would wipe the preserved country/currency tables.
   try {
-    await pgConnection.raw(`TRUNCATE TABLE ${tableNames.join(", ")} CASCADE`)
-    logger.info(`Truncated all ${tableNames.length} tables`)
-  } catch (err) {
-    // Fallback: truncate one by one if the bulk statement fails
-    logger.warn(`Bulk truncate failed, falling back to individual truncation: ${(err as Error).message}`)
+    await pgConnection.raw(`SET session_replication_role = 'replica'`)
+
     for (const name of tableNames) {
       try {
-        await pgConnection.raw(`TRUNCATE TABLE ${name} CASCADE`)
+        await pgConnection.raw(`TRUNCATE TABLE "${name}"`)
       } catch {
-        // Skip tables that can't be truncated
+        // Table might not exist or be a view — skip
       }
     }
-    logger.info("Individual truncation complete")
+
+    await pgConnection.raw(`SET session_replication_role = 'origin'`)
+    logger.info(`Truncated ${tableNames.length} tables`)
+  } catch (err) {
+    // Ensure triggers are re-enabled even on error
+    await pgConnection.raw(`SET session_replication_role = 'origin'`).catch(() => {})
+    logger.error(`Reset error: ${(err as Error).message}`)
+    throw err
   }
 
-  logger.warn("Database reset complete — all data deleted, schemas preserved")
+  logger.warn("Database reset complete — all data deleted, reference tables preserved")
 }
