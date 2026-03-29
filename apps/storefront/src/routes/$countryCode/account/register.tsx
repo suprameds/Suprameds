@@ -38,6 +38,15 @@ function RegisterPage() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
+  /** Password strength checks — must match backend middleware */
+  const passwordChecks = [
+    { label: "8+ characters", met: form.password.length >= 8 },
+    { label: "Uppercase letter", met: /[A-Z]/.test(form.password) },
+    { label: "Lowercase letter", met: /[a-z]/.test(form.password) },
+    { label: "Number", met: /\d/.test(form.password) },
+  ]
+  const allChecksMet = passwordChecks.every((c) => c.met)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -46,8 +55,8 @@ function RegisterPage() {
       setError("Please fill in all required fields.")
       return
     }
-    if (form.password.length < 8) {
-      setError("Password must be at least 8 characters.")
+    if (!allChecksMet) {
+      setError("Password does not meet strength requirements.")
       return
     }
     if (form.password !== form.confirm_password) {
@@ -191,6 +200,15 @@ function RegisterPage() {
                 className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
                 style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
               />
+              {form.password.length > 0 && (
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                  {passwordChecks.map((c) => (
+                    <span key={c.label} className="text-xs flex items-center gap-1" style={{ color: c.met ? "var(--brand-green)" : "var(--text-tertiary)" }}>
+                      {c.met ? "\u2713" : "\u2022"} {c.label}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-1.5">

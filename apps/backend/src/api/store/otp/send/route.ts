@@ -68,7 +68,7 @@ async function handleSmsSend(
 
   const identifier = normalisePhone(phone, country_code)
 
-  if (!canSendOtp(identifier)) {
+  if (!(await canSendOtp(identifier))) {
     return res.status(429).json({
       success: false,
       message: "Too many OTP requests. Please try again after 10 minutes.",
@@ -107,7 +107,7 @@ async function handleSmsSend(
       })
     }
 
-    storeOtp(identifier, otp)
+    await storeOtp(identifier, otp)
     logger.info(`[otp/send] SMS OTP dispatched to ${identifier}, ref: ${result.request_id ?? result.message}`)
   } catch (err: unknown) {
     logger.error(`[otp/send] MSG91 request failed: ${(err as Error).message}`)
@@ -144,7 +144,7 @@ async function handleEmailSend(
 
   const identifier = normaliseEmail(email)
 
-  if (!canSendOtp(identifier)) {
+  if (!(await canSendOtp(identifier))) {
     return res.status(429).json({
       success: false,
       message: "Too many OTP requests. Please try again after 10 minutes.",
@@ -184,7 +184,7 @@ async function handleEmailSend(
       })
     }
 
-    storeOtp(identifier, otp)
+    await storeOtp(identifier, otp)
     logger.info(`[otp/send] Email OTP sent to ${identifier}, id: ${result.data?.id}`)
   } catch (err: unknown) {
     logger.error(`[otp/send] Resend request failed: ${(err as Error).message}`)
