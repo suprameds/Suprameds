@@ -180,6 +180,7 @@ const ProductActions = memo(function ProductActions({
           >
             <button
               type="button"
+              aria-label="Decrease quantity"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               disabled={quantity <= 1 || addToCartMutation.isPending}
               className="flex items-center justify-center w-9 h-9 transition-colors disabled:opacity-30"
@@ -195,6 +196,7 @@ const ProductActions = memo(function ProductActions({
             </span>
             <button
               type="button"
+              aria-label="Increase quantity"
               onClick={() => setQuantity((q) => q + 1)}
               disabled={addToCartMutation.isPending}
               className="flex items-center justify-center w-9 h-9 transition-colors disabled:opacity-30"

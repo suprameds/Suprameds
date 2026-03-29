@@ -263,11 +263,11 @@ const ReturnSection = ({ order }: { order: any }) => {
             The 48-hour return window for this order has passed. For batch recall or
             exceptional cases, please contact support at{" "}
             <a
-              href="tel:+918008005678"
+              href="tel:+917674962758"
               className="underline"
               style={{ color: "#991B1B" }}
             >
-              +91 800 800 5678
+              +91 76749 62758
             </a>
             .
           </p>

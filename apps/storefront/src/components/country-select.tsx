@@ -89,7 +89,7 @@ const CountrySelect = ({ regions, className }: CountrySelectProps) => {
 
   return (
     <Select value={pathCountryCode} onValueChange={handleChange}>
-      <SelectTrigger variant="minimal" className={className}>
+      <SelectTrigger variant="minimal" aria-label="Select country" className={className}>
         <SelectValue placeholder="Select country">
           {currentCountry
             ? `${currentCountry.label} (${currentCountry.currency_code})`

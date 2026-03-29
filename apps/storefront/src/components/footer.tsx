@@ -31,8 +31,8 @@ const Footer = () => {
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
                 ),
-                label: "CDSCO Registered",
-                sub: "Form 18AA · Central License",
+                label: "Licensed Pharmacy",
+                sub: "Drugs & Cosmetics Act 1940",
               },
               {
                 icon: (
@@ -41,7 +41,7 @@ const Footer = () => {
                   </svg>
                 ),
                 label: "Licensed Pharmacist",
-                sub: "RPh B. Venkat Kumar · #KA/2019/4821",
+                sub: "Mirza Askary Ali, B.Pharm · #031171/A1",
               },
               {
                 icon: (
@@ -58,8 +58,8 @@ const Footer = () => {
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
                   </svg>
                 ),
-                label: "LegitScript Certified",
-                sub: "Category B · Healthcare Merchant",
+                label: "Drug License Active",
+                sub: "TS/HYD/2021-82149 · Form 20 & 21",
               },
             ].map((item) => (
               <div key={item.label} className="flex items-start gap-3">
@@ -95,13 +95,13 @@ const Footer = () => {
               A licensed online pharmacy serving India since 2022. Pharmacist-dispensed medicines, delivered to your door.
             </p>
             {/* Required: Physical address (Consumer Protection Rules 2020) */}
-            <div className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.4)" }}>
-              <p className="font-medium mb-1" style={{ color: "rgba(255,255,255,0.6)" }}>Registered Office</p>
+            <div className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
+              <p className="font-medium mb-1" style={{ color: "rgba(255,255,255,0.7)" }}>Registered Office</p>
               <address style={{ fontStyle: "normal" }}>
-                Suprameds Pharma Pvt. Ltd.<br />
-                #42, Industrial Area, Phase 2<br />
-                Hyderabad, Telangana – 500072<br />
-                GSTIN: 36AABCS1234E1Z5
+                Supracyn Private Limited<br />
+                D.No.7-2-544, SRT 323, Room No.1, 1st Floor<br />
+                Opp Lodha Apartments, Sanathnagar<br />
+                Hyderabad, Telangana
               </address>
             </div>
             <CountrySelect regions={regions ?? []} />
@@ -189,37 +189,24 @@ const Footer = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex flex-col gap-1">
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
-                © {new Date().getFullYear()} Suprameds Pharma Pvt. Ltd. All rights reserved.
+                © {new Date().getFullYear()} Supracyn Private Limited. All rights reserved.
               </p>
               <p className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>
-                Drug License No. KA/DL-2024-0187 &nbsp;·&nbsp; CDSCO Reg. 18AA/2024/001842 &nbsp;·&nbsp;
-                Regd. Pharmacist: B. Venkat Kumar (RPh #KA/2019/4821)
+                Drug License No. TS/HYD/2021-82149 &nbsp;·&nbsp;
+                Regd. Pharmacist: Mirza Askary Ali, B.Pharm (Reg #031171/A1)
               </p>
             </div>
             <div className="flex items-center gap-2">
-              {/* LegitScript seal placeholder — replace with actual CDN embed after certification */}
-              <a
-                href="https://www.legitscript.com/websites/?checker_keywords=suprameds.in"
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-opacity hover:opacity-80"
-                style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}
-              >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
-                </svg>
-                LegitScript Certified
-              </a>
               <div className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium" style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)" }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
-                CDSCO Form 18AA
+                DL: TS/HYD/2021-82149
               </div>
             </div>
           </div>
           <p className="text-xs mt-3" style={{ color: "rgba(255,255,255,0.25)" }}>
-            Grievance Officer: Priya Sharma · grievance@suprameds.in · +91 800 800 5678 · Response within 48 hours
+            Helpdesk: suprameds@gmail.in · +91 76749 62758 · Response within 48 hours
           </p>
         </div>
       </div>

@@ -87,7 +87,7 @@ function PrivacyPolicy() {
                 <li><strong>Right to grievance:</strong> Raise complaints with our Grievance Officer (see /grievance)</li>
                 <li><strong>Right to nominate:</strong> Nominate a person to exercise rights on your behalf</li>
               </ul>
-              <p class="mt-3">To exercise these rights, visit <a href="/account/privacy" style="color:var(--brand-teal)">Account → Privacy Settings</a> or email privacy@suprameds.in.</p>`,
+              <p class="mt-3">To exercise these rights, visit <a href="/account/privacy" style="color:var(--brand-teal)">Account → Privacy Settings</a> or email suprameds@gmail.in.</p>`,
             },
             {
               title: "5. Data sharing",
@@ -128,10 +128,10 @@ function PrivacyPolicy() {
               title: "8. Contact",
               content: `For privacy queries or to exercise your rights:
               <ul class="mt-2 space-y-1.5">
-                <li>Email: privacy@suprameds.in</li>
-                <li>Grievance Officer: Priya Sharma · grievance@suprameds.in</li>
-                <li>Phone: +91 800 800 5678</li>
-                <li>Address: Suprameds Pharma Pvt. Ltd., #42 Industrial Area Phase 2, Hyderabad, Telangana 500072</li>
+                <li>Email: suprameds@gmail.in</li>
+                <li>Helpdesk: suprameds@gmail.in</li>
+                <li>Phone: +91 76749 62758</li>
+                <li>Address: Supracyn Private Limited, D.No.7-2-544, SRT 323, Sanathnagar, Hyderabad, Telangana</li>
                 <li>For DPDP Act complaints: Data Protection Board of India (once operational)</li>
               </ul>`,
             },

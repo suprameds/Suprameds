@@ -398,7 +398,7 @@ export const Navbar = () => {
                 <div className="mx-8 mt-4 p-4 rounded-lg" style={{ background: "var(--bg-tertiary)" }}>
                   <p className="text-xs leading-relaxed" style={{ color: "var(--text-primary)" }}>
                     <span className="font-semibold">Helpline: </span>
-                    <a href="tel:+918008001234" className="underline">+91 800 800 1234</a>
+                    <a href="tel:+917674962758" className="underline">+91 76749 62758</a>
                   </p>
                   <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>9 AM-9 PM · Mon-Sat</p>
                 </div>
@@ -434,7 +434,7 @@ export const Navbar = () => {
               to="/$countryCode/upload-rx"
               params={{ countryCode }}
               className="hidden lg:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded transition-all"
-              style={{ color: "var(--brand-teal)", background: "#d5f0e2" }}
+              style={{ color: "#0a6570", background: "#e8f5ee" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>

@@ -50,11 +50,11 @@ function GrievancePage() {
               <h2 className="text-base font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Grievance Officer</h2>
               <div className="flex flex-col gap-4 text-sm">
                 {[
-                  { label: "Name", value: "Priya Sharma" },
-                  { label: "Designation", value: "Grievance Officer & Compliance Manager" },
-                  { label: "Email", value: "grievance@suprameds.in" },
-                  { label: "Phone", value: "+91 800 800 5678" },
-                  { label: "WhatsApp", value: "+91 800 800 1234" },
+                  { label: "Name", value: "Suprameds Helpdesk" },
+                  { label: "Designation", value: "Customer Support" },
+                  { label: "Email", value: "suprameds@gmail.in" },
+                  { label: "Phone", value: "+91 76749 62758" },
+                  { label: "WhatsApp", value: "+91 76749 62758" },
                   { label: "Response SLA", value: "48 business hours" },
                   { label: "Working Hours", value: "9 AM – 9 PM · Mon–Sat" },
                 ].map(({ label, value }) => (
@@ -71,7 +71,7 @@ function GrievancePage() {
               <div className="flex flex-col gap-3 text-xs" style={{ color: "var(--text-secondary)" }}>
                 <div className="flex gap-2">
                   <span className="font-semibold" style={{ color: "var(--brand-teal)", width: "20px" }}>1.</span>
-                  <span>Submit via this form or call +91 800 800 5678</span>
+                  <span>Submit via this form or call +91 76749 62758</span>
                 </div>
                 <div className="flex gap-2">
                   <span className="font-semibold" style={{ color: "var(--brand-teal)", width: "20px" }}>2.</span>

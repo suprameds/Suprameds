@@ -274,7 +274,7 @@ const Home = () => {
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
                 </svg>
-                CDSCO Licensed · LegitScript Certified
+                CDSCO Licensed · Drug License TS/HYD/2021-82149
               </span>
             </div>
 
@@ -371,8 +371,8 @@ const Home = () => {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E7C86" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <div>
-                <p className="text-xs font-bold" style={{ color: "#0D1B2A" }}>CDSCO Registered</p>
-                <p className="text-[10px]" style={{ color: "#6B7280" }}>Form 18AA Verified</p>
+                <p className="text-xs font-bold" style={{ color: "#0D1B2A" }}>Licensed Pharmacy</p>
+                <p className="text-[10px]" style={{ color: "#6B7280" }}>DL: TS/HYD/2021-82149</p>
               </div>
             </div>
             <div
@@ -580,14 +580,14 @@ const Home = () => {
                 style={{ border: "2px dashed rgba(14,124,134,0.2)", background: "rgba(255,255,255,0.55)", backdropFilter: "blur(6px)" }}
               >
                 <div className="text-4xl mb-3">📄</div>
-                <h4 className="text-sm font-bold mb-1" style={{ color: "var(--text-primary)" }}>Drag & drop your Rx here</h4>
+                <h3 className="text-sm font-bold mb-1" style={{ color: "var(--text-primary)" }}>Drag & drop your Rx here</h3>
                 <p className="text-[11px]" style={{ color: "var(--text-secondary)" }}>or click to browse · JPG, PNG, PDF</p>
               </div>
               <p className="text-[11px]" style={{ color: "var(--text-tertiary)" }}>Max 10MB · Reviewed within 4 hours</p>
 
               {/* Compliance pills */}
               <div className="flex flex-wrap justify-center gap-2 mt-2">
-                {["Drugs & Cosmetics Act", "CDSCO Form 18AA", "DPDP Act 2023", "LegitScript Certified"].map((c) => (
+                {["Drugs & Cosmetics Act", "Form 20 & 21 Licensed", "DPDP Act 2023"].map((c) => (
                   <span key={c} className="flex items-center gap-1.5 text-[10px] font-medium" style={{ color: "var(--text-tertiary)" }}>
                     <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "var(--brand-green)" }} />
                     {c}
@@ -637,7 +637,7 @@ const Home = () => {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.8"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/><path d="M9 12l2 2 4-4"/></svg>
             </div>
             <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>Pharmacist Verified</h3>
-            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>RPh B. Venkat Kumar (Reg #KA/2019/4821) reviews every prescription before dispensing. No exceptions.</p>
+            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>Mirza Askary Ali, B.Pharm (Reg #031171/A1) reviews every prescription before dispensing. No exceptions.</p>
           </Reveal>
 
           {/* Regular cards */}

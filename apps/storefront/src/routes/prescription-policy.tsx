@@ -83,8 +83,8 @@ function PrescriptionPolicy() {
                 <p>You can submit prescriptions in any of the following ways:</p>
                 <ul class="mt-3 space-y-2">
                   <li>Upload a clear photo (JPG/PNG) or PDF at checkout</li>
-                  <li>WhatsApp the prescription photo to +91 800 800 1234 with your order details</li>
-                  <li>Email to prescriptions@suprameds.in</li>
+                  <li>WhatsApp the prescription photo to +91 76749 62758 with your order details</li>
+                  <li>Email to suprameds@gmail.in</li>
                 </ul>
                 <p class="mt-3">Our registered pharmacist reviews all prescriptions within 4 hours during business hours (9 AM–9 PM, Mon–Sat).</p>
               `,
@@ -92,7 +92,7 @@ function PrescriptionPolicy() {
             {
               title: "Pharmacist review process",
               content: `
-                <p>Once your prescription is received, our registered pharmacist (RPh B. Venkat Kumar, Reg. #KA/2019/4821) will:</p>
+                <p>Once your prescription is received, our registered pharmacist (Mirza Askary Ali, B.Pharm, Reg. #031171/A1) will:</p>
                 <ul class="mt-3 space-y-2">
                   <li>Verify the prescribing doctor's registration number</li>
                   <li>Map the prescribed drug to our catalog item</li>
@@ -133,7 +133,7 @@ function PrescriptionPolicy() {
           ))}
 
           <div className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-            <p>For questions about this policy, contact our pharmacist helpline at +91 800 800 1234 (9 AM–9 PM, Mon–Sat) or WhatsApp us.</p>
+            <p>For questions about this policy, contact our helpdesk at +91 76749 62758 (9 AM–9 PM, Mon–Sat) or WhatsApp us.</p>
           </div>
         </div>
       </div>
