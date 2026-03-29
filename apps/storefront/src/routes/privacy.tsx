@@ -38,7 +38,7 @@ function PrivacyPolicy() {
           <div className="p-5 rounded-xl" style={{ background: "#d5f0e2", border: "1px solid var(--price-color)" }}>
             <p className="text-sm font-medium" style={{ color: "#0f4a2b" }}>
               Suprameds is committed to protecting your personal and health data under the DPDP Act, 2023.
-              All sensitive personal data (prescriptions, health records) is stored in India (ap-south-1) and never exported.
+              All sensitive personal data (prescriptions, health records) is stored in data centres in India and never exported.
               You have the right to access, correct, and erase your data at any time.
             </p>
           </div>
@@ -61,19 +61,18 @@ function PrivacyPolicy() {
               <ul class="mt-2 space-y-1.5">
                 <li><strong>Consent:</strong> Health data, analytics, marketing communications</li>
                 <li><strong>Contract performance:</strong> Processing your orders and prescription dispensing</li>
-                <li><strong>Legal obligation:</strong> CDSCO 5-year prescription retention, GST records retention 7 years, H1 register</li>
+                <li><strong>Legal obligation:</strong> CDSCO prescription retention, GST records retention, H1 register — as required by applicable law</li>
                 <li><strong>Legitimate interest:</strong> Fraud prevention, security logs, poison control emergency situations</li>
               </ul>`,
             },
             {
               title: "3. Data storage and security",
-              content: `All personal data is stored in AWS Mumbai (ap-south-1) data centres, complying with the DPDP Act's data localisation requirement for sensitive personal data.
+              content: `All personal data is stored in data centres in India, complying with the DPDP Act's data localisation requirement for sensitive personal data.
               <ul class="mt-2 space-y-1.5">
                 <li>Prescription documents: AES-256 encrypted at rest, stored only in India</li>
                 <li>Health records: Encrypted, access-logged, accessible only to authorised pharmacists</li>
-                <li>Backups: Daily, retained for 35 days; PHI records retained as required by CDSCO (5 years minimum)</li>
-                <li>Access control: Role-based, with TOTP 2FA for all clinical staff</li>
-                <li>Breach notification: You will be notified within 72 hours of any data breach affecting your account</li>
+                <li>Backups: Regular backups with appropriate retention; PHI records retained as required by CDSCO</li>
+                <li>Access control: Role-based, with multi-factor authentication for staff access</li>
               </ul>`,
             },
             {
@@ -87,7 +86,7 @@ function PrivacyPolicy() {
                 <li><strong>Right to grievance:</strong> Raise complaints with our Grievance Officer (see /grievance)</li>
                 <li><strong>Right to nominate:</strong> Nominate a person to exercise rights on your behalf</li>
               </ul>
-              <p class="mt-3">To exercise these rights, visit <a href="/account/privacy" style="color:var(--brand-teal)">Account → Privacy Settings</a> or email suprameds@gmail.in.</p>`,
+              <p class="mt-3">To exercise these rights, email <a href="mailto:suprameds@gmail.in" style="color:var(--brand-teal)">suprameds@gmail.in</a> or call +91 76749 62758.</p>`,
             },
             {
               title: "5. Data sharing",
@@ -106,22 +105,22 @@ function PrivacyPolicy() {
               <ul class="mt-2 space-y-1.5">
                 <li><strong>Essential:</strong> Session, cart, OTP authentication — always active (legitimate interest)</li>
                 <li><strong>Functional:</strong> Order history, saved addresses, recently viewed — requires consent</li>
-                <li><strong>Analytics:</strong> PostHog page view analytics on non-PHI pages — requires consent, off by default</li>
+                <li><strong>Analytics:</strong> Page view analytics on non-PHI pages — requires consent, off by default</li>
                 <li><strong>Marketing:</strong> Abandoned cart, WhatsApp marketing — requires explicit consent, off by default</li>
               </ul>
-              <p class="mt-3">Manage your consent at any time: <a href="/account/privacy" style="color:var(--brand-teal)">Account → Privacy Settings</a></p>`,
+              <p class="mt-3">To manage your preferences, email <a href="mailto:suprameds@gmail.in" style="color:var(--brand-teal)">suprameds@gmail.in</a>.</p>`,
             },
             {
               title: "7. Data retention",
-              content: `We retain data for the following periods:
+              content: `We retain data for the periods required by applicable law:
               <ul class="mt-2 space-y-1.5">
-                <li>Prescription documents: 5 years (CDSCO mandatory)</li>
-                <li>Supply memos and GST invoices: 7 years (GST Act)</li>
-                <li>H1 register entries: 5 years (Drugs &amp; Cosmetics Rules)</li>
-                <li>Order history: 5 years</li>
-                <li>PHI access logs: 5 years</li>
-                <li>Account data: Until account deletion request (subject to legal holds)</li>
-                <li>Analytics events (non-PHI): 1 year</li>
+                <li>Prescription documents: as required by CDSCO regulations</li>
+                <li>Supply memos and GST invoices: as required by GST Act</li>
+                <li>H1 register entries: as required by Drugs &amp; Cosmetics Rules</li>
+                <li>Order history: as required for service and legal obligations</li>
+                <li>PHI access logs: as required by applicable regulations</li>
+                <li>Account data: until account deletion request (subject to legal holds)</li>
+                <li>Analytics events (non-PHI): limited retention period</li>
               </ul>`,
             },
             {
