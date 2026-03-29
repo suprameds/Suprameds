@@ -84,7 +84,7 @@ function PrescriptionPolicy() {
                 <ul class="mt-3 space-y-2">
                   <li>Upload a clear photo (JPG/PNG) or PDF at checkout</li>
                   <li>WhatsApp the prescription photo to +91 76749 62758 with your order details</li>
-                  <li>Email to suprameds@gmail.in</li>
+                  <li>Email to suprameds@gmail.com</li>
                 </ul>
                 <p class="mt-3">Our registered pharmacist reviews all prescriptions within 4 hours during business hours (9 AM–9 PM, Mon–Sat).</p>
               `,

@@ -86,7 +86,7 @@ function PrivacyPolicy() {
                 <li><strong>Right to grievance:</strong> Raise complaints with our Grievance Officer (see /grievance)</li>
                 <li><strong>Right to nominate:</strong> Nominate a person to exercise rights on your behalf</li>
               </ul>
-              <p class="mt-3">To exercise these rights, email <a href="mailto:suprameds@gmail.in" style="color:var(--brand-teal)">suprameds@gmail.in</a> or call +91 76749 62758.</p>`,
+              <p class="mt-3">To exercise these rights, email <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a> or call +91 76749 62758.</p>`,
             },
             {
               title: "5. Data sharing",
@@ -108,7 +108,7 @@ function PrivacyPolicy() {
                 <li><strong>Analytics:</strong> Page view analytics on non-PHI pages — requires consent, off by default</li>
                 <li><strong>Marketing:</strong> Abandoned cart, WhatsApp marketing — requires explicit consent, off by default</li>
               </ul>
-              <p class="mt-3">To manage your preferences, email <a href="mailto:suprameds@gmail.in" style="color:var(--brand-teal)">suprameds@gmail.in</a>.</p>`,
+              <p class="mt-3">To manage your preferences, email <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a>.</p>`,
             },
             {
               title: "7. Data retention",
@@ -127,10 +127,10 @@ function PrivacyPolicy() {
               title: "8. Contact",
               content: `For privacy queries or to exercise your rights:
               <ul class="mt-2 space-y-1.5">
-                <li>Email: suprameds@gmail.in</li>
-                <li>Helpdesk: suprameds@gmail.in</li>
+                <li>Email: suprameds@gmail.com</li>
+                <li>Helpdesk: suprameds@gmail.com</li>
                 <li>Phone: +91 76749 62758</li>
-                <li>Address: Supracyn Private Limited, D.No.7-2-544, SRT 323, Sanathnagar, Hyderabad, Telangana</li>
+                <li>Address: Supracyn Pharma Pvt Ltd, 1st Floor, H.No 7-2-544, SRT 323, Sanathnagar, Hyderabad – 500018, Telangana</li>
                 <li>For DPDP Act complaints: Data Protection Board of India (once operational)</li>
               </ul>`,
             },

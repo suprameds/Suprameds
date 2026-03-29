@@ -52,7 +52,7 @@ function GrievancePage() {
                 {[
                   { label: "Name", value: "Suprameds Helpdesk" },
                   { label: "Designation", value: "Customer Support" },
-                  { label: "Email", value: "suprameds@gmail.in" },
+                  { label: "Email", value: "suprameds@gmail.com" },
                   { label: "Phone", value: "+91 76749 62758" },
                   { label: "WhatsApp", value: "+91 76749 62758" },
                   { label: "Response SLA", value: "48 business hours" },

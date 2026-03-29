@@ -37,7 +37,7 @@ function Terms() {
           {[
             {
               title: "1. Platform and Legal Status",
-              content: `Suprameds.in is operated by Supracyn Private Limited, a licensed online pharmacy registered under the Drugs &amp; Cosmetics Act 1940, holding Drug License No. TS/HYD/2021-82149 (Form 20 &amp; 21). By using this platform, you agree to these terms.`,
+              content: `Suprameds.in is operated by Supracyn Pharma Pvt Ltd, a licensed online pharmacy registered under the Drugs &amp; Cosmetics Act 1940, holding Drug License No. TS/HYD/2021-82149 (Form 20 &amp; 21). By using this platform, you agree to these terms.`,
             },
             {
               title: "2. Eligibility",
