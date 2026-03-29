@@ -132,12 +132,14 @@ export default defineConfig({
         ],
       },
     },
-    file: {
-      resolve: "@medusajs/medusa/file",
-      options: {
-        providers: [
-          ...(process.env.R2_FILE_URL
-            ? [
+    // File storage: Medusa Cloud auto-configures S3 — only override when
+    // explicit credentials are provided (R2 or custom S3 bucket).
+    ...(process.env.R2_FILE_URL && process.env.R2_ACCESS_KEY_ID
+      ? {
+          file: {
+            resolve: "@medusajs/medusa/file",
+            options: {
+              providers: [
                 {
                   id: "s3",
                   resolve: "@medusajs/medusa/file-s3",
@@ -157,9 +159,16 @@ export default defineConfig({
                     },
                   },
                 },
-              ]
-            : process.env.S3_REGION
-              ? [
+              ],
+            },
+          },
+        }
+      : process.env.S3_ACCESS_KEY_ID && process.env.S3_REGION
+        ? {
+            file: {
+              resolve: "@medusajs/medusa/file",
+              options: {
+                providers: [
                   {
                     id: "s3",
                     resolve: "@medusajs/medusa/file-s3",
@@ -177,20 +186,10 @@ export default defineConfig({
                       },
                     },
                   },
-                ]
-              : [
-                  {
-                    id: "local",
-                    resolve: "@medusajs/medusa/file-local",
-                    is_default: true,
-                    options: {
-                      upload_dir: "uploads",
-                      backend_url: `http://localhost:${process.env.PORT || 9000}`,
-                    },
-                  },
-                ]),
-        ],
-      },
-    },
+                ],
+              },
+            },
+          }
+        : {}),
   },
 })
