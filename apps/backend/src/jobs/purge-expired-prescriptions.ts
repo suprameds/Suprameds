@@ -35,7 +35,8 @@ export default async function PurgeExpiredPrescriptionsJob(container: MedusaCont
     let count = 0
     for (const rx of expiredRx) {
       try {
-        await prescriptionService.updatePrescriptions(rx.id, {
+        await prescriptionService.updatePrescriptions({
+          id: rx.id,
           status: "expired",
         })
         count++
