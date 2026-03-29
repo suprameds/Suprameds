@@ -113,7 +113,8 @@ export default async function runMigrations({
   )
 
   if (failed > 0) {
-    logger.warn("Some migrations failed — check logs above.")
+    logger.error(`${failed} migration(s) failed — check logs above.`)
+    throw new Error(`${failed} migration(s) failed`)
   } else {
     logger.info("All migrations completed successfully!")
   }

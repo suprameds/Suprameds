@@ -85,7 +85,11 @@ export function requireMfa() {
       }
 
       const [cookieUserId, timestamp, signature] = parts
-      const cookieSecret = process.env.COOKIE_SECRET || "default-secret"
+      const cookieSecret = process.env.COOKIE_SECRET
+      if (!cookieSecret) {
+        logger.error("COOKIE_SECRET not set — MFA cookie verification impossible")
+        return res.status(403).json({ error: "MFA verification required", mfa_required: true })
+      }
       const expectedSig = createHmac("sha256", cookieSecret)
         .update(`${cookieUserId}:${timestamp}`)
         .digest("hex")

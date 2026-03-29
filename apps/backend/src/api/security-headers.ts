@@ -45,11 +45,23 @@ export function securityHeaders() {
     //   images:  self + data URIs + any HTTPS source + blobs (product images)
     //   connect: self + Suprameds API origins + GA + Firebase Cloud Messaging
     //   frames:  self only (blocks clickjacking at the CSP level too)
+    //
+    // Note: 'unsafe-inline' is required for Medusa admin dashboard (Vite HMR,
+    // inline styles). API-only routes (/store/*, /webhooks/*) get a stricter
+    // policy without it.
+    const isAdminRoute = req.path.startsWith("/admin") || req.path.startsWith("/app")
+    const scriptSrc = isAdminRoute
+      ? "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com"
+      : "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com"
+    const styleSrc = isAdminRoute
+      ? "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com"
+      : "style-src 'self' https://fonts.googleapis.com"
+
     res.setHeader(
       "Content-Security-Policy",
       "default-src 'self'; " +
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; " +
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        `${scriptSrc}; ` +
+        `${styleSrc}; ` +
         "font-src 'self' https://fonts.gstatic.com; " +
         "img-src 'self' data: https: blob:; " +
         "connect-src 'self' https://*.suprameds.in https://www.google-analytics.com https://firebaseinstallations.googleapis.com https://fcmregistrations.googleapis.com; " +

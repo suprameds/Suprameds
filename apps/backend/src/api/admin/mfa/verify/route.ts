@@ -27,7 +27,10 @@ export const POST = async (req: AuthenticatedMedusaRequest, res: MedusaResponse)
   }
 
   // Build a signed cookie: userId:timestamp:hmac
-  const cookieSecret = process.env.COOKIE_SECRET || "default-secret"
+  const cookieSecret = process.env.COOKIE_SECRET
+  if (!cookieSecret) {
+    return res.status(500).json({ error: "Server misconfiguration: COOKIE_SECRET is not set" })
+  }
   const payload = `${userId}:${Date.now()}`
   const signature = createHmac("sha256", cookieSecret).update(payload).digest("hex")
   const cookieValue = `${payload}:${signature}`
