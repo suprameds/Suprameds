@@ -29,6 +29,7 @@ async function getRedis(): Promise<any | null> {
   if (!url) return null
 
   try {
+    // @ts-ignore — ioredis is available at runtime via Medusa's dependencies
     const ioredis = await import("ioredis")
     const Redis: any = (ioredis as any).default ?? ioredis
 
