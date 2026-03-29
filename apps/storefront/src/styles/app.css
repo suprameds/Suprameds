@@ -2,6 +2,14 @@
 @config "../../tailwind.config.js";
 @import "./theme.css";
 
+/* Capacitor safe-area insets for phones with notches/cutouts */
+html {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 @layer base {
   :root {
     /* ── Semantic Color Tokens (Light Theme) ── */

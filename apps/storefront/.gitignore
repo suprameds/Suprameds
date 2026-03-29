@@ -13,6 +13,13 @@ dist-ssr
 .netlify
 static-routes.json
 
+# Capacitor Android build outputs (project config is tracked)
+android/app/build/
+android/.gradle/
+android/build/
+android/app/src/main/assets/public/
+android/local.properties
+
 # Caches / logs
 .vite/
 .cache/

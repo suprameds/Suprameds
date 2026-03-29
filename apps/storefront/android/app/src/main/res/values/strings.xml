@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Suprameds</string>
+    <string name="title_activity_main">Suprameds</string>
+    <string name="package_name">in.suprameds.app</string>
+    <string name="custom_url_scheme">in.suprameds.app</string>
+</resources>

@@ -1,10 +1,18 @@
 import Medusa from "@medusajs/js-sdk"
+import { Capacitor } from "@capacitor/core"
+
+const isNative = typeof window !== "undefined" && Capacitor.isNativePlatform()
 
 let MEDUSA_BACKEND_URL = "http://localhost:9000"
 const PUBLISHABLE_KEY = import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY ?? ""
 
 if (import.meta.env.VITE_MEDUSA_BACKEND_URL) {
   MEDUSA_BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL
+}
+
+// Capacitor native: use production API (localhost won't work on device)
+if (isNative && import.meta.env.VITE_MEDUSA_PRODUCTION_URL) {
+  MEDUSA_BACKEND_URL = import.meta.env.VITE_MEDUSA_PRODUCTION_URL
 }
 
 // Store endpoints (login, register, products, etc.) require a valid publishable API key.
@@ -20,6 +28,8 @@ export const sdk = new Medusa({
   debug: import.meta.env.DEV,
   publishableKey: PUBLISHABLE_KEY,
   auth: {
-    type: "session",
+    // Native apps use JWT bearer tokens (WebView cookie limitations);
+    // Web uses session cookies (SSR-compatible, CSRF-safe with SameSite)
+    type: isNative ? "jwt" : "session",
   },
 })
