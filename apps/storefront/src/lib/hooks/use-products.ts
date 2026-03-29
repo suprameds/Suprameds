@@ -51,6 +51,7 @@ export const useProducts = ({
     getPreviousPageParam: (firstPage) => firstPage.next_page,
     initialPageParam: 1,
     enabled: !!region_id,
+    staleTime: 5 * 60 * 1000, // 5 min — product catalog rarely changes
   })
 }
 
@@ -80,6 +81,7 @@ export const useProduct = ({
       return products[0]
     },
     enabled: !!handle && !!region_id,
+    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -119,6 +121,7 @@ export const useRelatedProducts = ({
       return response.products.filter((product) => product.id !== product_id)
     },
     enabled: !!product_id && !!region_id,
+    staleTime: 5 * 60 * 1000,
   })
 }
 
