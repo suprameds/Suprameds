@@ -71,7 +71,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   // ── Verify OTP ─────────────────────────────────────────────────────
-  const result = verifyOtp(identifier, otp)
+  const result = await verifyOtp(identifier, otp)
   if (!result.valid) {
     res.status(401).json({ success: false, message: result.reason ?? "Invalid OTP" })
     return

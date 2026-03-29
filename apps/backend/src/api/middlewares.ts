@@ -8,8 +8,34 @@ import { authorize, enforceSsd } from "./rbac-authorize"
 import { getPrescriptionUploader, getGrnCreator, getPoRaiser } from "./rbac-ssd-helpers"
 // Sentry — must be imported early so auto-instrumentation hooks attach before routes load
 import "../lib/sentry"
-// MFA guard disabled for initial launch — re-enable when TOTP is rolled out
-// import { requireMfa } from "./admin/middlewares/mfa-guard"
+import { requireMfa } from "./admin/middlewares/mfa-guard"
+
+/**
+ * Password strength validation middleware for registration.
+ * Enforces: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit.
+ */
+function validatePasswordStrength(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction,
+) {
+  const { password } = (req.body || {}) as { password?: string }
+  if (!password) return next() // let Medusa handle missing password error
+
+  const errors: string[] = []
+  if (password.length < 8) errors.push("at least 8 characters")
+  if (!/[A-Z]/.test(password)) errors.push("one uppercase letter")
+  if (!/[a-z]/.test(password)) errors.push("one lowercase letter")
+  if (!/\d/.test(password)) errors.push("one digit")
+
+  if (errors.length > 0) {
+    return res.status(400).json({
+      type: "invalid_data",
+      message: `Password must contain ${errors.join(", ")}.`,
+    })
+  }
+  next()
+}
 
 /**
  * Schedule X block — stateless API middleware.
@@ -74,6 +100,12 @@ export default defineMiddlewares({
     {
       matcher: "/**",
       middlewares: [securityHeaders()],
+    },
+    // ── Password strength on registration ───────────────────────────────
+    {
+      matcher: "/auth/customer/emailpass/register",
+      method: "POST",
+      middlewares: [validatePasswordStrength],
     },
     {
       matcher: "/store/carts/:id/line-items",
@@ -237,12 +269,13 @@ export default defineMiddlewares({
       ],
     },
 
-    // ── MFA enforcement for admin routes — DISABLED for initial launch ──
-    // Re-enable when TOTP enrollment is rolled out to staff:
-    // {
-    //   matcher: "/admin/*",
-    //   middlewares: [requireMfa()],
-    // },
+    // ── MFA enforcement for admin routes ──
+    // Enforces TOTP verification for roles that require it.
+    // Gracefully skips if RBAC tables haven't been migrated yet.
+    {
+      matcher: "/admin/*",
+      middlewares: [requireMfa()],
+    },
 
     // ── RBAC authorization for admin routes ───────────────────────────
 
