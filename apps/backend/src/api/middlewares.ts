@@ -8,6 +8,7 @@ import { authorize, enforceSsd } from "./rbac-authorize"
 import { getPrescriptionUploader, getGrnCreator, getPoRaiser } from "./rbac-ssd-helpers"
 // Sentry — must be imported early so auto-instrumentation hooks attach before routes load
 import "../lib/sentry"
+import { sentryErrorHandler } from "../lib/sentry"
 import { requireMfa } from "./admin/middlewares/mfa-guard"
 
 /**
@@ -403,5 +404,10 @@ export default defineMiddlewares({
       middlewares: [authorize("product", "export")],
     },
 
+    // ── Sentry error handler — MUST be last to catch unhandled route errors ──
+    {
+      matcher: "/**",
+      middlewares: [sentryErrorHandler as any],
+    },
   ],
 })
