@@ -64,21 +64,21 @@ const DEFAULT_USERS: Array<{
     password: "Suprameds@2026!",
     firstName: "Ravi",
     lastName: "Singh",
-    roles: ["warehouse_staff"],
+    roles: ["picker"],
   },
   {
     email: "delivery@suprameds.in",
     password: "Suprameds@2026!",
     firstName: "Suresh",
     lastName: "Reddy",
-    roles: ["delivery_partner"],
+    roles: ["dispatch_staff"],
   },
   {
     email: "support@suprameds.in",
     password: "Suprameds@2026!",
     firstName: "Anita",
     lastName: "Desai",
-    roles: ["customer_support"],
+    roles: ["support_agent"],
   },
   {
     email: "compliance@suprameds.in",
@@ -92,14 +92,14 @@ const DEFAULT_USERS: Array<{
     password: "Suprameds@2026!",
     firstName: "Deepa",
     lastName: "Iyer",
-    roles: ["finance"],
+    roles: ["finance_admin"],
   },
   {
     email: "marketing@suprameds.in",
     password: "Suprameds@2026!",
     firstName: "Neha",
     lastName: "Gupta",
-    roles: ["marketing"],
+    roles: ["marketing_admin"],
   },
 ]
 
