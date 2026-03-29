@@ -43,7 +43,7 @@ export const Route = createFileRoute("/$countryCode/")({
     const countryCode = loaderData?.countryCode || "in"
     const canonical = `${siteUrl}/${countryCode}`
     const title = `Suprameds — India's Licensed Online Pharmacy`
-    const description = `Buy prescription and OTC medicines online from a CDSCO-registered, LegitScript-certified pharmacy. Pharmacist-dispensed. Speed Post delivery across India.`
+    const description = `Buy prescription and OTC medicines online from a licensed pharmacy (DL: TS/HYD/2021-82149). Pharmacist-dispensed. Speed Post delivery across India.`
 
     const organizationSchema = {
       "@context": "https://schema.org",

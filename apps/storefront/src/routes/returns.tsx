@@ -67,7 +67,7 @@ function Returns() {
               title: "How to initiate a return",
               content: `
               <ol class="mt-2 space-y-2">
-                <li>1. Contact us within 48 hours of delivery via WhatsApp (+91 800 800 1234) or call +91 800 800 5678</li>
+                <li>1. Contact us within 48 hours of delivery via WhatsApp (+91 76749 62758) or email suprameds@gmail.in</li>
                 <li>2. Provide your order number and a clear photo of the product showing the issue</li>
                 <li>3. Our support team will raise a return request and arrange pickup</li>
                 <li>4. Our pharmacist inspects the returned product</li>
@@ -97,7 +97,7 @@ function Returns() {
           <div className="p-5 rounded-xl" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}>
             <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Need help?</h3>
             <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              Contact us: <a href="tel:+918008005678" className="font-medium" style={{ color: "var(--brand-teal)" }}>+91 800 800 5678</a> or WhatsApp <a href="tel:+918008001234" className="font-medium" style={{ color: "var(--brand-teal)" }}>+91 800 800 1234</a>
+              Contact us: <a href="tel:+917674962758" className="font-medium" style={{ color: "var(--brand-teal)" }}>+91 76749 62758</a> or email <a href="mailto:suprameds@gmail.in" className="font-medium" style={{ color: "var(--brand-teal)" }}>suprameds@gmail.in</a>
             </p>
             <p className="text-sm mt-1" style={{ color: "var(--text-tertiary)" }}>9 AM – 9 PM · Monday to Saturday</p>
           </div>

@@ -132,7 +132,7 @@ const ProductDetails = () => {
                     ₹{currentPrice.toLocaleString("en-IN")}
                   </span>
                   {mrpRupees && mrpRupees > currentPrice && (
-                    <span className="text-sm line-through" style={{ color: "var(--text-tertiary)" }}>
+                    <span className="text-sm line-through" style={{ color: "var(--text-secondary)" }}>
                       MRP ₹{mrpRupees.toLocaleString("en-IN")}
                     </span>
                   )}
