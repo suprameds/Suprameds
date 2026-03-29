@@ -223,7 +223,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
               type="button"
               onClick={handleAddToCart}
               disabled={addToCartMutation.isPending}
-              className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50"
+              aria-label={`Add ${product.title} to cart`}
+              className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg text-xs font-semibold transition-all hover:opacity-90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--brand-green)]"
               style={{
                 background: "var(--discount-bg)",
                 color: "var(--text-inverse)",
