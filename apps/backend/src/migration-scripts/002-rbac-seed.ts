@@ -39,6 +39,13 @@ const DEFAULT_USERS: Array<{
     roles: ["super_admin"],
   },
   {
+    email: "super_admin@gmail.com",
+    password: "Suprameds@2026!",
+    firstName: "Nikhil",
+    lastName: "Admin",
+    roles: ["super_admin"],
+  },
+  {
     email: "pic@suprameds.in",
     password: "Suprameds@2026!",
     firstName: "Dr. Rajesh",
