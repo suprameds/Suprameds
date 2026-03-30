@@ -669,36 +669,93 @@ export default async function seedTestProducts({
       })
       const variant = (variants as any[])[0]
 
-      // ── Inventory item + initial stock level (first batch qty) ─────
+      // ── Find inventory item + set stock level ─────────────────────
+      // createProductsWorkflow auto-creates inventory items when
+      // manage_inventory=true, so we find it instead of creating again.
 
       if (variant?.id) {
-        const firstBatch = product.batches[0]
-        const initialQty = firstBatch?.qty ?? 0
+        const totalQty = product.batches.reduce((sum, b) => sum + b.qty, 0)
+        let invItemId: string | null = null
 
-        const { result: invItems } = await createInventoryItemsWorkflow(
-          container
-        ).run({ input: { items: [{ sku }] as any } })
-        const invItem = (invItems as any[])[0]
-
-        if (invItem?.id) {
-          await batchInventoryItemLevelsWorkflow(container).run({
-            input: {
-              creates: [
-                {
-                  inventory_item_id: invItem.id,
-                  location_id: stockLocation.id,
-                  stocked_quantity: initialQty,
-                },
-              ],
-              updates: [],
-              deletes: [],
-            } as any,
+        // 1. Check variant link (most common path)
+        try {
+          const { data: variantWithInv } = await query.graph({
+            entity: "variant",
+            fields: ["id", "inventory_items.id"],
+            filters: { id: [variant.id] },
           })
+          invItemId =
+            (variantWithInv as any[])[0]?.inventory_items?.[0]?.id ?? null
+        } catch {
+          /* not linked yet */
+        }
 
-          await link.create({
-            ["product" as any]: { variant_id: variant.id },
-            ["inventory" as any]: { inventory_item_id: invItem.id },
-          })
+        // 2. Fallback: find by SKU
+        if (!invItemId) {
+          try {
+            const { data: invBySku } = await query.graph({
+              entity: "inventory_item",
+              fields: ["id"],
+              filters: { sku: [sku] },
+            })
+            invItemId = (invBySku as any[])[0]?.id ?? null
+          } catch {
+            /* not found */
+          }
+        }
+
+        // 3. Last resort: create manually
+        if (!invItemId) {
+          try {
+            const { result: newItems } = await createInventoryItemsWorkflow(
+              container
+            ).run({ input: { items: [{ sku }] as any } })
+            invItemId = (newItems as any[])[0]?.id ?? null
+            if (invItemId) {
+              await link.create({
+                ["product" as any]: { variant_id: variant.id },
+                ["inventory" as any]: { inventory_item_id: invItemId },
+              })
+            }
+          } catch (e: any) {
+            logger.warn(
+              `005-test-products: inv item fallback failed for ${sku}: ${e.message}`
+            )
+          }
+        }
+
+        // Set stock level (total across all batches)
+        if (invItemId) {
+          try {
+            await batchInventoryItemLevelsWorkflow(container).run({
+              input: {
+                creates: [
+                  {
+                    inventory_item_id: invItemId,
+                    location_id: stockLocation.id,
+                    stocked_quantity: totalQty,
+                  },
+                ],
+                updates: [],
+                deletes: [],
+              } as any,
+            })
+          } catch {
+            // Level already exists — update instead
+            await batchInventoryItemLevelsWorkflow(container).run({
+              input: {
+                creates: [],
+                updates: [
+                  {
+                    inventory_item_id: invItemId,
+                    location_id: stockLocation.id,
+                    stocked_quantity: totalQty,
+                  },
+                ],
+                deletes: [],
+              } as any,
+            })
+          }
         }
       }
 
@@ -747,24 +804,10 @@ export default async function seedTestProducts({
 
       drugByProductId.set(createdProduct.id, true)
 
-      // ── Create all 3 batches ───────────────────────────────────────
+      // ── Create all 3 batches (stock level already set above) ──────
 
       if (variant?.id) {
-        // Get the inventory item we just created
-        const { data: variantData } = await query.graph({
-          entity: "variant",
-          fields: [
-            "id",
-            "inventory_items.id",
-            "inventory_items.location_levels.stocked_quantity",
-            "inventory_items.location_levels.location_id",
-          ],
-          filters: { id: [variant.id] },
-        })
-        const invItem = (variantData as any[])[0]?.inventory_items?.[0]
-
-        for (let i = 0; i < product.batches.length; i++) {
-          const batch = product.batches[i]
+        for (const batch of product.batches) {
           await batchService.createBatches({
             product_variant_id: variant.id,
             product_id: createdProduct.id,
@@ -786,35 +829,6 @@ export default async function seedTestProducts({
           logger.info(
             `005-test-products:   ↳ Batch ${batch.lotNumber} (exp: ${batch.expiryDate}, qty: ${batch.qty})`
           )
-
-          // Adjust inventory level for batches 2 and 3 (batch 0 already set above)
-          if (i > 0 && invItem?.id) {
-            const currentLevel = invItem.location_levels?.find(
-              (l: any) => l.location_id === stockLocation.id
-            )
-            const currentQty = currentLevel?.stocked_quantity ?? 0
-
-            await batchInventoryItemLevelsWorkflow(container).run({
-              input: {
-                creates: [],
-                updates: [
-                  {
-                    inventory_item_id: invItem.id,
-                    location_id: stockLocation.id,
-                    stocked_quantity: currentQty + batch.qty,
-                  },
-                ],
-                deletes: [],
-              } as any,
-            })
-
-            // Refresh cached qty for next iteration
-            invItem.location_levels = invItem.location_levels?.map((l: any) =>
-              l.location_id === stockLocation.id
-                ? { ...l, stocked_quantity: currentQty + batch.qty }
-                : l
-            )
-          }
         }
       }
 
@@ -891,19 +905,50 @@ async function ensureBatches(
         )
         const currentQty = currentLevel?.stocked_quantity ?? 0
 
-        await batchInventoryItemLevelsWorkflow(container).run({
-          input: {
-            creates: [],
-            updates: [
-              {
-                inventory_item_id: invItem.id,
-                location_id: stockLocation.id,
-                stocked_quantity: currentQty + batch.qty,
-              },
-            ],
-            deletes: [],
-          } as any,
-        })
+        try {
+          // Try update first (level exists)
+          await batchInventoryItemLevelsWorkflow(container).run({
+            input: {
+              creates: [],
+              updates: [
+                {
+                  inventory_item_id: invItem.id,
+                  location_id: stockLocation.id,
+                  stocked_quantity: currentQty + batch.qty,
+                },
+              ],
+              deletes: [],
+            } as any,
+          })
+        } catch {
+          // Level doesn't exist yet (0 locations) — create it
+          await batchInventoryItemLevelsWorkflow(container).run({
+            input: {
+              creates: [
+                {
+                  inventory_item_id: invItem.id,
+                  location_id: stockLocation.id,
+                  stocked_quantity: batch.qty,
+                },
+              ],
+              updates: [],
+              deletes: [],
+            } as any,
+          })
+        }
+
+        // Update cached level for next iteration
+        if (currentLevel) {
+          currentLevel.stocked_quantity = currentQty + batch.qty
+        } else {
+          invItem.location_levels = [
+            ...(invItem.location_levels || []),
+            {
+              location_id: stockLocation.id,
+              stocked_quantity: batch.qty,
+            },
+          ]
+        }
       }
     } catch (err: any) {
       const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
