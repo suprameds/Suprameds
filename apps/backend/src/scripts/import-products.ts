@@ -344,6 +344,91 @@ export default async function importProducts({
           })
         }
 
+        // ── Also create batch in update mode if lot number is new ────
+        if (row.batch_lot_number && row.batch_expiry_date) {
+          try {
+            const existingBatches = await batchService.listBatches({
+              lot_number: row.batch_lot_number,
+            })
+
+            if (!existingBatches.length) {
+              const { data: variantData } = await query.graph({
+                entity: "variant",
+                fields: [
+                  "id",
+                  "inventory_items.id",
+                  "inventory_items.location_levels.stocked_quantity",
+                  "inventory_items.location_levels.location_id",
+                ],
+                filters: { product_id: [productId] },
+              })
+              const variant = (variantData as any[])[0]
+              const invItem = variant?.inventory_items?.[0]
+
+              if (variant?.id) {
+                const batchQty = Number(row.stock_qty) || 0
+                const batchMrp = row.batch_mrp_inr
+                  ? Number(row.batch_mrp_inr) * 100
+                  : mrpPrice * 100
+                const batchPurchase = row.batch_purchase_price_inr
+                  ? Number(row.batch_purchase_price_inr) * 100
+                  : null
+
+                await batchService.createBatches({
+                  product_variant_id: variant.id,
+                  product_id: productId,
+                  lot_number: row.batch_lot_number,
+                  manufactured_on: row.batch_manufactured_on || null,
+                  expiry_date: row.batch_expiry_date,
+                  received_quantity: batchQty,
+                  available_quantity: batchQty,
+                  reserved_quantity: 0,
+                  batch_mrp_paise: batchMrp,
+                  purchase_price_paise: batchPurchase,
+                  location_id: stockLocation.id,
+                  supplier_name: row.batch_supplier || row.manufacturer || null,
+                  grn_number: row.batch_grn_number || null,
+                  received_on: new Date().toISOString(),
+                  status: "active",
+                  metadata: { source: "csv-import" },
+                })
+
+                // Adjust Medusa inventory level to reflect new batch stock
+                if (batchQty > 0 && invItem?.id) {
+                  const currentLevel = invItem.location_levels?.find(
+                    (l: any) => l.location_id === stockLocation.id
+                  )
+                  const currentQty = currentLevel?.stocked_quantity || 0
+
+                  await batchInventoryItemLevelsWorkflow(container).run({
+                    input: {
+                      creates: [],
+                      updates: [
+                        {
+                          inventory_item_id: invItem.id,
+                          location_id: stockLocation.id,
+                          stocked_quantity: currentQty + batchQty,
+                        },
+                      ],
+                      deletes: [],
+                    } as any,
+                  })
+                }
+
+                logger.info(
+                  `[import]   ↳ Batch ${row.batch_lot_number} added (qty: ${batchQty}, exp: ${row.batch_expiry_date})`
+                )
+              }
+            } else {
+              logger.info(
+                `[import]   ↳ Batch ${row.batch_lot_number} already exists — skipping`
+              )
+            }
+          } catch (batchErr: any) {
+            logger.warn(`[import]   ↳ Batch creation failed: ${batchErr.message}`)
+          }
+        }
+
         logger.info(`[import] UPDATED: ${row.brand_name}`)
         updated++
       } else {

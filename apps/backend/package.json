@@ -22,6 +22,8 @@
     "db:fresh": "medusa db:migrate && FORCE_RESEED=true medusa exec ./src/scripts/run-migrations.ts",
     "db:import": "medusa exec ./src/scripts/import-fresh-data.ts",
     "import:products": "medusa exec ./src/scripts/import-products.ts",
+    "assign:admin": "medusa exec ./src/scripts/assign-super-admin.ts",
+    "import:test-products": "medusa exec ./src/scripts/import-products.ts -- --file=./data/test-products.csv --update",
     "start": "node ./src/scripts/cloud-start.mjs",
     "dev": "medusa develop",
     "dev:tee": "medusa develop 2>&1 | tee -a ../backend.log",
