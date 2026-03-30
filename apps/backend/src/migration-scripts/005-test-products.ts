@@ -859,19 +859,28 @@ async function ensureBatches(
   productId: string,
   stockLocation: { id: string }
 ): Promise<void> {
+  // Two-step query: link model can't traverse to location_levels
   const { data: variantData } = await query.graph({
     entity: "variant",
-    fields: [
-      "id",
-      "inventory_items.id",
-      "inventory_items.location_levels.stocked_quantity",
-      "inventory_items.location_levels.location_id",
-    ],
+    fields: ["id", "inventory_items.id"],
     filters: { product_id: [productId] },
   })
   const variant = (variantData as any[])[0]
-  const invItem = variant?.inventory_items?.[0]
+  const invItemId = variant?.inventory_items?.[0]?.id
   if (!variant?.id) return
+
+  // Get location levels from inventory item directly
+  let invItem: any = { id: invItemId, location_levels: [] }
+  if (invItemId) {
+    try {
+      const { data: invItems } = await query.graph({
+        entity: "inventory_item",
+        fields: ["id", "location_levels.stocked_quantity", "location_levels.location_id"],
+        filters: { id: [invItemId] },
+      })
+      invItem = (invItems as any[])[0] ?? invItem
+    } catch { /* no levels yet */ }
+  }
 
   for (const batch of product.batches) {
     try {

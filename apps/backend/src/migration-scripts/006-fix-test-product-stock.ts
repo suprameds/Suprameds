@@ -153,21 +153,16 @@ export default async function fixTestProductStock({
         continue
       }
 
-      // Find variant + inventory item
+      // Find variant → inventory item (two-step: link query can't traverse location_levels)
       const { data: variants } = await query.graph({
         entity: "variant",
-        fields: [
-          "id",
-          "inventory_items.id",
-          "inventory_items.location_levels.stocked_quantity",
-          "inventory_items.location_levels.location_id",
-        ],
+        fields: ["id", "inventory_items.id"],
         filters: { product_id: [productRecord.id] },
       })
       const variant = (variants as any[])[0]
-      const invItem = variant?.inventory_items?.[0]
+      const invItemId = variant?.inventory_items?.[0]?.id
 
-      if (!variant?.id || !invItem?.id) {
+      if (!variant?.id || !invItemId) {
         logger.warn(`006: no variant/inventory for "${product.handle}" — skipping.`)
         skipped++
         continue
@@ -211,20 +206,32 @@ export default async function fixTestProductStock({
       }
 
       // ── Set stock level ────────────────────────────────────────────
+      // Query location levels separately (not through link)
+      let currentQty = 0
+      let hasLevel = false
+      try {
+        const { data: invItems } = await query.graph({
+          entity: "inventory_item",
+          fields: ["id", "location_levels.stocked_quantity", "location_levels.location_id"],
+          filters: { id: [invItemId] },
+        })
+        const level = (invItems as any[])[0]?.location_levels?.find(
+          (l: any) => l.location_id === stockLocation.id
+        )
+        if (level) {
+          hasLevel = true
+          currentQty = level.stocked_quantity ?? 0
+        }
+      } catch { /* no levels yet */ }
 
-      const currentLevel = invItem.location_levels?.find(
-        (l: any) => l.location_id === stockLocation.id
-      )
-
-      if (currentLevel) {
-        // Level exists — update to total
-        if (currentLevel.stocked_quantity < totalQty) {
+      if (hasLevel) {
+        if (currentQty < totalQty) {
           await batchInventoryItemLevelsWorkflow(container).run({
             input: {
               creates: [],
               updates: [
                 {
-                  inventory_item_id: invItem.id,
+                  inventory_item_id: invItemId,
                   location_id: stockLocation.id,
                   stocked_quantity: totalQty,
                 },
@@ -234,12 +241,11 @@ export default async function fixTestProductStock({
           })
         }
       } else {
-        // No level at this location — create it
         await batchInventoryItemLevelsWorkflow(container).run({
           input: {
             creates: [
               {
-                inventory_item_id: invItem.id,
+                inventory_item_id: invItemId,
                 location_id: stockLocation.id,
                 stocked_quantity: totalQty,
               },
