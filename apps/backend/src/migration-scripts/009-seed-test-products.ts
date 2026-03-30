@@ -379,14 +379,16 @@ export default async function seedTestProducts({
       const product = (createdProducts as any[])[0]
       if (!product?.id) throw new Error(`product creation returned no ID`)
 
-      // 2. Find auto-created inventory item via variant link
+      // 2. Find variant + inventory item (by SKU, not link — link returns pvitem_ IDs)
       const { data: variants } = await query.graph({
         entity: "variant",
-        fields: ["id", "inventory_items.id"],
+        fields: ["id"],
         filters: { product_id: [product.id] },
       })
       const variantId = (variants as any[])[0]?.id
-      const invItemId = (variants as any[])[0]?.inventory_items?.[0]?.id
+
+      const [invItems] = await inventoryService.listInventoryItems({ sku })
+      const invItemId = invItems?.[0]?.id
 
       // 3. Set stock level via inventory service (NOT workflow)
       if (invItemId) {
