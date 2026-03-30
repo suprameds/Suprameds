@@ -23,6 +23,7 @@ import rbacSeed from "../migration-scripts/002-rbac-seed"
 import ftsIndex from "../migration-scripts/003-fts-index"
 import cloudAdminBootstrap from "../migration-scripts/004-cloud-admin-bootstrap"
 import seedTestProducts from "../migration-scripts/009-seed-test-products"
+import setStockLevels from "../migration-scripts/010-set-stock-levels"
 
 interface MigrationStep {
   name: string
@@ -35,6 +36,7 @@ const MIGRATIONS: MigrationStep[] = [
   { name: "003-fts-index", fn: ftsIndex },
   { name: "004-cloud-admin-bootstrap", fn: cloudAdminBootstrap },
   { name: "009-seed-test-products", fn: seedTestProducts },
+  { name: "010-set-stock-levels", fn: setStockLevels },
 ]
 
 export default async function runMigrations({
