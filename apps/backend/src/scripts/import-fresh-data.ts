@@ -512,9 +512,9 @@ async function importPincodes(
 
     if (existing.length > 0) {
       const ids = existing.map((r: any) => r.id)
-      for (let i = 0; i < ids.length; i += 100) {
-        await warehouseService.deleteServiceablePincodes(ids.slice(i, i + 100))
-        if (i + 100 < ids.length) await new Promise((r) => setTimeout(r, 50))
+      for (let i = 0; i < ids.length; i += 50) {
+        await warehouseService.deleteServiceablePincodes(ids.slice(i, i + 50))
+        if (i + 50 < ids.length) await new Promise((r) => setTimeout(r, 500))
       }
       logger.info(`  [pincodes] Cleared ${existing.length} existing records`)
     }
@@ -549,19 +549,25 @@ async function importPincodes(
     })
   }
 
-  // Insert in sub-batches of 100
+  // Insert in small sub-batches with generous delays for managed Redis
   if (toCreate.length > 0) {
-    const SUB_BATCH = 100
+    const SUB_BATCH = 25
     for (let i = 0; i < toCreate.length; i += SUB_BATCH) {
       try {
         await warehouseService.createServiceablePincodes(toCreate.slice(i, i + SUB_BATCH))
         if (i + SUB_BATCH < toCreate.length) {
-          await new Promise((r) => setTimeout(r, 50))
+          await new Promise((r) => setTimeout(r, 500))
         }
       } catch (err: any) {
-        logger.error(`  [pincodes] Batch insert failed at offset ${i}: ${err?.message}`)
-        skipped += Math.min(SUB_BATCH, toCreate.length - i)
-        continue
+        // Retry once after longer pause (Lua limit recovery)
+        try {
+          await new Promise((r) => setTimeout(r, 2000))
+          await warehouseService.createServiceablePincodes(toCreate.slice(i, i + SUB_BATCH))
+        } catch {
+          logger.error(`  [pincodes] Batch insert failed at offset ${i}: ${err?.message}`)
+          skipped += Math.min(SUB_BATCH, toCreate.length - i)
+          continue
+        }
       }
     }
     imported = toCreate.length
