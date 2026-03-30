@@ -22,10 +22,7 @@ import infraSeed from "../migration-scripts/001-infra-seed"
 import rbacSeed from "../migration-scripts/002-rbac-seed"
 import ftsIndex from "../migration-scripts/003-fts-index"
 import cloudAdminBootstrap from "../migration-scripts/004-cloud-admin-bootstrap"
-import seedTestProducts from "../migration-scripts/005-test-products"
-import fixTestProductStock from "../migration-scripts/006-fix-test-product-stock"
-import fixTestProductStockV2 from "../migration-scripts/007-fix-test-product-stock-v2"
-import setTestProductStock from "../migration-scripts/008-set-test-product-stock"
+import seedTestProducts from "../migration-scripts/009-seed-test-products"
 
 interface MigrationStep {
   name: string
@@ -37,10 +34,7 @@ const MIGRATIONS: MigrationStep[] = [
   { name: "002-rbac-seed", fn: rbacSeed },
   { name: "003-fts-index", fn: ftsIndex },
   { name: "004-cloud-admin-bootstrap", fn: cloudAdminBootstrap },
-  { name: "005-test-products", fn: seedTestProducts },
-  { name: "006-fix-test-product-stock", fn: fixTestProductStock },
-  { name: "007-fix-test-product-stock-v2", fn: fixTestProductStockV2 },
-  { name: "008-set-test-product-stock", fn: setTestProductStock },
+  { name: "009-seed-test-products", fn: seedTestProducts },
 ]
 
 export default async function runMigrations({
