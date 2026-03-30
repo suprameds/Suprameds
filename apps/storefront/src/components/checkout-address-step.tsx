@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { useSetCartAddresses } from "@/lib/hooks/use-checkout"
-import { useCustomerAddresses } from "@/lib/hooks/use-customer"
+import { useCustomer, useCustomerAddresses } from "@/lib/hooks/use-customer"
 import { getStoredCountryCode } from "@/lib/utils/region"
 import { AddressFormData } from "@/lib/types/global"
 import { HttpTypes } from "@medusajs/types"
@@ -53,7 +53,8 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isShippingAddressValid, setIsShippingAddressValid] = useState(false)
   const [isBillingAddressValid, setIsBillingAddressValid] = useState(false)
-  const [email, setEmail] = useState(cart.email || "")
+  const { data: customer } = useCustomer()
+  const [email, setEmail] = useState(cart.email || customer?.email || "")
   const { data: customerAddresses = [] } = useCustomerAddresses()
   const didAutofillFromSavedAddress = useRef(false)
   const storedCountryCode = getStoredCountryCode()
@@ -103,11 +104,17 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
     setBillingAddress(mapped)
   }, [customerAddresses, storedCountryCode])
 
+  // Fill email from customer when it loads (may arrive after initial render)
+  useEffect(() => {
+    if (!email && customer?.email) setEmail(customer.email)
+  }, [customer?.email]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSelectSavedAddress = (addr: HttpTypes.StoreCustomerAddress) => {
     setSelectedAddressId(`saved_${addr.id}`)
     const mapped = savedToForm(addr, storedCountryCode || "")
     setShippingAddress(mapped)
     if (sameAsBilling) setBillingAddress(mapped)
+    if (!email && customer?.email) setEmail(customer.email)
   }
 
   const handleSelectNewAddress = () => {

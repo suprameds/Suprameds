@@ -38,6 +38,9 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   const initiatingRef = useRef(false)
   const initiatePaymentSession = useCallback(
     async (method: string) => {
+      // COD / system-default is a manual provider — no session needed
+      if (method === "pp_system_default") return
+
       if (initiatingRef.current) return
       initiatingRef.current = true
       try {
