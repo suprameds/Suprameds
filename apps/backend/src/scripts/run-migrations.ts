@@ -24,6 +24,7 @@ import ftsIndex from "../migration-scripts/003-fts-index"
 import cloudAdminBootstrap from "../migration-scripts/004-cloud-admin-bootstrap"
 import seedTestProducts from "../migration-scripts/005-test-products"
 import fixTestProductStock from "../migration-scripts/006-fix-test-product-stock"
+import fixTestProductStockV2 from "../migration-scripts/007-fix-test-product-stock-v2"
 
 interface MigrationStep {
   name: string
@@ -37,6 +38,7 @@ const MIGRATIONS: MigrationStep[] = [
   { name: "004-cloud-admin-bootstrap", fn: cloudAdminBootstrap },
   { name: "005-test-products", fn: seedTestProducts },
   { name: "006-fix-test-product-stock", fn: fixTestProductStock },
+  { name: "007-fix-test-product-stock-v2", fn: fixTestProductStockV2 },
 ]
 
 export default async function runMigrations({
