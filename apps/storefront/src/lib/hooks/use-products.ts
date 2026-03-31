@@ -24,6 +24,7 @@ export const useProducts = ({
           "title",
           "handle",
           "thumbnail",
+          "*images",
           "*variants",
           "+variants.calculated_price",
           "+variants.inventory_quantity",
@@ -140,6 +141,7 @@ export const useLatestProducts = ({
         offset: 0,
         order: "-created_at",
         region_id,
+        fields: "id,title,handle,thumbnail,*images,*variants,+variants.calculated_price,+variants.inventory_quantity,+variants.manage_inventory,+variants.allow_backorder",
       })
 
       return {

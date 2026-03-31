@@ -36,21 +36,25 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   const paidByGiftcard = isPaidWithGiftCard(cart)
 
   const initiatingRef = useRef(false)
+  const activeProviderRef = useRef(selectedPaymentMethod)
+
   const initiatePaymentSession = useCallback(
     async (method: string) => {
-      // COD / system-default is a manual provider — no session needed
-      if (method === "pp_system_default") return
-
       if (initiatingRef.current) return
       initiatingRef.current = true
+      activeProviderRef.current = method
       try {
         await initiatePaymentSessionMutation.mutateAsync(
           { provider_id: method },
         )
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "An error occurred"
-        )
+        // Only show error if this is still the active selection
+        // (prevents stale Razorpay errors showing when user already switched to COD)
+        if (activeProviderRef.current === method) {
+          setError(
+            err instanceof Error ? err.message : "An error occurred"
+          )
+        }
       } finally {
         initiatingRef.current = false
       }
@@ -62,13 +66,14 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
     async (method: string) => {
       setError(null)
       setSelectedPaymentMethod(method)
+      activeProviderRef.current = method
 
       await initiatePaymentSession(method)
     },
     [initiatePaymentSession]
   )
 
-  // Auto-select + initiate the first payment method when list loads
+  // Auto-select: prefer COD (no API call needed), fall back to first available
   const didAutoInitRef = useRef(false)
   useEffect(() => {
     if (didAutoInitRef.current) return
@@ -76,10 +81,13 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
     if (selectedPaymentMethod) return
 
     didAutoInitRef.current = true
-    const firstMethod = availablePaymentMethods[0]
-    if (firstMethod) {
-      setSelectedPaymentMethod(firstMethod.id)
-      initiatePaymentSession(firstMethod.id)
+    // Prefer COD to avoid unnecessary Razorpay session initiation on mount
+    const cod = availablePaymentMethods.find((m) => m.id === "pp_system_default")
+    const preferred = cod || availablePaymentMethods[0]
+    if (preferred) {
+      setSelectedPaymentMethod(preferred.id)
+      activeProviderRef.current = preferred.id
+      initiatePaymentSession(preferred.id)
     }
   }, [availablePaymentMethods, selectedPaymentMethod, initiatePaymentSession])
 

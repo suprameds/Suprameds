@@ -504,7 +504,7 @@ export const CartDropdown = () => {
     <Drawer open={isOpen} onOpenChange={(open) => (open ? openCart() : closeCart())}>
       <DrawerTrigger asChild>
         <button
-          className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] h-full"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-tertiary)] min-h-[44px] px-2 flex items-center"
           aria-label={`Cart ${itemCount} items`}
         >
           <span aria-live="polite">Cart ({itemCount})</span>

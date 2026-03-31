@@ -744,6 +744,25 @@ const CreateMedicinePage = () => {
           </div>
         </Container>
 
+        {/* ── Image Guidelines ── */}
+        <Container>
+          <Heading level="h2" className="mb-2">Product Image</Heading>
+          <Text className="text-ui-fg-subtle text-sm mb-3">
+            Upload product images after creation via the product detail page.
+          </Text>
+          <div className="bg-ui-bg-subtle rounded-lg p-3 text-xs text-ui-fg-muted space-y-1">
+            <p className="font-semibold text-ui-fg-base">Image Guidelines:</p>
+            <p>Recommended: <strong>800 x 800px</strong> (square, 1:1 ratio)</p>
+            <p>Min: 400 x 400px, Max: 2000 x 2000px</p>
+            <p>Format: PNG or JPG, max <strong>2MB</strong></p>
+            <p>Background: white or transparent preferred</p>
+            <p className="text-amber-600 mt-2">
+              Per Drugs & Magic Remedies Act 1954 — no lifestyle or model images.
+              Use product packaging photos only.
+            </p>
+          </div>
+        </Container>
+
         {/* ── Submit ── */}
         <div className="flex items-center gap-3">
           <Button

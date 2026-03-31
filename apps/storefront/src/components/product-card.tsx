@@ -91,7 +91,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     <Link
       to="/$countryCode/products/$handle"
       params={{ countryCode, handle: product.handle }}
-      className="group relative flex flex-col w-full rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg"
+      className="group relative flex flex-col w-full rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg animate-[fade-up_0.4s_ease-out_both]"
       style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
     >
       {/* ── Top-left badges ── */}
@@ -162,20 +162,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
         )}
 
         {/* Product title */}
-        <h3 className="text-[13px] font-semibold leading-snug line-clamp-2 min-h-[2.5em]" style={{ color: "var(--text-primary)" }}>
+        <h3 className="text-sm font-semibold leading-snug line-clamp-2 min-h-[2.5em]" style={{ color: "var(--text-primary)" }}>
           {product.title}
         </h3>
 
         {/* Form / strength / pack info */}
         {(form || strength || packSize) && (
-          <p className="text-[11px] line-clamp-1" style={{ color: "var(--text-secondary)" }}>
+          <p className="text-xs line-clamp-1" style={{ color: "var(--text-secondary)" }}>
             {[form, strength, packSize].filter(Boolean).join(" · ")}
           </p>
         )}
 
         {/* Generic name */}
         {genericName && (
-          <p className="text-[10px] italic line-clamp-1" style={{ color: "var(--text-tertiary)" }}>
+          <p className="text-[11px] italic line-clamp-1" style={{ color: "var(--text-tertiary)" }}>
             {genericName}
           </p>
         )}

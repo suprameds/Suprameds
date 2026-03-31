@@ -425,14 +425,14 @@ const Home = () => {
               <Link
                 to="/$countryCode/store"
                 params={{ countryCode }}
-                className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity"
+                className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity min-h-[44px] px-2"
                 style={{ color: "var(--brand-teal)" }}
               >
                 View all <ArrowRight />
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 lg:gap-4">
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
@@ -485,7 +485,7 @@ const Home = () => {
             <Link
               to="/$countryCode/store"
               params={{ countryCode }}
-              className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity"
+              className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity min-h-[44px] px-2"
               style={{ color: "var(--brand-teal)" }}
             >
               View all <ArrowRight />
