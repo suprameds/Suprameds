@@ -55,7 +55,7 @@ export function ThemeToggle() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="p-2 rounded-lg transition-colors"
+        className="p-2.5 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
         style={{ color: "var(--text-secondary)" }}
         aria-label="Toggle theme"
       >

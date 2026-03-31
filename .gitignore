@@ -40,6 +40,7 @@ Desktop.ini
 # ---- Large data files ----
 *.csv
 !templates/*.csv
+!apps/backend/data/products.csv
 
 # ---- Build logs ----
 build_log.txt
@@ -61,3 +62,4 @@ e2e/performance/results/
 
 # ---- Scratch ----
 tmp/
+.gstack/

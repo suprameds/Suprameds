@@ -88,6 +88,7 @@ const PharmacistAdjustmentWidget = () => {
   const [decisions, setDecisions] = useState<DispenseDecision[]>([])
   const [loading, setLoading] = useState(true)
   const [isRxOrder, setIsRxOrder] = useState<boolean | null>(null)
+  const [drugSchedules, setDrugSchedules] = useState<Record<string, string>>({})
 
   // Per-item form state keyed by line item ID
   const [forms, setForms] = useState<
@@ -129,6 +130,7 @@ const PharmacistAdjustmentWidget = () => {
       }
 
       // Check if any item is Schedule H/H1 (Rx) — hide widget for OTC-only orders
+      // Also store per-product drug schedule for contextual warnings
       const productIds = orderItems.map((i) => i.product_id).filter(Boolean)
       let hasRx = false
       if (productIds.length > 0) {
@@ -141,6 +143,12 @@ const PharmacistAdjustmentWidget = () => {
             const drugJson = await drugResp.json()
             const drugs = drugJson.drug_products ?? []
             hasRx = drugs.some((d: any) => d.schedule === "H" || d.schedule === "H1")
+            // Store per-product schedule info
+            const schedMap: Record<string, string> = {}
+            for (const d of drugs) {
+              if (d.product_id) schedMap[d.product_id] = d.schedule ?? "OTC"
+            }
+            setDrugSchedules(schedMap)
           }
         } catch { /* proceed — show widget if drug check fails */ hasRx = true }
       }
@@ -338,7 +346,24 @@ const PharmacistAdjustmentWidget = () => {
                     />
                   )}
                   <div>
-                    <Text className="font-medium">{item.title}</Text>
+                    <div className="flex items-center gap-2">
+                      <Text className="font-medium">{item.title}</Text>
+                      {drugSchedules[item.product_id] && (
+                        <Badge
+                          color={
+                            drugSchedules[item.product_id] === "H" || drugSchedules[item.product_id] === "H1"
+                              ? "orange"
+                              : drugSchedules[item.product_id] === "X"
+                                ? "red"
+                                : "green"
+                          }
+                        >
+                          {drugSchedules[item.product_id] === "OTC"
+                            ? "OTC"
+                            : `Sch. ${drugSchedules[item.product_id]}`}
+                        </Badge>
+                      )}
+                    </div>
                     <Text className="text-xs text-ui-fg-subtle">
                       Qty: {item.quantity} × {formatINR(item.unit_price)}
                     </Text>
@@ -603,12 +628,21 @@ const PharmacistAdjustmentWidget = () => {
                 </div>
               )}
 
-              {/* No Rx line linked warning */}
-              {!existing && !rxLineId && (
-                <Text className="text-xs text-ui-fg-muted mt-1">
-                  No prescription line linked — this may be an OTC item.
-                </Text>
-              )}
+              {/* No Rx line linked warning — contextual based on drug schedule */}
+              {!existing && !rxLineId && (() => {
+                const schedule = drugSchedules[item.product_id]
+                const isScheduled = schedule === "H" || schedule === "H1"
+                return isScheduled ? (
+                  <Text className="text-xs text-amber-600 font-medium mt-1">
+                    ⚠️ Schedule {schedule} drug — prescription required but not linked.
+                    Upload via Prescriptions panel.
+                  </Text>
+                ) : (
+                  <Text className="text-xs text-ui-fg-muted mt-1">
+                    No prescription line linked — OTC item, no Rx required.
+                  </Text>
+                )
+              })()}
             </div>
           )
         })}

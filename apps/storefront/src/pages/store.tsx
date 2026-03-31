@@ -196,7 +196,7 @@ const Store = () => {
           <div className="flex flex-wrap gap-2 mb-6">
             <button
               onClick={() => setSelectedCategory(undefined)}
-              className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+              className="px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px]"
               style={{
                 background: !selectedCategory ? "var(--brand-teal)" : "var(--bg-secondary)",
                 color: !selectedCategory ? "var(--text-inverse)" : "var(--text-primary)",
@@ -209,7 +209,7 @@ const Store = () => {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(selectedCategory === cat.id ? undefined : cat.id)}
-                className="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+                className="px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px]"
                 style={{
                   background: selectedCategory === cat.id ? "var(--brand-teal)" : "var(--bg-secondary)",
                   color: selectedCategory === cat.id ? "var(--text-inverse)" : "var(--text-primary)",

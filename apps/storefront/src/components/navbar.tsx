@@ -280,8 +280,9 @@ export const Navbar = () => {
                 onBlur={handleSearchBlur}
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Search medicines, e.g. Metformin, Paracetamol..."
-                className="flex-1 px-2.5 py-2 text-sm outline-none bg-transparent"
+                className="flex-1 px-2.5 py-2 text-sm outline-none bg-transparent caret-current"
                 style={{ color: "var(--text-primary)" }}
+                suppressHydrationWarning
                 autoComplete="off"
               />
             </div>
@@ -433,7 +434,7 @@ export const Navbar = () => {
             <Link
               to="/$countryCode/upload-rx"
               params={{ countryCode }}
-              className="hidden lg:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded transition-all"
+              className="hidden lg:flex items-center gap-1.5 text-xs font-medium px-3 py-2.5 rounded min-h-[44px] transition-all"
               style={{ color: "#0a6570", background: "#e8f5ee" }}
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
