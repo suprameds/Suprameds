@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { ORDERS_MODULE } from "../modules/orders"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 import { captureException } from "../lib/sentry"
 import { createLogger } from "../lib/logger"
 
@@ -65,25 +66,98 @@ export default async function dispenseDecisionHandler({
       logger.info(`${order_id}: ${prevStatus} → ${newStatus}`)
     }
 
-    // Notify warehouse team if approved for dispatch
+    // On approval: auto-allocate batches (FEFO) + notify warehouse
     if (decision === "approved") {
+      // ── FEFO batch allocation ──
       try {
         const orderService = container.resolve(Modules.ORDER) as any
-        const order = await orderService.retrieveOrder(order_id, {})
-        const notifService = container.resolve(NOTIFICATION_MODULE) as any
+        const order = await orderService.retrieveOrder(order_id, { relations: ["items"] })
+        const batchService = container.resolve(INVENTORY_BATCH_MODULE) as any
 
-        await notifService.createInternalNotifications({
-          user_id: pharmacist_id ?? "system",
-          role_scope: "warehouse",
-          type: "dispatch_pending",
-          title: `Order #${order.display_id ?? order_id} — Ready for Dispatch`,
-          body: `Pharmacist approved dispensing. Order is ready for packing and shipment.`,
-          reference_type: "order",
-          reference_id: order_id,
-        })
+        const MIN_SHELF_LIFE_DAYS = Number(process.env.BATCH_MIN_SHELF_LIFE_DAYS ?? 60)
+        const mslCutoff = new Date()
+        mslCutoff.setHours(0, 0, 0, 0)
+        mslCutoff.setDate(mslCutoff.getDate() + MIN_SHELF_LIFE_DAYS)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        let allAllocated = true
+
+        for (const item of order.items ?? []) {
+          const variantId = item.variant_id
+          if (!variantId) continue
+
+          // Check if already allocated
+          const existingDeductions = await batchService.listBatchDeductions({
+            order_line_item_id: item.id,
+            deduction_type: "sale",
+          })
+          if (existingDeductions?.length > 0) continue
+
+          // FEFO: get batches sorted by expiry
+          const batches = await batchService.listBatches(
+            { product_variant_id: variantId, status: "active" },
+            { take: null, order: { expiry_date: "ASC" } }
+          )
+
+          // Tier 1: batches with enough shelf life
+          let eligible = (batches as any[]).filter((b: any) => {
+            const exp = new Date(b.expiry_date); exp.setHours(0, 0, 0, 0)
+            return exp >= mslCutoff && (Number(b.available_quantity) - Number(b.reserved_quantity ?? 0)) > 0
+          })
+          // Tier 2: any non-expired batch
+          if (!eligible.length) {
+            eligible = (batches as any[]).filter((b: any) => {
+              const exp = new Date(b.expiry_date); exp.setHours(0, 0, 0, 0)
+              return exp >= today && (Number(b.available_quantity) - Number(b.reserved_quantity ?? 0)) > 0
+            })
+          }
+
+          let remaining = Number(item.quantity)
+          for (const batch of eligible) {
+            if (remaining <= 0) break
+            const avail = Number(batch.available_quantity) - Number(batch.reserved_quantity ?? 0)
+            if (avail <= 0) continue
+            const allocQty = Math.min(remaining, avail)
+
+            await batchService.updateBatches({
+              id: batch.id,
+              available_quantity: Number(batch.available_quantity) - allocQty,
+              version: Number(batch.version ?? 0) + 1,
+              ...(Number(batch.available_quantity) - allocQty === 0 ? { status: "depleted" } : {}),
+            })
+            await batchService.createBatchDeductions({
+              batch_id: batch.id,
+              order_line_item_id: item.id,
+              order_id: order_id,
+              quantity: allocQty,
+              deduction_type: "sale",
+            })
+            remaining -= allocQty
+          }
+          if (remaining > 0) allAllocated = false
+        }
+
+        logger.info(`${order_id}: FEFO allocation ${allAllocated ? "complete" : "partial — insufficient stock"}`)
+
+        // Notify warehouse
+        try {
+          const notifService = container.resolve(NOTIFICATION_MODULE) as any
+          await notifService.createInternalNotifications({
+            user_id: pharmacist_id ?? "system",
+            role_scope: "warehouse",
+            type: "dispatch_pending",
+            title: `Order #${order.display_id ?? order_id} — Ready for Dispatch`,
+            body: `Pharmacist approved. Batches ${allAllocated ? "fully allocated" : "partially allocated"}.`,
+            reference_type: "order",
+            reference_id: order_id,
+          })
+        } catch (notifErr) {
+          logger.warn(`Internal notification failed: ${(notifErr as Error).message}`)
+        }
       } catch (err) {
-        logger.warn(`Internal notification failed: ${(err as Error).message}`)
-        captureException(err, { subscriber: "dispense-decision-made", orderId: order_id, step: "internal-notification" })
+        logger.warn(`FEFO allocation failed for ${order_id}: ${(err as Error).message}`)
+        captureException(err, { subscriber: "dispense-decision-made", orderId: order_id, step: "fefo-allocation" })
       }
     }
   } catch (err) {
