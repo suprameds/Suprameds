@@ -107,6 +107,10 @@ export const Route = createRootRouteWithContext<{
       { property: "og:image", content: "https://suprameds.in/og-default.png" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: "https://suprameds.in/og-default.png" },
+      // Google Search Console verification (set VITE_GSC_VERIFICATION in .env)
+      ...(import.meta.env.VITE_GSC_VERIFICATION
+        ? [{ name: "google-site-verification", content: import.meta.env.VITE_GSC_VERIFICATION }]
+        : []),
     ],
     scripts: [
       // Google Analytics 4 — async loader
@@ -118,6 +122,18 @@ export const Route = createRootRouteWithContext<{
       {
         children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-RDYLD3PM8D');`,
       },
+      // Google Tag Manager — enables AdScale, Meta Pixel management, and other tags via GTM dashboard
+      ...(import.meta.env.VITE_GTM_ID
+        ? [{
+            children: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${import.meta.env.VITE_GTM_ID}');`,
+          }]
+        : []),
+      // Meta / Facebook Pixel — conversion tracking for Meta Ads
+      ...(import.meta.env.VITE_META_PIXEL_ID
+        ? [{
+            children: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${import.meta.env.VITE_META_PIXEL_ID}');fbq('track','PageView');`,
+          }]
+        : []),
     ],
   }),
   pendingComponent: RouteLoadingFallback,
@@ -135,6 +151,30 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
+        {/* GTM noscript fallback */}
+        {import.meta.env.VITE_GTM_ID && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${import.meta.env.VITE_GTM_ID}`}
+              height="0"
+              width="0"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        )}
+        {/* Meta Pixel noscript fallback */}
+        {import.meta.env.VITE_META_PIXEL_ID && (
+          <noscript>
+            <img
+              height="1"
+              width="1"
+              style={{ display: "none" }}
+              src={`https://www.facebook.com/tr?id=${import.meta.env.VITE_META_PIXEL_ID}&ev=PageView&noscript=1`}
+              alt=""
+            />
+          </noscript>
+        )}
+
         <QueryClientProvider client={queryClient}>
           <Layout />
         </QueryClientProvider>

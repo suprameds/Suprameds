@@ -1,12 +1,17 @@
 /**
- * Google Analytics 4 — Enhanced Ecommerce event helpers.
+ * Analytics — GA4 + Meta Pixel + GTM dataLayer.
  *
- * All helpers are safe to call during SSR (they no-op when `window` is undefined).
- * GA4 must be loaded via the gtag.js snippet in __root.tsx head scripts.
+ * All helpers are safe to call during SSR (no-op when `window` is undefined).
+ * GA4 loaded via gtag.js, Meta Pixel via fbevents.js, GTM via gtm.js — all in __root.tsx.
+ *
+ * Events fire to:
+ *   1. GA4 directly (gtag)
+ *   2. Meta Pixel directly (fbq)
+ *   3. GTM dataLayer (for AdScale, custom tags, etc.)
  */
 
 /* ------------------------------------------------------------------ */
-/*  Gtag type shim                                                    */
+/*  Type shims                                                        */
 /* ------------------------------------------------------------------ */
 
 type GtagCommand = "event" | "config" | "set"
@@ -15,12 +20,24 @@ declare global {
   interface Window {
     gtag?: (command: GtagCommand, action: string, params?: Record<string, unknown>) => void
     dataLayer?: unknown[]
+    fbq?: (...args: unknown[]) => void
   }
 }
 
 function gtag(command: GtagCommand, action: string, params?: Record<string, unknown>) {
   if (typeof window === "undefined" || !window.gtag) return
   window.gtag(command, action, params)
+}
+
+function fbq(...args: unknown[]) {
+  if (typeof window === "undefined" || !window.fbq) return
+  window.fbq(...args)
+}
+
+function pushDataLayer(event: string, data?: Record<string, unknown>) {
+  if (typeof window === "undefined") return
+  window.dataLayer = window.dataLayer || []
+  window.dataLayer.push({ event, ...data })
 }
 
 /* ------------------------------------------------------------------ */
@@ -58,11 +75,18 @@ function buildItem(product: ProductLike, variantIndex = 0, quantity = 1) {
 
 /** Product detail page viewed */
 export function trackViewItem(product: ProductLike, currency = "INR") {
-  gtag("event", "view_item", {
+  const value = product.variants?.[0]?.calculated_price?.calculated_amount ?? 0
+  const items = [buildItem(product)]
+
+  gtag("event", "view_item", { currency, value, items })
+  fbq("track", "ViewContent", {
+    content_ids: [product.id],
+    content_name: product.title ?? "",
+    content_type: "product",
+    value,
     currency,
-    value: product.variants?.[0]?.calculated_price?.calculated_amount ?? 0,
-    items: [buildItem(product)],
   })
+  pushDataLayer("view_item", { currency, value, items })
 }
 
 /** Product list / category page viewed */
@@ -71,15 +95,19 @@ export function trackViewItemList(
   listName: string,
   currency = "INR",
 ) {
-  gtag("event", "view_item_list", {
+  const items = products.slice(0, 20).map((p, i) => ({
+    ...buildItem(p),
+    index: i,
     item_list_name: listName,
-    currency,
-    items: products.slice(0, 20).map((p, i) => ({
-      ...buildItem(p),
-      index: i,
-      item_list_name: listName,
-    })),
+  }))
+
+  gtag("event", "view_item_list", { item_list_name: listName, currency, items })
+  fbq("track", "ViewContent", {
+    content_ids: products.slice(0, 20).map((p) => p.id),
+    content_type: "product_group",
+    content_name: listName,
   })
+  pushDataLayer("view_item_list", { item_list_name: listName, currency, items })
 }
 
 /** Item added to cart */
@@ -90,11 +118,17 @@ export function trackAddToCart(
   currency = "INR",
 ) {
   const item = buildItem(product, variantIndex, quantity)
-  gtag("event", "add_to_cart", {
+  const value = (item.price ?? 0) * quantity
+
+  gtag("event", "add_to_cart", { currency, value, items: [item] })
+  fbq("track", "AddToCart", {
+    content_ids: [product.id],
+    content_name: product.title ?? "",
+    content_type: "product",
+    value,
     currency,
-    value: (item.price ?? 0) * quantity,
-    items: [item],
   })
+  pushDataLayer("add_to_cart", { currency, value, items: [item] })
 }
 
 /** Item removed from cart */
@@ -105,11 +139,11 @@ export function trackRemoveFromCart(
   currency = "INR",
 ) {
   const item = buildItem(product, variantIndex, quantity)
-  gtag("event", "remove_from_cart", {
-    currency,
-    value: (item.price ?? 0) * quantity,
-    items: [item],
-  })
+  const value = (item.price ?? 0) * quantity
+
+  gtag("event", "remove_from_cart", { currency, value, items: [item] })
+  pushDataLayer("remove_from_cart", { currency, value, items: [item] })
+  // Meta Pixel has no remove_from_cart equivalent
 }
 
 /** Checkout started */
@@ -118,13 +152,18 @@ export function trackBeginCheckout(
   totalValue: number,
   currency = "INR",
 ) {
-  gtag("event", "begin_checkout", {
-    currency,
+  const builtItems = items.map(({ product, variantIndex, quantity }) =>
+    buildItem(product, variantIndex, quantity),
+  )
+
+  gtag("event", "begin_checkout", { currency, value: totalValue, items: builtItems })
+  fbq("track", "InitiateCheckout", {
+    content_ids: items.map(({ product }) => product.id),
+    num_items: items.length,
     value: totalValue,
-    items: items.map(({ product, variantIndex, quantity }) =>
-      buildItem(product, variantIndex, quantity),
-    ),
+    currency,
   })
+  pushDataLayer("begin_checkout", { currency, value: totalValue, items: builtItems })
 }
 
 /** Order completed */
@@ -136,14 +175,17 @@ export function trackPurchase(
   tax = 0,
   shipping = 0,
 ) {
-  gtag("event", "purchase", {
-    transaction_id: orderId,
-    currency,
+  const params = { transaction_id: orderId, currency, value: totalValue, tax, shipping, items }
+
+  gtag("event", "purchase", params)
+  fbq("track", "Purchase", {
+    content_ids: items.map((i) => i.item_id),
+    content_type: "product",
+    num_items: items.length,
     value: totalValue,
-    tax,
-    shipping,
-    items,
+    currency,
   })
+  pushDataLayer("purchase", params)
 }
 
 /** Site search */
@@ -152,9 +194,12 @@ export function trackSearch(query: string, resultCount?: number) {
     search_term: query,
     ...(resultCount !== undefined ? { results_count: resultCount } : {}),
   })
+  fbq("track", "Search", { search_string: query })
+  pushDataLayer("search", { search_term: query, results_count: resultCount })
 }
 
 /** Generic custom event */
 export function trackEvent(name: string, params?: Record<string, unknown>) {
   gtag("event", name, params)
+  pushDataLayer(name, params)
 }
