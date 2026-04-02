@@ -11,16 +11,28 @@ import { PRESCRIPTION_MODULE } from "../../modules/prescription"
  * Reads prescription_id from cart.metadata (set during checkout prescription step).
  */
 // @ts-ignore — orderCreated hook exists at runtime but missing from TS declarations
-(completeCartWorkflow.hooks as any).orderCreated(
-  async ({ cart, order }, { container }) => {
-    const prescriptionId = (cart?.metadata as any)?.prescription_id
+;(completeCartWorkflow.hooks as any).orderCreated(
+  async (data: any, { container }: any) => {
+    // Log the data shape for debugging (remove once working)
+    const dataKeys = Object.keys(data || {})
+    console.info(`[hook:link-rx] orderCreated fired. Data keys: [${dataKeys.join(", ")}]`)
+
+    // Try multiple property names — hook shape may vary between Medusa versions
+    const cart = data?.cart || data?.input?.cart || data
+    const order = data?.order || data?.created_order || data?.result
+
+    const prescriptionId =
+      (cart?.metadata as any)?.prescription_id ||
+      (data?.input?.metadata as any)?.prescription_id
+
     if (!prescriptionId) {
+      console.info("[hook:link-rx] No prescription_id in cart metadata — OTC order or not set")
       return
     }
 
-    const orderId = (order as any)?.id
+    const orderId = order?.id || (typeof order === "string" ? order : null)
     if (!orderId) {
-      console.warn("orderCreated hook: order.id not available")
+      console.warn(`[hook:link-rx] Could not resolve order ID. order value: ${JSON.stringify(order)?.slice(0, 200)}`)
       return
     }
 
@@ -32,9 +44,7 @@ import { PRESCRIPTION_MODULE } from "../../modules/prescription"
       )
 
       if (!rx) {
-        console.warn(
-          `orderCreated hook: prescription ${prescriptionId} not found — skipping link`
-        )
+        console.warn(`[hook:link-rx] Prescription ${prescriptionId} not found — skipping link`)
         return
       }
 
@@ -44,18 +54,12 @@ import { PRESCRIPTION_MODULE } from "../../modules/prescription"
         [PRESCRIPTION_MODULE]: { prescription_id: prescriptionId },
       })
 
-      console.info(
-        `orderCreated hook: linked prescription ${prescriptionId} to order ${orderId}`
-      )
+      console.info(`[hook:link-rx] Linked prescription ${prescriptionId} to order ${orderId}`)
     } catch (err: any) {
-      // Don't throw — linking failure shouldn't block order creation.
-      // The subscriber fallback will retry.
       if (err.message?.includes("already exists")) {
-        console.info(`orderCreated hook: link already exists for order ${orderId}`)
+        console.info(`[hook:link-rx] Link already exists for order ${orderId}`)
       } else {
-        console.error(
-          `orderCreated hook: failed to link prescription to order ${orderId}: ${err.message}`
-        )
+        console.error(`[hook:link-rx] Failed: ${err.message}`)
       }
     }
   }
