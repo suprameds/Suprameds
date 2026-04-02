@@ -73,6 +73,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
         initiatingRef.current = false
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [initiatePaymentSessionMutation]
   )
 

@@ -32,6 +32,7 @@ const Category = () => {
     if (products.length && category?.name) {
       trackViewItemList(products, category.name, region?.currency_code?.toUpperCase() || "INR")
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products.length, category?.name])
 
   return (

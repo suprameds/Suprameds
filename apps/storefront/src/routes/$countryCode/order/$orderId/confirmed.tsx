@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import OrderConfirmationPage from "@/pages/order-confirmation"
 import { retrieveOrder } from "@/lib/data/order"

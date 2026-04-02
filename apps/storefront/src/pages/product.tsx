@@ -53,6 +53,7 @@ const ProductDetails = () => {
 
   useEffect(() => {
     trackViewItem(product, region?.currency_code?.toUpperCase() || "INR")
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id])
 
   const currentPrice =

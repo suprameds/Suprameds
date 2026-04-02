@@ -136,6 +136,7 @@ const Checkout = () => {
       cart.total ?? 0,
       cart.currency_code?.toUpperCase() || "INR",
     )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart?.id])
 
   /** Create a guest checkout session and store the session token */

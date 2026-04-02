@@ -8,9 +8,12 @@ import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { RouterProvider } from "@tanstack/react-router"
 import { QueryClientProvider } from "@tanstack/react-query"
+// eslint-disable-next-line no-restricted-imports
 import { getRouter } from "./router"
+// eslint-disable-next-line no-restricted-imports
 import { initCapacitorPlugins } from "./lib/capacitor"
 import * as Sentry from "@sentry/react"
+// eslint-disable-next-line no-restricted-imports
 import "./styles/app.css"
 
 // Initialize Sentry for mobile

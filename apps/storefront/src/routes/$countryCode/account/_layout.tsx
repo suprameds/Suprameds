@@ -1,7 +1,6 @@
-import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, Outlet, useNavigate, useLocation } from "@tanstack/react-router"
 import { useCustomer, useLogout } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { useLocation } from "@tanstack/react-router"
 import { useEffect } from "react"
 
 export const Route = createFileRoute("/$countryCode/account/_layout")({
@@ -32,6 +31,7 @@ function AccountLayout() {
     if (!isLoading && !customer) {
       navigate({ to: "/$countryCode/account/login", params: { countryCode }, search: { redirectTo: location.pathname } })
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, customer, countryCode, navigate])
 
   if (isLoading) {

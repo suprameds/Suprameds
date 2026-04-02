@@ -1,8 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
 import { useRegister } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/register")({
   head: () => ({

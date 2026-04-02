@@ -1,8 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
 import { useForgotPassword } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/forgot-password")({
   head: () => ({
@@ -17,7 +16,6 @@ export const Route = createFileRoute("/$countryCode/account/forgot-password")({
 function ForgotPasswordPage() {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
-  const navigate = useNavigate()
   const forgotPassword = useForgotPassword()
 
   const [email, setEmail] = useState("")

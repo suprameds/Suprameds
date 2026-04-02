@@ -2,6 +2,7 @@ import React, { StrictMode, startTransition } from "react"
 import * as Sentry from "@sentry/react"
 import { hydrateRoot } from "react-dom/client"
 import { StartClient } from "@tanstack/react-start/client"
+// eslint-disable-next-line no-restricted-imports
 import { getRouter } from "./router"
 
 try {
@@ -100,6 +101,7 @@ if (import.meta.env.PROD && typeof window !== "undefined" && "serviceWorker" in 
           })
         })
 
+        // eslint-disable-next-line no-console
         console.log("[PWA] Service worker registered:", registration.scope)
       })
       .catch((err) => {

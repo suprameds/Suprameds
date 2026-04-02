@@ -1,10 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { createFileRoute, Link, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
 import { useCustomerOrders } from "@/lib/hooks/use-orders"
 import { deriveOrderProgress } from "@/components/order"
 import { ReturnRequestForm, isOrderReturnable, isWithinReturnWindow } from "@/components/return-request-form"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { useLocation } from "@tanstack/react-router"
 import { HttpTypes } from "@medusajs/types"
 
 export const Route = createFileRoute("/$countryCode/account/_layout/orders")({

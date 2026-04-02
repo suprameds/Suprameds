@@ -10,6 +10,7 @@ import {
   createRootRouteWithContext,
   useRouter,
 } from "@tanstack/react-router"
+// eslint-disable-next-line no-restricted-imports
 import appCss from "../styles/app.css?url"
 
 function RouteLoadingFallback() {

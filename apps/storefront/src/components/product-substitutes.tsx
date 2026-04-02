@@ -111,7 +111,6 @@ export const ProductSubstitutes = ({
 
 const SubstituteCard = ({
   substitute,
-  currentPrice,
   countryCode,
 }: {
   substitute: Substitute

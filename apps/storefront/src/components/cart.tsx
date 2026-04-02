@@ -33,7 +33,7 @@ import { useState } from "react"
 
 const FREE_DELIVERY_THRESHOLD = 300
 
-export const FreeDeliveryBar = ({ subtotal, currencyCode }: { subtotal: number; currencyCode: string }) => {
+export const FreeDeliveryBar = ({ subtotal }: { subtotal: number; currencyCode: string }) => {
   const remaining = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotal)
   const progress = Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)
   const qualified = remaining <= 0
@@ -123,7 +123,6 @@ type CartItemQuantitySelectorProps = {
 
 export const CartItemQuantitySelector = ({
   item,
-  type = "default",
   fields,
 }: CartItemQuantitySelectorProps) => {
   const updateLineItemMutation = useUpdateLineItem({ fields })

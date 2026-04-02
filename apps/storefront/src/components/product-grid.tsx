@@ -1,7 +1,7 @@
 import { HttpTypes } from "@medusajs/types"
 import { useMemo } from "react"
 import { useBulkPharma, type DrugProductMeta } from "@/lib/hooks/use-pharma"
-import ProductCard from "./product-card"
+import ProductCard from "@/components/product-card"
 
 interface ProductGridProps {
   products: HttpTypes.StoreProduct[]

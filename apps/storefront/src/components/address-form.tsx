@@ -17,7 +17,6 @@ type AddressData = HttpTypes.StoreCreateCustomerAddress | HttpTypes.StoreAddAddr
 
 interface AddressFormProps {
   addressFormData: AddressData;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setAddressFormData: React.Dispatch<React.SetStateAction<any>>;
   shouldHandleSubmit?: boolean;
   setIsFormValid?: (isValid: boolean) => void;
