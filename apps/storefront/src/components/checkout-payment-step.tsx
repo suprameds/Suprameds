@@ -6,7 +6,7 @@ import {
   useInitiateCartPaymentSession,
 } from "@/lib/hooks/use-checkout"
 import { queryKeys } from "@/lib/utils/query-keys"
-import { isStripe as isStripeFunc, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
+import { isStripe as isStripeFunc, isRazorpay as isRazorpayProvider, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
 import { HttpTypes } from "@medusajs/types"
 import { useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -50,8 +50,22 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
         )
       } catch (err) {
         // Only show error if this is still the active selection
-        // (prevents stale Razorpay errors showing when user already switched to COD)
-        if (activeProviderRef.current === method) {
+        if (activeProviderRef.current !== method) return
+
+        // Razorpay failures: auto-fall back to COD with helpful message
+        if (isRazorpayProvider(method)) {
+          setError(
+            "Razorpay is temporarily unavailable. We've selected Cash on Delivery for you. You can retry Razorpay later."
+          )
+          setSelectedPaymentMethod("pp_system_default")
+          activeProviderRef.current = "pp_system_default"
+          // Silently create COD session as fallback
+          try {
+            await initiatePaymentSessionMutation.mutateAsync(
+              { provider_id: "pp_system_default" },
+            )
+          } catch { /* COD session may already exist */ }
+        } else {
           setError(
             err instanceof Error ? err.message : "An error occurred"
           )
@@ -152,7 +166,8 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
       {error && (
         <div
-          className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2"
+          className="text-sm bg-amber-50 border border-amber-200 rounded px-3 py-2"
+          style={{ color: "var(--brand-amber-dark, #92400e)" }}
           data-testid="payment-method-error-message"
         >
           {error}
