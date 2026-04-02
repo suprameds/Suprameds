@@ -25,29 +25,31 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const orderId = req.query.order_id as string | undefined
   const customerId = req.query.customer_id as string | undefined
 
-  // If filtering by order_id, traverse the order<->prescription link via query.graph
+  // If filtering by order_id, query the link table directly (query.graph link traversal
+  // is unreliable — the field name varies between Medusa versions)
   if (orderId) {
     try {
-      const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-      // Link field name = {module_key}_{entity}: pharmaprescription_prescription
-      // (derived from link table: order_order_pharmaprescription_prescription)
-      const { data: orderRows } = await query.graph({
-        entity: "order",
-        fields: [
-          "id",
-          "pharmaprescription_prescription.*",
-          "pharmaprescription_prescription.lines.*",
-        ],
-        filters: { id: orderId },
-      })
+      const pgConnection = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION) as any
+      const prescriptionService = req.scope.resolve(PRESCRIPTION_MODULE) as any
 
-      let prescriptions =
-        (orderRows as any[])?.[0]?.pharmaprescription_prescription ?? []
+      // Direct SQL on the link table — always works regardless of query.graph field naming
+      const { rows: linkRows } = await pgConnection.raw(
+        `SELECT prescription_id FROM order_order_pharmaprescription_prescription WHERE order_id = ? AND deleted_at IS NULL`,
+        [orderId]
+      )
+
+      if (!linkRows?.length) {
+        return res.json({ prescriptions: [], count: 0 })
+      }
+
+      const prescriptionIds = linkRows.map((r: any) => r.prescription_id)
+      let prescriptions = await prescriptionService.listPrescriptions(
+        { id: prescriptionIds },
+        { relations: ["lines"], take: 100 }
+      )
 
       if (status) {
-        prescriptions = prescriptions.filter(
-          (rx: any) => rx.status === status
-        )
+        prescriptions = prescriptions.filter((rx: any) => rx.status === status)
       }
 
       const result = isPhiEncryptionEnabled()
