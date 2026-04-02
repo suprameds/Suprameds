@@ -316,8 +316,8 @@ const PharmacistAdjustmentWidget = () => {
       {prescriptions.length === 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
           <Text className="text-amber-800 text-sm">
-            No prescriptions linked to this order. Dispense decisions require a
-            linked prescription with line items.
+            No prescription lines mapped yet. Review the linked prescription
+            image and create drug line mappings to enable dispense decisions.
           </Text>
         </div>
       )}
@@ -634,8 +634,8 @@ const PharmacistAdjustmentWidget = () => {
                 const isScheduled = schedule === "H" || schedule === "H1"
                 return isScheduled ? (
                   <Text className="text-xs text-amber-600 font-medium mt-1">
-                    ⚠️ Schedule {schedule} drug — prescription required but not linked.
-                    Upload via Prescriptions panel.
+                    ⚠️ Schedule {schedule} drug — awaiting pharmacist review.
+                    Map this drug to a prescription line to enable dispensing.
                   </Text>
                 ) : (
                   <Text className="text-xs text-ui-fg-muted mt-1">
