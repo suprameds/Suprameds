@@ -1,6 +1,8 @@
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
-import { Container, Heading, Button, toast } from "@medusajs/ui"
-import { useState } from "react"
+import { Container, Heading, Button, Badge, toast } from "@medusajs/ui"
+import { useState, useEffect } from "react"
+
+const INDIA_POST_COD_ID = "52236"
 
 const InvoicePrintWidget = ({
   data,
@@ -11,6 +13,22 @@ const InvoicePrintWidget = ({
   const displayId = data?.display_id
   const [downloading, setDownloading] = useState(false)
   const [trackingId, setTrackingId] = useState("")
+  const [paymentMode, setPaymentMode] = useState<"COD" | "PREPAID" | null>(null)
+
+  // Detect payment mode on mount and auto-fill India Post ID for COD
+  useEffect(() => {
+    if (!orderId) return
+    fetch(`/admin/orders/${orderId}?fields=payment_collections.payment_sessions.*`, { credentials: "include" })
+      .then((r) => r.json())
+      .then(({ order }) => {
+        const sessions = order?.payment_collections?.[0]?.payment_sessions ?? []
+        const isCod = !sessions.some((s: any) => s.provider_id?.includes("razorpay"))
+        const mode = isCod ? "COD" : "PREPAID"
+        setPaymentMode(mode as "COD" | "PREPAID")
+        if (isCod) setTrackingId(INDIA_POST_COD_ID)
+      })
+      .catch(() => {})
+  }, [orderId])
 
   if (!orderId) return null
 
@@ -221,20 +239,21 @@ const InvoicePrintWidget = ({
   return (
     <Container>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <Heading level="h2">Print</Heading>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Heading level="h2">Print</Heading>
+          {paymentMode && (
+            <Badge color={paymentMode === "COD" ? "orange" : "green"}>
+              {paymentMode === "COD" ? "Cash on Delivery" : "Prepaid (Razorpay)"}
+            </Badge>
+          )}
+        </div>
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <input
-          type="text"
-          placeholder="India Post ID (optional)"
-          value={trackingId}
-          onChange={(e) => setTrackingId(e.target.value)}
-          style={{
-            width: 170, padding: "6px 10px", fontSize: 13,
-            border: "1px solid #d1d5db", borderRadius: 6,
-            fontFamily: "inherit",
-          }}
-        />
+        {paymentMode === "COD" && (
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7280" }}>
+            India Post ID: {INDIA_POST_COD_ID}
+          </span>
+        )}
         <Button
           variant="secondary"
           size="small"
