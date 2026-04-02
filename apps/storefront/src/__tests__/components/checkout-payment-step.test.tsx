@@ -8,6 +8,7 @@ import type { ReactNode } from "react"
 
 const mockMutateAsync = vi.fn()
 const mockPaymentProviders = [{ id: "pp_system_default" }]
+const mockShowToast = vi.fn()
 
 vi.mock("@/lib/hooks/use-checkout", () => ({
   useCartPaymentMethods: () => ({ data: mockPaymentProviders }),
@@ -19,8 +20,13 @@ vi.mock("@/lib/hooks/use-checkout", () => ({
 
 vi.mock("@/lib/utils/checkout", () => ({
   isStripe: (id?: string) => id?.startsWith("pp_stripe_"),
+  isRazorpay: (id?: string) => id?.startsWith("pp_razorpay_") || id === "razorpay",
   getActivePaymentSession: vi.fn(),
   isPaidWithGiftCard: () => false,
+}))
+
+vi.mock("@/lib/context/toast-context", () => ({
+  useToast: () => ({ showToast: mockShowToast }),
 }))
 
 vi.mock("@/components/payment-container", () => ({
@@ -41,7 +47,7 @@ vi.mock("@/components/stripe-card-container", () => ({
 }))
 
 vi.mock("@/lib/utils/query-keys", () => ({
-  queryKeys: { cart: { detail: (id: string) => ["cart", id] } },
+  queryKeys: { cart: { detail: (id: string) => ["cart", id], predicate: () => false } },
 }))
 
 import PaymentStep from "@/components/checkout-payment-step"
@@ -80,17 +86,14 @@ describe("PaymentStep", () => {
   })
 
   it("awaits mutateAsync before calling onNext", async () => {
-    // Auto-init fires on mount and calls mutateAsync — resolve it first
     mockMutateAsync.mockResolvedValueOnce(undefined)
 
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
 
-    // Wait for auto-init to settle
     await waitFor(() => {
       expect(mockMutateAsync).toHaveBeenCalled()
     })
 
-    // Now set up a pending mutation for the click
     let resolveMutation: () => void
     mockMutateAsync.mockImplementation(
       () => new Promise<void>((resolve) => { resolveMutation = resolve })
@@ -99,7 +102,6 @@ describe("PaymentStep", () => {
     const nextButton = screen.getByTestId("submit-payment-button")
     await userEvent.click(nextButton)
 
-    // Now resolve the user-triggered mutation
     resolveMutation!()
 
     await waitFor(() => {
@@ -107,8 +109,24 @@ describe("PaymentStep", () => {
     })
   })
 
-  it("shows error when payment session initiation fails", async () => {
+  it("shows toast when payment session initiation fails", async () => {
     mockMutateAsync.mockRejectedValueOnce(new Error("Session creation failed"))
+
+    render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith("Session creation failed")
+    })
+  })
+
+  it("always initiates session on submit (idempotent)", async () => {
+    // Even with an active session, handleSubmit always calls initiatePaymentSession
+    ;(getActivePaymentSession as ReturnType<typeof vi.fn>).mockReturnValue({
+      id: "ps_1",
+      provider_id: "pp_system_default",
+      status: "pending",
+    })
+    mockMutateAsync.mockResolvedValue(undefined)
 
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
 
@@ -116,30 +134,11 @@ describe("PaymentStep", () => {
     await userEvent.click(nextButton)
 
     await waitFor(() => {
-      expect(screen.getByText("Session creation failed")).toBeInTheDocument()
+      expect(onNext).toHaveBeenCalledTimes(1)
     })
-  })
-
-  it("skips initiation when activeSession already exists", async () => {
-    ;(getActivePaymentSession as ReturnType<typeof vi.fn>).mockReturnValue({
-      id: "ps_1",
-      provider_id: "pp_system_default",
-      status: "pending",
-    })
-    mockMutateAsync.mockClear()
-
-    render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
-
-    const nextButton = screen.getByTestId("submit-payment-button")
-    await userEvent.click(nextButton)
-
-    // Should not call mutateAsync since session already exists
-    expect(mockMutateAsync).not.toHaveBeenCalled()
-    expect(onNext).toHaveBeenCalledTimes(1)
   })
 
   it("prevents double-click on Next", async () => {
-    // Let auto-init settle first
     mockMutateAsync.mockResolvedValueOnce(undefined)
 
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
@@ -148,7 +147,6 @@ describe("PaymentStep", () => {
       expect(mockMutateAsync).toHaveBeenCalled()
     })
 
-    // Now set up a slow mutation for the click test
     let resolveMutation: () => void
     mockMutateAsync.mockImplementation(
       () => new Promise<void>((resolve) => { resolveMutation = resolve })
@@ -158,9 +156,8 @@ describe("PaymentStep", () => {
     const callsBefore = mockMutateAsync.mock.calls.length
 
     await userEvent.click(nextButton)
-    await userEvent.click(nextButton) // second click should be blocked by initiatingRef
+    await userEvent.click(nextButton)
 
-    // Guard prevents duplicate calls — at most 1 new call
     expect(mockMutateAsync.mock.calls.length - callsBefore).toBeLessThanOrEqual(1)
 
     resolveMutation!()

@@ -13,6 +13,7 @@ vi.mock("@/lib/hooks/use-checkout", () => ({
 
 vi.mock("@/lib/hooks/use-customer", () => ({
   useCustomerAddresses: () => ({ data: [] }),
+  useCustomer: () => ({ data: { customer: { email: "test@example.com" } } }),
 }))
 
 vi.mock("@/lib/utils/region", () => ({
