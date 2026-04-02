@@ -25,9 +25,9 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   const initiatePaymentSessionMutation = useInitiateCartPaymentSession()
 
   const [error, setError] = useState<string | null>(null)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
-    getActivePaymentSession(cart)?.provider_id ?? ""
-  )
+  // Always default to COD — Razorpay session creation can fail and block checkout.
+  // User can explicitly switch to Razorpay if they want online payment.
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("pp_system_default")
 
   // Match the active session to the user's selected provider (not just first pending)
   const activeSession = getActivePaymentSession(cart, selectedPaymentMethod || undefined)
@@ -74,23 +74,16 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
     [initiatePaymentSession]
   )
 
-  // Auto-select: prefer COD (no API call needed), fall back to first available
+  // Initiate COD session on mount (idempotent — reuses existing if present)
   const didAutoInitRef = useRef(false)
   useEffect(() => {
     if (didAutoInitRef.current) return
     if (!availablePaymentMethods?.length) return
-    if (selectedPaymentMethod) return
 
     didAutoInitRef.current = true
-    // Prefer COD to avoid unnecessary Razorpay session initiation on mount
-    const cod = availablePaymentMethods.find((m) => m.id === "pp_system_default")
-    const preferred = cod || availablePaymentMethods[0]
-    if (preferred) {
-      setSelectedPaymentMethod(preferred.id)
-      activeProviderRef.current = preferred.id
-      initiatePaymentSession(preferred.id)
-    }
-  }, [availablePaymentMethods, selectedPaymentMethod, initiatePaymentSession])
+    activeProviderRef.current = "pp_system_default"
+    initiatePaymentSession("pp_system_default")
+  }, [availablePaymentMethods, initiatePaymentSession])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
