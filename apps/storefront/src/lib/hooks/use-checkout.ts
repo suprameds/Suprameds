@@ -144,32 +144,24 @@ export const useInitiateCartPaymentSession = () => {
       const cartId = getStoredCart()
       if (!cartId) throw new Error("No cart found")
 
-      // Retrieve cart with payment_collection so the SDK can reuse an existing
-      // collection instead of creating a duplicate (which would 500).
+      // Retrieve cart with payment_collection + existing sessions
       const { cart } = await sdk.store.cart.retrieve(cartId, {
         fields: "+payment_collection.payment_sessions",
       })
       if (!cart) throw new Error("Cart not found")
 
-      try {
-        const { payment_collection } = await sdk.store.payment.initiatePaymentSession(
-          cart,
-          { provider_id, data }
-        )
-        return payment_collection
-      } catch (err: unknown) {
-        // Race condition: two calls fire before the first completes, or the user
-        // navigated back and the collection already exists. Fall back to directly
-        // creating a session on the existing collection.
-        const msg = err instanceof Error ? err.message : String(err)
-        if (msg.includes("already has a payment collection")) {
-          // Re-fetch to get the now-existing payment_collection id
-          const { cart: freshCart } = await sdk.store.cart.retrieve(cartId, {
-            fields: "+payment_collection.payment_sessions",
-          })
-          const collectionId = freshCart?.payment_collection?.id
-          if (!collectionId) throw err
+      // Smart reuse: if a pending session already exists for this provider, return it
+      const existingSession = cart.payment_collection?.payment_sessions?.find(
+        (s: any) => s.provider_id === provider_id && s.status === "pending"
+      )
+      if (existingSession) {
+        return cart.payment_collection
+      }
 
+      // If collection exists, create session directly on it (avoids "already has collection" error)
+      const collectionId = cart.payment_collection?.id
+      if (collectionId) {
+        try {
           const result = await sdk.client.fetch<{
             payment_collection: Record<string, unknown>
           }>(
@@ -177,8 +169,38 @@ export const useInitiateCartPaymentSession = () => {
             { method: "POST", body: { provider_id, data } }
           )
           return result.payment_collection
+        } catch (err: unknown) {
+          // Session creation failed (e.g., Razorpay API error) — don't propagate for COD
+          if (provider_id === "pp_system_default") {
+            // COD doesn't need a real payment session to proceed
+            return cart.payment_collection
+          }
+          throw err
         }
-        throw err
+      }
+
+      // No collection yet — use SDK to create collection + session together
+      try {
+        const { payment_collection } = await sdk.store.payment.initiatePaymentSession(
+          cart,
+          { provider_id, data }
+        )
+        return payment_collection
+      } catch (err: unknown) {
+        // Fallback: collection was created by another concurrent call
+        const { cart: freshCart } = await sdk.store.cart.retrieve(cartId, {
+          fields: "+payment_collection.payment_sessions",
+        })
+        const freshCollectionId = freshCart?.payment_collection?.id
+        if (!freshCollectionId) throw err
+
+        const result = await sdk.client.fetch<{
+          payment_collection: Record<string, unknown>
+        }>(
+          `/store/payment-collections/${freshCollectionId}/payment-sessions`,
+          { method: "POST", body: { provider_id, data } }
+        )
+        return result.payment_collection
       }
     },
     onSuccess: () => {

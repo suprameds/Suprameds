@@ -18,10 +18,22 @@ export const isRazorpay = (providerId?: string) => {
 
 // ============ ACTIVE PAYMENT SESSION ============
 
-export const getActivePaymentSession = (cart: HttpTypes.StoreCart): HttpTypes.StorePaymentSession | undefined => {
-  return cart.payment_collection?.payment_sessions?.find(
-    (paymentSession) => paymentSession.status === "pending"
-  )
+export const getActivePaymentSession = (
+  cart: HttpTypes.StoreCart,
+  providerId?: string,
+): HttpTypes.StorePaymentSession | undefined => {
+  const sessions = cart.payment_collection?.payment_sessions
+  if (!sessions?.length) return undefined
+
+  // When a specific provider is requested, find the matching pending session
+  if (providerId) {
+    return sessions.find(
+      (s) => s.provider_id === providerId && s.status === "pending"
+    )
+  }
+
+  // Default: first pending session
+  return sessions.find((s) => s.status === "pending")
 }
 
 // ============ GIFT CARD CHECK ============

@@ -40,7 +40,27 @@ export default async function orderPlacedHandler({
 
     // ── 1b. Link prescription to order (if attached during checkout) ─
     try {
-      const prescriptionId = (order.metadata as any)?.prescription_id
+      let prescriptionId = (order.metadata as any)?.prescription_id
+      logger.info(
+        `Prescription check for order ${orderId}: order.metadata.prescription_id = ${prescriptionId ?? "NOT SET"}`
+      )
+
+      // Fallback: if order metadata doesn't have it, check the original cart
+      if (!prescriptionId && order.cart_id) {
+        try {
+          const cartService = container.resolve(Modules.CART) as any
+          const cart = await cartService.retrieveCart(order.cart_id)
+          prescriptionId = (cart?.metadata as any)?.prescription_id
+          if (prescriptionId) {
+            logger.info(
+              `Found prescription_id ${prescriptionId} in cart ${order.cart_id} metadata (not in order metadata)`
+            )
+          }
+        } catch (cartErr) {
+          logger.warn(`Could not read cart ${order.cart_id} for prescription fallback: ${(cartErr as Error).message}`)
+        }
+      }
+
       if (prescriptionId) {
         const prescriptionService = container.resolve(PRESCRIPTION_MODULE) as any
         const [rx] = await prescriptionService.listPrescriptions(
@@ -62,11 +82,12 @@ export default async function orderPlacedHandler({
             `Prescription ${prescriptionId} referenced in order metadata not found`
           )
         }
+      } else {
+        logger.info(`No prescription_id found for order ${orderId} (OTC order or metadata not propagated)`)
       }
     } catch (linkErr) {
-      logger.warn(
-        `Failed to link prescription to order ${orderId}:`,
-        (linkErr as Error).message
+      logger.error(
+        `Failed to link prescription to order ${orderId}: ${(linkErr as Error).message}`
       )
       captureException(linkErr, { subscriber: "order-placed", orderId, step: "link-prescription" })
     }
