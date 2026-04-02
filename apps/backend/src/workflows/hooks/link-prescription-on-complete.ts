@@ -3,36 +3,34 @@ import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../../modules/prescription"
 
 /**
- * After an order is created from a cart, link the attached prescription
- * to the order. This runs synchronously in the completeCartWorkflow,
- * which is more reliable than the async order-placed subscriber
- * (metadata propagation from cart→order is not guaranteed).
+ * After an order is created from a cart, link the attached prescription.
  *
- * Reads prescription_id from cart.metadata (set during checkout prescription step).
+ * The hook receives { order_id, cart_id } — NOT full objects.
+ * We must resolve the cart from the container to read cart.metadata.prescription_id.
  */
 // @ts-ignore — orderCreated hook exists at runtime but missing from TS declarations
 ;(completeCartWorkflow.hooks as any).orderCreated(
   async (data: any, { container }: any) => {
-    // Log the data shape for debugging (remove once working)
-    const dataKeys = Object.keys(data || {})
-    console.info(`[hook:link-rx] orderCreated fired. Data keys: [${dataKeys.join(", ")}]`)
-
-    // Try multiple property names — hook shape may vary between Medusa versions
-    const cart = data?.cart || data?.input?.cart || data
-    const order = data?.order || data?.created_order || data?.result
-
-    const prescriptionId =
-      (cart?.metadata as any)?.prescription_id ||
-      (data?.input?.metadata as any)?.prescription_id
-
-    if (!prescriptionId) {
-      console.info("[hook:link-rx] No prescription_id in cart metadata — OTC order or not set")
+    const orderId = data?.order_id
+    const cartId = data?.cart_id
+    if (!orderId || !cartId) {
+      console.info(`[hook:link-rx] Missing order_id or cart_id: ${JSON.stringify(data)}`)
       return
     }
 
-    const orderId = order?.id || (typeof order === "string" ? order : null)
-    if (!orderId) {
-      console.warn(`[hook:link-rx] Could not resolve order ID. order value: ${JSON.stringify(order)?.slice(0, 200)}`)
+    // Resolve cart to read metadata.prescription_id
+    let prescriptionId: string | undefined
+    try {
+      const cartService = container.resolve(Modules.CART) as any
+      const cart = await cartService.retrieveCart(cartId)
+      prescriptionId = (cart?.metadata as any)?.prescription_id
+    } catch (err: any) {
+      console.warn(`[hook:link-rx] Failed to retrieve cart ${cartId}: ${err.message}`)
+      return
+    }
+
+    if (!prescriptionId) {
+      console.info(`[hook:link-rx] No prescription_id on cart ${cartId} — OTC order`)
       return
     }
 
@@ -44,7 +42,7 @@ import { PRESCRIPTION_MODULE } from "../../modules/prescription"
       )
 
       if (!rx) {
-        console.warn(`[hook:link-rx] Prescription ${prescriptionId} not found — skipping link`)
+        console.warn(`[hook:link-rx] Prescription ${prescriptionId} not found`)
         return
       }
 
