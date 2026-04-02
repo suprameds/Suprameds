@@ -10,6 +10,7 @@ import { isStripe as isStripeFunc, isRazorpay as isRazorpayProvider, getActivePa
 import { HttpTypes } from "@medusajs/types"
 import { useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useToast } from "@/lib/context/toast-context"
 
 interface PaymentStepProps {
   cart: HttpTypes.StoreCart;
@@ -24,7 +25,9 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   })
   const initiatePaymentSessionMutation = useInitiateCartPaymentSession()
 
-  const [error, setError] = useState<string | null>(null)
+  const { showToast } = useToast()
+  // Stripe component expects setError — route to toast
+  const setError = useCallback((msg: string | null) => { if (msg) showToast(msg) }, [showToast])
   // Always default to COD — Razorpay session creation can fail and block checkout.
   // User can explicitly switch to Razorpay if they want online payment.
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("pp_system_default")
@@ -54,9 +57,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
         // Razorpay failures: auto-fall back to COD with helpful message
         if (isRazorpayProvider(method)) {
-          setError(
-            "Razorpay is temporarily unavailable. We've selected Cash on Delivery for you. You can retry Razorpay later."
-          )
+          showToast("Razorpay is temporarily unavailable. Switched to Cash on Delivery.")
           setSelectedPaymentMethod("pp_system_default")
           activeProviderRef.current = "pp_system_default"
           // Silently create COD session as fallback
@@ -66,9 +67,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
             )
           } catch { /* COD session may already exist */ }
         } else {
-          setError(
-            err instanceof Error ? err.message : "An error occurred"
-          )
+          showToast(err instanceof Error ? err.message : "An error occurred")
         }
       } finally {
         initiatingRef.current = false
@@ -79,7 +78,6 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
   const handlePaymentMethodChange = useCallback(
     async (method: string) => {
-      setError(null)
       setSelectedPaymentMethod(method)
       activeProviderRef.current = method
 
@@ -161,16 +159,6 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
           >
             Gift card
           </p>
-        </div>
-      )}
-
-      {error && (
-        <div
-          className="text-sm bg-amber-50 border border-amber-200 rounded px-3 py-2"
-          style={{ color: "var(--brand-amber-dark, #92400e)" }}
-          data-testid="payment-method-error-message"
-        >
-          {error}
         </div>
       )}
 
