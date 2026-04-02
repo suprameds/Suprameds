@@ -29,13 +29,20 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   if (orderId) {
     try {
       const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+      // Link field name = {module_key}_{entity}: pharmaprescription_prescription
+      // (derived from link table: order_order_pharmaprescription_prescription)
       const { data: orderRows } = await query.graph({
         entity: "order",
-        fields: ["id", "prescription.*", "prescription.lines.*"],
+        fields: [
+          "id",
+          "pharmaprescription_prescription.*",
+          "pharmaprescription_prescription.lines.*",
+        ],
         filters: { id: orderId },
       })
 
-      let prescriptions = (orderRows as any[])?.[0]?.prescription ?? []
+      let prescriptions =
+        (orderRows as any[])?.[0]?.pharmaprescription_prescription ?? []
 
       if (status) {
         prescriptions = prescriptions.filter(
