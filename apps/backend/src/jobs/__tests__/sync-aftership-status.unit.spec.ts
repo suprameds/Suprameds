@@ -12,6 +12,9 @@ jest.mock("../../lib/aftership", () => ({
   normalizeAfterShipStatus: jest.requireActual("../../lib/aftership").normalizeAfterShipStatus,
 }))
 
+// Set AFTERSHIP_API_KEY so the job doesn't bail with "not configured"
+process.env.AFTERSHIP_API_KEY = "test-key-for-ci"
+
 import SyncAftershipStatusJob from "../sync-aftership-status"
 import { getTrackingStatus } from "../../lib/aftership"
 
