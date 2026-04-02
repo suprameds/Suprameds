@@ -1,8 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, Link, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
 import { useResetPassword } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/reset-password")({
   head: () => ({
@@ -21,7 +20,6 @@ function ResetPasswordPage() {
   const location = useLocation()
   const { token } = Route.useSearch()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
-  const navigate = useNavigate()
   const resetPassword = useResetPassword()
 
   const [password, setPassword] = useState("")

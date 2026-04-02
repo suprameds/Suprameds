@@ -141,3 +141,34 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 Use the `/browse` skill from gstack for all web browsing. Never use `mcp__claude-in-chrome__*` tools.
 
 Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/design-consultation`, `/design-shotgun`, `/review`, `/ship`, `/land-and-deploy`, `/canary`, `/benchmark`, `/browse`, `/connect-chrome`, `/qa`, `/qa-only`, `/design-review`, `/setup-browser-cookies`, `/setup-deploy`, `/retro`, `/investigate`, `/document-release`, `/codex`, `/cso`, `/autoplan`, `/careful`, `/freeze`, `/guard`, `/unfreeze`, `/gstack-upgrade`
+
+## CI/CD
+
+- **Always run tests locally before pushing**: `cd apps/storefront && pnpm test` (Vitest, 88 tests) and `cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"` (Jest, 604 tests)
+- **Always run lint before pushing**: `cd apps/storefront && npx eslint src/ --max-warnings 0`
+- **Always type-check before pushing**: `cd apps/backend && npx tsc --noEmit` and `cd apps/storefront && npx tsc --noEmit`
+- CI pipeline runs: TypeScript check, ESLint (zero warnings), Vitest/Jest, Storefront build, Backend build, Docker image build, E2E Playwright, Accessibility audit, Security audit
+- Docker build uses `pnpm install --frozen-lockfile --filter backend` — if you add new dependencies, run `pnpm install` at root to update lockfile before pushing
+
+## Analytics & Tracking
+
+- **GA4**: Measurement ID `G-RDYLD3PM8D`, loaded in `__root.tsx`, events in `lib/utils/analytics.ts`
+- **GTM**: Container `GTM-5T86ZHZF`, env var `VITE_GTM_ID`
+- **Meta Pixel**: Slot ready via `VITE_META_PIXEL_ID` env var (not yet active)
+- **Google Search Console**: Via `VITE_GSC_VERIFICATION` env var
+- All e-commerce events fire to GA4 + Meta Pixel + GTM dataLayer simultaneously
+- AdScale plugs into GTM as a custom HTML tag (no code changes needed)
+
+## Payment Flow
+
+- **COD (pp_system_default)**: Default selection on payment step. No external API call needed.
+- **Razorpay (pp_razorpay_razorpay)**: Creates Razorpay order via their API during session initiation. If Razorpay API fails (500), frontend auto-falls back to COD with toast notification.
+- Payment sessions are created on the cart's `payment_collection`. Medusa replaces the session when switching providers.
+- `getActivePaymentSession(cart, providerId?)` matches sessions by provider — not just first pending.
+
+## Prescription Linking
+
+- Customer attaches prescription during checkout via `POST /store/carts/:id/prescription` → sets `cart.metadata.prescription_id`
+- `completeCartWorkflow.hooks.orderCreated` hook reads `cart_id` from hook data, resolves cart via `cartService.retrieveCart(cartId)`, reads `cart.metadata.prescription_id`, creates order↔prescription link
+- Backup: `order-placed` subscriber also attempts linking with cart metadata fallback
+- Link table: `order_order_pharmaprescription_prescription` (columns: `order_id`, `prescription_id`)

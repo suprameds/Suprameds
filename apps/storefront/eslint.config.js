@@ -37,7 +37,7 @@ export default tseslint.config(
       ],
       // Additional TypeScript and React rules
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off', // Too noisy with Medusa's untyped APIs
       '@typescript-eslint/no-non-null-assertion': 'off',
       // React specific rules
       'react-hooks/rules-of-hooks': 'error',
@@ -60,6 +60,14 @@ export default tseslint.config(
           project: './tsconfig.json',
         },
       },
+    },
+  },
+  // Relaxed rules for test files
+  {
+    files: ['**/__tests__/**/*.{ts,tsx}', '**/test/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-restricted-imports': 'off',
     },
   },
 );

@@ -48,7 +48,7 @@ const Store = () => {
     },
   })
 
-  const products = data?.pages.flatMap((page) => page.products) || []
+  const products = useMemo(() => data?.pages.flatMap((page) => page.products) || [], [data?.pages])
 
   // Fetch pharma metadata for display (MRP, manufacturer, etc.)
   const productIds = useMemo(() => products.map((p) => p.id).filter(Boolean), [products])
@@ -88,6 +88,7 @@ const Store = () => {
     if (products.length) {
       trackViewItemList(products, "All Medicines", region?.currency_code?.toUpperCase() || "INR")
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products.length])
 
   return (

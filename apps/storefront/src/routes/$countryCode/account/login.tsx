@@ -1,8 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react-router"
+import { useCallback, useEffect, useRef, useState, forwardRef } from "react"
 import { useLogin, useOtpSend, useOtpVerify } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { useLocation } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/account/login")({
   head: () => ({
@@ -501,8 +500,6 @@ function LoginPage() {
 }
 
 // ── Shared sub-components ────────────────────────────────────────────
-
-import { forwardRef } from "react"
 
 const OtpInput = forwardRef<HTMLInputElement, { value: string; onChange: (v: string) => void }>(
   ({ value, onChange }, ref) => (

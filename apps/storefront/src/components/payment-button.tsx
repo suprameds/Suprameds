@@ -10,7 +10,7 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
 import { useLocation, useNavigate } from "@tanstack/react-router"
 import { useRef, useState } from "react"
-import { RazorpayPaymentButton } from "./razorpay-payment-button"
+import { RazorpayPaymentButton } from "@/components/razorpay-payment-button"
 
 type PaymentButtonProps = {
   cart: HttpTypes.StoreCart;

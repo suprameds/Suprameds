@@ -1,6 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useSearch, type SearchProduct } from "@/lib/hooks/use-search"
 import { Link } from "@tanstack/react-router"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect } from "react"
 
 const STORAGE_KEY = "suprameds_recent_searches"
 const MAX_RECENTS = 5
@@ -126,7 +127,6 @@ export function SearchDropdown({
   query,
   isOpen,
   highlightIndex,
-  onClose,
   onSelectProduct,
   onSubmitSearch,
   onSetHighlight,

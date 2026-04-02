@@ -1,23 +1,23 @@
-import { listProducts, retrieveProduct } from "@/lib/data/products";
-import { getRegion } from "@/lib/data/regions";
-import { queryKeys } from "@/lib/utils/query-keys";
-import { sdk } from "@/lib/utils/sdk";
-import ProductDetails from "@/pages/product";
-import { HttpTypes } from "@medusajs/types";
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { listProducts, retrieveProduct } from "@/lib/data/products"
+import { getRegion } from "@/lib/data/regions"
+import { queryKeys } from "@/lib/utils/query-keys"
+import { sdk } from "@/lib/utils/sdk"
+import ProductDetails from "@/pages/product"
+import { HttpTypes } from "@medusajs/types"
+import { createFileRoute, notFound } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$countryCode/products/$handle")({
   loader: async ({ params, context }) => {
-    const { countryCode, handle } = params;
-    const { queryClient } = context;
+    const { countryCode, handle } = params
+    const { queryClient } = context
 
     const region = await queryClient.ensureQueryData({
       queryKey: ["region", countryCode],
       queryFn: () => getRegion({ country_code: countryCode }),
-    });
+    })
 
     if (!region || !handle) {
-      throw notFound();
+      throw notFound()
     }
 
     // Single comprehensive product fetch with all needed fields
@@ -30,12 +30,12 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
             region_id: region.id,
             fields:
               "*variants, +variants.inventory_quantity, +variants.manage_inventory, +variants.allow_backorder, +variants.calculated_price, *images, *options, *options.values, *collection, *tags",
-          });
+          })
         } catch {
-          throw notFound();
+          throw notFound()
         }
       },
-    });
+    })
 
     // Fetch pharma metadata via custom endpoint using SDK (auto-includes publishable key + auth)
     let pharma: { drug_product: any } | null = null
@@ -84,23 +84,23 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
           return []
         }
       },
-    });
+    })
 
     return {
       countryCode,
       region,
       product: product as HttpTypes.StoreProduct,
-    };
+    }
   },
   head: ({ loaderData, params }) => {
-    const { product, region } = loaderData || {};
+    const { product, region } = loaderData || {}
     const siteUrl = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
     const countryCode = params?.countryCode || "in"
 
     if (!product) {
       return {
         meta: [{ title: "Product Not Found | Suprameds" }],
-      };
+      }
     }
 
     const canonical = `${siteUrl}/${countryCode}/products/${product.handle}`
@@ -140,7 +140,7 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
           name: "Suprameds",
         },
       },
-    };
+    }
 
     const breadcrumbSchema = {
       "@context": "https://schema.org",
@@ -178,9 +178,9 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
               item: canonical,
             }]),
       ],
-    };
+    }
 
-    const firstImageUrl = product.images?.[0]?.url || product.thumbnail;
+    const firstImageUrl = product.images?.[0]?.url || product.thumbnail
 
     return {
       meta: [
@@ -206,7 +206,7 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
         { type: "application/ld+json", children: JSON.stringify(structuredData) },
         { type: "application/ld+json", children: JSON.stringify(breadcrumbSchema) },
       ],
-    };
+    }
   },
   component: ProductDetails,
-});
+})

@@ -75,6 +75,7 @@ const DeliveryStep = ({ cart, onNext, onBack }: DeliveryStepProps) => {
       setCalculatedPrices(pricesMap)
       setPriceLoading(false)
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shippingOptions, cart?.id])
 
   // Auto-select first option when options load

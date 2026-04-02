@@ -139,7 +139,7 @@ function SectionHeading({
 function QuickFactsCard({
   drug,
   currentPrice,
-  productTitle,
+  productTitle: _productTitle,
 }: {
   drug: DrugProduct
   currentPrice: number

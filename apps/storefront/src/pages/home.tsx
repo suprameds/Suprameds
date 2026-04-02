@@ -1,14 +1,11 @@
-import type React from "react"
+import React, { useState } from "react"
 import { useLatestProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
-import { getProductPrice } from "@/lib/utils/price"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import ProductCard from "@/components/product-card"
 import { Reveal } from "@/components/ui/reveal"
 import { Counter } from "@/components/ui/counter"
 import { Link, useLocation, useLoaderData, useNavigate } from "@tanstack/react-router"
-import { Route } from "@/routes/$countryCode/index"
-import { useState } from "react"
 
 /* ── Inline SVG icons (tree-shakeable, no icon lib) ── */
 

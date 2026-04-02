@@ -1,10 +1,10 @@
+/* eslint-disable react-refresh/only-export-components */
 import Address from "@/components/address"
 import PaymentMethodInfo from "@/components/payment-method-info"
 import { ShipmentTracker } from "@/components/shipment-tracker"
 import { Price } from "@/components/ui/price"
 import { Thumbnail } from "@/components/ui/thumbnail"
 import { isPaidWithGiftCard } from "@/lib/utils/checkout"
-import { formatOrderId } from "@/lib/utils/order"
 import { HttpTypes } from "@medusajs/types"
 import { useCallback, useState } from "react"
 

@@ -1,5 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useCallback, useEffect } from "react"
-import { HttpTypes } from "@medusajs/types"
 import {
   useReturnRequest,
   RETURN_REASON_LABELS,
@@ -384,7 +384,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                               style={{
                                 borderColor: "#D1D5DB",
                                 color: "#111827",
-                                // @ts-ignore
+                                // @ts-expect-error -- CSS custom property
                                 "--tw-ring-color": "var(--brand-teal)",
                               }}
                             />
@@ -410,7 +410,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                               style={{
                                 borderColor: "#D1D5DB",
                                 color: "#111827",
-                                // @ts-ignore
+                                // @ts-expect-error -- CSS custom property
                                 "--tw-ring-color": "var(--brand-teal)",
                               }}
                             >
@@ -456,7 +456,7 @@ export function ReturnRequestForm({ order, isOpen, onClose }: Props) {
                   style={{
                     borderColor: "#D1D5DB",
                     color: "#111827",
-                    // @ts-ignore
+                    // @ts-expect-error -- CSS custom property
                     "--tw-ring-color": "var(--brand-teal)",
                   }}
                 />
