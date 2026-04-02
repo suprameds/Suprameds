@@ -24,12 +24,13 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   })
   const initiatePaymentSessionMutation = useInitiateCartPaymentSession()
 
-  const activeSession = getActivePaymentSession(cart)
-
   const [error, setError] = useState<string | null>(null)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
-    activeSession?.provider_id ?? ""
+    getActivePaymentSession(cart)?.provider_id ?? ""
   )
+
+  // Match the active session to the user's selected provider (not just first pending)
+  const activeSession = getActivePaymentSession(cart, selectedPaymentMethod || undefined)
 
   const isStripe = isStripeFunc(selectedPaymentMethod)
 
@@ -98,23 +99,17 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
     setIsSubmitting(true)
     try {
-      // Always ensure the active session matches the user's selection.
-      // Without this, switching from Razorpay→COD leaves the old session
-      // as "active" because the cart data hasn't refreshed yet.
-      const needsNewSession =
-        !activeSession || activeSession.provider_id !== selectedPaymentMethod
-
-      if (needsNewSession) {
-        await initiatePaymentSession(selectedPaymentMethod)
-        // Wait for cart cache to refresh with the new payment session
-        // so the Review step sees the correct provider
-        await queryClient.refetchQueries({ predicate: queryKeys.cart.predicate })
-      }
+      // Always ensure a session exists for the selected provider (idempotent — reuses existing)
+      await initiatePaymentSession(selectedPaymentMethod)
+      // Refresh cart cache so the Review step sees the correct provider
+      await queryClient.refetchQueries({ predicate: queryKeys.cart.predicate })
       onNext()
+    } catch {
+      // Error already handled by initiatePaymentSession's catch block
     } finally {
       setIsSubmitting(false)
     }
-  }, [selectedPaymentMethod, activeSession, onNext, initiatePaymentSession, isSubmitting, queryClient])
+  }, [selectedPaymentMethod, onNext, initiatePaymentSession, isSubmitting, queryClient])
 
   return (
     <div className="flex flex-col gap-8">
