@@ -134,7 +134,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: TEST_TYPE=unit node --experimental-vm-modules node_modules/.bin/jest --ci --passWithNoTests
+      - run: npx jest --testMatch="**/*.unit.spec.ts" --ci --passWithNoTests
         working-directory: apps/backend
 
   test-e2e:

@@ -7,6 +7,7 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
+COPY apps/storefront/package.json apps/storefront/
 
 RUN pnpm install --frozen-lockfile --filter backend
 
