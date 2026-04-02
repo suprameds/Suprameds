@@ -188,12 +188,19 @@ const ProductActions = memo(function ProductActions({
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
-            <span
-              className="w-10 text-center text-sm font-semibold tabular-nums"
-              style={{ color: "var(--text-primary)", borderLeft: "1px solid var(--border-primary)", borderRight: "1px solid var(--border-primary)" }}
-            >
-              {quantity}
-            </span>
+            <input
+              type="number"
+              min={1}
+              max={999}
+              value={quantity}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10)
+                if (!isNaN(v) && v >= 1) setQuantity(v)
+                else if (e.target.value === "") setQuantity(1)
+              }}
+              className="w-12 text-center text-sm font-semibold tabular-nums outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              style={{ color: "var(--text-primary)", borderLeft: "1px solid var(--border-primary)", borderRight: "1px solid var(--border-primary)", height: 36 }}
+            />
             <button
               type="button"
               aria-label="Increase quantity"
