@@ -158,12 +158,22 @@ export const CartItemQuantitySelector = ({
       >
         {item.quantity === 1 ? <Trash className="w-3.5 h-3.5" style={{ color: "var(--brand-red)" }} /> : <Minus className="w-3.5 h-3.5" />}
       </button>
-      <span
-        className="w-10 sm:w-8 text-center text-sm font-semibold tabular-nums"
-        style={{ color: "var(--text-primary)", borderLeft: "1px solid var(--border-primary)", borderRight: "1px solid var(--border-primary)" }}
-      >
-        {item.quantity}
-      </span>
+      <input
+        type="number"
+        min={1}
+        max={999}
+        value={item.quantity}
+        onChange={(e) => {
+          const v = parseInt(e.target.value, 10)
+          if (!isNaN(v) && v >= 1) handleQuantityChange(v)
+        }}
+        onBlur={(e) => {
+          if (!e.target.value || parseInt(e.target.value, 10) < 1) handleQuantityChange(1)
+        }}
+        disabled={isMutating}
+        className="w-12 sm:w-10 text-center text-sm font-semibold tabular-nums outline-none bg-transparent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        style={{ color: "var(--text-primary)", borderLeft: "1px solid var(--border-primary)", borderRight: "1px solid var(--border-primary)", height: 36 }}
+      />
       <button
         type="button"
         onClick={() => handleQuantityChange(item.quantity + 1)}
