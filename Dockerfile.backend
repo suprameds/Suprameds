@@ -43,6 +43,7 @@ WORKDIR /app/apps/backend
 COPY --from=build /app/apps/backend/.medusa ./.medusa
 COPY --from=build /app/apps/backend/package.json ./package.json
 COPY --from=build /app/apps/backend/medusa-config.ts ./medusa-config.ts
+COPY --from=build /app/apps/backend/tsconfig.json ./tsconfig.json
 COPY --from=build /app/apps/backend/node_modules ./node_modules
 COPY --from=build /app/node_modules /app/node_modules
 
