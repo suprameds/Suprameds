@@ -60,5 +60,5 @@ EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -q --spider http://localhost:${PORT:-9000}/health || exit 1
 
-# Start: run migrations → seed → start via cloud-start.mjs
-CMD ["node", "./src/scripts/cloud-start.mjs"]
+# Start Medusa server directly (migrations run via Supabase/CLI separately)
+CMD ["npx", "medusa", "start"]
