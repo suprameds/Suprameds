@@ -50,6 +50,7 @@ COPY --from=build /app/node_modules /app/node_modules
 
 # Security: run as non-root
 RUN addgroup -g 1001 -S medusa && adduser -S medusa -u 1001
+RUN chown -R medusa:medusa /app
 USER medusa
 
 # Railway injects $PORT; Medusa respects it automatically. Default 9000.
