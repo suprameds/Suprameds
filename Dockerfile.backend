@@ -43,13 +43,21 @@ COPY --from=build /app/apps/backend/medusa-config.ts ./medusa-config.ts
 COPY --from=build /app/apps/backend/node_modules ./node_modules
 COPY --from=build /app/node_modules /app/node_modules
 
+# Copy startup + migration scripts for Railway/cloud deploys
+COPY --from=build /app/apps/backend/src/scripts ./src/scripts
+COPY --from=build /app/apps/backend/src/migration-scripts ./src/migration-scripts
+
 # Security: run as non-root
 RUN addgroup -g 1001 -S medusa && adduser -S medusa -u 1001
 USER medusa
 
+# Railway injects $PORT; Medusa respects it automatically. Default 9000.
+ENV PORT=9000
 EXPOSE 9000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD wget -q --spider http://localhost:9000/health || exit 1
+  CMD wget -q --spider http://localhost:${PORT:-9000}/health || exit 1
 
+# Default: just start server. Railway overrides via startCommand in railway.toml
+# which runs cloud-start.mjs (migrate → seed → start).
 CMD ["pnpm", "medusa", "start"]

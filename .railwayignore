@@ -1,0 +1,14 @@
+node_modules
+.env
+.env.*
+!.env.example
+.git
+.idea
+.claude
+*.log
+suprameds-test-suite
+docs
+import_payload.json
+import_result.json
+apps/storefront
+apps/backend/static/rx
