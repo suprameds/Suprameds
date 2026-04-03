@@ -85,5 +85,5 @@ export default async function GenerateH1ReportJob(
 
 export const config = {
   name: "generate-h1",
-  schedule: "0 0 * * *",
+  schedule: "10 0 * * *", // was: 0 0 * * * — staggered to avoid pool exhaustion
 }

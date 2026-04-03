@@ -49,5 +49,5 @@ export default async function ClearPhiAuditLogsJob(container: MedusaContainer) {
 
 export const config = {
   name: "clear-phi-logs",
-  schedule: "0 0 * * *",
+  schedule: "5 0 * * *", // was: 0 0 * * * — staggered to avoid pool exhaustion
 }

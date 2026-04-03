@@ -95,5 +95,5 @@ export default async function ExpireLoyaltyPointsJob(container: MedusaContainer)
 
 export const config = {
   name: "expire-loyalty",
-  schedule: "0 4 * * *", // Daily at 4:00 AM IST
+  schedule: "25 4 * * *", // was: 0 4 * * * — staggered to avoid pool exhaustion
 }

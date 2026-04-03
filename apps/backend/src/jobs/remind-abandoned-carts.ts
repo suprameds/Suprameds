@@ -184,6 +184,6 @@ export default async function RemindAbandonedCartsJob(container: MedusaContainer
 
 export const config = {
   name: "remind-abandoned-carts",
-  // Every 2 hours (at minute 0)
-  schedule: "0 */2 * * *",
+  // Every 2 hours (was: 0 */2 * * * — staggered to avoid pool exhaustion)
+  schedule: "23 */2 * * *",
 }

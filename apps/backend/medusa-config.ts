@@ -43,11 +43,11 @@ export default defineConfig({
       // Neon serverless Postgres kills idle connections after ~5 minutes.
       // These pool settings prevent "Connection ended unexpectedly" errors.
       pool: {
-        min: 0,
-        max: 10,
-        idleTimeoutMillis: 30_000,       // close idle connections after 30s (before Neon's 5min cutoff)
-        acquireTimeoutMillis: 60_000,    // wait up to 60s for a connection from pool
-        reapIntervalMillis: 1_000,       // check for idle connections every 1s
+        min: 2,
+        max: 20,                          // 10 was too low for 17 jobs + API traffic
+        idleTimeoutMillis: 30_000,
+        acquireTimeoutMillis: 60_000,
+        reapIntervalMillis: 1_000,
       },
     },
     databaseLogging: false,

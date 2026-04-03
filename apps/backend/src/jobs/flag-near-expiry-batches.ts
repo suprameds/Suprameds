@@ -80,5 +80,5 @@ export default async function FlagNearExpiryBatchesJob(
 
 export const config = {
   name: "flag-expiry",
-  schedule: "0 5 * * *",
+  schedule: "35 5 * * *", // was: 0 5 * * * — staggered to avoid pool exhaustion
 }

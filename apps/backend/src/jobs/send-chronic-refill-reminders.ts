@@ -134,5 +134,5 @@ export default async function SendChronicRefillRemindersJob(container: MedusaCon
 
 export const config = {
   name: "chronic-reminders",
-  schedule: "0 */6 * * *", // Every 6 hours
+  schedule: "41 */6 * * *", // was: 0 */6 * * * — staggered to avoid pool exhaustion
 }

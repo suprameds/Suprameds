@@ -130,5 +130,5 @@ export default async function IdentifyChronicReordersJob(container: MedusaContai
 
 export const config = {
   name: "identify-reorders",
-  schedule: "0 3 * * *", // Daily at 3:00 AM IST
+  schedule: "20 3 * * *", // was: 0 3 * * * — staggered to avoid pool exhaustion
 }
