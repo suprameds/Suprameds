@@ -55,17 +55,9 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
         // Only show error if this is still the active selection
         if (activeProviderRef.current !== method) return
 
-        // Razorpay failures: auto-fall back to COD with helpful message
+        // Show error but keep the user's selection — they can retry or switch manually
         if (isRazorpayProvider(method)) {
-          showToast("Razorpay is temporarily unavailable. Switched to Cash on Delivery.")
-          setSelectedPaymentMethod("pp_system_default")
-          activeProviderRef.current = "pp_system_default"
-          // Silently create COD session as fallback
-          try {
-            await initiatePaymentSessionMutation.mutateAsync(
-              { provider_id: "pp_system_default" },
-            )
-          } catch { /* COD session may already exist */ }
+          showToast("Razorpay payment setup failed. Please try again or use Cash on Delivery.")
         } else {
           showToast(err instanceof Error ? err.message : "An error occurred")
         }
