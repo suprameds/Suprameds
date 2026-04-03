@@ -6,11 +6,8 @@ import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCartRxStatus } from "@/lib/hooks/use-prescriptions"
 import { trackBeginCheckout } from "@/lib/utils/analytics"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { sdk } from "@/lib/utils/sdk"
-import { setStoredCart } from "@/lib/utils/cart"
 import { type CheckoutStep, CheckoutStepKey } from "@/lib/types/global"
 import {
-  Link,
   useLoaderData,
   useLocation,
   useNavigate,
@@ -25,86 +22,6 @@ const PaymentStep = lazy(() => import("@/components/checkout-payment-step"))
 const ReviewStep = lazy(() => import("@/components/checkout-review-step"))
 const CheckoutSummary = lazy(() => import("@/components/checkout-summary"))
 
-const GUEST_SESSION_KEY = "_suprameds_guest_session"
-
-interface GuestSessionResponse {
-  session_id: string
-  session_token: string
-  cart_id: string
-  expires_at: string
-}
-
-function getGuestSession(): { session_id: string; session_token: string } | null {
-  try {
-    const raw = localStorage.getItem(GUEST_SESSION_KEY)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
-function storeGuestSession(session: { session_id: string; session_token: string }) {
-  localStorage.setItem(GUEST_SESSION_KEY, JSON.stringify(session))
-}
-
-/** Banner shown to unauthenticated users — lets them continue as guest or go to login */
-function GuestCheckoutBanner({
-  countryCode,
-  onGuestContinue,
-  isLoading,
-}: {
-  countryCode: string
-  onGuestContinue: () => void
-  isLoading: boolean
-}) {
-  return (
-    <div
-      className="rounded-xl border p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-      style={{ background: "#FFFBEB", borderColor: "#FDE68A" }}
-    >
-      <div className="flex-shrink-0">
-        <div
-          className="w-10 h-10 rounded-full flex items-center justify-center"
-          style={{ background: "#FEF3C7" }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--brand-amber)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-          </svg>
-        </div>
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold" style={{ color: "var(--brand-amber-dark)" }}>
-          You're not signed in
-        </p>
-        <p className="text-xs mt-0.5" style={{ color: "#A16207" }}>
-          Sign in to use saved addresses and track orders, or continue as a guest.
-        </p>
-      </div>
-      <div className="flex gap-3 flex-shrink-0">
-        <Link
-          to="/$countryCode/account/login"
-          params={{ countryCode }}
-          search={{ redirectTo: `/${countryCode}/checkout` } as any}
-          className="px-4 py-2 rounded-lg text-sm font-medium border transition-all hover:bg-[var(--bg-secondary)]"
-          style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "var(--bg-secondary)" }}
-        >
-          Login / Register
-        </Link>
-        <button
-          type="button"
-          onClick={onGuestContinue}
-          disabled={isLoading}
-          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
-          style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
-        >
-          {isLoading ? "Setting up..." : "Continue as guest"}
-        </button>
-      </div>
-    </div>
-  )
-}
-
 const Checkout = () => {
   const { step } = useLoaderData({
     from: "/$countryCode/checkout",
@@ -115,10 +32,7 @@ const Checkout = () => {
   const navigate = useNavigate()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
-  const [guestLoading, setGuestLoading] = useState(false)
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false)
-  // Guest mode: customer is not logged in and either has a guest session or chose to continue as guest
-  const [guestMode, setGuestMode] = useState(() => !!getGuestSession())
 
   // Check whether the cart contains Rx items (determines prescription step)
   const { data: rxStatus } = useCartRxStatus(cart?.id)
@@ -138,33 +52,6 @@ const Checkout = () => {
     )
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart?.id])
-
-  /** Create a guest checkout session and store the session token */
-  const handleGuestContinue = useCallback(async () => {
-    setGuestLoading(true)
-    try {
-      const response = await sdk.client.fetch<GuestSessionResponse>(
-        "/store/orders/guest",
-        { method: "POST", body: {} }
-      )
-      storeGuestSession({
-        session_id: response.session_id,
-        session_token: response.session_token,
-      })
-      // Use the guest cart created by the backend
-      if (response.cart_id) {
-        setStoredCart(response.cart_id)
-      }
-      setGuestMode(true)
-    } catch {
-      // If guest session creation fails, just let them proceed with existing cart
-      setGuestMode(true)
-    } finally {
-      setGuestLoading(false)
-    }
-  }, [])
-
-  const showGuestBanner = !customerLoading && !customer && !guestMode
 
   const steps: CheckoutStep[] = useMemo(() => {
     const base: CheckoutStep[] = [
@@ -274,16 +161,30 @@ const Checkout = () => {
 
   return (
     <div className="content-container py-4 sm:py-8 flex flex-col gap-4 sm:gap-6">
-      {/* Guest checkout banner — shown when user is not authenticated and hasn't opted for guest */}
-      {showGuestBanner && (
-        <GuestCheckoutBanner
-          countryCode={countryCode}
-          onGuestContinue={handleGuestContinue}
-          isLoading={guestLoading}
-        />
+      {/* Require sign-in for checkout — no guest checkout for pharma compliance */}
+      {!customerLoading && !customer && (
+        <div
+          className="rounded-xl p-6 text-center"
+          style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
+        >
+          <p className="text-base font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
+            Sign in to continue checkout
+          </p>
+          <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+            As a licensed pharmacy, we need your account details for prescription verification and order traceability.
+          </p>
+          <a
+            href={`/${countryCode}/account/login?redirectTo=/${countryCode}/checkout`}
+            className="inline-flex px-6 py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
+          >
+            Sign in or Register
+          </a>
+        </div>
       )}
 
-      {/* Progress Steps */}
+      {/* Checkout content — only shown when authenticated */}
+      {customer && <>
       <CheckoutProgress
         steps={steps}
         currentStepIndex={currentStepIndex}
@@ -431,6 +332,7 @@ const Checkout = () => {
 
       {/* Spacer so content isn't hidden behind the sticky bar on mobile */}
       {cart && <div className="lg:hidden h-14" />}
+      </>}
     </div>
   )
 }

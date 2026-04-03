@@ -1,5 +1,6 @@
 import { Heart } from "@medusajs/icons"
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/lib/hooks/use-wishlist"
+import { useRequireAuth } from "@/lib/hooks/use-require-auth"
 
 type Props = {
   productId: string
@@ -25,12 +26,14 @@ export function WishlistButton({ productId, variantId, currentPrice, className }
   const addMutation = useAddToWishlist()
   const removeMutation = useRemoveFromWishlist()
 
+  const requireAuth = useRequireAuth()
   const isPending = addMutation.isPending || removeMutation.isPending
 
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (isPending) return
+    if (!requireAuth()) return
 
     if (isWishlisted) {
       removeMutation.mutate({ product_id: productId })

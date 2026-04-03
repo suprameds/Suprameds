@@ -7,6 +7,7 @@ import { useCartDrawer } from "@/lib/context/cart"
 import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
 import { WishlistButton } from "@/components/wishlist-button"
+import { useRequireAuth } from "@/lib/hooks/use-require-auth"
 
 interface ProductCardProps {
   product: HttpTypes.StoreProduct;
@@ -69,12 +70,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
   // Add to cart
   const addToCartMutation = useAddToCart()
   const { openCart } = useCartDrawer()
+  const requireAuth = useRequireAuth()
   const variant = product.variants?.[0]
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (!variant?.id || isBlocked) return
+    if (!requireAuth()) return
     addToCartMutation.mutate(
       {
         variant_id: variant.id,
