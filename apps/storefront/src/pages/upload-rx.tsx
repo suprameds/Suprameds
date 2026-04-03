@@ -80,6 +80,25 @@ const UploadRx = () => {
     [validateFile]
   )
 
+  // Pick up file dropped on the home page drop zone (stored in sessionStorage)
+  useEffect(() => {
+    try {
+      const pending = sessionStorage.getItem("rx_pending_file")
+      if (!pending) return
+      sessionStorage.removeItem("rx_pending_file")
+      const { name, type } = JSON.parse(pending)
+      const dataUrl = JSON.parse(pending).dataUrl as string
+      const byteString = atob(dataUrl.split(",")[1])
+      const ab = new ArrayBuffer(byteString.length)
+      const ia = new Uint8Array(ab)
+      for (let i = 0; i < byteString.length; i++) ia[i] = byteString.charCodeAt(i)
+      const file = new File([ab], name, { type })
+      handleFileSelect(file)
+    } catch {
+      // Invalid or missing data — ignore
+    }
+  }, [handleFileSelect])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) handleFileSelect(file)

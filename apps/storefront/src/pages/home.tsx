@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import { useLatestProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
@@ -231,6 +231,35 @@ const Home = () => {
 
   const [searchQuery, setSearchQuery] = useState("")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [rxDragOver, setRxDragOver] = useState(false)
+  const rxFileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleRxFile = useCallback((file: File) => {
+    const acceptedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
+    if (!acceptedTypes.includes(file.type) || file.size > 10 * 1024 * 1024) {
+      navigate({ to: "/$countryCode/upload-rx", params: { countryCode } })
+      return
+    }
+    // Store file info in sessionStorage so the upload page can pre-populate
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        sessionStorage.setItem("rx_pending_file", JSON.stringify({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          dataUrl: reader.result as string,
+        }))
+      } catch {
+        // sessionStorage full or unavailable — just navigate
+      }
+      navigate({ to: "/$countryCode/upload-rx", params: { countryCode } })
+    }
+    reader.onerror = () => {
+      navigate({ to: "/$countryCode/upload-rx", params: { countryCode } })
+    }
+    reader.readAsDataURL(file)
+  }, [countryCode, navigate])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -526,7 +555,7 @@ const Home = () => {
                 Have a doctor's prescription?
               </h2>
               <p className="text-sm leading-relaxed mb-6" style={{ color: "rgba(255,255,255,0.55)" }}>
-                Upload your prescription and our pharmacist will prepare your order with maximum generic savings.
+                Upload your prescription and give us a call and our pharmacist will prepare your order with maximum generic savings.
               </p>
 
               <div className="flex flex-col gap-3 mb-8">
@@ -560,9 +589,32 @@ const Home = () => {
 
             {/* Right: light gradient with drop zone */}
             <div className="p-10 lg:p-14 flex flex-col items-center justify-center gap-5" style={{ background: "linear-gradient(155deg, #E6F4F0, #F5F0E8)" }}>
+              <input
+                ref={rxFileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) handleRxFile(file)
+                }}
+              />
               <div
                 className="w-full max-w-xs rounded-2xl p-10 text-center cursor-pointer transition-all hover:scale-[1.02]"
-                style={{ border: "2px dashed rgba(14,124,134,0.2)", background: "rgba(255,255,255,0.55)", backdropFilter: "blur(6px)" }}
+                style={{
+                  border: rxDragOver ? "2px dashed var(--brand-teal)" : "2px dashed rgba(14,124,134,0.2)",
+                  background: rxDragOver ? "rgba(14,124,134,0.06)" : "rgba(255,255,255,0.55)",
+                  backdropFilter: "blur(6px)",
+                }}
+                onClick={() => rxFileInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setRxDragOver(true) }}
+                onDragLeave={() => setRxDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  setRxDragOver(false)
+                  const file = e.dataTransfer.files?.[0]
+                  if (file) handleRxFile(file)
+                }}
               >
                 <div className="text-4xl mb-3">📄</div>
                 <h3 className="text-sm font-bold mb-1" style={{ color: "var(--text-primary)" }}>Drag & drop your Rx here</h3>
