@@ -1,5 +1,6 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
+import { jobGuard } from "../lib/job-guard"
 import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 import { ORDERS_MODULE } from "../modules/orders"
 
@@ -19,6 +20,9 @@ const MIN_SHELF_LIFE_DAYS = Number(process.env.BATCH_MIN_SHELF_LIFE_DAYS ?? 60)
  * concurrent allocation races.
  */
 export default async function AutoAllocateFefoJob(container: MedusaContainer) {
+  const guard = jobGuard("auto-allocate-fefo")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   logger.info(`${LOG} Starting`)
 
@@ -198,7 +202,9 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
     logger.info(
       `${LOG} Done — allocated: ${allocated}, failed: ${failed}, total: ${pendingOrders.length}`
     )
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG} Failed: ${(err as Error).message}`)
   }
 }

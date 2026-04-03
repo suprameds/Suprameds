@@ -4,6 +4,7 @@ import {
   getTrackingStatus,
   normalizeAfterShipStatus,
 } from "../lib/aftership"
+import { jobGuard } from "../lib/job-guard"
 import { SHIPMENT_MODULE } from "../modules/shipment"
 
 /** Terminal statuses that should not be polled again. */
@@ -25,99 +26,108 @@ export default async function SyncAftershipStatusJob(
     return
   }
 
+  const guard = jobGuard("sync-aftership")
+  if (guard.shouldSkip()) return
+
   logger.info("[sync-aftership] Starting sync run")
 
-  // Fetch all active (non-terminal) shipments that have an AWB
-  const allShipments = await shipmentService.listShipments(
-    {},
-    { take: 500 }
-  )
-  const activeShipments = allShipments.filter(
-    (s: any) =>
-      s.awb_number && !TERMINAL_STATUSES.includes(s.status)
-  )
+  try {
+    // Fetch all active (non-terminal) shipments that have an AWB
+    const allShipments = await shipmentService.listShipments(
+      {},
+      { take: 500 }
+    )
+    const activeShipments = allShipments.filter(
+      (s: any) =>
+        s.awb_number && !TERMINAL_STATUSES.includes(s.status)
+    )
 
-  let synced = 0
-  let changed = 0
-  let errors = 0
+    let synced = 0
+    let changed = 0
+    let errors = 0
 
-  for (const shipment of activeShipments) {
-    try {
-      const slug = shipment.carrier ?? "india-post"
-      const tracking = await getTrackingStatus(slug, shipment.awb_number)
+    for (const shipment of activeShipments) {
+      try {
+        const slug = shipment.carrier ?? "india-post"
+        const tracking = await getTrackingStatus(slug, shipment.awb_number)
 
-      if (!tracking) continue
-      synced++
+        if (!tracking) continue
+        synced++
 
-      const newStatus = normalizeAfterShipStatus(tracking.tag, tracking.subtag)
-      if (newStatus === shipment.status) continue
+        const newStatus = normalizeAfterShipStatus(tracking.tag, tracking.subtag)
+        if (newStatus === shipment.status) continue
 
-      const latestCheckpoint = tracking.checkpoints.length
-        ? tracking.checkpoints[tracking.checkpoints.length - 1]
-        : undefined
+        const latestCheckpoint = tracking.checkpoints.length
+          ? tracking.checkpoints[tracking.checkpoints.length - 1]
+          : undefined
 
-      const updateData: Record<string, unknown> = {
-        id: shipment.id,
-        status: newStatus,
-        last_location: latestCheckpoint?.location ?? shipment.last_location,
+        const updateData: Record<string, unknown> = {
+          id: shipment.id,
+          status: newStatus,
+          last_location: latestCheckpoint?.location ?? shipment.last_location,
+        }
+
+        if (newStatus === "delivered") {
+          updateData.actual_delivery = new Date()
+          updateData.delivered_to = tracking.signed_by ?? shipment.delivered_to
+        }
+
+        if (newStatus === "ndr") {
+          updateData.ndr_reason = tracking.subtag ?? "unknown"
+          updateData.delivery_attempts = (shipment.delivery_attempts ?? 0) + 1
+        }
+
+        await shipmentService.updateShipments(updateData)
+        changed++
+
+        logger.info(
+          `[sync-aftership] Shipment ${shipment.id} ${shipment.status} → ${newStatus}`
+        )
+
+        // Emit domain events for status transitions
+        if (newStatus === "delivered") {
+          await eventBus.emit({
+            name: "order.delivered",
+            data: { id: shipment.order_id },
+          })
+        }
+
+        if (newStatus === "ndr") {
+          await eventBus.emit({
+            name: "shipment.ndr_reported",
+            data: {
+              shipment_id: shipment.id,
+              order_id: shipment.order_id,
+              ndr_reason: tracking.subtag ?? "unknown",
+            },
+          })
+        }
+
+        if (tracking.subtag && tracking.subtag.toUpperCase().includes("RTO")) {
+          await eventBus.emit({
+            name: "shipment.rto_initiated",
+            data: {
+              shipment_id: shipment.id,
+              order_id: shipment.order_id,
+            },
+          })
+        }
+      } catch (err: any) {
+        errors++
+        logger.error(
+          `[sync-aftership] Failed to sync shipment ${shipment.id} (AWB: ${shipment.awb_number}): ${err.message}`
+        )
       }
-
-      if (newStatus === "delivered") {
-        updateData.actual_delivery = new Date()
-        updateData.delivered_to = tracking.signed_by ?? shipment.delivered_to
-      }
-
-      if (newStatus === "ndr") {
-        updateData.ndr_reason = tracking.subtag ?? "unknown"
-        updateData.delivery_attempts = (shipment.delivery_attempts ?? 0) + 1
-      }
-
-      await shipmentService.updateShipments(updateData)
-      changed++
-
-      logger.info(
-        `[sync-aftership] Shipment ${shipment.id} ${shipment.status} → ${newStatus}`
-      )
-
-      // Emit domain events for status transitions
-      if (newStatus === "delivered") {
-        await eventBus.emit({
-          name: "order.delivered",
-          data: { id: shipment.order_id },
-        })
-      }
-
-      if (newStatus === "ndr") {
-        await eventBus.emit({
-          name: "shipment.ndr_reported",
-          data: {
-            shipment_id: shipment.id,
-            order_id: shipment.order_id,
-            ndr_reason: tracking.subtag ?? "unknown",
-          },
-        })
-      }
-
-      if (tracking.subtag && tracking.subtag.toUpperCase().includes("RTO")) {
-        await eventBus.emit({
-          name: "shipment.rto_initiated",
-          data: {
-            shipment_id: shipment.id,
-            order_id: shipment.order_id,
-          },
-        })
-      }
-    } catch (err: any) {
-      errors++
-      logger.error(
-        `[sync-aftership] Failed to sync shipment ${shipment.id} (AWB: ${shipment.awb_number}): ${err.message}`
-      )
     }
-  }
 
-  logger.info(
-    `[sync-aftership] Synced ${synced} shipments, ${changed} status changes, ${errors} errors`
-  )
+    logger.info(
+      `[sync-aftership] Synced ${synced} shipments, ${changed} status changes, ${errors} errors`
+    )
+    guard.success()
+  } catch (err) {
+    guard.failure(err)
+    logger.error(`[sync-aftership] Job failed: ${(err as Error).message}`)
+  }
 }
 
 export const config = {

@@ -1,4 +1,5 @@
 import { MedusaContainer } from "@medusajs/framework/types"
+import { jobGuard } from "../lib/job-guard"
 
 const LOG_PREFIX = "[low-stock-job]"
 
@@ -22,6 +23,9 @@ type VariantStockSummary = {
  * and creates notifications for variants below the stock threshold.
  */
 export default async function CheckLowStockJob(container: MedusaContainer) {
+  const guard = jobGuard("check-low-stock")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   const batchService = container.resolve("pharmaInventoryBatch") as any
   const notificationService = container.resolve("pharmaNotification") as any
@@ -106,7 +110,9 @@ export default async function CheckLowStockJob(container: MedusaContainer) {
       `${LOG_PREFIX} Scan complete: ${variantMap.size} variants checked, ` +
         `${lowStockCount} low stock, ${outOfStockCount} out of stock`
     )
+    guard.success()
   } catch (err: any) {
+    guard.failure(err)
     logger.error(`${LOG_PREFIX} Job failed: ${err.message}`)
     throw err
   }

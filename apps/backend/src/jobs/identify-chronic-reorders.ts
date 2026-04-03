@@ -1,5 +1,6 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { jobGuard } from "../lib/job-guard"
 import { CRM_MODULE } from "../modules/crm"
 
 const LOG_PREFIX = "[job:identify-reorders]"
@@ -13,6 +14,9 @@ const MIN_CONFIDENCE_SCORE = 40
  * consistent intervals (±7 days), creates/updates a ChronicReorderPattern.
  */
 export default async function IdentifyChronicReordersJob(container: MedusaContainer) {
+  const guard = jobGuard("identify-reorders")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
   const crmService = container.resolve(CRM_MODULE) as any
@@ -122,7 +126,9 @@ export default async function IdentifyChronicReordersJob(container: MedusaContai
     logger.info(
       `${LOG_PREFIX} Completed: ${patternsCreated} new patterns, ${patternsUpdated} updated`
     )
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG_PREFIX} Job failed: ${err}`)
     throw err
   }

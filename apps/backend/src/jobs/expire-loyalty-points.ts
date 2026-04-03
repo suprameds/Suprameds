@@ -1,4 +1,5 @@
 import { MedusaContainer } from "@medusajs/framework/types"
+import { jobGuard } from "../lib/job-guard"
 import { LOYALTY_MODULE } from "../modules/loyalty"
 
 const LOG_PREFIX = "[job:expire-loyalty]"
@@ -9,6 +10,9 @@ const EXPIRY_MONTHS = 12
  * Creates expire transactions and decrements balances.
  */
 export default async function ExpireLoyaltyPointsJob(container: MedusaContainer) {
+  const guard = jobGuard("expire-loyalty")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   const loyaltyService = container.resolve(LOYALTY_MODULE) as any
 
@@ -87,7 +91,9 @@ export default async function ExpireLoyaltyPointsJob(container: MedusaContainer)
       `${LOG_PREFIX} Completed: ${expiredCount} transactions expired, ` +
         `${totalExpiredPoints} total points, ${accountExpiries.size} accounts affected`
     )
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG_PREFIX} Job failed: ${err}`)
     throw err
   }

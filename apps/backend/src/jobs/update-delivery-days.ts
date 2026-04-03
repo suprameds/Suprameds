@@ -1,4 +1,5 @@
 import { MedusaContainer } from "@medusajs/framework/types"
+import { jobGuard } from "../lib/job-guard"
 import { SHIPMENT_MODULE } from "../modules/shipment"
 
 const LOG = "[job:update-delivery-days]"
@@ -64,6 +65,9 @@ const DELIVERY_MATRIX: Array<{
 const ORIGIN_STATE = "Telangana"
 
 export default async function UpdateDeliveryDaysJob(container: MedusaContainer) {
+  const guard = jobGuard("update-delivery-days")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   logger.info(`${LOG} Starting weekly delivery estimate refresh`)
 
@@ -110,7 +114,9 @@ export default async function UpdateDeliveryDaysJob(container: MedusaContainer) 
     }
 
     logger.info(`${LOG} Upserted ${upserted}/${DELIVERY_MATRIX.length} delivery estimates`)
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG} Failed: ${(err as Error).message}`)
   }
 }

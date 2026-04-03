@@ -1,5 +1,6 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
+import { jobGuard } from "../lib/job-guard"
 import { ORDERS_MODULE } from "../modules/orders"
 
 const LOG_PREFIX = "[job:release-guest-sessions]"
@@ -10,6 +11,9 @@ const EXPIRY_HOURS = 48
  * and cleans up their associated abandoned carts.
  */
 export default async function ReleaseExpiredGuestSessionsJob(container: MedusaContainer) {
+  const guard = jobGuard("release-guest-sessions")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   const orderService = container.resolve(ORDERS_MODULE) as any
   const cartService = container.resolve(Modules.CART) as any
@@ -66,7 +70,9 @@ export default async function ReleaseExpiredGuestSessionsJob(container: MedusaCo
     logger.info(
       `${LOG_PREFIX} Completed: ${sessionsDeleted} sessions deleted, ${cartsDeleted} carts cleaned up`
     )
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG_PREFIX} Job failed: ${err}`)
     throw err
   }

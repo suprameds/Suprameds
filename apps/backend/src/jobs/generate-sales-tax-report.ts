@@ -1,5 +1,6 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { jobGuard } from "../lib/job-guard"
 
 const LOG = "[job:sales-tax]"
 
@@ -17,6 +18,9 @@ export default async function GenerateSalesTaxReportJob(container: MedusaContain
   // Only run on the 1st of the month (schedule is daily to avoid Node.js 32-bit timer overflow)
   const today = new Date()
   if (today.getDate() !== 1) return
+
+  const guard = jobGuard("sales-tax")
+  if (guard.shouldSkip()) return
 
   logger.info(`${LOG} Starting`)
 
@@ -110,7 +114,9 @@ export default async function GenerateSalesTaxReportJob(container: MedusaContain
     } catch {
       // Query storage is optional
     }
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG} Failed: ${(err as Error).message}`)
   }
 }

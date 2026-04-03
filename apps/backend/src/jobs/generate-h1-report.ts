@@ -1,8 +1,12 @@
 import { MedusaContainer } from "@medusajs/framework/types"
+import { jobGuard } from "../lib/job-guard"
 
 export default async function GenerateH1ReportJob(
   container: MedusaContainer
 ) {
+  const guard = jobGuard("generate-h1")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger")
   const complianceService = container.resolve("pharmaCompliance") as any
   const notificationService = container.resolve("pharmaNotification") as any
@@ -77,7 +81,9 @@ export default async function GenerateH1ReportJob(
     logger.info(
       `[h1-report] Report complete: ${entries.length} entries for ${dateLabel}`
     )
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`[h1-report] Job failed: ${err}`)
     throw err
   }
