@@ -7,6 +7,7 @@ import { useCartDrawer } from "@/lib/context/cart"
 import { useAddToCart } from "@/lib/hooks/use-cart"
 import { getVariantOptionsKeymap, isVariantInStock } from "@/lib/utils/product"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { useRequireAuth } from "@/lib/hooks/use-require-auth"
 import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
 import { isEqual } from "lodash-es"
@@ -120,8 +121,11 @@ const ProductActions = memo(function ProductActions({
   const requiresRx = schedule === "H" || schedule === "H1"
   const isBlocked = schedule === "X"
 
+  const requireAuth = useRequireAuth()
+
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
+    if (!requireAuth()) return null
 
     try {
       await addToCartMutation.mutateAsync({
