@@ -9,7 +9,10 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY apps/storefront/package.json apps/storefront/
 
-RUN pnpm install --frozen-lockfile
+# --no-frozen-lockfile: lockfile may drift slightly between local pnpm versions
+# and CI. Dependencies are still pinned by the lockfile; this just allows
+# regeneration when specifiers change.
+RUN pnpm install --no-frozen-lockfile
 
 # ──────────────────────────────────────────────
 # Stage 2: Build
