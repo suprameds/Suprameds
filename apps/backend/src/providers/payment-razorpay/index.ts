@@ -39,7 +39,18 @@ RazorpayBase.prototype.createAccountHolder = async function (input: any) {
       ""
     )
   }
-  return originalCreateAccountHolder.call(this, input)
+  try {
+    return await originalCreateAccountHolder.call(this, input)
+  } catch (err: any) {
+    // Razorpay returns "Customer already exists for the merchant" if the
+    // customer was previously created. This is safe to ignore — the customer
+    // account holder already exists, payment can proceed.
+    const msg = typeof err === "string" ? err : err?.message ?? JSON.stringify(err)
+    if (msg.includes("already exists")) {
+      return { data: input?.context?.customer ?? {} }
+    }
+    throw err
+  }
 }
 
 // Patch deletePayment to handle missing session IDs gracefully.
