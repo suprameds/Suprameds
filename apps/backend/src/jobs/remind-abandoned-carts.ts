@@ -1,6 +1,7 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
+import { jobGuard } from "../lib/job-guard"
 import { PHARMA_MODULE } from "../modules/pharma"
 
 // Maximum push reminders per cart before we stop nudging
@@ -32,6 +33,9 @@ export default async function RemindAbandonedCartsJob(container: MedusaContainer
     logger.info("[job:remind-carts] Firebase not configured — skipping abandoned cart reminders")
     return
   }
+
+  const guard = jobGuard("remind-abandoned-carts")
+  if (guard.shouldSkip()) return
 
   logger.info("[job:remind-carts] Starting abandoned cart reminder run")
 
@@ -177,7 +181,9 @@ export default async function RemindAbandonedCartsJob(container: MedusaContainer
       `[job:remind-carts] Run complete — sent: ${sentCount}, ` +
         `skipped_rx: ${skippedRx}, skipped_max: ${skippedMaxReminders}`
     )
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`[job:remind-carts] Failed: ${(err as Error).message}`)
   }
 }

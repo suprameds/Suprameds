@@ -1,4 +1,5 @@
 import { MedusaContainer } from "@medusajs/framework/types"
+import { jobGuard } from "../lib/job-guard"
 import { COMPLIANCE_MODULE } from "../modules/compliance"
 
 const LOG = "[job:clear-phi-logs]"
@@ -10,6 +11,9 @@ const LOG = "[job:clear-phi-logs]"
  * Runs at midnight UTC daily.
  */
 export default async function ClearPhiAuditLogsJob(container: MedusaContainer) {
+  const guard = jobGuard("clear-phi-logs")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   logger.info(`${LOG} Starting`)
 
@@ -42,7 +46,9 @@ export default async function ClearPhiAuditLogsJob(container: MedusaContainer) {
     }
 
     logger.info(`${LOG} Purged ${deleted}/${oldLogs.length} PHI audit logs (retention: ${retentionDays}d)`)
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG} Failed: ${(err as Error).message}`)
   }
 }

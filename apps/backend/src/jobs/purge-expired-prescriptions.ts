@@ -1,4 +1,5 @@
 import { MedusaContainer } from "@medusajs/framework/types"
+import { jobGuard } from "../lib/job-guard"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
 
 const LOG = "[job:purge-prescriptions]"
@@ -9,6 +10,9 @@ const LOG = "[job:purge-prescriptions]"
  * Runs at 01:00 UTC daily.
  */
 export default async function PurgeExpiredPrescriptionsJob(container: MedusaContainer) {
+  const guard = jobGuard("purge-prescriptions")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   logger.info(`${LOG} Starting`)
 
@@ -46,7 +50,9 @@ export default async function PurgeExpiredPrescriptionsJob(container: MedusaCont
     }
 
     logger.info(`${LOG} Expired ${count}/${expiredRx.length} prescriptions`)
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG} Failed: ${(err as Error).message}`)
   }
 }

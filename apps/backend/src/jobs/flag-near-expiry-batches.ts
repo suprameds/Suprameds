@@ -1,8 +1,12 @@
 import { MedusaContainer } from "@medusajs/framework/types"
+import { jobGuard } from "../lib/job-guard"
 
 export default async function FlagNearExpiryBatchesJob(
   container: MedusaContainer
 ) {
+  const guard = jobGuard("flag-expiry")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger")
   const batchService = container.resolve("pharmaInventoryBatch") as any
   const notificationService = container.resolve("pharmaNotification") as any
@@ -72,7 +76,9 @@ export default async function FlagNearExpiryBatchesJob(
     logger.info(
       `[expiry-job] Processed ${activeBatches.length} batches: ${expiredCount} expired, ${nearExpiryCount} near-expiry`
     )
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`[expiry-job] Job failed: ${err}`)
     throw err
   }

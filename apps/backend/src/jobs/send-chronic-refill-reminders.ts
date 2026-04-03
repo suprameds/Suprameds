@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { CRM_MODULE } from "../modules/crm"
 import { PHARMA_MODULE } from "../modules/pharma"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
+import { jobGuard } from "../lib/job-guard"
 
 const LOG_PREFIX = "[job:chronic-reminders]"
 
@@ -25,6 +26,9 @@ export default async function SendChronicRefillRemindersJob(container: MedusaCon
     logger.info(`${LOG_PREFIX} Firebase not configured — skipping chronic refill reminders`)
     return
   }
+
+  const guard = jobGuard("chronic-reminders")
+  if (guard.shouldSkip()) return
 
   const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
   const crmService = container.resolve(CRM_MODULE) as any
@@ -126,7 +130,9 @@ export default async function SendChronicRefillRemindersJob(container: MedusaCon
     logger.info(
       `${LOG_PREFIX} Completed: ${sentCount} reminders sent, ${skippedCount} skipped`
     )
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG_PREFIX} Job failed: ${err}`)
     throw err
   }

@@ -1,5 +1,6 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
+import { jobGuard } from "../lib/job-guard"
 import { COD_MODULE } from "../modules/cod"
 import { ORDERS_MODULE } from "../modules/orders"
 
@@ -14,6 +15,9 @@ const LOG_PREFIX = "[job:cancel-cod]"
  *   3. Emits a cod.unconfirmed_timeout event for downstream processing
  */
 export default async function CancelUnconfirmedCodJob(container: MedusaContainer) {
+  const guard = jobGuard("cancel-cod")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger")
   const codService = container.resolve(COD_MODULE) as any
   const orderService = container.resolve(ORDERS_MODULE) as any
@@ -78,7 +82,9 @@ export default async function CancelUnconfirmedCodJob(container: MedusaContainer
     }
 
     logger.info(`${LOG_PREFIX} Sweep complete — ${cancelledIds.length} order(s) cancelled`)
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG_PREFIX} Job failed: ${(err as Error).message}`)
     throw err
   }

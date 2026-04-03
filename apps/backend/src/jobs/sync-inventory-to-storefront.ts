@@ -1,5 +1,6 @@
 import { MedusaContainer } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
+import { jobGuard } from "../lib/job-guard"
 import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 
 const LOG = "[job:sync-inventory]"
@@ -16,6 +17,9 @@ const LOG = "[job:sync-inventory]"
  * We must resolve variant_id → sku before looking up inventory items.
  */
 export default async function SyncInventoryToStorefrontJob(container: MedusaContainer) {
+  const guard = jobGuard("sync-inventory")
+  if (guard.shouldSkip()) return
+
   const logger = container.resolve("logger") as any
   logger.info(`${LOG} Starting`)
 
@@ -100,7 +104,9 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
     }
 
     logger.info(`${LOG} Synced ${synced} SKUs, skipped ${skipped}`)
+    guard.success()
   } catch (err) {
+    guard.failure(err)
     logger.error(`${LOG} Failed: ${(err as Error).message}`)
   }
 }
