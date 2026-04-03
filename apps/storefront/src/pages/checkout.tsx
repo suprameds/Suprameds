@@ -232,12 +232,16 @@ const Checkout = () => {
     [navigate, countryCode]
   )
 
-  // Redirect to cart page if cart is empty or missing (e.g. after order completion)
+  // Redirect to cart page if cart is empty or missing.
+  // Skip redirect when on the Review step (order completion clears the cart
+  // right before navigating to the confirmation page — don't race it).
   useEffect(() => {
     if (cartLoading) return
+    if (step === "review") return
     if (!cart || !cart.items?.length) {
       navigate({ to: "/$countryCode/cart", params: { countryCode } })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart, cartLoading, navigate, countryCode])
 
   useEffect(() => {
