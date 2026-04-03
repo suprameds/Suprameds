@@ -9,7 +9,7 @@ import { queryKeys } from "@/lib/utils/query-keys"
 import { isStripe as isStripeFunc, isRazorpay as isRazorpayProvider, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
 import { HttpTypes } from "@medusajs/types"
 import { useQueryClient } from "@tanstack/react-query"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 import { useToast } from "@/lib/context/toast-context"
 
 interface PaymentStepProps {
@@ -18,95 +18,56 @@ interface PaymentStepProps {
   onBack: () => void;
 }
 
+/**
+ * Payment step — user SELECTS a method (no API call).
+ * Session is only created when they click "Next".
+ * This avoids all the COD↔Razorpay session conflict issues.
+ */
 const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   const queryClient = useQueryClient()
+  const { showToast } = useToast()
   const { data: availablePaymentMethods = [] } = useCartPaymentMethods({
     region_id: cart.region?.id,
   })
   const initiatePaymentSessionMutation = useInitiateCartPaymentSession()
 
-  const { showToast } = useToast()
-  // Stripe component expects setError — route to toast
-  const setError = useCallback((msg: string | null) => { if (msg) showToast(msg) }, [showToast])
-  // Always default to COD — Razorpay session creation can fail and block checkout.
-  // User can explicitly switch to Razorpay if they want online payment.
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("pp_system_default")
+  const activeSession = getActivePaymentSession(cart)
+  const paidByGiftcard = isPaidWithGiftCard(cart)
 
-  // Match the active session to the user's selected provider (not just first pending)
-  const activeSession = getActivePaymentSession(cart, selectedPaymentMethod || undefined)
+  // Default to COD, or whatever session is already active
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
+    activeSession?.provider_id ?? "pp_system_default"
+  )
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isStripe = isStripeFunc(selectedPaymentMethod)
 
-  const paidByGiftcard = isPaidWithGiftCard(cart)
+  // Stripe needs setError for its card component
+  const setError = useCallback((msg: string | null) => { if (msg) showToast(msg) }, [showToast])
 
-  const initiatingRef = useRef(false)
-  const activeProviderRef = useRef(selectedPaymentMethod)
-
-  const initiatePaymentSession = useCallback(
-    async (method: string, silent = false) => {
-      if (initiatingRef.current) return
-      initiatingRef.current = true
-      activeProviderRef.current = method
-      try {
-        await initiatePaymentSessionMutation.mutateAsync(
-          { provider_id: method },
-        )
-      } catch (err) {
-        // Only show error if this is still the active selection AND not a silent auto-init
-        if (activeProviderRef.current !== method || silent) return
-
-        if (isRazorpayProvider(method)) {
-          showToast("Razorpay payment setup failed. Please try again or use Cash on Delivery.")
-        } else {
-          showToast(err instanceof Error ? err.message : "An error occurred")
-        }
-      } finally {
-        initiatingRef.current = false
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [initiatePaymentSessionMutation]
-  )
-
-  const handlePaymentMethodChange = useCallback(
-    async (method: string) => {
-      setSelectedPaymentMethod(method)
-      activeProviderRef.current = method
-
-      await initiatePaymentSession(method)
-    },
-    [initiatePaymentSession]
-  )
-
-  // Initiate COD session on mount (idempotent — reuses existing if present)
-  const didAutoInitRef = useRef(false)
-  useEffect(() => {
-    if (didAutoInitRef.current) return
-    if (!availablePaymentMethods?.length) return
-
-    didAutoInitRef.current = true
-    activeProviderRef.current = "pp_system_default"
-    initiatePaymentSession("pp_system_default", true)
-  }, [availablePaymentMethods, initiatePaymentSession])
-
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
+  // Only called when user clicks "Next" — not on selection
   const handleSubmit = useCallback(async () => {
     if (!selectedPaymentMethod || isSubmitting) return
 
     setIsSubmitting(true)
     try {
-      // Always ensure a session exists for the selected provider (idempotent — reuses existing)
-      await initiatePaymentSession(selectedPaymentMethod)
-      // Refresh cart cache so the Review step sees the correct provider
+      // Create/reuse session for the selected provider
+      await initiatePaymentSessionMutation.mutateAsync(
+        { provider_id: selectedPaymentMethod },
+      )
+      // Refresh cart so Review step sees the correct session
       await queryClient.refetchQueries({ predicate: queryKeys.cart.predicate })
       onNext()
-    } catch {
-      // Error already handled by initiatePaymentSession's catch block
+    } catch (err) {
+      if (isRazorpayProvider(selectedPaymentMethod)) {
+        showToast("Razorpay payment setup failed. Please try again or use Cash on Delivery.")
+      } else {
+        showToast(err instanceof Error ? err.message : "Payment setup failed")
+      }
     } finally {
       setIsSubmitting(false)
     }
-  }, [selectedPaymentMethod, onNext, initiatePaymentSession, isSubmitting, queryClient])
+  }, [selectedPaymentMethod, onNext, initiatePaymentSessionMutation, isSubmitting, queryClient, showToast])
 
   return (
     <div className="flex flex-col gap-8">
@@ -123,14 +84,14 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
               <PaymentContainer
                 paymentProviderId={paymentMethod.id}
                 selectedPaymentOptionId={selectedPaymentMethod}
-                onClick={() => handlePaymentMethodChange(paymentMethod.id)}
+                onClick={() => setSelectedPaymentMethod(paymentMethod.id)}
               >
                 {isStripeFunc(paymentMethod.id) && (
                   <StripeCardContainer
                     paymentProviderId={paymentMethod.id}
                     selectedPaymentOptionId={selectedPaymentMethod}
                     setError={setError}
-                    onSelect={() => handlePaymentMethodChange(paymentMethod.id)}
+                    onSelect={() => setSelectedPaymentMethod(paymentMethod.id)}
                     onCardComplete={handleSubmit}
                   />
                 )}

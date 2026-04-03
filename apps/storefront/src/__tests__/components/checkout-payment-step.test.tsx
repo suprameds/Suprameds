@@ -7,7 +7,7 @@ import type { ReactNode } from "react"
 // ---- Mocks must be declared before imports ----
 
 const mockMutateAsync = vi.fn()
-const mockPaymentProviders = [{ id: "pp_system_default" }]
+const mockPaymentProviders = [{ id: "pp_system_default" }, { id: "pp_razorpay_razorpay" }]
 const mockShowToast = vi.fn()
 
 vi.mock("@/lib/hooks/use-checkout", () => ({
@@ -71,94 +71,80 @@ describe("PaymentStep", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     ;(getActivePaymentSession as ReturnType<typeof vi.fn>).mockReturnValue(undefined)
+    mockMutateAsync.mockResolvedValue(undefined)
   })
 
   it("renders available payment methods", () => {
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
     expect(screen.getByTestId("payment-container-pp_system_default")).toBeInTheDocument()
+    expect(screen.getByTestId("payment-container-pp_razorpay_razorpay")).toBeInTheDocument()
   })
 
-  it("shows loading text when no payment methods yet", () => {
-    mockPaymentProviders.length = 0
+  it("does NOT initiate session on mount (only on Next click)", () => {
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
-    expect(screen.getByText("Loading payment methods…")).toBeInTheDocument()
-    mockPaymentProviders.push({ id: "pp_system_default" })
+    // No API call on mount — session only created when clicking Next
+    expect(mockMutateAsync).not.toHaveBeenCalled()
   })
 
-  it("awaits mutateAsync before calling onNext", async () => {
-    mockMutateAsync.mockResolvedValueOnce(undefined)
-
+  it("initiates session and calls onNext when clicking Next", async () => {
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
-
-    await waitFor(() => {
-      expect(mockMutateAsync).toHaveBeenCalled()
-    })
-
-    let resolveMutation: () => void
-    mockMutateAsync.mockImplementation(
-      () => new Promise<void>((resolve) => { resolveMutation = resolve })
-    )
 
     const nextButton = screen.getByTestId("submit-payment-button")
     await userEvent.click(nextButton)
 
-    resolveMutation!()
-
     await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith({ provider_id: "pp_system_default" })
       expect(onNext).toHaveBeenCalled()
     })
   })
 
-  it("shows toast when payment session initiation fails", async () => {
-    mockMutateAsync.mockRejectedValueOnce(new Error("Session creation failed"))
+  it("shows toast when Razorpay session creation fails", async () => {
+    mockMutateAsync.mockRejectedValueOnce(new Error("Razorpay API error"))
 
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
 
+    // Select Razorpay
+    await userEvent.click(screen.getByTestId("payment-container-pp_razorpay_razorpay"))
+
+    // Click Next
+    await userEvent.click(screen.getByTestId("submit-payment-button"))
+
     await waitFor(() => {
-      expect(mockShowToast).toHaveBeenCalledWith("Session creation failed")
+      expect(mockShowToast).toHaveBeenCalledWith(
+        "Razorpay payment setup failed. Please try again or use Cash on Delivery."
+      )
+      expect(onNext).not.toHaveBeenCalled()
     })
   })
 
-  it("always initiates session on submit (idempotent)", async () => {
-    // Even with an active session, handleSubmit always calls initiatePaymentSession
-    ;(getActivePaymentSession as ReturnType<typeof vi.fn>).mockReturnValue({
-      id: "ps_1",
-      provider_id: "pp_system_default",
-      status: "pending",
-    })
-    mockMutateAsync.mockResolvedValue(undefined)
-
+  it("switches between payment methods without API calls", async () => {
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
 
-    const nextButton = screen.getByTestId("submit-payment-button")
-    await userEvent.click(nextButton)
+    // Click Razorpay
+    await userEvent.click(screen.getByTestId("payment-container-pp_razorpay_razorpay"))
+    // Click COD
+    await userEvent.click(screen.getByTestId("payment-container-pp_system_default"))
+    // Click Razorpay again
+    await userEvent.click(screen.getByTestId("payment-container-pp_razorpay_razorpay"))
 
-    await waitFor(() => {
-      expect(onNext).toHaveBeenCalledTimes(1)
-    })
+    // No API calls during selection switching
+    expect(mockMutateAsync).not.toHaveBeenCalled()
   })
 
   it("prevents double-click on Next", async () => {
-    mockMutateAsync.mockResolvedValueOnce(undefined)
-
-    render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
-
-    await waitFor(() => {
-      expect(mockMutateAsync).toHaveBeenCalled()
-    })
-
     let resolveMutation: () => void
     mockMutateAsync.mockImplementation(
       () => new Promise<void>((resolve) => { resolveMutation = resolve })
     )
 
+    render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
+
     const nextButton = screen.getByTestId("submit-payment-button")
-    const callsBefore = mockMutateAsync.mock.calls.length
-
     await userEvent.click(nextButton)
     await userEvent.click(nextButton)
 
-    expect(mockMutateAsync.mock.calls.length - callsBefore).toBeLessThanOrEqual(1)
+    // Only one mutation call despite double-click
+    expect(mockMutateAsync).toHaveBeenCalledTimes(1)
 
     resolveMutation!()
     await waitFor(() => {

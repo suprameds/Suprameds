@@ -78,7 +78,8 @@ describe("CartItemQuantitySelector", () => {
 
   it("renders the current quantity", () => {
     render(<CartItemQuantitySelector item={item} />)
-    expect(screen.getByText("3")).toBeInTheDocument()
+    const input = screen.getByRole("spinbutton") as HTMLInputElement
+    expect(input.value).toBe("3")
   })
 
   it("calls update with quantity + 1 when + is clicked", async () => {
