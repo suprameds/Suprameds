@@ -42,6 +42,23 @@ RazorpayBase.prototype.createAccountHolder = async function (input: any) {
   return originalCreateAccountHolder.call(this, input)
 }
 
+// Patch deletePayment to handle missing session IDs gracefully.
+// When switching from COD → Razorpay, Medusa calls deletePayment on the
+// Razorpay provider with the COD session data (which has no Razorpay payment ID).
+// The plugin throws "paymentSession - id must be defined" — we swallow it.
+const originalDeletePayment = RazorpayBase.prototype.deletePayment
+RazorpayBase.prototype.deletePayment = async function (input: any) {
+  try {
+    return await originalDeletePayment.call(this, input)
+  } catch (err: any) {
+    if (err?.message?.includes("id must be defined")) {
+      // No Razorpay payment to cancel — safe to ignore (e.g., switching from COD)
+      return {}
+    }
+    throw err
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const communityProvider = require(
   "medusa-plugin-razorpay-v2/providers/payment-razorpay/src"

@@ -43,7 +43,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   const activeProviderRef = useRef(selectedPaymentMethod)
 
   const initiatePaymentSession = useCallback(
-    async (method: string) => {
+    async (method: string, silent = false) => {
       if (initiatingRef.current) return
       initiatingRef.current = true
       activeProviderRef.current = method
@@ -52,10 +52,9 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
           { provider_id: method },
         )
       } catch (err) {
-        // Only show error if this is still the active selection
-        if (activeProviderRef.current !== method) return
+        // Only show error if this is still the active selection AND not a silent auto-init
+        if (activeProviderRef.current !== method || silent) return
 
-        // Show error but keep the user's selection — they can retry or switch manually
         if (isRazorpayProvider(method)) {
           showToast("Razorpay payment setup failed. Please try again or use Cash on Delivery.")
         } else {
@@ -87,7 +86,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
     didAutoInitRef.current = true
     activeProviderRef.current = "pp_system_default"
-    initiatePaymentSession("pp_system_default")
+    initiatePaymentSession("pp_system_default", true)
   }, [availablePaymentMethods, initiatePaymentSession])
 
   const [isSubmitting, setIsSubmitting] = useState(false)
