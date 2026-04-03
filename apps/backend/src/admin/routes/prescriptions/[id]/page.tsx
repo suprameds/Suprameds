@@ -8,10 +8,42 @@ import {
   Text,
   Textarea,
 } from "@medusajs/ui"
-import { ArrowLeftMini } from "@medusajs/icons"
-import { useEffect, useState } from "react"
+import { ArrowLeftMini, PlusMini, XMarkMini } from "@medusajs/icons"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { sdk } from "../../../lib/client"
+
+type SearchProduct = {
+  id: string
+  title: string
+  thumbnail: string | null
+  drug_product: {
+    schedule: string
+    generic_name: string
+    dosage_form: string
+    strength: string
+    is_narcotic: boolean
+    requires_refrigeration: boolean
+    pack_size: string | null
+    unit_type: string | null
+  } | null
+  variant: {
+    id: string
+    title: string
+    sku: string | null
+    price: number | null
+    currency_code: string
+  } | null
+}
+
+type OrderItem = {
+  variant_id: string
+  product_title: string
+  generic_name: string
+  strength: string
+  quantity: number
+  unit_price: number
+}
 
 type PrescriptionDetail = {
   id: string
@@ -513,7 +545,456 @@ const PrescriptionDetailPage = () => {
           )}
         </div>
       </div>
+
+      {/* Create Order Section — only for approved prescriptions with a customer */}
+      {rx.status === "approved" && rx.customer_id && (
+        <CreateOrderSection
+          prescriptionId={rx.id}
+          customerId={rx.customer_id}
+          onOrderCreated={fetchPrescription}
+        />
+      )}
     </div>
+  )
+}
+
+/* ─── Create Order Section ─────────────────────────────────────────────── */
+
+function CreateOrderSection({
+  prescriptionId,
+  customerId,
+  onOrderCreated,
+}: {
+  prescriptionId: string
+  customerId: string
+  onOrderCreated: () => void
+}) {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchResults, setSearchResults] = useState<SearchProduct[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([])
+  const [customerAddress, setCustomerAddress] = useState<any>(null)
+  const [addressLoading, setAddressLoading] = useState(true)
+  const [creatingOrder, setCreatingOrder] = useState(false)
+  const [orderResult, setOrderResult] = useState<{
+    type: "success" | "error"
+    message: string
+  } | null>(null)
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Load customer address on mount
+  useEffect(() => {
+    const loadAddress = async () => {
+      try {
+        const data = await sdk.client.fetch<{ customer: any }>(
+          `/admin/customers/${customerId}?fields=*addresses`
+        )
+        const addrs = data.customer?.addresses ?? []
+        const defaultAddr =
+          addrs.find((a: any) => a.is_default_shipping) ?? addrs[0]
+        setCustomerAddress(defaultAddr || null)
+      } catch {
+        setCustomerAddress(null)
+      } finally {
+        setAddressLoading(false)
+      }
+    }
+    loadAddress()
+  }, [customerId])
+
+  // Debounced product search
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (!value.trim()) {
+      setSearchResults([])
+      return
+    }
+    debounceRef.current = setTimeout(async () => {
+      setSearchLoading(true)
+      try {
+        const data = await sdk.client.fetch<{
+          products: SearchProduct[]
+          count: number
+        }>(`/admin/products/search?q=${encodeURIComponent(value)}&limit=10`)
+        setSearchResults(data.products ?? [])
+      } catch {
+        setSearchResults([])
+      } finally {
+        setSearchLoading(false)
+      }
+    }, 300)
+  }, [])
+
+  const addItem = (product: SearchProduct) => {
+    if (!product.variant) return
+    // Don't add duplicates
+    if (orderItems.some((i) => i.variant_id === product.variant!.id)) return
+    setOrderItems((prev) => [
+      ...prev,
+      {
+        variant_id: product.variant!.id,
+        product_title: product.title,
+        generic_name: product.drug_product?.generic_name || "",
+        strength: product.drug_product?.strength || "",
+        quantity: 1,
+        unit_price: product.variant!.price ?? 0,
+      },
+    ])
+  }
+
+  const removeItem = (variantId: string) => {
+    setOrderItems((prev) => prev.filter((i) => i.variant_id !== variantId))
+  }
+
+  const updateQuantity = (variantId: string, qty: number) => {
+    if (qty < 1) return
+    setOrderItems((prev) =>
+      prev.map((i) => (i.variant_id === variantId ? { ...i, quantity: qty } : i))
+    )
+  }
+
+  const orderTotal = orderItems.reduce(
+    (sum, i) => sum + i.unit_price * i.quantity,
+    0
+  )
+
+  const handleCreateOrder = async () => {
+    if (!orderItems.length) return
+    setCreatingOrder(true)
+    setOrderResult(null)
+
+    try {
+      const payload: any = {
+        items: orderItems.map((i) => ({
+          variant_id: i.variant_id,
+          quantity: i.quantity,
+        })),
+      }
+
+      // Include address if we have one
+      if (customerAddress) {
+        payload.shipping_address = {
+          first_name: customerAddress.first_name || "",
+          last_name: customerAddress.last_name || "",
+          address_1: customerAddress.address_1 || "",
+          address_2: customerAddress.address_2 || "",
+          city: customerAddress.city || "",
+          province: customerAddress.province || "",
+          postal_code: customerAddress.postal_code || "",
+          country_code: customerAddress.country_code || "in",
+          phone: customerAddress.phone || "",
+        }
+      }
+
+      const data = await sdk.client.fetch<{
+        order_id: string
+        message: string
+      }>(`/admin/prescriptions/${prescriptionId}/create-order`, {
+        method: "POST",
+        body: payload,
+      })
+
+      setOrderResult({
+        type: "success",
+        message: `Order created successfully (${data.order_id}).`,
+      })
+      setOrderItems([])
+      setSearchQuery("")
+      setSearchResults([])
+      onOrderCreated()
+    } catch (err: any) {
+      setOrderResult({
+        type: "error",
+        message: err.message || "Failed to create order.",
+      })
+    } finally {
+      setCreatingOrder(false)
+    }
+  }
+
+  const formatINR = (amount: number) =>
+    `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}`
+
+  return (
+    <Container className="divide-y p-0">
+      <div className="px-6 py-4">
+        <Heading level="h2">Create Order for Customer</Heading>
+        <Text className="text-ui-fg-subtle text-sm mt-1">
+          Search for medicines, add to order, then create. Payment: Cash on Delivery.
+        </Text>
+      </div>
+
+      {/* Order result banner */}
+      {orderResult && (
+        <div
+          className="px-6 py-3"
+          style={{
+            background:
+              orderResult.type === "success" ? "#ECFDF5" : "#FEF2F2",
+            color: orderResult.type === "success" ? "#065F46" : "#991B1B",
+          }}
+        >
+          <Text className="text-sm font-medium">{orderResult.message}</Text>
+        </div>
+      )}
+
+      <div className="p-6 flex flex-col gap-6">
+        {/* Product Search */}
+        <div>
+          <Label htmlFor="product_search">Search Medicines</Label>
+          <Input
+            id="product_search"
+            placeholder="Type medicine name, generic name, or composition..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+          />
+
+          {/* Search Results */}
+          {searchLoading && (
+            <Text className="text-ui-fg-subtle text-xs mt-2">Searching...</Text>
+          )}
+
+          {searchResults.length > 0 && (
+            <div className="mt-2 border rounded-lg max-h-64 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-ui-bg-subtle sticky top-0">
+                  <tr>
+                    <th className="text-left p-2 font-medium">Product</th>
+                    <th className="text-left p-2 font-medium">Schedule</th>
+                    <th className="text-left p-2 font-medium">Strength</th>
+                    <th className="text-right p-2 font-medium">Price</th>
+                    <th className="p-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {searchResults.map((p) => {
+                    const isBlocked =
+                      p.drug_product?.schedule === "X" ||
+                      p.drug_product?.is_narcotic ||
+                      p.drug_product?.requires_refrigeration
+                    const alreadyAdded = orderItems.some(
+                      (i) => i.variant_id === p.variant?.id
+                    )
+                    return (
+                      <tr
+                        key={p.id}
+                        className="border-t hover:bg-ui-bg-subtle-hover"
+                      >
+                        <td className="p-2">
+                          <div className="font-medium">{p.title}</div>
+                          {p.drug_product?.generic_name && (
+                            <div className="text-xs text-ui-fg-subtle">
+                              {p.drug_product.generic_name}
+                            </div>
+                          )}
+                        </td>
+                        <td className="p-2">
+                          {p.drug_product?.schedule ? (
+                            <Badge
+                              color={
+                                p.drug_product.schedule === "X"
+                                  ? "red"
+                                  : p.drug_product.schedule === "H1"
+                                    ? "orange"
+                                    : p.drug_product.schedule === "H"
+                                      ? "blue"
+                                      : "green"
+                              }
+                            >
+                              {p.drug_product.schedule}
+                            </Badge>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td className="p-2 text-xs">
+                          {p.drug_product?.strength || "—"}
+                        </td>
+                        <td className="p-2 text-right">
+                          {p.variant?.price != null
+                            ? formatINR(p.variant.price)
+                            : "—"}
+                        </td>
+                        <td className="p-2 text-right">
+                          {isBlocked ? (
+                            <Text className="text-xs text-red-600">
+                              Blocked
+                            </Text>
+                          ) : (
+                            <Button
+                              variant="secondary"
+                              size="small"
+                              disabled={!p.variant || alreadyAdded}
+                              onClick={() => addItem(p)}
+                            >
+                              {alreadyAdded ? "Added" : <PlusMini />}
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Selected Items */}
+        {orderItems.length > 0 && (
+          <div>
+            <Label>Order Items ({orderItems.length})</Label>
+            <div className="mt-2 border rounded-lg">
+              <table className="w-full text-sm">
+                <thead className="bg-ui-bg-subtle">
+                  <tr>
+                    <th className="text-left p-2 font-medium">Medicine</th>
+                    <th className="text-center p-2 font-medium w-28">Qty</th>
+                    <th className="text-right p-2 font-medium">Price</th>
+                    <th className="text-right p-2 font-medium">Subtotal</th>
+                    <th className="p-2 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orderItems.map((item) => (
+                    <tr key={item.variant_id} className="border-t">
+                      <td className="p-2">
+                        <div className="font-medium">{item.product_title}</div>
+                        {item.generic_name && (
+                          <div className="text-xs text-ui-fg-subtle">
+                            {item.generic_name} {item.strength}
+                          </div>
+                        )}
+                      </td>
+                      <td className="p-2">
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="transparent"
+                            size="small"
+                            onClick={() =>
+                              updateQuantity(item.variant_id, item.quantity - 1)
+                            }
+                            disabled={item.quantity <= 1}
+                          >
+                            −
+                          </Button>
+                          <Input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              updateQuantity(
+                                item.variant_id,
+                                parseInt(e.target.value) || 1
+                              )
+                            }
+                            className="w-14 text-center"
+                            min={1}
+                          />
+                          <Button
+                            variant="transparent"
+                            size="small"
+                            onClick={() =>
+                              updateQuantity(item.variant_id, item.quantity + 1)
+                            }
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </td>
+                      <td className="p-2 text-right">
+                        {formatINR(item.unit_price)}
+                      </td>
+                      <td className="p-2 text-right font-medium">
+                        {formatINR(item.unit_price * item.quantity)}
+                      </td>
+                      <td className="p-2 text-right">
+                        <Button
+                          variant="transparent"
+                          size="small"
+                          onClick={() => removeItem(item.variant_id)}
+                        >
+                          <XMarkMini />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t bg-ui-bg-subtle">
+                    <td colSpan={3} className="p-2 text-right font-semibold">
+                      Total (COD)
+                    </td>
+                    <td className="p-2 text-right font-semibold">
+                      {formatINR(orderTotal)}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Customer Address */}
+        <div>
+          <Label>Delivery Address</Label>
+          {addressLoading ? (
+            <Text className="text-ui-fg-subtle text-xs mt-1">
+              Loading address...
+            </Text>
+          ) : customerAddress ? (
+            <div className="mt-1 p-3 bg-ui-bg-subtle rounded-lg text-sm">
+              <Text className="font-medium">
+                {customerAddress.first_name} {customerAddress.last_name}
+              </Text>
+              <Text className="text-ui-fg-subtle">
+                {customerAddress.address_1}
+                {customerAddress.address_2 && `, ${customerAddress.address_2}`}
+              </Text>
+              <Text className="text-ui-fg-subtle">
+                {customerAddress.city}
+                {customerAddress.province && `, ${customerAddress.province}`} -{" "}
+                {customerAddress.postal_code}
+              </Text>
+              {customerAddress.phone && (
+                <Text className="text-ui-fg-subtle">
+                  Phone: {customerAddress.phone}
+                </Text>
+              )}
+            </div>
+          ) : (
+            <div className="mt-1 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+              <Text className="text-sm text-yellow-800">
+                No saved address found. The order cannot be created without a
+                delivery address. Ask the customer to add one.
+              </Text>
+            </div>
+          )}
+        </div>
+
+        {/* Create Order Button */}
+        <div className="flex items-center gap-3 pt-2 border-t">
+          <Button
+            variant="primary"
+            onClick={handleCreateOrder}
+            disabled={
+              creatingOrder ||
+              orderItems.length === 0 ||
+              !customerAddress
+            }
+          >
+            {creatingOrder
+              ? "Creating Order..."
+              : `Create Order — ${formatINR(orderTotal)}`}
+          </Button>
+          <Text className="text-xs text-ui-fg-subtle">
+            Payment: Cash on Delivery
+          </Text>
+        </div>
+      </div>
+    </Container>
   )
 }
 

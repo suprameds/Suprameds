@@ -10,6 +10,7 @@ import { getPrescriptionUploader, getGrnCreator, getPoRaiser } from "./rbac-ssd-
 import "../lib/sentry"
 import { sentryErrorHandler } from "../lib/sentry"
 import { requireMfa } from "./admin/middlewares/mfa-guard"
+import { requirePharmacistRole } from "./store/pharmacist/guard"
 
 /**
  * Password strength validation middleware for registration.
@@ -132,6 +133,15 @@ export default defineMiddlewares({
       bodyParser: { sizeLimit: "15mb" },
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
+    // ── Pharmacist storefront routes — customer auth + role check ──────
+    {
+      matcher: "/store/pharmacist/*",
+      middlewares: [
+        authenticate("customer", ["bearer", "session"]),
+        requirePharmacistRole(),
+      ],
+    },
+
     // Pincode CSV import — large payload (up to 30MB for 165K+ rows)
     {
       matcher: "/admin/pincodes/import",
@@ -279,6 +289,13 @@ export default defineMiddlewares({
     },
 
     // ── RBAC authorization for admin routes ───────────────────────────
+
+    // Prescriptions — pharmacist create-order requires order:create permission
+    {
+      matcher: "/admin/prescriptions/:id/create-order",
+      method: "POST",
+      middlewares: [authorize("order", "create")],
+    },
 
     // Prescriptions — approve/reject requires permission + SSD-01
     {

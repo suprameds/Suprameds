@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useLocation } from "@tanstack/react-router"
 import { useCustomer, useLogout } from "@/lib/hooks/use-customer"
+import { useIsPharmacist } from "@/lib/hooks/use-pharmacist"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useEffect } from "react"
 
@@ -13,6 +14,7 @@ function AccountLayout() {
   const navigate = useNavigate()
   const { data: customer, isLoading } = useCustomer()
   const logout = useLogout()
+  const isPharmacist = useIsPharmacist()
 
   const handleLogout = () => {
     logout.mutate(undefined, {
@@ -47,6 +49,9 @@ function AccountLayout() {
   }
 
   const navItems = [
+    ...(isPharmacist ? [
+      { label: "Rx Queue", to: `/${countryCode}/account/pharmacist/rx-queue`, icon: RxQueueIcon },
+    ] : []),
     { label: "Profile", to: `/${countryCode}/account/profile`, icon: PersonIcon },
     { label: "My Orders", to: `/${countryCode}/account/orders`, icon: BoxIcon },
     { label: "Prescriptions", to: `/${countryCode}/account/prescriptions`, icon: RxIcon },
@@ -194,6 +199,14 @@ const ClockIcon = () => (
 const HeartNavIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+  </svg>
+)
+
+const RxQueueIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+    <rect x="9" y="3" width="6" height="4" rx="1" />
+    <path d="M9 14l2 2 4-4" />
   </svg>
 )
 

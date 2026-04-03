@@ -46,6 +46,8 @@ import { Route as CountryCodeAccountLayoutProfileRouteImport } from './routes/$c
 import { Route as CountryCodeAccountLayoutPrescriptionsRouteImport } from './routes/$countryCode/account/_layout/prescriptions'
 import { Route as CountryCodeAccountLayoutOrdersRouteImport } from './routes/$countryCode/account/_layout/orders'
 import { Route as CountryCodeAccountLayoutAddressesRouteImport } from './routes/$countryCode/account/_layout/addresses'
+import { Route as CountryCodeAccountLayoutPharmacistRxQueueRouteImport } from './routes/$countryCode/account/_layout/pharmacist/rx-queue'
+import { Route as CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport } from './routes/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -245,6 +247,20 @@ const CountryCodeAccountLayoutAddressesRoute =
     path: '/addresses',
     getParentRoute: () => CountryCodeAccountLayoutRoute,
   } as any)
+const CountryCodeAccountLayoutPharmacistRxQueueRoute =
+  CountryCodeAccountLayoutPharmacistRxQueueRouteImport.update({
+    id: '/pharmacist/rx-queue',
+    path: '/pharmacist/rx-queue',
+    getParentRoute: () => CountryCodeAccountLayoutRoute,
+  } as any)
+const CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute =
+  CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport.update(
+    {
+      id: '/pharmacist/prescription/$prescriptionId',
+      path: '/pharmacist/prescription/$prescriptionId',
+      getParentRoute: () => CountryCodeAccountLayoutRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -283,6 +299,8 @@ export interface FileRoutesByFullPath {
   '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
   '/$countryCode/account/': typeof CountryCodeAccountLayoutIndexRoute
+  '/$countryCode/account/pharmacist/rx-queue': typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
+  '/$countryCode/account/pharmacist/prescription/$prescriptionId': typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -319,6 +337,8 @@ export interface FileRoutesByTo {
   '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
   '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
+  '/$countryCode/account/pharmacist/rx-queue': typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
+  '/$countryCode/account/pharmacist/prescription/$prescriptionId': typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -359,6 +379,8 @@ export interface FileRoutesById {
   '/$countryCode/account/_layout/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
   '/$countryCode/account/_layout/': typeof CountryCodeAccountLayoutIndexRoute
+  '/$countryCode/account/_layout/pharmacist/rx-queue': typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
+  '/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId': typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -399,6 +421,8 @@ export interface FileRouteTypes {
     | '/$countryCode/account/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
     | '/$countryCode/account/'
+    | '/$countryCode/account/pharmacist/rx-queue'
+    | '/$countryCode/account/pharmacist/prescription/$prescriptionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -435,6 +459,8 @@ export interface FileRouteTypes {
     | '/$countryCode/account/reminders'
     | '/$countryCode/account/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
+    | '/$countryCode/account/pharmacist/rx-queue'
+    | '/$countryCode/account/pharmacist/prescription/$prescriptionId'
   id:
     | '__root__'
     | '/'
@@ -474,6 +500,8 @@ export interface FileRouteTypes {
     | '/$countryCode/account/_layout/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
     | '/$countryCode/account/_layout/'
+    | '/$countryCode/account/_layout/pharmacist/rx-queue'
+    | '/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -754,6 +782,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryCodeAccountLayoutAddressesRouteImport
       parentRoute: typeof CountryCodeAccountLayoutRoute
     }
+    '/$countryCode/account/_layout/pharmacist/rx-queue': {
+      id: '/$countryCode/account/_layout/pharmacist/rx-queue'
+      path: '/pharmacist/rx-queue'
+      fullPath: '/$countryCode/account/pharmacist/rx-queue'
+      preLoaderRoute: typeof CountryCodeAccountLayoutPharmacistRxQueueRouteImport
+      parentRoute: typeof CountryCodeAccountLayoutRoute
+    }
+    '/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId': {
+      id: '/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId'
+      path: '/pharmacist/prescription/$prescriptionId'
+      fullPath: '/$countryCode/account/pharmacist/prescription/$prescriptionId'
+      preLoaderRoute: typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport
+      parentRoute: typeof CountryCodeAccountLayoutRoute
+    }
   }
 }
 
@@ -765,6 +807,8 @@ interface CountryCodeAccountLayoutRouteChildren {
   CountryCodeAccountLayoutRemindersRoute: typeof CountryCodeAccountLayoutRemindersRoute
   CountryCodeAccountLayoutWishlistRoute: typeof CountryCodeAccountLayoutWishlistRoute
   CountryCodeAccountLayoutIndexRoute: typeof CountryCodeAccountLayoutIndexRoute
+  CountryCodeAccountLayoutPharmacistRxQueueRoute: typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
+  CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute: typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute
 }
 
 const CountryCodeAccountLayoutRouteChildren: CountryCodeAccountLayoutRouteChildren =
@@ -780,6 +824,10 @@ const CountryCodeAccountLayoutRouteChildren: CountryCodeAccountLayoutRouteChildr
     CountryCodeAccountLayoutWishlistRoute:
       CountryCodeAccountLayoutWishlistRoute,
     CountryCodeAccountLayoutIndexRoute: CountryCodeAccountLayoutIndexRoute,
+    CountryCodeAccountLayoutPharmacistRxQueueRoute:
+      CountryCodeAccountLayoutPharmacistRxQueueRoute,
+    CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute:
+      CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute,
   }
 
 const CountryCodeAccountLayoutRouteWithChildren =
