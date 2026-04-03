@@ -328,21 +328,23 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span style={{ color: "var(--text-primary)" }}>Subtotal</span>
-          <Price price={cart.subtotal} currencyCode={cart.currency_code} />
+          <Price price={cart.item_subtotal ?? cart.subtotal} currencyCode={cart.currency_code} />
         </div>
         <div className="flex justify-between text-sm">
           <span style={{ color: "var(--text-primary)" }}>Shipping</span>
           {(() => {
             const hasShippingMethod = (cart.shipping_methods?.length ?? 0) > 0
+            // Shipping price is tax-inclusive — show base amount without tax
+            const shippingBase = (cart.shipping_subtotal as number | undefined)
+              ?? Math.round(((cart.shipping_total ?? 0) / 1.05) * 100) / 100
 
-            if (hasShippingMethod && cart.shipping_total === 0) {
+            if (hasShippingMethod && (cart.shipping_total ?? 0) === 0) {
               return <span className="text-sm font-semibold" style={{ color: "var(--brand-green)" }}>FREE</span>
             }
             if (hasShippingMethod) {
-              return <Price price={cart.shipping_total} currencyCode={cart.currency_code} />
+              return <Price price={shippingBase} currencyCode={cart.currency_code} />
             }
 
-            // No shipping method selected — show contextual estimate
             const itemTotal = cart.item_subtotal ?? cart.subtotal ?? 0
             return itemTotal >= FREE_DELIVERY_THRESHOLD
               ? <span className="text-sm font-semibold" style={{ color: "var(--brand-green)" }}>FREE</span>
@@ -353,17 +355,21 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
           <span style={{ color: "var(--text-primary)" }}>Discount</span>
           <Price price={cart.discount_total} currencyCode={cart.currency_code} type="discount" />
         </div>
-        <div className="flex justify-between text-sm">
-          <span style={{ color: "var(--text-primary)" }}>Tax</span>
-          <Price price={cart.tax_total} currencyCode={cart.currency_code} />
-        </div>
+        {(cart.tax_total ?? 0) > 0 && (
+          <div className="flex justify-between text-xs">
+            <span style={{ color: "var(--text-tertiary)" }}>Tax (incl. 5% GST)</span>
+            <span style={{ color: "var(--text-tertiary)" }}>
+              <Price price={cart.tax_total} currencyCode={cart.currency_code} />
+            </span>
+          </div>
+        )}
       </div>
 
       <hr style={{ borderColor: "var(--border-primary)" }} />
 
       <div className="flex justify-between text-sm font-semibold">
         <span style={{ color: "var(--text-primary)" }}>Total</span>
-        <Price price={cart.total} currencyCode={cart.currency_code} />
+        <Price price={(cart.total ?? 0) - (cart.tax_total ?? 0)} currencyCode={cart.currency_code} />
       </div>
 
       {(cart.metadata?.drug_interactions as any[])?.length > 0 && (
