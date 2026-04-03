@@ -86,6 +86,6 @@ export default async function CancelUnconfirmedCodJob(container: MedusaContainer
 
 export const config = {
   name: "cancel-cod",
-  // Run every 15 minutes
-  schedule: "*/15 * * * *",
+  // Run every 15 minutes (was: */15 * * * * — staggered to avoid pool exhaustion)
+  schedule: "7-59/15 * * * *",
 }

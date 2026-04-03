@@ -122,5 +122,5 @@ export default async function SyncAftershipStatusJob(
 
 export const config = {
   name: "sync-aftership",
-  schedule: "*/30 * * * *",
+  schedule: "12 */1 * * *", // was: */30 * * * * — staggered to avoid pool exhaustion
 }

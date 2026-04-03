@@ -53,5 +53,5 @@ export default async function PurgeExpiredPrescriptionsJob(container: MedusaCont
 
 export const config = {
   name: "purge-prescriptions",
-  schedule: "0 1 * * *",
+  schedule: "15 1 * * *", // was: 0 1 * * * — staggered to avoid pool exhaustion
 }

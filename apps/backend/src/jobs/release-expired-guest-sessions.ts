@@ -74,5 +74,5 @@ export default async function ReleaseExpiredGuestSessionsJob(container: MedusaCo
 
 export const config = {
   name: "release-guest-sessions",
-  schedule: "0 * * * *", // Every hour
+  schedule: "17 * * * *", // was: 0 * * * * — staggered to avoid pool exhaustion
 }
