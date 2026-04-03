@@ -42,12 +42,31 @@ RazorpayBase.prototype.createAccountHolder = async function (input: any) {
   try {
     return await originalCreateAccountHolder.call(this, input)
   } catch (err: any) {
-    // Razorpay returns "Customer already exists for the merchant" if the
-    // customer was previously created. This is safe to ignore — the customer
-    // account holder already exists, payment can proceed.
+    // Razorpay returns "Customer already exists for the merchant" when the
+    // customer was previously created. Fetch the existing customer by email
+    // and return their Razorpay ID as external_id so Medusa can persist it.
     const msg = typeof err === "string" ? err : err?.message ?? JSON.stringify(err)
-    if (msg.includes("already exists")) {
-      return { data: input?.context?.customer ?? {} }
+    if (msg.includes("already exists") && this.razorpay_) {
+      try {
+        const email = input?.context?.customer?.email
+        if (email) {
+          const customers = await this.razorpay_.customers.all({ count: 1 })
+          // Search through customers for matching email
+          const existing = customers?.items?.find(
+            (c: any) => c.email === email
+          )
+          if (existing?.id) {
+            return { id: existing.id, data: { id: existing.id } }
+          }
+        }
+        // Fallback: use Medusa customer ID as external_id
+        const custId = input?.context?.customer?.id ?? `rzp_${Date.now()}`
+        return { id: custId, data: { id: custId } }
+      } catch {
+        // If fetch fails, use Medusa customer ID
+        const custId = input?.context?.customer?.id ?? `rzp_${Date.now()}`
+        return { id: custId, data: { id: custId } }
+      }
     }
     throw err
   }
