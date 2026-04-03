@@ -13,6 +13,11 @@ const LOG = "[job:sales-tax]"
  */
 export default async function GenerateSalesTaxReportJob(container: MedusaContainer) {
   const logger = container.resolve("logger") as any
+
+  // Only run on the 1st of the month (schedule is daily to avoid Node.js 32-bit timer overflow)
+  const today = new Date()
+  if (today.getDate() !== 1) return
+
   logger.info(`${LOG} Starting`)
 
   try {
@@ -112,5 +117,7 @@ export default async function GenerateSalesTaxReportJob(container: MedusaContain
 
 export const config = {
   name: "sales-tax",
-  schedule: "0 6 1 * *",
+  // Daily at 06:00 UTC — job self-checks for 1st of month.
+  // Monthly cron (0 6 1 * *) causes Node.js 32-bit timer overflow → infinite loop.
+  schedule: "0 6 * * *",
 }
