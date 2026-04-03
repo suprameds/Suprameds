@@ -520,7 +520,7 @@ export const OrderSummary = ({ order }: OrderSummaryProps) => {
         <div className="flex justify-between text-sm">
           <span className="text-[var(--text-secondary)]">Subtotal</span>
           <Price
-            price={order.subtotal}
+            price={(order as any).item_subtotal ?? order.subtotal}
             currencyCode={order.currency_code}
             className="text-[var(--text-secondary)]"
           />
@@ -529,7 +529,10 @@ export const OrderSummary = ({ order }: OrderSummaryProps) => {
         <div className="flex justify-between text-sm">
           <span className="text-[var(--text-secondary)]">Shipping</span>
           <Price
-            price={order.shipping_total}
+            price={
+              (order as any).shipping_subtotal
+                ?? Math.round(((order.shipping_total ?? 0) / 1.05) * 100) / 100
+            }
             currencyCode={order.currency_code}
             className="text-[var(--text-secondary)]"
           />
@@ -545,21 +548,23 @@ export const OrderSummary = ({ order }: OrderSummaryProps) => {
           />
         </div>
 
-        <div className="flex justify-between text-sm">
-          <span className="text-[var(--text-secondary)]">Tax</span>
-          <Price
-            price={order.tax_total}
-            currencyCode={order.currency_code}
-            className="text-[var(--text-secondary)]"
-          />
-        </div>
+        {(order.tax_total ?? 0) > 0 && (
+          <div className="flex justify-between text-xs">
+            <span className="text-[var(--text-tertiary)]">Tax (incl. 5% GST)</span>
+            <Price
+              price={order.tax_total}
+              currencyCode={order.currency_code}
+              className="text-[var(--text-tertiary)]"
+            />
+          </div>
+        )}
       </div>
 
       <hr className="bg-[var(--border-primary)]" />
 
       <div className="flex justify-between">
         <span className="text-[var(--text-primary)] text-sm">Total</span>
-        <Price price={order.total} currencyCode={order.currency_code} />
+        <Price price={(order.total ?? 0) - (order.tax_total ?? 0)} currencyCode={order.currency_code} />
       </div>
     </div>
   )
