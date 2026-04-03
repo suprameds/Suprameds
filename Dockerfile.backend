@@ -60,6 +60,5 @@ EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget -q --spider http://localhost:${PORT:-9000}/health || exit 1
 
-# Default: just start server. Railway overrides via startCommand in railway.toml
-# which runs cloud-start.mjs (migrate → seed → start).
-CMD ["pnpm", "medusa", "start"]
+# Start: run migrations → seed → start via cloud-start.mjs
+CMD ["node", "./src/scripts/cloud-start.mjs"]

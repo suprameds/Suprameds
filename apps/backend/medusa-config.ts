@@ -10,7 +10,7 @@ loadEnv(process.env.NODE_ENV || "development", process.cwd())
 export default defineConfig({
   plugins: ["medusa-plugin-razorpay-v2"],
   admin: {
-    // disable: process.env.NODE_ENV === "production" ? false : true,
+    disable: process.env.DISABLE_ADMIN === "true",
     vite: () => {
       let hmrServer;
       if (process.env.HMR_BIND_HOST) {
