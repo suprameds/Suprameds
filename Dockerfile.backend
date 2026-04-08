@@ -39,7 +39,7 @@ RUN test -f apps/backend/.medusa/server/public/admin/index.html \
     || (echo "ERROR: Admin dashboard was not built — index.html missing" && exit 1)
 
 # Produce a production-only node_modules via pnpm deploy
-RUN pnpm --filter backend deploy --prod /app/pruned
+RUN pnpm --filter backend deploy --legacy --prod /app/pruned
 
 # ──────────────────────────────────────────────
 # Stage 3: Production
