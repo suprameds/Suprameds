@@ -79,8 +79,10 @@ async function tryServeStatic(req, res) {
 const server = createServer(async (req, res) => {
   try {
     // Lightweight health check — no SSR, no API calls.
-    // Railway's healthcheck hits this before promoting the deployment.
-    if (req.url === "/healthz" || req.url === "/_health") {
+    // Railway's healthcheck hits "/" with user-agent "RailwayHealthCheck/1.0".
+    // Also handle explicit /healthz endpoint.
+    const ua = req.headers["user-agent"] || "";
+    if (req.url === "/healthz" || req.url === "/_health" || ua.includes("RailwayHealthCheck")) {
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end("OK");
       return;
