@@ -172,3 +172,27 @@ Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/pla
 - `completeCartWorkflow.hooks.orderCreated` hook reads `cart_id` from hook data, resolves cart via `cartService.retrieveCart(cartId)`, reads `cart.metadata.prescription_id`, creates order↔prescription link
 - Backup: `order-placed` subscriber also attempts linking with cart metadata fallback
 - Link table: `order_order_pharmaprescription_prescription` (columns: `order_id`, `prescription_id`)
+
+## Deploy Configuration (configured by /setup-deploy)
+- Platform: Railway
+- Project: Suprameds_Medusa (production environment)
+- Production URL: https://storefront-production-3f20.up.railway.app
+- Backend URL: https://backend-production-9d3a.up.railway.app
+- Custom domains: suprameds.in (storefront), api.suprameds.in (backend)
+- Deploy workflow: Auto-deploy on push to main (Railway watches GitHub repo)
+- Deploy status command: HTTP health check
+- Merge method: squash
+- Project type: web app (Medusa.js v2 backend + TanStack Start SSR storefront)
+
+### Services
+| Service | Port | Health Check | Dockerfile |
+|---------|------|-------------|------------|
+| Backend (Medusa) | 9000 | GET /health | Dockerfile.backend |
+| Storefront (TanStack Start) | 3000 | GET / | Dockerfile.storefront |
+| Redis | 6379 | — | redis:7-alpine |
+
+### Custom deploy hooks
+- Pre-merge: CI runs TypeScript check, ESLint, tests, and Docker build
+- Deploy trigger: automatic on push to main (Railway auto-deploy)
+- Deploy status: poll health endpoints after push
+- Health check: curl -sf https://backend-production-9d3a.up.railway.app/health && curl -sf https://storefront-production-3f20.up.railway.app
