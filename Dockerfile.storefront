@@ -9,7 +9,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/storefront/package.json apps/storefront/
 COPY apps/backend/package.json apps/backend/
 
-RUN pnpm install --frozen-lockfile --filter storefront
+RUN pnpm install --no-frozen-lockfile --filter storefront
 
 # ──────────────────────────────────────────────
 # Stage 2: Build
