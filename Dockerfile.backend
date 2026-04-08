@@ -50,8 +50,8 @@ WORKDIR /app/apps/backend
 # Compiled output (server + admin dashboard)
 COPY --from=build /app/apps/backend/.medusa ./.medusa
 
-# Source (medusa start resolves modules from src/)
-COPY --from=build /app/apps/backend/medusa-config.ts ./medusa-config.ts
+# Compiled config (pnpm deploy --prod strips ts-node, so we need the pre-compiled JS)
+COPY --from=build /app/apps/backend/.medusa/server/medusa-config.js ./medusa-config.js
 COPY --from=build /app/apps/backend/tsconfig.json ./tsconfig.json
 COPY --from=build /app/apps/backend/src ./src
 
