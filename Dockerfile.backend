@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────
-# Stage 1: Install dependencies
+# Stage 1: Install ALL dependencies (needed for build)
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
@@ -9,10 +9,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY apps/storefront/package.json apps/storefront/
 
-# --no-frozen-lockfile: lockfile may drift slightly between local pnpm versions
-# and CI. Dependencies are still pinned by the lockfile; this just allows
-# regeneration when specifiers change.
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile --filter backend
 
 # ──────────────────────────────────────────────
 # Stage 2: Build
@@ -41,33 +38,36 @@ RUN pnpm --filter backend build
 RUN test -f apps/backend/.medusa/server/public/admin/index.html \
     || (echo "ERROR: Admin dashboard was not built — index.html missing" && exit 1)
 
+# Produce a production-only node_modules via pnpm deploy
+RUN pnpm --filter backend deploy --prod /app/pruned
+
 # ──────────────────────────────────────────────
 # Stage 3: Production
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS production
-RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
 WORKDIR /app/apps/backend
 
-# Copy compiled output + full source (medusa start resolves modules from src/)
+# Compiled output (server + admin dashboard)
 COPY --from=build /app/apps/backend/.medusa ./.medusa
-COPY --from=build /app/apps/backend/package.json ./package.json
+
+# Source (medusa start resolves modules from src/)
 COPY --from=build /app/apps/backend/medusa-config.ts ./medusa-config.ts
 COPY --from=build /app/apps/backend/tsconfig.json ./tsconfig.json
 COPY --from=build /app/apps/backend/src ./src
-COPY --from=build /app/apps/backend/node_modules ./node_modules
-COPY --from=build /app/node_modules /app/node_modules
+
+# Production-only dependencies from pnpm deploy (single flat node_modules)
+COPY --from=build /app/pruned/node_modules ./node_modules
+COPY --from=build /app/pruned/package.json ./package.json
 
 # Security: run as non-root
 RUN addgroup -g 1001 -S medusa && adduser -S medusa -u 1001
 RUN chown -R medusa:medusa /app
 USER medusa
 
-# Railway injects $PORT; Medusa respects it automatically. Default 9000.
 ENV PORT=9000
 EXPOSE 9000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=600s --retries=3 \
   CMD wget -q --spider http://localhost:${PORT:-9000}/health || exit 1
 
-# Run pending migrations then start Medusa server
 CMD npx medusa db:migrate && npx medusa start
