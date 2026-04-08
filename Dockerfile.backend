@@ -18,6 +18,7 @@ RUN pnpm install --no-frozen-lockfile
 # Stage 2: Build
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS build
+RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
 WORKDIR /app
 
@@ -29,11 +30,16 @@ COPY apps/backend ./apps/backend
 ENV DATABASE_URL=postgres://placeholder:placeholder@localhost:5432/placeholder
 ENV JWT_SECRET=build-placeholder
 ENV COOKIE_SECRET=build-placeholder
-ENV STORE_CORS=http://localhost:5173
-ENV ADMIN_CORS=http://localhost:9000
-ENV AUTH_CORS=http://localhost:9000
+ENV STORE_CORS=https://suprameds.in,https://www.suprameds.in,https://storefront-production-3f20.up.railway.app
+ENV ADMIN_CORS=https://suprameds.in,https://www.suprameds.in,https://backend-production-9d3a.up.railway.app
+ENV AUTH_CORS=https://suprameds.in,https://www.suprameds.in,https://backend-production-9d3a.up.railway.app
+ENV MEDUSA_BACKEND_URL=https://backend-production-9d3a.up.railway.app
 
 RUN pnpm --filter backend build
+
+# Fail the build if admin dashboard HTML is missing
+RUN test -f apps/backend/.medusa/server/public/admin/index.html \
+    || (echo "ERROR: Admin dashboard was not built — index.html missing" && exit 1)
 
 # ──────────────────────────────────────────────
 # Stage 3: Production
@@ -60,7 +66,7 @@ USER medusa
 ENV PORT=9000
 EXPOSE 9000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=600s --retries=3 \
   CMD wget -q --spider http://localhost:${PORT:-9000}/health || exit 1
 
 # Run pending migrations then start Medusa server

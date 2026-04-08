@@ -7,10 +7,12 @@ import {
   Button,
   Input,
   Textarea,
+  IconButton,
   toast,
 } from "@medusajs/ui"
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
+import { XMark } from "@medusajs/icons"
 
 type PrescriptionLine = {
   id: string
@@ -72,11 +74,103 @@ const formatDateTime = (d?: string | null) => {
   })
 }
 
+/** Fullscreen prescription preview overlay */
+const PrescriptionPreview = ({
+  rx,
+  onClose,
+}: {
+  rx: Prescription
+  onClose: () => void
+}) => {
+  const isPdf = rx.mime_type === "application/pdf"
+
+  // Close on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    document.addEventListener("keydown", handler)
+    return () => document.removeEventListener("keydown", handler)
+  }, [onClose])
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+      onClick={onClose}
+    >
+      <div
+        className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-ui-border-base">
+          <div className="flex items-center gap-3">
+            <Text className="font-medium">Prescription Preview</Text>
+            <Badge color={STATUS_COLORS[rx.status] || "grey"}>
+              {rx.status.replace("_", " ")}
+            </Badge>
+            {rx.original_filename && (
+              <Text className="text-xs text-ui-fg-subtle truncate max-w-[200px]">
+                {rx.original_filename}
+              </Text>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <a
+              href={rx.file_url!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Open in new tab
+            </a>
+            <IconButton variant="transparent" size="small" onClick={onClose}>
+              <XMark />
+            </IconButton>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-auto p-4 flex items-center justify-center min-h-[400px]">
+          {isPdf ? (
+            <iframe
+              src={rx.file_url!}
+              title="Prescription PDF"
+              className="w-full h-[75vh] rounded border border-ui-border-base"
+            />
+          ) : (
+            <img
+              src={rx.file_url!}
+              alt={rx.original_filename || "Prescription"}
+              className="max-w-full max-h-[75vh] object-contain rounded"
+            />
+          )}
+        </div>
+
+        {/* Footer with metadata */}
+        {(rx.patient_name || rx.doctor_name) && (
+          <div className="px-4 py-2 border-t border-ui-border-base text-xs text-ui-fg-subtle flex gap-4">
+            {rx.patient_name && <span>Patient: {rx.patient_name}</span>}
+            {rx.doctor_name && (
+              <span>
+                Doctor: {rx.doctor_name}
+                {rx.doctor_reg_no && ` (${rx.doctor_reg_no})`}
+              </span>
+            )}
+            {rx.valid_until && <span>Valid until: {formatDate(rx.valid_until)}</span>}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const OrderRxReviewWidget = () => {
   const { id: orderId } = useParams<{ id: string }>()
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([])
   const [loading, setLoading] = useState(true)
   const [isRxOrder, setIsRxOrder] = useState<boolean | null>(null)
+  const [previewRxId, setPreviewRxId] = useState<string | null>(null)
 
   // Per-prescription review form state keyed by prescription ID
   const [reviewForms, setReviewForms] = useState<
@@ -280,14 +374,13 @@ const OrderRxReviewWidget = () => {
                   )}
                 </div>
                 {rx.file_url && (
-                  <a
-                    href={rx.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline"
+                  <button
+                    type="button"
+                    onClick={() => setPreviewRxId(rx.id)}
+                    className="text-sm text-blue-600 hover:underline cursor-pointer"
                   >
-                    View Rx Image
-                  </a>
+                    Preview Rx
+                  </button>
                 )}
               </div>
 
@@ -572,6 +665,18 @@ const OrderRxReviewWidget = () => {
           )
         })}
       </div>
+
+      {/* Prescription preview modal */}
+      {previewRxId && (() => {
+        const rx = prescriptions.find((p) => p.id === previewRxId)
+        if (!rx?.file_url) return null
+        return (
+          <PrescriptionPreview
+            rx={rx}
+            onClose={() => setPreviewRxId(null)}
+          />
+        )
+      })()}
     </Container>
   )
 }
