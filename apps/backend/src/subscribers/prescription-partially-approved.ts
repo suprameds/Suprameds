@@ -4,7 +4,7 @@ import { createLogger } from "../lib/logger"
 const logger = createLogger("subscriber:prescription-partially-approved")
 
 /** Fires when some Rx lines approved/rejected. TODO: Recalculate totals, release partial payment. */
-export default async function handler({ event }: SubscriberArgs<Record<string, unknown>>) {
+export default async function prescriptionPartiallyApprovedHandler({ event }: SubscriberArgs<Record<string, unknown>>) {
   logger.info("prescription.partially_approved", event.data)
 }
 

@@ -1,7 +1,7 @@
 export default function WhatsAppButton() {
   return (
     <a
-      href="https://wa.me/919876543210?text=Hi%20Suprameds%2C%20I%20need%20help%20with%20my%20order"
+      href="https://wa.me/917674962758?text=Hi%20Suprameds%2C%20I%20need%20help%20with%20my%20order"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-transform hover:scale-110"

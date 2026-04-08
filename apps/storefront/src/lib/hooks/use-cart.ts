@@ -306,3 +306,48 @@ export const useRemovePromoCode = () => {
     },
   })
 }
+
+// ── Loyalty Points Redemption ──────────────────────────────────────
+
+type LoyaltyRedeemResponse = {
+  success: boolean
+  points_applied: number
+  discount_amount: number
+  points_remaining: number
+}
+
+export const useRedeemLoyaltyPoints = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ points }: { points: number }) => {
+      const cartId = getStoredCart()
+      if (!cartId) throw new Error("No cart found")
+      return await sdk.client.fetch<LoyaltyRedeemResponse>(
+        `/store/carts/${cartId}/loyalty-redeem`,
+        { method: "POST", body: { points } }
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ predicate: queryKeys.cart.predicate })
+    },
+  })
+}
+
+export const useRemoveLoyaltyPoints = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const cartId = getStoredCart()
+      if (!cartId) throw new Error("No cart found")
+      return await sdk.client.fetch<{ success: boolean; points_removed: number }>(
+        `/store/carts/${cartId}/loyalty-redeem`,
+        { method: "DELETE" }
+      )
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ predicate: queryKeys.cart.predicate })
+    },
+  })
+}

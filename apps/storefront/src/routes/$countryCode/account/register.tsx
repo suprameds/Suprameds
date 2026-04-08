@@ -1,7 +1,9 @@
 import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { useRegister } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { sdk } from "@/lib/utils/sdk"
 
 export const Route = createFileRoute("/$countryCode/account/register")({
   head: () => ({
@@ -12,16 +14,35 @@ export const Route = createFileRoute("/$countryCode/account/register")({
   }),
   validateSearch: (search: Record<string, unknown>) => ({
     redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+    ref: typeof search.ref === "string" ? search.ref : undefined,
   }),
   component: RegisterPage,
 })
 
 function RegisterPage() {
   const location = useLocation()
-  const { redirectTo } = Route.useSearch()
+  const { redirectTo, ref: refCode } = Route.useSearch()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const navigate = useNavigate()
   const register = useRegister()
+
+  // Referral code: from URL param or manual input
+  const [manualRefCode, setManualRefCode] = useState("")
+  const [showRefInput, setShowRefInput] = useState(!refCode) // show input if no URL param
+  const activeRefCode = refCode || manualRefCode.trim().toUpperCase() || ""
+
+  // Validate referral code (from URL or manual input)
+  const { data: referralData, isFetching: validatingRef } = useQuery({
+    queryKey: ["referral-validate", activeRefCode],
+    queryFn: async () => {
+      if (!activeRefCode) return null
+      return await sdk.client.fetch<{ valid: boolean; referrer_name?: string }>(
+        `/store/loyalty/validate-referral?code=${encodeURIComponent(activeRefCode)}`
+      )
+    },
+    enabled: activeRefCode.length >= 4,
+    retry: false,
+  })
 
   const [form, setForm] = useState({
     first_name: "",
@@ -70,6 +91,7 @@ function RegisterPage() {
         first_name: form.first_name,
         last_name: form.last_name,
         phone: form.phone || undefined,
+        metadata: activeRefCode && referralData?.valid ? { referred_by: activeRefCode } : undefined,
       },
       {
         onSuccess: () => {
@@ -234,6 +256,54 @@ function RegisterPage() {
                 {error}
               </div>
             )}
+
+            {/* Referral: validated banner OR manual input */}
+            {activeRefCode && referralData?.valid ? (
+              <div
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg border"
+                style={{ background: "#ECFDF5", borderColor: "#A7F3D0", color: "#065F46" }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+                <span className="text-sm">
+                  Referred by <strong>{referralData.referrer_name}</strong> — you'll get <strong>50 bonus points</strong>!
+                </span>
+                {!refCode && (
+                  <button
+                    type="button"
+                    onClick={() => { setManualRefCode(""); setShowRefInput(true) }}
+                    className="ml-auto text-xs underline cursor-pointer"
+                    style={{ color: "#065F46" }}
+                  >
+                    Change
+                  </button>
+                )}
+              </div>
+            ) : showRefInput ? (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                  Referral code <span className="text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>(optional)</span>
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={manualRefCode}
+                    onChange={(e) => setManualRefCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. SM-XXXXXX"
+                    maxLength={9}
+                    className="flex-1 px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1 font-mono tracking-wider"
+                    style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
+                  />
+                  {validatingRef && (
+                    <span className="flex items-center text-xs" style={{ color: "var(--text-tertiary)" }}>Checking...</span>
+                  )}
+                </div>
+                {manualRefCode.length >= 4 && referralData && !referralData.valid && !validatingRef && (
+                  <p className="text-xs" style={{ color: "var(--brand-red)" }}>Invalid referral code</p>
+                )}
+              </div>
+            ) : null}
 
             <p className="text-xs leading-relaxed" style={{ color: "var(--text-tertiary)" }}>
               By creating an account, you agree to our{" "}

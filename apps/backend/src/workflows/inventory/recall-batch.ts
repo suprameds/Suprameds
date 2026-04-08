@@ -327,7 +327,73 @@ const notifyRecallStep = createStep(
 )
 
 /* ------------------------------------------------------------------ */
-/*  Step 6: Emit the batch.recalled event for other subscribers        */
+/*  Step 6: Notify affected customers via email                        */
+/* ------------------------------------------------------------------ */
+
+const notifyAffectedCustomersStep = createStep(
+  "recall-notify-affected-customers-step",
+  async (
+    input: {
+      affected_orders: AffectedOrder[]
+      batch_id: string
+      lot_number: string
+      recall_reason: string
+      recall_authority: string
+      product_variant_id: string
+    },
+    { container }
+  ) => {
+    const orderService = container.resolve(Modules.ORDER) as any
+    const notificationService = container.resolve(Modules.NOTIFICATION) as any
+    const logger = container.resolve("logger") as any
+
+    const uniqueOrderIds = [...new Set(input.affected_orders.map((o) => o.order_id))]
+    let sent = 0
+
+    for (const orderId of uniqueOrderIds) {
+      try {
+        const order = await orderService.retrieveOrder(orderId, {
+          relations: ["items"],
+        })
+
+        const emailTo = order.email || (order as any).customer?.email
+        if (!emailTo) {
+          logger.warn(`[recall] No email for order ${orderId} — skipping customer notification`)
+          continue
+        }
+
+        // Find the product name from order items
+        const productName = order.items?.[0]?.title ?? "Medicine"
+
+        await notificationService.createNotifications({
+          to: emailTo,
+          channel: "email",
+          template: "batch-recall-notice",
+          data: {
+            display_id: order.display_id ?? orderId,
+            lot_number: input.lot_number,
+            recall_reason: input.recall_reason,
+            recall_authority: input.recall_authority,
+            product_name: productName,
+          },
+        })
+
+        sent++
+        logger.info(`[recall] Customer notification sent to ${emailTo} for order ${orderId}`)
+      } catch (err: any) {
+        // Non-fatal — continue notifying other customers
+        logger.error(`[recall] Failed to notify customer for order ${orderId}: ${err.message}`)
+      }
+    }
+
+    logger.info(`[recall] Sent ${sent}/${uniqueOrderIds.length} customer recall notifications`)
+
+    return new StepResponse({ sent, total: uniqueOrderIds.length })
+  }
+)
+
+/* ------------------------------------------------------------------ */
+/*  Step 7: Emit the batch.recalled event for other subscribers        */
 /* ------------------------------------------------------------------ */
 
 const emitRecallEventStep = createStep(
@@ -399,7 +465,17 @@ export const recallBatchWorkflow = createWorkflow(
       affected_order_count: affectedOrders.length,
     })
 
-    // Step 6 — emit event for downstream subscribers
+    // Step 6 — notify affected customers via email
+    notifyAffectedCustomersStep({
+      affected_orders: affectedOrders,
+      batch_id: input.batch_id,
+      lot_number: batch.lot_number,
+      recall_reason: input.recall_reason,
+      recall_authority: input.recall_authority,
+      product_variant_id: batch.product_variant_id,
+    })
+
+    // Step 7 — emit event for downstream subscribers
     const result: RecallResult = {
       batch_id: input.batch_id,
       lot_number: batch.lot_number,

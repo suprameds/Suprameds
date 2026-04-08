@@ -18,7 +18,7 @@ type ReturnRequestedData = {
  * Creates an internal notification for warehouse staff so they can
  * prepare for the incoming return shipment and schedule inspection.
  */
-export default async function handler({
+export default async function orderReturnRequestedHandler({
   event: { data },
   container,
 }: SubscriberArgs<ReturnRequestedData>) {

@@ -198,6 +198,7 @@ const reactEmailTemplates: Record<string, () => Promise<ReactEmailModule>> = {
   "refund-processed": () => import("../../email-templates/refund-processed.js") as any,
   "order-canceled": () => import("../../email-templates/order-canceled.js") as any,
   "pharmacist-order-created": () => import("../../email-templates/pharmacist-order-created.js") as any,
+  "batch-recall-notice": () => import("../../email-templates/batch-recall-notice.js") as any,
 }
 
 /**

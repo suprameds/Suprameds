@@ -23,6 +23,16 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     })
   }
 
+  // Auto-generate referral code if missing (for customers created before referral system)
+  if (!account.referral_code) {
+    try {
+      const code = await loyaltyService.generateReferralCode(customerId)
+      account.referral_code = code
+    } catch {
+      // Best-effort — will retry next visit
+    }
+  }
+
   // Get recent transactions
   const transactions = await loyaltyService.listLoyaltyTransactions(
     { account_id: account.id },

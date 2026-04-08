@@ -48,7 +48,7 @@ type PincodeRecord = {
 
 // ── CSV helpers ───────────────────────────────────────────────────────────────
 
-const CHUNK_SIZE = 200
+// No chunking needed — backend uses direct SQL, bypassing Redis event bus
 
 function parseCSVLine(line: string): string[] {
   const result: string[] = []
@@ -173,71 +173,37 @@ const PincodesPage = () => {
       return
     }
 
-    // Step 2: split into chunks and upload sequentially
-    const totalChunks = Math.ceil(rows.length / CHUNK_SIZE)
-    let totalImported = 0
-    let totalSkipped = 0
-
+    // Step 2: upload all rows in one request (direct SQL, no Redis involved)
     setImportProgress({
       state: "uploading",
-      message: `Uploading chunk 1 of ${totalChunks}...`,
+      message: `Uploading ${rows.length.toLocaleString()} pincodes...`,
       totalRows: rows.length,
       rowsSent: 0,
       rowsImported: 0,
       rowsSkipped: 0,
       rowsErrored: 0,
-      percent: 5,
+      percent: 10,
     })
 
-    for (let i = 0; i < totalChunks; i++) {
-      if (abortRef.current) {
-        setImportProgress((p) => ({ ...p, state: "error", message: "Import cancelled by user" }))
-        break
-      }
+    let totalImported = 0
+    let totalSkipped = 0
 
-      const chunk = rows.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
-      const rowsSentSoFar = Math.min((i + 1) * CHUNK_SIZE, rows.length)
-      const progressPercent = Math.round(5 + ((i + 1) / totalChunks) * 90)
+    try {
+      const json = await sdk.client.fetch<{ imported?: number; skipped?: number; message?: string }>("/admin/pincodes/import", {
+        method: "POST",
+        body: { rows, mode: "replace" },
+      })
 
-      try {
-        const json = await sdk.client.fetch<{ imported?: number; skipped?: number; message?: string }>("/admin/pincodes/import", {
-          method: "POST",
-          body: {
-            rows: chunk,
-            mode: i === 0 ? "replace" : "append",
-            chunk_index: i,
-            total_chunks: totalChunks,
-          },
-        })
-
-        totalImported += json.imported ?? 0
-        totalSkipped += json.skipped ?? 0
-
-        // Brief pause between chunks to let managed Redis recover
-        if (i + 1 < totalChunks) {
-          await new Promise((r) => setTimeout(r, 1500))
-        }
-
-        setImportProgress({
-          state: "uploading",
-          message: `Uploading batch ${i + 2} of ${totalChunks}...`,
-          totalRows: rows.length,
-          rowsSent: rowsSentSoFar,
-          rowsImported: totalImported,
-          rowsSkipped: totalSkipped,
-          rowsErrored: 0,
-          percent: i + 1 === totalChunks ? 99 : progressPercent,
-        })
-      } catch (err: any) {
-        setImportProgress((p) => ({
-          ...p,
-          state: "error",
-          message: `Batch ${i + 1} failed: ${err.message}. ${totalImported.toLocaleString()} rows were saved before failure.`,
-          percent: progressPercent,
-        }))
-        if (fileInputRef.current) fileInputRef.current.value = ""
-        return
-      }
+      totalImported = json.imported ?? 0
+      totalSkipped = json.skipped ?? 0
+    } catch (err: any) {
+      setImportProgress({
+        ...IDLE_IMPORT,
+        state: "error",
+        message: `Import failed: ${err.message}`,
+      })
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      return
     }
 
     // Done

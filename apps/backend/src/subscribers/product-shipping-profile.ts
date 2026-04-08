@@ -12,7 +12,7 @@ const logger = createLogger("subscriber:product-shipping-profile")
  * shipping_profile_id, causing "cart items require shipping profiles that
  * are not satisfied by the current shipping methods" at checkout.
  */
-export default async function handler({
+export default async function productShippingProfileHandler({
   event,
   container,
 }: SubscriberArgs<{ id: string }>) {

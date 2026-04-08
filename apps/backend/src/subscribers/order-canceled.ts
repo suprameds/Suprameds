@@ -2,6 +2,7 @@ import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
+import { LOYALTY_MODULE } from "../modules/loyalty"
 import { captureException } from "../lib/sentry"
 import { createLogger } from "../lib/logger"
 
@@ -92,7 +93,7 @@ async function reverseBatchDeductions(
   return reversed
 }
 
-export default async function handler({
+export default async function orderCanceledHandler({
   event: { data },
   container,
 }: SubscriberArgs<OrderCanceledData>) {
@@ -117,7 +118,58 @@ export default async function handler({
     captureException(err, { subscriber: "order-canceled", orderId, step: "batch-reversal" })
   }
 
-  // 2. Auto-refund Razorpay payments on cancellation
+  // 2. Reverse loyalty points earned from this order
+  try {
+    const loyaltyService = container.resolve(LOYALTY_MODULE) as any
+
+    // Find earn transactions linked to this order
+    const earnTxns = await loyaltyService.listLoyaltyTransactions(
+      { reference_type: "order", reference_id: orderId, type: "earn" },
+      { take: null }
+    )
+
+    if (earnTxns?.length) {
+      for (const txn of earnTxns) {
+        const pointsToReverse = Math.abs(txn.points)
+        if (pointsToReverse <= 0) continue
+
+        const [account] = await loyaltyService.listLoyaltyAccounts(
+          { id: txn.account_id },
+          { take: 1 }
+        )
+        if (!account) continue
+
+        // Create a burn transaction to reverse the earned points
+        await loyaltyService.createLoyaltyTransactions({
+          account_id: account.id,
+          type: "burn",
+          points: -pointsToReverse,
+          reference_type: "order",
+          reference_id: orderId,
+          reason: `Reversed: order ${orderId} cancelled`,
+        })
+
+        const newBalance = Math.max(0, account.points_balance - pointsToReverse)
+        await loyaltyService.updateLoyaltyAccounts({
+          id: account.id,
+          points_balance: newBalance,
+        })
+
+        logger.info(
+          `Reversed ${pointsToReverse} loyalty points for order ${orderId} ` +
+            `(account ${account.id}, new balance: ${newBalance})`
+        )
+      }
+    }
+  } catch (err) {
+    logger.warn(
+      `Loyalty reversal failed for order ${orderId}: ${(err as Error).message}`
+    )
+    captureException(err, { subscriber: "order-canceled", orderId, step: "loyalty-reversal" })
+  }
+
+  // 3. Auto-refund Razorpay payments on cancellation
+  //    (renumbered from step 2 after adding loyalty reversal)
   try {
     const orderService = container.resolve(Modules.ORDER) as any
     const paymentModule = container.resolve(Modules.PAYMENT) as any

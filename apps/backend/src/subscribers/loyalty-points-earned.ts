@@ -17,7 +17,7 @@ type PointsEarnedData = {
  * Sends a push notification when a customer earns loyalty points.
  * Includes a tier upgrade message if tier changed.
  */
-export default async function handler({
+export default async function loyaltyPointsEarnedHandler({
   event: { data },
 }: SubscriberArgs<PointsEarnedData>) {
   const { customer_id, points, new_tier, previous_tier, order_id } = data

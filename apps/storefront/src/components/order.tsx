@@ -134,15 +134,16 @@ export function deriveOrderProgress(order: HttpTypes.StoreOrder): {
     paymentStatus === "authorized" ||
     paymentStatus === "captured"
 
+  const isDelivered =
+    fulfillmentStatus === "delivered" ||
+    order.status === "completed"
+
   const isShipped =
+    isDelivered ||
     fulfillmentStatus === "shipped" ||
     fulfillmentStatus === "fulfilled" ||
     fulfillmentStatus === "partially_shipped" ||
     fulfillmentStatus === "partially_fulfilled"
-
-  const isDelivered =
-    fulfillmentStatus === "delivered" ||
-    order.status === "completed"
 
   const steps: ProgressStep[] = [
     {

@@ -9,7 +9,7 @@ interface RtoEventData {
   order_id: string
 }
 
-export default async function handler({
+export default async function shipmentRtoInitiatedHandler({
   event,
   container,
 }: SubscriberArgs<RtoEventData>) {

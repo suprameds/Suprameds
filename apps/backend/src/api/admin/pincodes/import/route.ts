@@ -3,32 +3,32 @@ import type {
   MedusaResponse,
 } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
-import { WAREHOUSE_MODULE } from "../../../../modules/warehouse"
+import { generateEntityId } from "@medusajs/framework/utils"
 
 /**
  * POST /admin/pincodes/import
  *
- * Chunked import endpoint. Each request sends a batch of pre-parsed rows.
- * The frontend parses the CSV and splits it into chunks for progress tracking.
+ * Bulk import endpoint. Receives all pre-parsed rows at once and writes
+ * directly to the database via raw SQL, bypassing the service layer and
+ * Redis event bus. This avoids Medusa Cloud's Redis Lua script limits
+ * that forced the old chunked approach.
  *
  * Body:
- *   rows         — array of row objects (pre-parsed by the frontend)
- *   mode         — "replace" (first chunk, clears DB) | "append" (subsequent chunks)
- *   chunk_index  — 0-based index of this chunk
- *   total_chunks — total number of chunks being sent
+ *   rows  — array of row objects (pre-parsed by the frontend)
+ *   mode  — "replace" (default, clears DB first) | "append"
  */
 export async function POST(
   req: AuthenticatedMedusaRequest,
   res: MedusaResponse
 ) {
   const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER) as any
-  const warehouseService = req.scope.resolve(WAREHOUSE_MODULE) as any
+  const pgConnection = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION) as any
 
   const {
     rows,
     mode = "replace",
-    chunk_index = 0,
-    total_chunks = 1,
+    chunk_index,
+    total_chunks,
   } = req.body as {
     rows?: Record<string, string>[]
     mode?: "replace" | "append"
@@ -40,28 +40,20 @@ export async function POST(
     return res.status(400).json({ message: "rows array is required and must not be empty" })
   }
 
-  try {
-    // First chunk with mode=replace: delete all existing records
-    if (mode === "replace" && chunk_index === 0) {
-      const existing = (await warehouseService.listServiceablePincodes(
-        {},
-        { take: null, select: ["id"] }
-      )) as any[]
+  // Backward compat: if frontend still sends chunks, only clear on first chunk
+  const isFirstChunk = chunk_index === undefined || chunk_index === 0
 
-      if (existing.length > 0) {
-        const ids = existing.map((r: any) => r.id)
-        for (let i = 0; i < ids.length; i += 50) {
-          await warehouseService.deleteServiceablePincodes(ids.slice(i, i + 50))
-          if (i + 50 < ids.length) await new Promise((r) => setTimeout(r, 500))
-        }
-        logger.info(`[pincode-import] Cleared ${existing.length} existing records for fresh import`)
-      }
+  try {
+    // Clear existing records if mode=replace and this is the first (or only) request
+    if (mode === "replace" && isFirstChunk) {
+      await pgConnection.raw(`DELETE FROM "serviceable_pincode"`)
+      logger.info(`[pincode-import] Cleared existing records for fresh import`)
     }
 
-    // Insert this batch
+    // Parse and validate rows
     let imported = 0
     let skipped = 0
-    const toCreate: any[] = []
+    const validRows: any[] = []
 
     for (const row of rows) {
       const pincode = String(row.pincode ?? "").trim()
@@ -69,7 +61,8 @@ export async function POST(
         skipped++
         continue
       }
-      toCreate.push({
+      validRows.push({
+        id: generateEntityId("", "svcpin"),
         pincode,
         officename: String(row.officename ?? "").trim() || "Unknown",
         officetype: row.officetype?.trim() || null,
@@ -85,42 +78,53 @@ export async function POST(
       })
     }
 
-    if (toCreate.length > 0) {
-      // Insert in small sub-batches with generous delays to stay under
-      // Medusa Cloud's managed Redis Lua script execution limits.
-      const SUB_BATCH = 25
-      for (let i = 0; i < toCreate.length; i += SUB_BATCH) {
-        try {
-          await warehouseService.createServiceablePincodes(toCreate.slice(i, i + SUB_BATCH))
-        } catch (subErr: any) {
-          // Retry once after a longer pause (Lua limit recovery)
-          await new Promise((r) => setTimeout(r, 2000))
-          await warehouseService.createServiceablePincodes(toCreate.slice(i, i + SUB_BATCH))
+    // Bulk insert via raw SQL. Postgres allows max 65,535 params per query.
+    // 13 columns × 5000 rows = 65,000 params — just under the limit.
+    const BATCH = 5000
+    for (let i = 0; i < validRows.length; i += BATCH) {
+      const batch = validRows.slice(i, i + BATCH)
+      const cols = [
+        "id", "pincode", "officename", "officetype", "delivery", "district",
+        "statename", "divisionname", "regionname", "circlename",
+        "latitude", "longitude", "is_serviceable",
+      ]
+      const placeholders: string[] = []
+      const values: any[] = []
+      let paramIdx = 1
+
+      for (const row of batch) {
+        const rowPlaceholders: string[] = []
+        for (const col of cols) {
+          rowPlaceholders.push(`$${paramIdx++}`)
+          values.push(row[col])
         }
-        if (i + SUB_BATCH < toCreate.length) {
-          await new Promise((r) => setTimeout(r, 500))
-        }
+        placeholders.push(`(${rowPlaceholders.join(", ")})`)
       }
-      imported = toCreate.length
+
+      await pgConnection.raw(
+        `INSERT INTO "serviceable_pincode" (${cols.map(c => `"${c}"`).join(", ")})
+         VALUES ${placeholders.join(", ")}`,
+        values
+      )
     }
 
+    imported = validRows.length
+
     logger.info(
-      `[pincode-import] Chunk ${chunk_index + 1}/${total_chunks}: ${imported} imported, ${skipped} skipped`
+      `[pincode-import] Done: ${imported} imported, ${skipped} skipped` +
+      (chunk_index !== undefined ? ` (chunk ${chunk_index + 1}/${total_chunks})` : "")
     )
 
     return res.status(200).json({
       success: true,
-      chunk_index,
-      total_chunks,
       imported,
       skipped,
-      is_last_chunk: chunk_index === total_chunks - 1,
+      ...(chunk_index !== undefined && { chunk_index, total_chunks, is_last_chunk: chunk_index === (total_chunks ?? 1) - 1 }),
     })
   } catch (error: any) {
-    logger.error(`[pincode-import] Chunk ${chunk_index} failed: ${error.message}`)
+    logger.error(`[pincode-import] Failed: ${error.message}`)
     return res.status(500).json({
-      message: error.message || "Import chunk failed",
-      chunk_index,
+      message: error.message || "Import failed",
     })
   }
 }

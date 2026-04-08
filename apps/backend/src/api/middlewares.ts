@@ -133,6 +133,11 @@ export default defineMiddlewares({
       bodyParser: { sizeLimit: "15mb" },
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
+    // Loyalty points redemption on cart
+    {
+      matcher: "/store/carts/:id/loyalty-redeem",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
     // ── Pharmacist storefront routes — customer auth + role check ──────
     {
       matcher: "/store/pharmacist/*",
@@ -142,11 +147,11 @@ export default defineMiddlewares({
       ],
     },
 
-    // Pincode CSV import — large payload (up to 30MB for 165K+ rows)
+    // Pincode CSV import — large payload (155K+ rows as JSON ≈ 40MB)
     {
       matcher: "/admin/pincodes/import",
       method: "POST",
-      bodyParser: { sizeLimit: "30mb" },
+      bodyParser: { sizeLimit: "50mb" },
     },
     {
       matcher: "/store/prescriptions",
@@ -193,9 +198,9 @@ export default defineMiddlewares({
       matcher: "/store/wishlist*",
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
-    // Loyalty — authenticated customers only
+    // Loyalty — authenticated customers only (except validate-referral which is public for signup)
     {
-      matcher: "/store/loyalty/*",
+      matcher: "/store/loyalty/account",
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
     // AfterShip webhook — preserve raw body for HMAC signature verification
@@ -239,10 +244,18 @@ export default defineMiddlewares({
     },
     // Loyalty: 10 req/min per IP
     {
-      matcher: "/store/loyalty/*",
+      matcher: "/store/loyalty/account",
       method: "GET",
       middlewares: [
         createRateLimiter({ windowMs: 60 * 1000, maxRequests: 10 }),
+      ],
+    },
+    // Referral validation: 20 req/min per IP (public endpoint)
+    {
+      matcher: "/store/loyalty/validate-referral",
+      method: "GET",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 20 }),
       ],
     },
     // MSG91 webhook — no auth, but preserve body

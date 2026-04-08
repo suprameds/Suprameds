@@ -10,7 +10,7 @@ interface NdrEventData {
   ndr_reason: string
 }
 
-export default async function handler({
+export default async function shipmentNdrReportedHandler({
   event,
   container,
 }: SubscriberArgs<NdrEventData>) {

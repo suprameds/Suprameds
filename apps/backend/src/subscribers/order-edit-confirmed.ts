@@ -14,7 +14,7 @@ type OrderEditConfirmedData = {
  * When an admin confirms an order edit, stamp the order metadata with
  * edit details so the storefront can show an "Order Modified" banner.
  */
-export default async function handler({
+export default async function orderEditConfirmedHandler({
   event: { data },
   container,
 }: SubscriberArgs<OrderEditConfirmedData>) {

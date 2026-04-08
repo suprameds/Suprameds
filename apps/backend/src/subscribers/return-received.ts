@@ -21,7 +21,7 @@ type ReturnReceivedData = {
  * The actual inspection is triggered manually by the inspector
  * through POST /admin/orders/returns (which runs InspectReturnWorkflow).
  */
-export default async function handler({
+export default async function returnReceivedHandler({
   event: { data },
   container,
 }: SubscriberArgs<ReturnReceivedData>) {

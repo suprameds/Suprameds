@@ -4,6 +4,7 @@ import {
   CartEmpty,
   CartPromo,
 } from "@/components/cart"
+import { LoyaltyRedeem } from "@/components/loyalty-redeem"
 import { Button } from "@/components/ui/button"
 import { Loading } from "@/components/ui/loading"
 import { useCart, useCreateCart } from "@/lib/hooks/use-cart"
@@ -137,6 +138,7 @@ const Cart = () => {
                   <div className="flex flex-col gap-y-4">
                     <CartSummary cart={cart} />
                     <CartPromo cart={cart} />
+                    <LoyaltyRedeem cart={cart} />
                   </div>
 
                   <div className="mt-5 hidden md:block">
