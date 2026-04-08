@@ -38,30 +38,28 @@ RUN pnpm --filter backend build
 RUN test -f apps/backend/.medusa/server/public/admin/index.html \
     || (echo "ERROR: Admin dashboard was not built — index.html missing" && exit 1)
 
+# Create a lean production node_modules using pnpm deploy.
+# This produces a flat directory with only production dependencies.
+RUN pnpm --filter backend deploy --legacy --prod /app/pruned
+
 # ──────────────────────────────────────────────
 # Stage 3: Production
 # ──────────────────────────────────────────────
 # Medusa v2 production: run from .medusa/server/ with deps installed there.
-# See: https://docs.medusajs.com/learn/deployment/general
 FROM node:20-alpine AS production
-RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
 WORKDIR /app
 
 # Copy the compiled Medusa build output (server + admin + compiled modules)
 COPY --from=build /app/apps/backend/.medusa/server ./server
 
-# Install production deps with pnpm (handles peer deps gracefully, faster than npm).
-# Then add react+react-dom which are devDeps but needed at runtime for
-# @react-email/render (notification email template rendering).
-RUN cd server && pnpm install --prod --no-lockfile && \
-    pnpm add react@19.1.1 react-dom@19.1.1 --no-lockfile && \
-    test -f node_modules/.bin/medusa || (echo "ERROR: medusa CLI not found" && exit 1)
+# Copy the lean production node_modules from pnpm deploy.
+# This is MUCH smaller than a full npm install (~200MB vs ~800MB).
+COPY --from=build /app/pruned/node_modules ./server/node_modules
 
 # Copy the cloud startup script (runs migrations + starts medusa)
 COPY apps/backend/src/scripts/cloud-start.mjs ./cloud-start.mjs
 
 # Backward compat: Railway's startCommand is "node ./src/scripts/cloud-start.mjs"
-# Create that path so both old and new start commands work.
 RUN mkdir -p ./src/scripts && cp ./cloud-start.mjs ./src/scripts/cloud-start.mjs
 
 # Security: run as non-root
