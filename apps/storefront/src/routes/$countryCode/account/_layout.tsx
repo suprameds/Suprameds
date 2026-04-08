@@ -57,7 +57,9 @@ function AccountLayout() {
     { label: "Prescriptions", to: `/${countryCode}/account/prescriptions`, icon: RxIcon },
     { label: "Addresses", to: `/${countryCode}/account/addresses`, icon: PinIcon },
     { label: "Wishlist", to: `/${countryCode}/account/wishlist`, icon: HeartNavIcon },
+    { label: "Verification", to: `/${countryCode}/account/verification`, icon: ShieldNavIcon },
     { label: "Refill Reminders", to: `/${countryCode}/account/reminders`, icon: ClockIcon },
+    { label: "Messages", to: `/${countryCode}/account/messages`, icon: BellIcon },
   ]
 
   return (
@@ -207,6 +209,20 @@ const RxQueueIcon = () => (
     <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
     <rect x="9" y="3" width="6" height="4" rx="1" />
     <path d="M9 14l2 2 4-4" />
+  </svg>
+)
+
+const BellIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+  </svg>
+)
+
+const ShieldNavIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    <path d="m9 12 2 2 4-4"/>
   </svg>
 )
 

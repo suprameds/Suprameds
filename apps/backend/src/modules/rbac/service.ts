@@ -6,6 +6,7 @@ import RoleAuditLog from "./models/role-audit-log"
 import InviteRole from "./models/invite-role"
 import MfaSecret from "./models/mfa-secret"
 import StaffCredential from "./models/staff-credential"
+import SignupRequest from "./models/signup-request"
 import { seedRolesAndPermissions } from "./seeds/roles-permissions.seed"
 import { createLogger } from "../../lib/logger"
 
@@ -172,6 +173,7 @@ class RbacModuleService extends MedusaService({
   InviteRole,
   MfaSecret,
   StaffCredential,
+  SignupRequest,
 }) {
   // -----------------------------------------------------------------------
   // assignRole — create UserRole + audit log with validation

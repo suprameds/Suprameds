@@ -3,6 +3,7 @@ import { useLatestProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import ProductCard from "@/components/product-card"
+import { RecentlyViewed } from "@/components/recently-viewed"
 import { Reveal } from "@/components/ui/reveal"
 import { Counter } from "@/components/ui/counter"
 import { Link, useLocation, useLoaderData, useNavigate } from "@tanstack/react-router"
@@ -537,6 +538,11 @@ const Home = () => {
           </Reveal>
         </section>
       )}
+
+      {/* ════════════════════════════════════════════
+          RECENTLY VIEWED
+         ════════════════════════════════════════════ */}
+      <RecentlyViewed countryCode={countryCode} />
 
       {/* ════════════════════════════════════════════
           PRESCRIPTION CTA — mid-page conversion

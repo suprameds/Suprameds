@@ -6,6 +6,7 @@ import { Price } from "@/components/ui/price"
 import { Thumbnail } from "@/components/ui/thumbnail"
 import { isPaidWithGiftCard } from "@/lib/utils/checkout"
 import { HttpTypes } from "@medusajs/types"
+import { useNavigate } from "@tanstack/react-router"
 import { useCallback, useState } from "react"
 
 const BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"
@@ -75,11 +76,158 @@ export const InvoiceDownloadButton = ({ orderId }: { orderId: string }) => {
   )
 }
 
+// ============ INVOICE EMAIL BUTTON ============
+
+export const InvoiceEmailButton = ({ orderId }: { orderId: string }) => {
+  const [sending, setSending] = useState(false)
+  const [status, setStatus] = useState<"idle" | "sent" | "error">("idle")
+
+  const handleEmail = useCallback(async () => {
+    setSending(true)
+    setStatus("idle")
+    try {
+      const headers: Record<string, string> = {}
+      if (PUBLISHABLE_KEY) {
+        headers["x-publishable-api-key"] = PUBLISHABLE_KEY
+      }
+
+      const res = await fetch(`${BACKEND_URL}/store/invoices/${orderId}/email`, {
+        method: "POST",
+        credentials: "include",
+        headers,
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ message: `HTTP ${res.status}` }))
+        throw new Error(body.message || `Email failed (${res.status})`)
+      }
+
+      setStatus("sent")
+      setTimeout(() => setStatus("idle"), 4000)
+    } catch (err: any) {
+      console.error("[invoice-email]", err)
+      setStatus("error")
+    } finally {
+      setSending(false)
+    }
+  }, [orderId])
+
+  return (
+    <div className="inline-flex flex-col">
+      <button
+        onClick={handleEmail}
+        disabled={sending}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+        style={{
+          color: status === "sent" ? "var(--brand-green)" : "var(--brand-navy, #1E2D5A)",
+          borderColor: status === "sent" ? "var(--brand-green)" : "var(--border-primary)",
+          background: status === "sent" ? "#F0FDF4" : "var(--bg-secondary)",
+        }}
+      >
+        <EmailIcon />
+        {sending ? "Sending…" : status === "sent" ? "Sent!" : "Email Invoice"}
+      </button>
+      {status === "error" && (
+        <span className="text-xs mt-1" style={{ color: "var(--brand-red)" }}>Failed to send</span>
+      )}
+    </div>
+  )
+}
+
+const EmailIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+  </svg>
+)
+
 const DownloadIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
     <polyline points="7 10 12 15 17 10" />
     <line x1="12" y1="15" x2="12" y2="3" />
+  </svg>
+)
+
+// ============ REORDER BUTTON ============
+
+export const ReorderButton = ({
+  order,
+  countryCode,
+}: {
+  order: HttpTypes.StoreOrder
+  countryCode: string
+}) => {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const navigate = useNavigate()
+
+  const handleReorder = useCallback(async () => {
+    const items = order.items ?? []
+    if (!items.length) return
+
+    setLoading(true)
+    setError("")
+    try {
+      const { sdk } = await import("@/lib/utils/sdk")
+      const { getStoredCart, setStoredCart } = await import("@/lib/utils/cart")
+
+      const { regions } = await sdk.store.region.list({})
+      const region = regions.find((r) =>
+        r.countries?.some((c) => c.iso_2 === countryCode.toLowerCase())
+      )
+      if (!region) throw new Error("Region not found")
+
+      let cartId = getStoredCart()
+      if (!cartId) {
+        const { cart } = await sdk.store.cart.create({ region_id: region.id })
+        setStoredCart(cart.id)
+        cartId = cart.id
+      }
+
+      for (const item of items) {
+        const variantId = item.variant_id
+        if (!variantId) continue
+        try {
+          await sdk.store.cart.createLineItem(cartId, {
+            variant_id: variantId,
+            quantity: item.quantity,
+          })
+        } catch {
+          // Skip items that can't be added (out of stock, etc.)
+        }
+      }
+
+      navigate({ to: "/$countryCode/cart", params: { countryCode } })
+    } catch (err: any) {
+      setError(err.message || "Failed to re-order")
+    } finally {
+      setLoading(false)
+    }
+  }, [order.items, countryCode, navigate])
+
+  return (
+    <div className="inline-flex flex-col">
+      <button
+        onClick={handleReorder}
+        disabled={loading}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all hover:opacity-90 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+        style={{ color: "var(--brand-green)", borderColor: "var(--brand-green)", background: "#F0FDF4" }}
+      >
+        <ReorderIcon />
+        {loading ? "Adding to cart…" : "Re-order"}
+      </button>
+      {error && (
+        <span className="text-xs mt-1" style={{ color: "var(--brand-red)" }}>{error}</span>
+      )}
+    </div>
+  )
+}
+
+const ReorderIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="1 4 1 10 7 10" />
+    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
   </svg>
 )
 
@@ -427,7 +575,11 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
           })}
         </span>
         {/* Invoice download — shown for non-cancelled orders */}
-        {!isCancelled && <InvoiceDownloadButton orderId={order.id} />}
+        <div className="flex gap-2 flex-wrap">
+          {!isCancelled && <InvoiceDownloadButton orderId={order.id} />}
+          {!isCancelled && <InvoiceEmailButton orderId={order.id} />}
+          {!isCancelled && <ReorderButton order={order} countryCode="in" />}
+        </div>
       </div>
 
       {/* Progress tracker */}

@@ -11,6 +11,7 @@ import { HttpTypes } from "@medusajs/types"
 import { useQueryClient } from "@tanstack/react-query"
 import { useCallback, useState } from "react"
 import { useToast } from "@/lib/context/toast-context"
+import { useWallet, useApplyWallet, useRemoveWallet } from "@/lib/hooks/use-wallet"
 
 interface PaymentStepProps {
   cart: HttpTypes.StoreCart;
@@ -42,6 +43,32 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
   const isStripe = isStripeFunc(selectedPaymentMethod)
 
+  // ── Wallet integration ──
+  const { data: walletData } = useWallet()
+  const applyWallet = useApplyWallet()
+  const removeWallet = useRemoveWallet()
+  const walletBalance = walletData?.wallet?.balance ?? 0
+  const walletApplied = Number((cart.metadata as any)?.wallet_amount ?? 0)
+  const isWalletApplied = walletApplied > 0
+
+  const handleWalletToggle = useCallback(async () => {
+    if (!cart.id) return
+    try {
+      if (isWalletApplied) {
+        await removeWallet.mutateAsync({ cart_id: cart.id })
+      } else {
+        // Apply up to the full cart total or wallet balance (whichever is smaller)
+        const cartTotal = cart.total ?? 0
+        const amountToApply = Math.min(walletBalance, cartTotal)
+        if (amountToApply > 0) {
+          await applyWallet.mutateAsync({ cart_id: cart.id, amount: amountToApply })
+        }
+      }
+    } catch {
+      showToast("Failed to update wallet. Please try again.")
+    }
+  }, [cart.id, cart.total, isWalletApplied, walletBalance, applyWallet, removeWallet, showToast])
+
   // Stripe needs setError for its card component
   const setError = useCallback((msg: string | null) => { if (msg) showToast(msg) }, [showToast])
 
@@ -71,6 +98,46 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
   return (
     <div className="flex flex-col gap-8">
+      {/* Wallet Balance Section */}
+      {walletBalance > 0 && (
+        <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-[var(--text-primary)]">
+                Use Wallet Balance
+              </p>
+              <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
+                {"\u20B9"}{walletBalance} available
+                {isWalletApplied && (
+                  <span className="ml-1 text-[var(--suprameds-green)]">
+                    ({"\u20B9"}{walletApplied} applied)
+                  </span>
+                )}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleWalletToggle}
+              disabled={applyWallet.isPending || removeWallet.isPending}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isWalletApplied
+                  ? "bg-[var(--suprameds-green)]"
+                  : "bg-[var(--border-primary)]"
+              } ${(applyWallet.isPending || removeWallet.isPending) ? "opacity-50" : ""}`}
+              role="switch"
+              aria-checked={isWalletApplied}
+              aria-label="Toggle wallet balance"
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  isWalletApplied ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+      )}
+
       {!paidByGiftcard && availablePaymentMethods.length === 0 && (
         <p className="text-sm text-[var(--text-tertiary)] animate-pulse">
           Loading payment methods…

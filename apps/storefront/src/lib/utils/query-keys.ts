@@ -70,6 +70,11 @@ export const queryKeys = {
     account: () => createDynamicKey("loyalty", "account"),
   },
 
+  wallet: {
+    ...createDomainKeys("wallet"),
+    balance: () => createDynamicKey("wallet", "balance"),
+  },
+
   payments: {
     ...createDomainKeys("payments"),
     forCart: (cartId: string) => createDynamicKey("payments", "forCart", cartId),
@@ -88,6 +93,16 @@ export const queryKeys = {
   wishlist: {
     ...createDomainKeys("wishlist"),
     list: () => [...createDomainKeys("wishlist").all, "list"] as const,
+  },
+
+  notifications: {
+    ...createDomainKeys("notifications"),
+    unreadCount: () => createDynamicKey("notifications", "unread-count"),
+  },
+
+  documents: {
+    ...createDomainKeys("documents"),
+    forCustomer: () => createDynamicKey("documents", "customer"),
   },
 } as const
 

@@ -44,8 +44,10 @@ export const useCustomer = () => {
         return null
       }
     },
-    staleTime: 5 * 60 * 1000,
-    retry: false,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60,
+    retry: 1,
+    refetchOnWindowFocus: true,
   })
 }
 

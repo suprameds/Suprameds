@@ -41,10 +41,12 @@ import { Route as CountryCodeAccountLayoutRouteImport } from './routes/$countryC
 import { Route as CountryCodeAccountLayoutIndexRouteImport } from './routes/$countryCode/account/_layout/index'
 import { Route as CountryCodeOrderOrderIdConfirmedRouteImport } from './routes/$countryCode/order/$orderId/confirmed'
 import { Route as CountryCodeAccountLayoutWishlistRouteImport } from './routes/$countryCode/account/_layout/wishlist'
+import { Route as CountryCodeAccountLayoutVerificationRouteImport } from './routes/$countryCode/account/_layout/verification'
 import { Route as CountryCodeAccountLayoutRemindersRouteImport } from './routes/$countryCode/account/_layout/reminders'
 import { Route as CountryCodeAccountLayoutProfileRouteImport } from './routes/$countryCode/account/_layout/profile'
 import { Route as CountryCodeAccountLayoutPrescriptionsRouteImport } from './routes/$countryCode/account/_layout/prescriptions'
 import { Route as CountryCodeAccountLayoutOrdersRouteImport } from './routes/$countryCode/account/_layout/orders'
+import { Route as CountryCodeAccountLayoutMessagesRouteImport } from './routes/$countryCode/account/_layout/messages'
 import { Route as CountryCodeAccountLayoutAddressesRouteImport } from './routes/$countryCode/account/_layout/addresses'
 import { Route as CountryCodeAccountLayoutPharmacistRxQueueRouteImport } from './routes/$countryCode/account/_layout/pharmacist/rx-queue'
 import { Route as CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport } from './routes/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId'
@@ -217,6 +219,12 @@ const CountryCodeAccountLayoutWishlistRoute =
     path: '/wishlist',
     getParentRoute: () => CountryCodeAccountLayoutRoute,
   } as any)
+const CountryCodeAccountLayoutVerificationRoute =
+  CountryCodeAccountLayoutVerificationRouteImport.update({
+    id: '/verification',
+    path: '/verification',
+    getParentRoute: () => CountryCodeAccountLayoutRoute,
+  } as any)
 const CountryCodeAccountLayoutRemindersRoute =
   CountryCodeAccountLayoutRemindersRouteImport.update({
     id: '/reminders',
@@ -239,6 +247,12 @@ const CountryCodeAccountLayoutOrdersRoute =
   CountryCodeAccountLayoutOrdersRouteImport.update({
     id: '/orders',
     path: '/orders',
+    getParentRoute: () => CountryCodeAccountLayoutRoute,
+  } as any)
+const CountryCodeAccountLayoutMessagesRoute =
+  CountryCodeAccountLayoutMessagesRouteImport.update({
+    id: '/messages',
+    path: '/messages',
     getParentRoute: () => CountryCodeAccountLayoutRoute,
   } as any)
 const CountryCodeAccountLayoutAddressesRoute =
@@ -292,10 +306,12 @@ export interface FileRoutesByFullPath {
   '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
+  '/$countryCode/account/messages': typeof CountryCodeAccountLayoutMessagesRoute
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
   '/$countryCode/account/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
+  '/$countryCode/account/verification': typeof CountryCodeAccountLayoutVerificationRoute
   '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
   '/$countryCode/account/': typeof CountryCodeAccountLayoutIndexRoute
@@ -331,10 +347,12 @@ export interface FileRoutesByTo {
   '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
+  '/$countryCode/account/messages': typeof CountryCodeAccountLayoutMessagesRoute
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
   '/$countryCode/account/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
+  '/$countryCode/account/verification': typeof CountryCodeAccountLayoutVerificationRoute
   '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
   '/$countryCode/account/pharmacist/rx-queue': typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
@@ -372,10 +390,12 @@ export interface FileRoutesById {
   '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/_layout/addresses': typeof CountryCodeAccountLayoutAddressesRoute
+  '/$countryCode/account/_layout/messages': typeof CountryCodeAccountLayoutMessagesRoute
   '/$countryCode/account/_layout/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/_layout/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
   '/$countryCode/account/_layout/profile': typeof CountryCodeAccountLayoutProfileRoute
   '/$countryCode/account/_layout/reminders': typeof CountryCodeAccountLayoutRemindersRoute
+  '/$countryCode/account/_layout/verification': typeof CountryCodeAccountLayoutVerificationRoute
   '/$countryCode/account/_layout/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
   '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
   '/$countryCode/account/_layout/': typeof CountryCodeAccountLayoutIndexRoute
@@ -414,10 +434,12 @@ export interface FileRouteTypes {
     | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
+    | '/$countryCode/account/messages'
     | '/$countryCode/account/orders'
     | '/$countryCode/account/prescriptions'
     | '/$countryCode/account/profile'
     | '/$countryCode/account/reminders'
+    | '/$countryCode/account/verification'
     | '/$countryCode/account/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
     | '/$countryCode/account/'
@@ -453,10 +475,12 @@ export interface FileRouteTypes {
     | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
+    | '/$countryCode/account/messages'
     | '/$countryCode/account/orders'
     | '/$countryCode/account/prescriptions'
     | '/$countryCode/account/profile'
     | '/$countryCode/account/reminders'
+    | '/$countryCode/account/verification'
     | '/$countryCode/account/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
     | '/$countryCode/account/pharmacist/rx-queue'
@@ -493,10 +517,12 @@ export interface FileRouteTypes {
     | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/_layout/addresses'
+    | '/$countryCode/account/_layout/messages'
     | '/$countryCode/account/_layout/orders'
     | '/$countryCode/account/_layout/prescriptions'
     | '/$countryCode/account/_layout/profile'
     | '/$countryCode/account/_layout/reminders'
+    | '/$countryCode/account/_layout/verification'
     | '/$countryCode/account/_layout/wishlist'
     | '/$countryCode/order/$orderId/confirmed'
     | '/$countryCode/account/_layout/'
@@ -747,6 +773,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryCodeAccountLayoutWishlistRouteImport
       parentRoute: typeof CountryCodeAccountLayoutRoute
     }
+    '/$countryCode/account/_layout/verification': {
+      id: '/$countryCode/account/_layout/verification'
+      path: '/verification'
+      fullPath: '/$countryCode/account/verification'
+      preLoaderRoute: typeof CountryCodeAccountLayoutVerificationRouteImport
+      parentRoute: typeof CountryCodeAccountLayoutRoute
+    }
     '/$countryCode/account/_layout/reminders': {
       id: '/$countryCode/account/_layout/reminders'
       path: '/reminders'
@@ -775,6 +808,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryCodeAccountLayoutOrdersRouteImport
       parentRoute: typeof CountryCodeAccountLayoutRoute
     }
+    '/$countryCode/account/_layout/messages': {
+      id: '/$countryCode/account/_layout/messages'
+      path: '/messages'
+      fullPath: '/$countryCode/account/messages'
+      preLoaderRoute: typeof CountryCodeAccountLayoutMessagesRouteImport
+      parentRoute: typeof CountryCodeAccountLayoutRoute
+    }
     '/$countryCode/account/_layout/addresses': {
       id: '/$countryCode/account/_layout/addresses'
       path: '/addresses'
@@ -801,10 +841,12 @@ declare module '@tanstack/react-router' {
 
 interface CountryCodeAccountLayoutRouteChildren {
   CountryCodeAccountLayoutAddressesRoute: typeof CountryCodeAccountLayoutAddressesRoute
+  CountryCodeAccountLayoutMessagesRoute: typeof CountryCodeAccountLayoutMessagesRoute
   CountryCodeAccountLayoutOrdersRoute: typeof CountryCodeAccountLayoutOrdersRoute
   CountryCodeAccountLayoutPrescriptionsRoute: typeof CountryCodeAccountLayoutPrescriptionsRoute
   CountryCodeAccountLayoutProfileRoute: typeof CountryCodeAccountLayoutProfileRoute
   CountryCodeAccountLayoutRemindersRoute: typeof CountryCodeAccountLayoutRemindersRoute
+  CountryCodeAccountLayoutVerificationRoute: typeof CountryCodeAccountLayoutVerificationRoute
   CountryCodeAccountLayoutWishlistRoute: typeof CountryCodeAccountLayoutWishlistRoute
   CountryCodeAccountLayoutIndexRoute: typeof CountryCodeAccountLayoutIndexRoute
   CountryCodeAccountLayoutPharmacistRxQueueRoute: typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
@@ -815,12 +857,16 @@ const CountryCodeAccountLayoutRouteChildren: CountryCodeAccountLayoutRouteChildr
   {
     CountryCodeAccountLayoutAddressesRoute:
       CountryCodeAccountLayoutAddressesRoute,
+    CountryCodeAccountLayoutMessagesRoute:
+      CountryCodeAccountLayoutMessagesRoute,
     CountryCodeAccountLayoutOrdersRoute: CountryCodeAccountLayoutOrdersRoute,
     CountryCodeAccountLayoutPrescriptionsRoute:
       CountryCodeAccountLayoutPrescriptionsRoute,
     CountryCodeAccountLayoutProfileRoute: CountryCodeAccountLayoutProfileRoute,
     CountryCodeAccountLayoutRemindersRoute:
       CountryCodeAccountLayoutRemindersRoute,
+    CountryCodeAccountLayoutVerificationRoute:
+      CountryCodeAccountLayoutVerificationRoute,
     CountryCodeAccountLayoutWishlistRoute:
       CountryCodeAccountLayoutWishlistRoute,
     CountryCodeAccountLayoutIndexRoute: CountryCodeAccountLayoutIndexRoute,

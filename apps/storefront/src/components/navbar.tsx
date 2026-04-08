@@ -1,4 +1,5 @@
 import { CartDropdown } from "@/components/cart"
+import { NotificationBell } from "@/components/notification-bell"
 import { SearchDropdown, saveRecentSearch } from "@/components/search-dropdown"
 import { ThemeToggle } from "@/components/theme-toggle"
 import {
@@ -468,6 +469,7 @@ export const Navbar = () => {
               </span>
             </Link>
 
+            <NotificationBell />
             <ThemeToggle />
             <CartDropdown />
           </div>

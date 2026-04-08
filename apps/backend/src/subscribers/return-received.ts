@@ -1,6 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { NOTIFICATION_MODULE } from "../modules/notification"
+import { WALLET_MODULE } from "../modules/wallet"
 import { captureException } from "../lib/sentry"
 
 const LOG_PREFIX = "[subscriber:return-received]"
@@ -55,6 +56,44 @@ export default async function returnReceivedHandler({
       `${LOG_PREFIX} Failed to process return receipt ${returnId}: ${(err as Error).message}`
     )
     captureException(err, { subscriber: "return-received", returnId, orderId })
+  }
+
+  // ── Credit wallet with refund amount ──
+  try {
+    if (orderId && orderId !== "unknown") {
+      const orderService = container.resolve(Modules.ORDER) as any
+      const order = await orderService.retrieveOrder(orderId, {
+        relations: ["items", "returns"],
+      })
+
+      if (order?.customer_id) {
+        // Calculate refund amount from the return's items
+        // Use order total as fallback if return-level amount isn't available
+        const returnData = order.returns?.find((r: any) => r.id === returnId)
+        const refundAmount = returnData?.refund_amount ?? order.total ?? 0
+
+        if (refundAmount > 0) {
+          const walletService = container.resolve(WALLET_MODULE) as any
+          const result = await walletService.creditWallet(
+            order.customer_id,
+            refundAmount,
+            "return",
+            returnId,
+            `Refund for return ${returnId} (order ${orderId})`
+          )
+
+          logger.info(
+            `${LOG_PREFIX} Credited ₹${refundAmount} to wallet for return ${returnId} ` +
+              `(order ${orderId}, new balance: ₹${result.new_balance})`
+          )
+        }
+      }
+    }
+  } catch (err) {
+    logger.warn(
+      `${LOG_PREFIX} Wallet credit failed for return ${returnId}: ${(err as Error).message}`
+    )
+    captureException(err, { subscriber: "return-received", returnId, orderId, step: "wallet-credit" })
   }
 }
 
