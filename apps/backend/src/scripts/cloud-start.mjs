@@ -13,14 +13,12 @@
 import { execSync } from "child_process"
 import { existsSync } from "fs"
 import { resolve } from "path"
-import { fileURLToPath } from "url"
-import { dirname } from "path"
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-
-// In Docker, cloud-start.mjs lives at /app/cloud-start.mjs
-// and the compiled server is at /app/server/
-const serverDir = resolve(__dirname, "server")
+// In Docker, the compiled server is always at /app/server/.
+// Railway's startCommand runs from /app/ as cwd, but the script may live
+// at /app/cloud-start.mjs OR /app/src/scripts/cloud-start.mjs (compat copy).
+// Use process.cwd() to resolve /app/server/ regardless of script location.
+const serverDir = resolve(process.cwd(), "server")
 
 if (!existsSync(serverDir)) {
   console.error(`ERROR: Compiled server directory not found at ${serverDir}`)
