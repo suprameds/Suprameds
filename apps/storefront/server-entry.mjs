@@ -78,6 +78,14 @@ async function tryServeStatic(req, res) {
 
 const server = createServer(async (req, res) => {
   try {
+    // Lightweight health check — no SSR, no API calls.
+    // Railway's healthcheck hits this before promoting the deployment.
+    if (req.url === "/healthz" || req.url === "/_health") {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("OK");
+      return;
+    }
+
     // Try static files first (client assets, SW, manifest, etc.)
     if (req.method === "GET") {
       const served = await tryServeStatic(req, res);
@@ -86,6 +94,8 @@ const server = createServer(async (req, res) => {
 
     // Build a Web Request from the Node.js request
     const url = new URL(req.url, `http://${req.headers.host}`);
+    console.log(`[SSR] ${req.method} ${url.pathname}`);
+
     const headers = new Headers();
     for (const [key, value] of Object.entries(req.headers)) {
       if (value) headers.set(key, Array.isArray(value) ? value.join(", ") : value);
@@ -100,8 +110,14 @@ const server = createServer(async (req, res) => {
       duplex: "half",
     });
 
-    // Call the TanStack Start handler
-    const webResponse = await handler(webRequest);
+    // Call the TanStack Start handler with a timeout
+    const timeoutMs = 15000;
+    const webResponse = await Promise.race([
+      handler(webRequest),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`SSR timeout after ${timeoutMs}ms`)), timeoutMs)
+      ),
+    ]);
 
     // Write the Web Response back to Node.js response
     res.writeHead(webResponse.status, Object.fromEntries(webResponse.headers));
