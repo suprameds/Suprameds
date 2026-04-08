@@ -76,6 +76,5 @@ EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=180s --retries=3 \
   CMD wget -q --spider http://localhost:${PORT:-9000}/health || exit 1
 
-# Start command — Railway overrides this with "node ./src/scripts/cloud-start.mjs"
-# which also works thanks to the symlink above.
+# Startup: runs migrations → data seeds → medusa server
 CMD ["node", "cloud-start.mjs"]

@@ -26,6 +26,7 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+!.env.storefront.example
 
 # ---- Deploy tooling ----
 .vercel/

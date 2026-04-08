@@ -150,6 +150,13 @@ Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/pla
 - CI pipeline runs: TypeScript check, ESLint (zero warnings), Vitest/Jest, Storefront build, Backend build, Docker image build, E2E Playwright, Accessibility audit, Security audit
 - Docker build uses `pnpm install --frozen-lockfile --filter backend` — if you add new dependencies, run `pnpm install` at root to update lockfile before pushing
 
+### Deployment (Railway)
+- **Branch strategy**: Push to `development` for staging deploy, merge to `main` for production
+- **Auto-deploy**: Railway watches both branches; each push triggers a build
+- **Test Docker builds locally first**: `bash scripts/test-deploy.sh` (requires `.env.storefront` — copy from `.env.storefront.example`)
+- **Build-time env vars**: Storefront `VITE_*` vars must be set as Railway service variables. Railway injects them as Docker build args automatically if matching `ARG` declarations exist in the Dockerfile.
+- **Service config**: `dockerfilePath` and `healthcheckPath` are per-service in Railway dashboard (not in `railway.toml`) since they differ between backend and storefront
+
 ## Analytics & Tracking
 
 - **GA4**: Measurement ID `G-RDYLD3PM8D`, loaded in `__root.tsx`, events in `lib/utils/analytics.ts`
