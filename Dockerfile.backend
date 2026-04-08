@@ -53,8 +53,8 @@ COPY --from=build /app/apps/backend/.medusa/server ./server
 # Install production deps with pnpm (handles peer deps gracefully, faster than npm).
 # Then add react+react-dom which are devDeps but needed at runtime for
 # @react-email/render (notification email template rendering).
-RUN cd server && pnpm install --prod --no-frozen-lockfile && \
-    pnpm add react@19.1.1 react-dom@19.1.1 --no-frozen-lockfile && \
+RUN cd server && pnpm install --prod --no-lockfile && \
+    pnpm add react@19.1.1 react-dom@19.1.1 --no-lockfile && \
     test -f node_modules/.bin/medusa || (echo "ERROR: medusa CLI not found" && exit 1)
 
 # Copy the cloud startup script (runs migrations + starts medusa)
