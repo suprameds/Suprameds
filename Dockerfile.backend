@@ -29,6 +29,9 @@ COPY apps/backend ./apps/backend
 ENV DATABASE_URL=postgres://placeholder:placeholder@localhost:5432/placeholder
 ENV JWT_SECRET=build-placeholder
 ENV COOKIE_SECRET=build-placeholder
+ENV STORE_CORS=http://localhost:5173
+ENV ADMIN_CORS=http://localhost:9000
+ENV AUTH_CORS=http://localhost:9000
 
 RUN pnpm --filter backend build
 
