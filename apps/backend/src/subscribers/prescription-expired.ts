@@ -4,7 +4,7 @@ import { createLogger } from "../lib/logger"
 const logger = createLogger("subscriber:prescription-expired")
 
 /** Fires when Rx expires. TODO: Notify customer, block reorders. */
-export default async function handler({ event }: SubscriberArgs<Record<string, unknown>>) {
+export default async function prescriptionExpiredHandler({ event }: SubscriberArgs<Record<string, unknown>>) {
   logger.info("prescription.expired", event.data)
 }
 

@@ -1,5 +1,4 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
-import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 import { WAREHOUSE_MODULE } from "../modules/warehouse"
 import { NOTIFICATION_MODULE } from "../modules/notification"
 import { captureException } from "../lib/sentry"
@@ -27,60 +26,25 @@ type GrnApprovedData = {
  * Subscriber: warehouse.grn_approved
  *
  * After a GRN (Goods Receipt Note) is approved by QC, this subscriber:
- * 1. Creates inventory batches for each received line item
- * 2. Updates the GRN record status to 'approved'
- * 3. Sends an internal notification confirming stock is available
+ * 1. Updates the GRN record status to 'approved'
+ * 2. Sends an internal notification confirming stock is available
+ *
+ * NOTE: Batch creation is handled by ApproveGrnWorkflow's createBatchesFromGrnStep.
+ * This subscriber must NOT create batches to avoid duplicates.
  */
-export default async function handler({
+export default async function warehouseGrnApprovedHandler({
   event: { data },
   container,
 }: SubscriberArgs<GrnApprovedData>) {
   const logger = container.resolve("logger") as any
   logger.info(`${LOG_PREFIX} GRN ${data.grn_number} approved by ${data.approved_by}`)
 
-  const batchService = container.resolve(INVENTORY_BATCH_MODULE) as any
   const warehouseService = container.resolve(WAREHOUSE_MODULE) as any
   const notificationService = container.resolve(NOTIFICATION_MODULE) as any
 
-  const createdBatches: string[] = []
-  let totalQuantity = 0
+  const totalQuantity = data.items.reduce((sum, item) => sum + item.quantity, 0)
 
-  // 1. Create inventory batches from GRN line items
-  for (const item of data.items) {
-    try {
-      const batch = await batchService.createBatches({
-        product_variant_id: item.product_variant_id,
-        product_id: item.product_id,
-        lot_number: item.lot_number,
-        expiry_date: item.expiry_date,
-        manufactured_on: item.manufactured_on || null,
-        received_quantity: item.quantity,
-        available_quantity: item.quantity,
-        reserved_quantity: 0,
-        batch_mrp_paise: item.batch_mrp_paise ?? null,
-        purchase_price_paise: item.purchase_price_paise ?? null,
-        grn_number: data.grn_number,
-        supplier_name: data.supplier_id,
-        received_on: new Date().toISOString(),
-        status: "active",
-      })
-
-      createdBatches.push(batch.id)
-      totalQuantity += item.quantity
-
-      logger.info(
-        `${LOG_PREFIX} Created batch ${batch.id} for lot ${item.lot_number} ` +
-          `(qty: ${item.quantity}, exp: ${item.expiry_date})`
-      )
-    } catch (err: any) {
-      logger.error(
-        `${LOG_PREFIX} Failed to create batch for lot ${item.lot_number}: ${err.message}`
-      )
-      captureException(err, { subscriber: "warehouse-grn-approved", grnId: data.grn_id, lotNumber: item.lot_number, step: "create-batch" })
-    }
-  }
-
-  // 2. Update GRN record status
+  // 1. Update GRN record status
   try {
     const [grnRecord] = await warehouseService.listGrnRecords(
       { id: data.grn_id },
@@ -108,7 +72,7 @@ export default async function handler({
       type: "dispatch_pending",
       title: `GRN Approved — ${data.grn_number}`,
       body:
-        `${createdBatches.length} batch(es) created with ${totalQuantity} total units. ` +
+        `${data.items.length} batch(es) received with ${totalQuantity} total units. ` +
         `Stock is now available for FEFO allocation.`,
       reference_type: "grn",
       reference_id: data.grn_id,
@@ -119,8 +83,8 @@ export default async function handler({
   }
 
   logger.info(
-    `${LOG_PREFIX} Completed: ${createdBatches.length} batches created, ` +
-      `${totalQuantity} total units received`
+    `${LOG_PREFIX} Completed: GRN record updated, notification sent ` +
+      `(${data.items.length} items, ${totalQuantity} total units)`
   )
 }
 

@@ -81,12 +81,14 @@ export const useRegister = () => {
       first_name,
       last_name,
       phone,
+      metadata,
     }: {
       email: string
       password: string
       first_name: string
       last_name: string
       phone?: string
+      metadata?: Record<string, unknown>
     }) => {
       /**
        * Medusa v2 registration is a two-step flow:
@@ -98,7 +100,7 @@ export const useRegister = () => {
        */
       const registrationToken = await sdk.auth.register("customer", "emailpass", { email, password })
       await sdk.store.customer.create(
-        { email, first_name, last_name, phone },
+        { email, first_name, last_name, phone, metadata } as any,
         {},
         { Authorization: `Bearer ${registrationToken}` }
       )

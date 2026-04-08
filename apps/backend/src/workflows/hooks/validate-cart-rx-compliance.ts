@@ -1,5 +1,5 @@
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
-import { MedusaError } from "@medusajs/framework/utils"
+import { MedusaError, Modules } from "@medusajs/framework/utils"
 import { PHARMA_MODULE } from "../../modules/pharma"
 import { PRESCRIPTION_MODULE } from "../../modules/prescription"
 
@@ -106,5 +106,53 @@ completeCartWorkflow.hooks.validate(
         "Your prescription has expired. Please upload a new, valid prescription."
       )
     }
+
+    // ── Enforce promo code once-per-customer ─────────────────────────
+    await enforcePromoOncePerCustomer(cart, container)
   }
 )
+
+/**
+ * Checks if the customer has already used any of the promo codes on the cart
+ * in a previous order. Throws if a code was already used.
+ */
+async function enforcePromoOncePerCustomer(cart: any, container: any) {
+  const promoCodes = (cart.promotions ?? [])
+    .map((p: any) => p.code)
+    .filter(Boolean)
+
+  if (!promoCodes.length || !cart.customer_id) return
+
+  try {
+    const orderService = container.resolve(Modules.ORDER) as any
+
+    // Fetch customer's past orders that have promotions
+    const pastOrders = await orderService.listOrders(
+      { customer_id: cart.customer_id },
+      { take: null, select: ["id"], relations: ["promotions"] }
+    )
+
+    // Collect all promo codes the customer has already used
+    const usedCodes = new Set<string>()
+    for (const order of pastOrders ?? []) {
+      for (const promo of order.promotions ?? []) {
+        if (promo.code) usedCodes.add(promo.code.toUpperCase())
+      }
+    }
+
+    // Check if any current cart promo was already used
+    for (const code of promoCodes) {
+      if (usedCodes.has(code.toUpperCase())) {
+        throw new MedusaError(
+          MedusaError.Types.NOT_ALLOWED,
+          `Promo code "${code}" has already been used on a previous order. Each code can only be used once.`
+        )
+      }
+    }
+  } catch (err: any) {
+    // Re-throw MedusaErrors (our validation), swallow unexpected errors
+    if (err instanceof MedusaError) throw err
+    // If order lookup fails, allow checkout to proceed (don't block on a best-effort check)
+    console.warn(`[promo-check] Failed to verify promo usage: ${err.message}`)
+  }
+}

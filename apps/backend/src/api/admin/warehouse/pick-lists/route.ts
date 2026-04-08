@@ -119,7 +119,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
         product_variant_id: item.variant_id,
         quantity: item.quantity,
         deducted_by: actorId,
-        deduction_type: "order_fulfillment",
+        deduction_type: "sale",
       })
     }
 

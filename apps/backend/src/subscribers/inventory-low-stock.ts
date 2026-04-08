@@ -38,7 +38,7 @@ type InventoryUpdateData = {
  * below the configured threshold. Creates an internal notification for the
  * warehouse/pharmacist team.
  */
-export default async function handler({
+export default async function inventoryLowStockHandler({
   event: { data },
   container,
 }: SubscriberArgs<InventoryUpdateData>) {

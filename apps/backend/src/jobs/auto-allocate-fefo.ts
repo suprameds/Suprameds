@@ -7,6 +7,7 @@ import { ORDERS_MODULE } from "../modules/orders"
 const LOG = "[job:auto-allocate-fefo]"
 
 const MIN_SHELF_LIFE_DAYS = Number(process.env.BATCH_MIN_SHELF_LIFE_DAYS ?? 60)
+const LOW_STOCK_THRESHOLD = Number(process.env.LOW_STOCK_THRESHOLD ?? 50)
 
 /**
  * Runs every 5 minutes — pre-allocates inventory to paid orders using FEFO
@@ -176,6 +177,29 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
               `${LOG} Insufficient stock for variant ${variantId} in order ${ext.order_id} ` +
                 `(need ${remaining} more)`
             )
+          }
+
+          // Emit low_stock event if total active stock dropped below threshold
+          try {
+            const remainingBatches = await batchService.listBatches(
+              { product_variant_id: variantId, status: "active" },
+              { take: null, select: ["available_quantity"] }
+            )
+            const totalStock = (remainingBatches as any[]).reduce(
+              (sum: number, b: any) => sum + Number(b.available_quantity), 0
+            )
+            if (totalStock < LOW_STOCK_THRESHOLD) {
+              const eventBus = container.resolve(Modules.EVENT_BUS) as any
+              await eventBus.emit({
+                name: "inventory.low_stock",
+                data: {
+                  product_variant_id: variantId,
+                  product_id: item.variant?.product_id ?? null,
+                },
+              })
+            }
+          } catch {
+            // Best-effort — don't block allocation
           }
         }
 

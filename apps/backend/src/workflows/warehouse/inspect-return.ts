@@ -9,6 +9,7 @@ import { PAYMENT_MODULE } from "../../modules/payment"
 import { INVENTORY_BATCH_MODULE } from "../../modules/inventoryBatch"
 import { NOTIFICATION_MODULE } from "../../modules/notification"
 import { PHARMA_MODULE } from "../../modules/pharma"
+import { LOYALTY_MODULE } from "../../modules/loyalty"
 
 // ─── Types ─────────────────────────────────────────────────────────
 
@@ -354,7 +355,92 @@ export const restockStep = createStep(
   }
 )
 
-// ─── Step 5: Notify customer about return outcome ──────────────────
+// ─── Step 5: Reverse loyalty points for returned OTC items ──────────
+
+export const reverseLoyaltyPointsStep = createStep(
+  "reverse-loyalty-points-step",
+  async (
+    input: {
+      order_id: string
+      inspectedItems: InspectedItem[]
+      refundAmount: number
+    },
+    { container }
+  ) => {
+    const loyaltyService = container.resolve(LOYALTY_MODULE) as any
+    const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
+
+    // Only reverse points for accepted OTC items (Rx never earned points)
+    const otcRefundAmount = input.inspectedItems
+      .filter((i) => i.accepted && i.schedule !== "H" && i.schedule !== "H1" && i.schedule !== "X")
+      .reduce((sum, i) => sum + i.unit_price * i.quantity_returned, 0)
+
+    if (otcRefundAmount <= 0) {
+      logger.info("[inspect-return] No OTC refund amount — no loyalty points to reverse")
+      return new StepResponse({ reversed: 0 })
+    }
+
+    // Points earned at 1 point per rupee
+    const pointsToReverse = Math.floor(otcRefundAmount)
+    if (pointsToReverse <= 0) {
+      return new StepResponse({ reversed: 0 })
+    }
+
+    // Find earn transactions for this order
+    try {
+      const earnTxns = await loyaltyService.listLoyaltyTransactions(
+        { reference_type: "order", reference_id: input.order_id, type: "earn" },
+        { take: 1 }
+      )
+
+      if (!earnTxns?.length) {
+        logger.info("[inspect-return] No loyalty earn txns found for order — skipping")
+        return new StepResponse({ reversed: 0 })
+      }
+
+      const accountId = earnTxns[0].account_id
+      const [account] = await loyaltyService.listLoyaltyAccounts(
+        { id: accountId },
+        { take: 1 }
+      )
+      if (!account) {
+        return new StepResponse({ reversed: 0 })
+      }
+
+      // Don't reverse more than the customer's current balance
+      const actualReverse = Math.min(pointsToReverse, account.points_balance)
+      if (actualReverse <= 0) {
+        return new StepResponse({ reversed: 0 })
+      }
+
+      await loyaltyService.createLoyaltyTransactions({
+        account_id: account.id,
+        type: "burn",
+        points: -actualReverse,
+        reference_type: "order",
+        reference_id: input.order_id,
+        reason: `Return: ${actualReverse} points reversed for returned OTC items`,
+      })
+
+      await loyaltyService.updateLoyaltyAccounts({
+        id: account.id,
+        points_balance: account.points_balance - actualReverse,
+      })
+
+      logger.info(
+        `[inspect-return] Reversed ${actualReverse} loyalty points for order ${input.order_id}`
+      )
+
+      return new StepResponse({ reversed: actualReverse })
+    } catch (err: any) {
+      // Non-fatal — don't block the return over loyalty points
+      logger.warn(`[inspect-return] Loyalty reversal failed: ${err.message}`)
+      return new StepResponse({ reversed: 0 })
+    }
+  }
+)
+
+// ─── Step 6: Notify customer about return outcome ──────────────────
 
 export const notifyCustomerStep = createStep(
   "notify-customer-step",
@@ -486,7 +572,14 @@ export const InspectReturnWorkflow = createWorkflow(
       order_id: input.order_id,
     })
 
-    // Step 5: Notify the customer about the return outcome
+    // Step 5: Reverse loyalty points for returned OTC items
+    reverseLoyaltyPointsStep({
+      order_id: input.order_id,
+      inspectedItems: inspection.inspectedItems,
+      refundAmount: refundResult.refundAmount,
+    })
+
+    // Step 6: Notify the customer about the return outcome
     notifyCustomerStep({
       order_id: input.order_id,
       acceptedCount: inspection.acceptedCount,
@@ -494,7 +587,7 @@ export const InspectReturnWorkflow = createWorkflow(
       refundAmount: refundResult.refundAmount,
     })
 
-    // Step 6: Emit audit event for analytics/compliance
+    // Step 7: Emit audit event for analytics/compliance
     emitReturnEventStep({
       return_id: input.return_id,
       order_id: input.order_id,

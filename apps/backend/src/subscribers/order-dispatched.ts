@@ -9,7 +9,7 @@ type OrderDispatchedData = {
   order_id?: string
 }
 
-export default async function handler({
+export default async function orderDispatchedHandler({
   event: { data },
   container,
 }: SubscriberArgs<OrderDispatchedData>) {

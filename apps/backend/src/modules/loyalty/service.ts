@@ -10,8 +10,11 @@ const TIER_THRESHOLDS = {
   platinum: 5000,
 } as const
 
-// Points per rupee spent on OTC orders
-const POINTS_PER_RUPEE = 1
+// Earning rate: 1 point per ₹50 spent on OTC orders (0.02 points per rupee)
+const POINTS_PER_RUPEE = 0.02
+
+// Redemption rate: 1 point = ₹1 discount
+const POINT_VALUE_INR = 1
 
 class LoyaltyModuleService extends MedusaService({
   LoyaltyAccount,
@@ -175,6 +178,16 @@ class LoyaltyModuleService extends MedusaService({
     const code = this.makeReferralCode()
     await this.updateLoyaltyAccounts({ id: account.id, referral_code: code })
     return code
+  }
+
+  /** Convert points to INR discount value */
+  pointsToInr(points: number): number {
+    return points * POINT_VALUE_INR
+  }
+
+  /** Convert INR amount to points needed */
+  inrToPoints(amount: number): number {
+    return Math.ceil(amount / POINT_VALUE_INR)
   }
 
   private computeTier(lifetimePoints: number): "bronze" | "silver" | "gold" | "platinum" {

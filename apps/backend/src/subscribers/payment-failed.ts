@@ -12,7 +12,7 @@ type PaymentFailedData = {
   cart_id?: string
 }
 
-export default async function handler({
+export default async function paymentFailedHandler({
   event: { data },
   container,
 }: SubscriberArgs<PaymentFailedData>) {

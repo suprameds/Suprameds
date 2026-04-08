@@ -35,7 +35,7 @@ export default async function FlagNearExpiryBatchesJob(
 
       if (daysUntilExpiry <= 0) {
         // Already expired — quarantine immediately
-        await batchService.updateBatches(batch.id, { status: "expired" })
+        await batchService.updateBatches({ id: batch.id, status: "expired" })
         expiredCount++
         logger.warn(
           `[expiry-job] Batch ${batch.lot_number} EXPIRED — quarantined`
@@ -48,7 +48,7 @@ export default async function FlagNearExpiryBatchesJob(
 
         // Too close to dispatch safely — quarantine
         if (daysUntilExpiry <= QUARANTINE_THRESHOLD_DAYS) {
-          await batchService.updateBatches(batch.id, { status: "quarantine" })
+          await batchService.updateBatches({ id: batch.id, status: "quarantine" })
         }
 
         logger.warn(

@@ -15,7 +15,7 @@ type PointsRedeemedData = {
 /**
  * Sends a push notification when a customer redeems loyalty points.
  */
-export default async function handler({
+export default async function loyaltyPointsRedeemedHandler({
   event: { data },
 }: SubscriberArgs<PointsRedeemedData>) {
   const { customer_id, points, remaining_balance } = data
