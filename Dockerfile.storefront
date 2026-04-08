@@ -40,7 +40,7 @@ ARG VITE_GSC_VERIFICATION
 RUN pnpm --filter storefront build
 
 # Produce a production-only node_modules via pnpm deploy
-RUN pnpm --filter storefront deploy --prod /app/pruned
+RUN pnpm --filter storefront deploy --legacy --prod /app/pruned
 
 # ──────────────────────────────────────────────
 # Stage 3: Production (Node.js — TanStack Start SSR)
