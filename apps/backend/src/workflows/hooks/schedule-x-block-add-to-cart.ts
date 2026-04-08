@@ -11,7 +11,7 @@ import { checkInteractions } from "../../utils/drug-interactions"
  * 3. Drug interaction warnings — non-blocking, attached to cart metadata
  */
 addToCartWorkflow.hooks.validate(async ({ input }, { container }) => {
-  const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
+  const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
   const items = input?.items ?? []
   if (items.length === 0) return
 
@@ -20,7 +20,7 @@ addToCartWorkflow.hooks.validate(async ({ input }, { container }) => {
     .filter((v): v is string => Boolean(v))
   if (variantIds.length === 0) return
 
-  const query = container.resolve(ContainerRegistrationKeys.QUERY)
+  const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
   const pharmaService = container.resolve(PHARMA_MODULE) as any
 
   const { data: variants } = await query.graph({

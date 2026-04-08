@@ -43,7 +43,7 @@ type InspectedItem = ReturnLineItem & {
 export const validateReturnStep = createStep(
   "validate-return-step",
   async (input: { return_id: string; order_id: string }, { container }) => {
-    const query = container.resolve(ContainerRegistrationKeys.QUERY)
+    const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
     const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
 
     // Verify the return exists in Medusa core
@@ -81,7 +81,7 @@ export const inspectItemsStep = createStep(
     input: { order_id: string; items: ReturnLineItem[] },
     { container }
   ) => {
-    const query = container.resolve(ContainerRegistrationKeys.QUERY)
+    const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
     const pharmaService = container.resolve(PHARMA_MODULE) as any
     const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
 
@@ -453,7 +453,7 @@ export const notifyCustomerStep = createStep(
     },
     { container }
   ) => {
-    const query = container.resolve(ContainerRegistrationKeys.QUERY)
+    const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
     const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
 
     // Resolve customer_id from the order
