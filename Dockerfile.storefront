@@ -27,19 +27,38 @@ ARG VITE_MEDUSA_BACKEND_URL
 ARG VITE_MEDUSA_PUBLISHABLE_KEY
 ARG VITE_FIREBASE_API_KEY
 ARG VITE_FIREBASE_PROJECT_ID
+ARG VITE_FIREBASE_AUTH_DOMAIN
+ARG VITE_FIREBASE_MESSAGING_SENDER_ID
+ARG VITE_FIREBASE_APP_ID
+ARG VITE_FIREBASE_MEASUREMENT_ID
+ARG VITE_FIREBASE_STORAGE_BUCKET
+ARG VITE_FIREBASE_VAPID_KEY
+ARG VITE_RAZORPAY_KEY_ID
+ARG VITE_SENTRY_DSN
+ARG VITE_GSC_VERIFICATION
 
 RUN pnpm --filter storefront build
 
 # ──────────────────────────────────────────────
-# Stage 3: Serve with Nginx
+# Stage 3: Production (Node.js — TanStack Start SSR)
 # ──────────────────────────────────────────────
-FROM nginx:1.27-alpine AS production
+FROM node:20-alpine AS production
+WORKDIR /app
 
-COPY --from=build /app/apps/storefront/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/templates/default.conf.template
+# Copy Nitro server output
+COPY --from=build /app/apps/storefront/.output ./.output
 
-ENV PORT=80
+# Security: run as non-root
+RUN addgroup -g 1001 -S storefront && adduser -S storefront -u 1001
+RUN chown -R storefront:storefront /app
+USER storefront
 
-EXPOSE ${PORT}
+# Railway injects $PORT; Nitro respects it via NITRO_PORT or PORT
+ENV PORT=3000
+ENV HOST=0.0.0.0
+EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q --spider http://localhost:${PORT:-3000}/ || exit 1
+
+CMD ["node", ".output/server/index.mjs"]
