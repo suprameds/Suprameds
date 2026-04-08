@@ -13,7 +13,7 @@ import {
   Text,
   toast,
 } from "@medusajs/ui"
-import { ArrowPath, EnvelopeSolid, LockClosedSolid, MagnifyingGlass, PlusMini, User, XMark } from "@medusajs/icons"
+import { ArrowPath, CheckCircleSolid, EnvelopeSolid, LockClosedSolid, MagnifyingGlass, PlusMini, User, XCircleSolid, XMark } from "@medusajs/icons"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { sdk } from "../../lib/client"
 
@@ -1549,6 +1549,267 @@ const StaffCredentialsTab = () => {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
+// ── Pending Signups Tab ──────────────────────────────────────────────────────
+
+type SignupRequest = {
+  id: string
+  email: string
+  first_name: string
+  last_name: string
+  requested_role_code: string
+  status: "pending" | "approved" | "rejected"
+  user_id: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  rejection_reason: string | null
+  created_at: string
+}
+
+const PendingSignupsTab = () => {
+  const [requests, setRequests] = useState<SignupRequest[]>([])
+  const [loading, setLoading] = useState(true)
+  const [statusFilter, setStatusFilter] = useState("pending")
+  const [processingId, setProcessingId] = useState<string | null>(null)
+  const [rejectId, setRejectId] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState("")
+
+  const fetchRequests = useCallback(async () => {
+    setLoading(true)
+    try {
+      const query: Record<string, string> = { limit: "50" }
+      if (statusFilter !== "all") query.status = statusFilter
+
+      const json = await sdk.client.fetch<{
+        signup_requests: SignupRequest[]
+        count: number
+      }>("/admin/rbac/signup-requests", { query })
+      setRequests(json.signup_requests ?? [])
+    } catch (err) {
+      console.error("[rbac-signup-requests]", err)
+      toast.error("Failed to load signup requests")
+    } finally {
+      setLoading(false)
+    }
+  }, [statusFilter])
+
+  useEffect(() => {
+    fetchRequests()
+  }, [fetchRequests])
+
+  const handleApprove = async (id: string) => {
+    setProcessingId(id)
+    try {
+      const json = await sdk.client.fetch<{ success: boolean; message: string }>(
+        `/admin/rbac/signup-requests/${id}/review`,
+        {
+          method: "POST",
+          body: { action: "approve" },
+        }
+      )
+      toast.success(json.message || "Request approved")
+      fetchRequests()
+    } catch (err: any) {
+      toast.error("Failed to approve", { description: err.message })
+    } finally {
+      setProcessingId(null)
+    }
+  }
+
+  const handleReject = async (id: string) => {
+    setProcessingId(id)
+    try {
+      const json = await sdk.client.fetch<{ success: boolean; message: string }>(
+        `/admin/rbac/signup-requests/${id}/review`,
+        {
+          method: "POST",
+          body: {
+            action: "reject",
+            rejection_reason: rejectReason.trim() || undefined,
+          },
+        }
+      )
+      toast.success(json.message || "Request rejected")
+      setRejectId(null)
+      setRejectReason("")
+      fetchRequests()
+    } catch (err: any) {
+      toast.error("Failed to reject", { description: err.message })
+    } finally {
+      setProcessingId(null)
+    }
+  }
+
+  const pendingCount = requests.filter((r) => r.status === "pending").length
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard
+          label="Pending Requests"
+          value={statusFilter === "pending" ? requests.length : pendingCount}
+          sub="Awaiting admin review"
+        />
+        <StatCard
+          label="Showing"
+          value={requests.length}
+          sub={statusFilter === "all" ? "All statuses" : `${statusFilter} only`}
+        />
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="w-48">
+          <Text className="text-xs text-ui-fg-subtle mb-1">Filter by status</Text>
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v)}>
+            <Select.Trigger>
+              <Select.Value placeholder="All statuses" />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value="all">All statuses</Select.Item>
+              <Select.Item value="pending">Pending</Select.Item>
+              <Select.Item value="approved">Approved</Select.Item>
+              <Select.Item value="rejected">Rejected</Select.Item>
+            </Select.Content>
+          </Select>
+        </div>
+        <Button variant="secondary" size="small" onClick={fetchRequests}>
+          <ArrowPath />
+          Refresh
+        </Button>
+      </div>
+
+      {/* Table */}
+      {loading ? (
+        <Text className="text-ui-fg-subtle p-4">Loading signup requests...</Text>
+      ) : requests.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Text className="text-ui-fg-subtle mb-1">
+            No signup requests found.
+          </Text>
+          <Text className="text-xs text-ui-fg-muted">
+            {statusFilter === "pending"
+              ? "There are no pending role escalation requests."
+              : "No requests match the selected filter."}
+          </Text>
+        </div>
+      ) : (
+        <Table>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>Name</Table.HeaderCell>
+              <Table.HeaderCell>Email</Table.HeaderCell>
+              <Table.HeaderCell>Requested Role</Table.HeaderCell>
+              <Table.HeaderCell>Status</Table.HeaderCell>
+              <Table.HeaderCell>Submitted</Table.HeaderCell>
+              <Table.HeaderCell className="text-right">Actions</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {requests.map((req) => (
+              <Table.Row key={req.id}>
+                <Table.Cell>
+                  <Text className="text-sm font-medium">
+                    {req.first_name} {req.last_name}
+                  </Text>
+                </Table.Cell>
+                <Table.Cell>
+                  <Text className="text-sm">{req.email}</Text>
+                </Table.Cell>
+                <Table.Cell>
+                  <Badge color="blue">{req.requested_role_code}</Badge>
+                </Table.Cell>
+                <Table.Cell>
+                  <Badge
+                    color={
+                      req.status === "pending"
+                        ? "orange"
+                        : req.status === "approved"
+                        ? "green"
+                        : "red"
+                    }
+                  >
+                    {req.status.toUpperCase()}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell>
+                  <Text className="text-sm text-ui-fg-subtle whitespace-nowrap">
+                    {fmtDateTime(req.created_at)}
+                  </Text>
+                </Table.Cell>
+                <Table.Cell className="text-right">
+                  {req.status === "pending" ? (
+                    <div className="flex justify-end gap-1">
+                      {rejectId === req.id ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            placeholder="Reason (optional)"
+                            value={rejectReason}
+                            onChange={(e) => setRejectReason(e.target.value)}
+                            className="w-48 text-xs"
+                          />
+                          <Button
+                            variant="danger"
+                            size="small"
+                            disabled={processingId === req.id}
+                            onClick={() => handleReject(req.id)}
+                          >
+                            Confirm
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            onClick={() => {
+                              setRejectId(null)
+                              setRejectReason("")
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <Button
+                            variant="primary"
+                            size="small"
+                            disabled={processingId === req.id}
+                            onClick={() => handleApprove(req.id)}
+                          >
+                            <CheckCircleSolid className="w-3.5 h-3.5" />
+                            Approve
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="small"
+                            disabled={processingId === req.id}
+                            onClick={() => setRejectId(req.id)}
+                          >
+                            <XCircleSolid className="w-3.5 h-3.5" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  ) : (
+                    <Text className="text-xs text-ui-fg-muted">
+                      {req.reviewed_at ? `Reviewed ${fmtDateTime(req.reviewed_at)}` : "--"}
+                      {req.rejection_reason && (
+                        <span className="block mt-0.5">
+                          Reason: {req.rejection_reason}
+                        </span>
+                      )}
+                    </Text>
+                  )}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table>
+      )}
+    </div>
+  )
+}
+
 const RolesPage = () => {
   return (
     <div className="flex flex-col gap-4">
@@ -1569,6 +1830,7 @@ const RolesPage = () => {
         <Tabs defaultValue="roles-overview">
           <Tabs.List>
             <Tabs.Trigger value="roles-overview">Roles Overview</Tabs.Trigger>
+            <Tabs.Trigger value="pending-signups">Pending Signups</Tabs.Trigger>
             <Tabs.Trigger value="invite-user">Invite User</Tabs.Trigger>
             <Tabs.Trigger value="user-roles">User Roles</Tabs.Trigger>
             <Tabs.Trigger value="credentials">Staff Credentials</Tabs.Trigger>
@@ -1577,6 +1839,10 @@ const RolesPage = () => {
 
           <Tabs.Content value="roles-overview" className="pt-4">
             <RolesOverviewTab />
+          </Tabs.Content>
+
+          <Tabs.Content value="pending-signups" className="pt-4">
+            <PendingSignupsTab />
           </Tabs.Content>
 
           <Tabs.Content value="invite-user" className="pt-4">

@@ -4,6 +4,7 @@ import { ImageGallery } from "@/components/ui/image-gallery"
 import TabSections from "@/components/pdp/tab-sections"
 import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
 import { trackViewItem } from "@/lib/utils/analytics"
+import { addRecentlyViewed } from "@/lib/utils/recently-viewed"
 import { useLoaderData } from "@tanstack/react-router"
 import { useEffect } from "react"
 
@@ -53,6 +54,12 @@ const ProductDetails = () => {
 
   useEffect(() => {
     trackViewItem(product, region?.currency_code?.toUpperCase() || "INR")
+    addRecentlyViewed({
+      id: product.id,
+      title: product.title || "",
+      handle: product.handle || "",
+      thumbnail: product.thumbnail || null,
+    })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id])
 

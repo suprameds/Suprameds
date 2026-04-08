@@ -47,7 +47,16 @@ vi.mock("@/components/stripe-card-container", () => ({
 }))
 
 vi.mock("@/lib/utils/query-keys", () => ({
-  queryKeys: { cart: { detail: (id: string) => ["cart", id], predicate: () => false } },
+  queryKeys: {
+    cart: { detail: (id: string) => ["cart", id], predicate: () => false },
+    wallet: { all: ["wallet"], balance: () => ["wallet", "balance"] },
+  },
+}))
+
+vi.mock("@/lib/hooks/use-wallet", () => ({
+  useWallet: () => ({ data: null, isLoading: false }),
+  useApplyWallet: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useRemoveWallet: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }))
 
 import PaymentStep from "@/components/checkout-payment-step"

@@ -3,6 +3,7 @@ import { Modules } from "@medusajs/framework/utils"
 import { sendPushToCustomerTopic } from "../lib/firebase-messaging"
 import { INVENTORY_BATCH_MODULE } from "../modules/inventoryBatch"
 import { LOYALTY_MODULE } from "../modules/loyalty"
+import { WALLET_MODULE } from "../modules/wallet"
 import { captureException } from "../lib/sentry"
 import { createLogger } from "../lib/logger"
 
@@ -205,7 +206,44 @@ export default async function orderCanceledHandler({
     captureException(refundErr, { subscriber: "order-canceled", orderId, step: "auto-refund-check" })
   }
 
-  // 3. Send push notification to customer
+  // 4. Credit wallet with COD order amount (or any non-refundable-to-gateway amount)
+  try {
+    const orderService = container.resolve(Modules.ORDER) as any
+    const order = await orderService.retrieveOrder(orderId, {
+      relations: ["payment_collections", "payment_collections.payments"],
+    })
+
+    if (order?.customer_id && order.total > 0) {
+      // Check if this was a prepaid order that was already gateway-refunded
+      const capturedPayments = order.payment_collections
+        ?.flatMap((pc: any) => pc.payments ?? [])
+        ?.filter((p: any) => p.captured_at && !p.canceled_at) ?? []
+      const isGatewayRefunded = capturedPayments.length > 0
+
+      // For COD orders or orders where gateway refund failed, credit wallet
+      if (!isGatewayRefunded) {
+        const walletService = container.resolve(WALLET_MODULE) as any
+        const result = await walletService.creditWallet(
+          order.customer_id,
+          order.total,
+          "cancellation",
+          orderId,
+          `Refund for cancelled order #${order.display_id ?? orderId}`
+        )
+        logger.info(
+          `Credited ₹${order.total} to wallet for cancelled order ${orderId} ` +
+            `(new balance: ₹${result.new_balance})`
+        )
+      }
+    }
+  } catch (err) {
+    logger.warn(
+      `Wallet credit failed for cancelled order ${orderId}: ${(err as Error).message}`
+    )
+    captureException(err, { subscriber: "order-canceled", orderId, step: "wallet-credit" })
+  }
+
+  // 5. Send push notification to customer
   try {
     const orderService = container.resolve(Modules.ORDER) as any
     const order = await orderService.retrieveOrder(orderId, {

@@ -3,6 +3,7 @@ import { useState } from "react"
 import {
   useCustomerAddresses,
   useCreateAddress,
+  useUpdateAddress,
   useDeleteAddress,
 } from "@/lib/hooks/use-customer"
 
@@ -43,12 +44,71 @@ const emptyForm: AddressForm = {
 function AddressesPage() {
   const { data: addresses, isLoading } = useCustomerAddresses()
   const createAddress = useCreateAddress()
+  const updateAddress = useUpdateAddress()
   const deleteAddress = useDeleteAddress()
 
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<AddressForm>(emptyForm)
   const [formError, setFormError] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const startEditing = (address: any) => {
+    setEditingId(address.id)
+    setForm({
+      first_name: address.first_name || "",
+      last_name: address.last_name || "",
+      address_1: address.address_1 || "",
+      address_2: address.address_2 || "",
+      city: address.city || "",
+      province: address.province || "",
+      postal_code: address.postal_code || "",
+      phone: address.phone || "",
+    })
+    setShowForm(false)
+    setFormError("")
+  }
+
+  const cancelEditing = () => {
+    setEditingId(null)
+    setForm(emptyForm)
+    setFormError("")
+  }
+
+  const handleUpdateAddress = (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError("")
+
+    if (!form.first_name || !form.last_name || !form.address_1 || !form.city || !form.postal_code) {
+      setFormError("Please fill in all required fields.")
+      return
+    }
+
+    updateAddress.mutate(
+      {
+        addressId: editingId!,
+        data: {
+          first_name: form.first_name,
+          last_name: form.last_name,
+          address_1: form.address_1,
+          address_2: form.address_2 || undefined,
+          city: form.city,
+          province: form.province || undefined,
+          postal_code: form.postal_code,
+          country_code: "in",
+          phone: form.phone || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          cancelEditing()
+        },
+        onError: () => {
+          setFormError("Failed to update address. Please try again.")
+        },
+      }
+    )
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm((p) => ({ ...p, [e.target.name]: e.target.value }))
@@ -196,37 +256,85 @@ function AddressesPage() {
             <div
               key={address.id}
               className="bg-[var(--bg-secondary)] border rounded-xl p-5 flex flex-col justify-between gap-4"
-              style={{ borderColor: "var(--border-primary)" }}
+              style={{ borderColor: editingId === address.id ? "var(--brand-green)" : "var(--border-primary)" }}
             >
-              <div>
-                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                  {address.first_name} {address.last_name}
-                </p>
-                <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                  {address.address_1}
-                  {address.address_2 && `, ${address.address_2}`}
-                  <br />
-                  {address.city}{address.province ? `, ${address.province}` : ""} — {address.postal_code}
-                  <br />
-                  India
-                </p>
-                {address.phone && (
-                  <p className="text-xs mt-1.5" style={{ color: "var(--text-tertiary)" }}>
-                    +91 {address.phone}
-                  </p>
-                )}
-              </div>
+              {editingId === address.id ? (
+                <form onSubmit={handleUpdateAddress} className="flex flex-col gap-3">
+                  <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Edit address</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="First name *" name="first_name" value={form.first_name} onChange={handleChange} />
+                    <Field label="Last name *" name="last_name" value={form.last_name} onChange={handleChange} />
+                  </div>
+                  <Field label="Address line 1 *" name="address_1" value={form.address_1} onChange={handleChange} />
+                  <Field label="Address line 2" name="address_2" value={form.address_2} onChange={handleChange} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="City *" name="city" value={form.city} onChange={handleChange} />
+                    <Field label="State" name="province" value={form.province} onChange={handleChange} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="PIN code *" name="postal_code" value={form.postal_code} onChange={handleChange} />
+                    <Field label="Phone" name="phone" value={form.phone} onChange={handleChange} />
+                  </div>
+                  {formError && <p className="text-sm" style={{ color: "var(--brand-red)" }}>{formError}</p>}
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      type="submit"
+                      disabled={updateAddress.isPending}
+                      className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
+                      style={{ background: "var(--bg-inverse)" }}
+                    >
+                      {updateAddress.isPending ? "Saving..." : "Save changes"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEditing}
+                      className="px-4 py-2 rounded-lg text-sm font-medium border transition-all hover:bg-gray-50"
+                      style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                      {address.first_name} {address.last_name}
+                    </p>
+                    <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                      {address.address_1}
+                      {address.address_2 && `, ${address.address_2}`}
+                      <br />
+                      {address.city}{address.province ? `, ${address.province}` : ""} — {address.postal_code}
+                      <br />
+                      India
+                    </p>
+                    {address.phone && (
+                      <p className="text-xs mt-1.5" style={{ color: "var(--text-tertiary)" }}>
+                        +91 {address.phone}
+                      </p>
+                    )}
+                  </div>
 
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleDelete(address.id)}
-                  disabled={deletingId === address.id}
-                  className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-red-50 disabled:opacity-60"
-                  style={{ color: "var(--brand-red)", borderColor: "#FECACA" }}
-                >
-                  {deletingId === address.id ? "Removing..." : "Remove"}
-                </button>
-              </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => startEditing(address)}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-gray-50"
+                      style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)" }}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(address.id)}
+                      disabled={deletingId === address.id}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-red-50 disabled:opacity-60"
+                      style={{ color: "var(--brand-red)", borderColor: "#FECACA" }}
+                    >
+                      {deletingId === address.id ? "Removing..." : "Remove"}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ))}
         </div>

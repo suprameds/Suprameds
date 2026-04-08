@@ -4,6 +4,7 @@ import OverrideRequest from "./models/override-request"
 import PharmacyLicense from "./models/pharmacy-license"
 import DpdpConsent from "./models/dpdp-consent"
 import H1RegisterEntry from "./models/h1-register-entry"
+import CustomerDocument from "./models/customer-document"
 
 class ComplianceModuleService extends MedusaService({
   PhiAuditLog,
@@ -11,6 +12,7 @@ class ComplianceModuleService extends MedusaService({
   PharmacyLicense,
   DpdpConsent,
   H1RegisterEntry,
+  CustomerDocument,
 }) {
   async runChecklist(data: {
     order_id: string

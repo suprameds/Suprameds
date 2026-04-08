@@ -184,6 +184,12 @@ export default defineMiddlewares({
       method: "GET",
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
+    // Customer invoice email — authenticated customers only
+    {
+      matcher: "/store/invoices/:orderId/email",
+      method: "POST",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
     // Refill reminders — authenticated customers only
     {
       matcher: "/store/reminders",
@@ -196,6 +202,28 @@ export default defineMiddlewares({
     // Wishlist — authenticated customers only
     {
       matcher: "/store/wishlist*",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // Notifications — authenticated customers only
+    {
+      matcher: "/store/notifications",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    {
+      matcher: "/store/notifications/:id/read",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // Wallet — authenticated customers only
+    {
+      matcher: "/store/wallet",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    {
+      matcher: "/store/wallet/apply",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    {
+      matcher: "/store/wallet/remove",
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
     // Loyalty — authenticated customers only (except validate-referral which is public for signup)
@@ -290,6 +318,18 @@ export default defineMiddlewares({
       method: "POST",
       middlewares: [
         createRateLimiter({ windowMs: 60 * 1000, maxRequests: 10 }),
+      ],
+    },
+
+    // ── Admin self-registration — NO auth required ──────────────────────
+    // Must appear before the /admin/* MFA guard so it's accessible to anonymous users.
+    // Uses allowUnauthenticated to bypass Medusa's default admin auth middleware.
+    {
+      matcher: "/admin/auth/register",
+      method: "POST",
+      middlewares: [
+        authenticate("user", ["bearer", "session"], { allowUnauthenticated: true }),
+        createRateLimiter({ windowMs: 10 * 60 * 1000, maxRequests: 5 }),
       ],
     },
 
@@ -394,6 +434,13 @@ export default defineMiddlewares({
       middlewares: [authorize("role", "delete")],
     },
 
+    // Signup request review — requires role:write permission
+    {
+      matcher: "/admin/rbac/signup-requests/*/review",
+      method: "POST",
+      middlewares: [authorize("role", "write")],
+    },
+
     // Analytics — read requires permission
     {
       matcher: "/admin/analytics/*",
@@ -432,6 +479,38 @@ export default defineMiddlewares({
       matcher: "/admin/pharma/export",
       method: "GET",
       middlewares: [authorize("product", "export")],
+    },
+
+    // ── Customer document verification routes ──────────────────────────
+    // Document upload needs a larger body limit for base64 image data
+    {
+      matcher: "/store/documents/upload",
+      method: "POST",
+      bodyParser: { sizeLimit: "15mb" },
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    {
+      matcher: "/store/documents/upload",
+      method: "POST",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 5 }),
+      ],
+    },
+    {
+      matcher: "/store/documents",
+      method: "GET",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
+    // Admin document review routes
+    {
+      matcher: "/admin/documents",
+      method: "GET",
+      middlewares: [authorize("compliance", "read")],
+    },
+    {
+      matcher: "/admin/documents/:id/review",
+      method: "POST",
+      middlewares: [authorize("compliance", "write")],
     },
 
     // ── Sentry error handler — MUST be last to catch unhandled route errors ──

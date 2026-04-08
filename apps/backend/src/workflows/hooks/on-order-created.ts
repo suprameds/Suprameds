@@ -3,6 +3,7 @@ import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../../modules/prescription"
 import { PHARMA_MODULE } from "../../modules/pharma"
 import { LOYALTY_MODULE } from "../../modules/loyalty"
+import { WALLET_MODULE } from "../../modules/wallet"
 
 /**
  * Single combined hook for completeCartWorkflow.orderCreated.
@@ -10,6 +11,7 @@ import { LOYALTY_MODULE } from "../../modules/loyalty"
  *
  * 1. Link prescription to order + auto-create Rx lines
  * 2. Burn loyalty points if redeemed during checkout
+ * 3. Debit wallet balance if applied during checkout
  */
 // @ts-ignore — orderCreated hook exists at runtime but missing from TS declarations
 ;(completeCartWorkflow.hooks as any).orderCreated(
@@ -33,6 +35,9 @@ import { LOYALTY_MODULE } from "../../modules/loyalty"
 
     // ── Task 2: Burn loyalty points ──
     await burnLoyaltyPoints(container, orderId, cart)
+
+    // ── Task 3: Debit wallet balance ──
+    await debitWalletBalance(container, orderId, cart)
   }
 )
 
@@ -193,5 +198,53 @@ async function burnLoyaltyPoints(container: any, orderId: string, cart: any) {
       `[hook:loyalty-burn] Failed to burn points for order ${orderId}: ${err.message}`
     )
     // Non-fatal: order should still complete even if loyalty burn fails
+  }
+}
+
+// ─────────────────────────────────────────────────
+// Task 3: Wallet balance debit
+// ─────────────────────────────────────────────────
+async function debitWalletBalance(container: any, orderId: string, cart: any) {
+  const meta = (cart?.metadata ?? {}) as Record<string, any>
+  const walletAmount = Number(meta.wallet_amount ?? 0)
+  const walletAccountId = meta.wallet_account_id as string | undefined
+
+  if (!walletAmount || walletAmount <= 0 || !walletAccountId) return
+
+  try {
+    const walletService = container.resolve(WALLET_MODULE) as any
+
+    // Verify account still has enough balance
+    const [account] = await walletService.listWalletAccounts(
+      { id: walletAccountId },
+      { take: 1 }
+    )
+
+    if (!account) {
+      console.warn(`[hook:wallet-debit] Account ${walletAccountId} not found`)
+      return
+    }
+
+    const actualDebit = Math.min(walletAmount, account.balance)
+    if (actualDebit <= 0) return
+
+    // Debit the wallet
+    await walletService.debitWallet(
+      account.customer_id,
+      actualDebit,
+      "checkout",
+      orderId,
+      `Applied ₹${actualDebit} wallet balance on order ${orderId}`
+    )
+
+    console.info(
+      `[hook:wallet-debit] Debited ₹${actualDebit} from wallet for order ${orderId} ` +
+        `(account ${account.id}, new balance: ₹${account.balance - actualDebit})`
+    )
+  } catch (err: any) {
+    console.error(
+      `[hook:wallet-debit] Failed to debit wallet for order ${orderId}: ${err.message}`
+    )
+    // Non-fatal: order should still complete even if wallet debit fails
   }
 }

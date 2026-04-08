@@ -101,6 +101,7 @@ export default defineConfig({
     pharmaLoyalty: { resolve: "./src/modules/loyalty" },
     pharmaWishlist: { resolve: "./src/modules/wishlist" },
     pharmaNotification: { resolve: "./src/modules/notification" },
+    wallet: { resolve: "./src/modules/wallet" },
     fulfillment: {
       resolve: "@medusajs/medusa/fulfillment",
       options: {

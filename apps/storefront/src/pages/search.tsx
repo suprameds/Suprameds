@@ -1,4 +1,5 @@
 import ProductCard from "@/components/product-card"
+import { SearchCategoryChips } from "@/components/search-category-chips"
 import { useSearch, type SearchProduct } from "@/lib/hooks/use-search"
 import { trackSearch } from "@/lib/utils/analytics"
 import { Link, useLoaderData, useNavigate } from "@tanstack/react-router"
@@ -32,6 +33,7 @@ const Search = () => {
 
   const [input, setInput] = useState(q || "")
   const [offset, setOffset] = useState(0)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
   // Sync input when URL query param changes (e.g. navbar submit)
   const prevQ = useRef(q)
@@ -50,6 +52,7 @@ const Search = () => {
     q: debouncedInput,
     limit: RESULTS_PER_PAGE,
     offset,
+    categoryId: selectedCategory || undefined,
   })
 
   const products = data?.products ?? []
@@ -125,6 +128,17 @@ const Search = () => {
             </button>
           </div>
         </form>
+
+        {/* Disease/category filter chips */}
+        <div className="max-w-2xl mx-auto mb-8">
+          <SearchCategoryChips
+            selected={selectedCategory}
+            onSelect={(cat) => {
+              setSelectedCategory(cat)
+              setOffset(0)
+            }}
+          />
+        </div>
 
         {/* Results */}
         {showResults ? (
