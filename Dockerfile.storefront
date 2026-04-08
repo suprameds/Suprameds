@@ -39,21 +39,18 @@ ARG VITE_GSC_VERIFICATION
 
 RUN pnpm --filter storefront build
 
-# Produce a production-only node_modules via pnpm deploy
-RUN pnpm --filter storefront deploy --legacy --prod /app/pruned
+# Verify Nitro output exists
+RUN test -f apps/storefront/.output/server/index.mjs \
+    || (echo "ERROR: Nitro server was not built — .output/server/index.mjs missing" && exit 1)
 
 # ──────────────────────────────────────────────
-# Stage 3: Production (Node.js — TanStack Start SSR)
+# Stage 3: Production (Nitro standalone server)
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS production
-WORKDIR /app/apps/storefront
+WORKDIR /app
 
-# Build output only
-COPY --from=build /app/apps/storefront/dist ./dist
-
-# Production-only dependencies from pnpm deploy (single flat node_modules)
-COPY --from=build /app/pruned/node_modules ./node_modules
-COPY --from=build /app/pruned/package.json ./package.json
+# Nitro bundles all dependencies — just copy .output
+COPY --from=build /app/apps/storefront/.output ./.output
 
 # Security: run as non-root
 RUN addgroup -g 1001 -S storefront && adduser -S storefront -u 1001
@@ -67,4 +64,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=600s --retries=3 \
   CMD wget -q --spider http://localhost:${PORT:-3000}/ || exit 1
 
-CMD ["node", "dist/server/server.js"]
+CMD ["node", ".output/server/index.mjs"]
