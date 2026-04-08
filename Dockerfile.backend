@@ -56,7 +56,10 @@ COPY --from=build /app/apps/backend/.medusa/server ./server
 # We install ALL deps (not --omit=dev) because react/react-dom are in
 # devDependencies but needed at runtime by @react-email/render for
 # notification email template rendering.
-RUN cd server && npm install 2>&1 | tail -5
+# npm install in the server dir. Show output for debugging.
+# Verify the medusa CLI binary exists after install.
+RUN cd server && npm install && \
+    test -f node_modules/.bin/medusa || (echo "ERROR: medusa CLI not found after npm install" && ls -la node_modules/.bin/ && exit 1)
 
 # Copy the cloud startup script (runs migrations + starts medusa)
 COPY apps/backend/src/scripts/cloud-start.mjs ./cloud-start.mjs
