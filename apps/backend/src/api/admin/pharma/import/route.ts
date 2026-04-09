@@ -226,28 +226,46 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       })
       const variant = (variants as any[])[0]
 
-      // Inventory — create if this is a new product
-      if (isNew && variant?.id) {
-        const { result: invItems } = await createInventoryItemsWorkflow(container).run({
-          input: { items: [{ sku }] as any },
-        })
-        const invItem = (invItems as any[])[0]
-        if (invItem?.id) {
-          await batchInventoryItemLevelsWorkflow(container).run({
-            input: {
-              creates: [{
-                inventory_item_id: invItem.id,
-                location_id: stockLocation.id,
-                stocked_quantity: Number(row.stock_qty) || 50,
-              }],
-              updates: [],
-              deletes: [],
-            } as any,
-          })
-          await link.create({
-            [Modules.PRODUCT]: { variant_id: variant.id },
-            [Modules.INVENTORY]: { inventory_item_id: invItem.id },
-          })
+      // Inventory — create if not already linked to this variant
+      if (variant?.id) {
+        // Check if variant already has an inventory item
+        const { data: existingInvLinks } = await query.graph({
+          entity: "product_variant_inventory_item",
+          fields: ["inventory_item_id"],
+          filters: { variant_id: [variant.id] },
+        }).catch(() => ({ data: [] }))
+
+        if (!(existingInvLinks as any[])?.length) {
+          try {
+            const { result: invItems } = await createInventoryItemsWorkflow(container).run({
+              input: { items: [{ sku }] as any },
+            })
+            const invItem = (invItems as any[])[0]
+            if (invItem?.id) {
+              await batchInventoryItemLevelsWorkflow(container).run({
+                input: {
+                  creates: [{
+                    inventory_item_id: invItem.id,
+                    location_id: stockLocation.id,
+                    stocked_quantity: Number(row.stock_qty) || 50,
+                  }],
+                  updates: [],
+                  deletes: [],
+                } as any,
+              })
+              await link.create({
+                [Modules.PRODUCT]: { variant_id: variant.id },
+                [Modules.INVENTORY]: { inventory_item_id: invItem.id },
+              })
+            }
+          } catch (invErr: any) {
+            // SKU already exists — find and link the existing inventory item
+            if (invErr.message?.includes("already exists")) {
+              logger.info(`[csv-import]   ↳ Inventory item ${sku} already exists, skipping`)
+            } else {
+              throw invErr
+            }
+          }
         }
       }
 
