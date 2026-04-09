@@ -34,8 +34,11 @@ completeCartWorkflow.hooks.validate(
           )
         }
       } catch (err: any) {
-        // Re-throw MedusaErrors (our validation), swallow others (service unavailable)
+        // Re-throw MedusaErrors (our validation), log and swallow others (service unavailable)
         if (err?.type === MedusaError.Types.NOT_ALLOWED) throw err
+        // Log non-validation errors so they're visible in monitoring
+        const logger = container.resolve("logger") as any
+        logger?.warn?.(`[pincode-check] Non-blocking error for ${shippingPincode}: ${err?.message}`)
       }
     }
 
