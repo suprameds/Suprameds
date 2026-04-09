@@ -1,5 +1,5 @@
 import { completeCartWorkflow } from "@medusajs/medusa/core-flows"
-import { MedusaError, Modules } from "@medusajs/framework/utils"
+import { MedusaError, ModuleRegistrationName, Modules } from "@medusajs/framework/utils"
 import { PHARMA_MODULE } from "../../modules/pharma"
 import { PRESCRIPTION_MODULE } from "../../modules/prescription"
 
@@ -20,6 +20,24 @@ import { PRESCRIPTION_MODULE } from "../../modules/prescription"
 completeCartWorkflow.hooks.validate(
   async ({ cart }, { container }) => {
     if (!cart.items || cart.items.length === 0) return
+
+    // ── Pincode serviceability check ────────────────────────────────
+    const shippingPincode = (cart as any).shipping_address?.postal_code?.trim()
+    if (shippingPincode && /^\d{6}$/.test(shippingPincode)) {
+      try {
+        const warehouseService = container.resolve("pharmaWarehouse") as any
+        const result = await warehouseService.checkPincode(shippingPincode)
+        if (!result?.serviceable) {
+          throw new MedusaError(
+            MedusaError.Types.NOT_ALLOWED,
+            `Delivery is not available to pincode ${shippingPincode}. Please update your shipping address.`
+          )
+        }
+      } catch (err: any) {
+        // Re-throw MedusaErrors (our validation), swallow others (service unavailable)
+        if (err?.type === MedusaError.Types.NOT_ALLOWED) throw err
+      }
+    }
 
     const pharmaService = container.resolve(PHARMA_MODULE) as any
     const prescriptionService = container.resolve(PRESCRIPTION_MODULE) as any

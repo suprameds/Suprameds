@@ -132,6 +132,27 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
     setSubmitError(null)
 
     try {
+      // Validate pincode serviceability for Indian addresses
+      const pincode = shippingAddress.postal_code?.trim()
+      if (pincode && /^\d{6}$/.test(pincode)) {
+        try {
+          const res = await fetch(
+            `${import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"}/store/pincodes/check?pincode=${pincode}`,
+            { headers: { "x-publishable-api-key": import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY || "" } }
+          )
+          if (res.ok) {
+            const data = await res.json()
+            if (!data.serviceable) {
+              setSubmitError(`Delivery is not available to pincode ${pincode}. ${data.message || "Please use a different address."}`)
+              setIsSubmitting(false)
+              return
+            }
+          }
+        } catch {
+          // Pincode check failed — don't block checkout, server-side will catch it
+        }
+      }
+
       const submitData = new FormData()
 
       submitData.append("email", email)
