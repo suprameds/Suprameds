@@ -80,8 +80,8 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const collectionByHandle = new Map<string, any>((collections as any[]).map(c => [c.handle, c]))
 
   // ── Split rows into new vs existing ────────────────────────────────
-  const newRows: (Record<string, string> & { _handle: string; _sku: string })[] = []
-  const existingRows: (Record<string, string> & { _handle: string; _sku: string; _productId: string })[] = []
+  const newRows: any[] = []
+  const existingRows: any[] = []
 
   for (const row of rows) {
     if (!row.brand_name) continue
