@@ -302,72 +302,67 @@ const CreateMedicinePage = () => {
       return
     }
 
-    // Step 2: send one product at a time so we can show per-product progress
-    let created = 0
-    let skipped = 0
-    let errored = 0
-    const allResults: { brand_name: string; status: string; message?: string }[] = []
-
-    for (let i = 0; i < rows.length; i++) {
-      if (abortImport.current) {
-        setImportProgress((p) => ({ ...p, state: "error", message: `Cancelled after ${i} rows. ${created} products were created.` }))
-        break
-      }
-
-      const row = rows[i]
-      const percent = Math.round(5 + ((i + 1) / rows.length) * 90)
-
-      setImportProgress({
-        state: "uploading",
-        message: `Creating "${row.brand_name}" (${i + 1} of ${rows.length})...`,
-        totalRows: rows.length,
-        rowsSent: i + 1,
-        rowsImported: created,
-        rowsSkipped: skipped,
-        rowsErrored: errored,
-        percent: i + 1 === rows.length ? 99 : percent,
-      })
-
-      try {
-        const result = await sdk.client.fetch<{
-          summary: { created: number; skipped: number; errors: number }
-          results: { brand_name: string; status: string; message?: string }[]
-        }>("/admin/pharma/import", {
-          method: "POST",
-          body: { rows: [row], row_index: i, total_rows: rows.length },
-        })
-
-        const r = result?.results?.[0]
-        if (r) {
-          allResults.push(r)
-          if (r.status === "created") created++
-          else if (r.status === "skipped") skipped++
-          else errored++
-        }
-      } catch (err: any) {
-        const errMsg = err?.message || "Unknown error"
-        allResults.push({ brand_name: row.brand_name, status: "error", message: errMsg })
-        errored++
-      }
-    }
-
-    // Final state
-    setImportResults(allResults)
+    // Step 2: batch import — send all rows at once to the batch endpoint
     setImportProgress({
-      state: errored > 0 ? "error" : "done",
-      message: `Done: ${created} created, ${skipped} skipped, ${errored} errors.`,
+      state: "uploading",
+      message: `Importing ${rows.length} products in batch mode...`,
       totalRows: rows.length,
       rowsSent: rows.length,
-      rowsImported: created,
-      rowsSkipped: skipped,
-      rowsErrored: errored,
-      percent: 100,
+      rowsImported: 0,
+      rowsSkipped: 0,
+      rowsErrored: 0,
+      percent: 15,
     })
 
-    if (errored === 0) {
-      toast.success(`Imported ${created} products, ${skipped} skipped`)
-    } else {
-      toast.error(`${created} created, ${errored} errors — check details below`)
+    let created = 0
+    let updated = 0
+    let errored = 0
+
+    try {
+      const result = await sdk.client.fetch<{
+        summary: { total: number; created: number; updated: number; errors: number; elapsed_seconds: number }
+        errors: { brand_name: string; phase: string; message: string }[]
+      }>("/admin/pharma/import/batch", {
+        method: "POST",
+        body: { rows },
+      })
+
+      created = result.summary?.created ?? 0
+      updated = result.summary?.updated ?? 0
+      errored = result.summary?.errors ?? 0
+      const elapsed = result.summary?.elapsed_seconds ?? 0
+
+      // Map errors to results format for the table
+      const allResults = [
+        ...Array(created).fill(null).map((_, i) => ({ brand_name: `Product ${i + 1}`, status: "created" as const })),
+        ...Array(updated).fill(null).map((_, i) => ({ brand_name: `Existing ${i + 1}`, status: "updated" as const })),
+        ...(result.errors || []).map(e => ({ brand_name: e.brand_name, status: "error" as const, message: `[${e.phase}] ${e.message}` })),
+      ]
+      setImportResults(allResults)
+
+      setImportProgress({
+        state: errored > 0 ? "error" : "done",
+        message: `Done in ${elapsed}s: ${created} created, ${updated} updated, ${errored} errors.`,
+        totalRows: rows.length,
+        rowsSent: rows.length,
+        rowsImported: created + updated,
+        rowsSkipped: 0,
+        rowsErrored: errored,
+        percent: 100,
+      })
+
+      if (errored === 0) {
+        toast.success(`Imported ${created} products in ${elapsed}s`)
+      } else {
+        toast.error(`${created} created, ${errored} errors — check details below`)
+      }
+    } catch (err: any) {
+      setImportProgress({
+        ...IDLE_IMPORT,
+        state: "error",
+        message: `Batch import failed: ${err.message}`,
+      })
+      toast.error("Import failed", { description: err.message })
     }
 
     if (fileInputRef.current) fileInputRef.current.value = ""

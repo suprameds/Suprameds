@@ -476,6 +476,12 @@ export default defineMiddlewares({
       middlewares: [authorize("product", "import")],
     },
     {
+      matcher: "/admin/pharma/import/batch",
+      method: "POST",
+      bodyParser: { sizeLimit: "50mb" },
+      middlewares: [authorize("product", "import")],
+    },
+    {
       matcher: "/admin/pharma/export",
       method: "GET",
       middlewares: [authorize("product", "export")],
