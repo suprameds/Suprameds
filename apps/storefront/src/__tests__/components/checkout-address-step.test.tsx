@@ -2,6 +2,13 @@ import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
+// Mock fetch globally — pincode serviceability check calls fetch before mutation
+const mockFetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: () => Promise.resolve({ serviceable: true }),
+})
+vi.stubGlobal("fetch", mockFetch)
+
 const mockMutateAsync = vi.fn()
 
 vi.mock("@/lib/hooks/use-checkout", () => ({
@@ -121,6 +128,8 @@ describe("AddressStep", () => {
   })
 
   it("displays error message when mutation fails", async () => {
+    // Pincode check passes, but address mutation fails
+    mockFetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ serviceable: true }) })
     mockMutateAsync.mockRejectedValueOnce(new Error("Network error"))
 
     render(<AddressStep cart={cart} onNext={onNext} />)
