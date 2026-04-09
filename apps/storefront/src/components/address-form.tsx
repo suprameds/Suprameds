@@ -11,7 +11,7 @@ import { countries } from "@/lib/constants/countries"
 import { HttpTypes } from "@medusajs/types"
 import { AddressFormData } from "@/lib/types/global"
 import { clsx } from "clsx"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 type AddressData = HttpTypes.StoreCreateCustomerAddress | HttpTypes.StoreAddAddress | AddressFormData;
 
@@ -44,6 +44,42 @@ const AddressForm = ({
   const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>(
     {}
   )
+  const [pincodeStatus, setPincodeStatus] = useState<"idle" | "checking" | "serviceable" | "not-serviceable">("idle")
+  const pincodeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Debounced pincode serviceability check
+  const checkPincode = useCallback((pincode: string) => {
+    if (pincodeTimerRef.current) clearTimeout(pincodeTimerRef.current)
+
+    if (!pincode || !/^\d{6}$/.test(pincode)) {
+      setPincodeStatus("idle")
+      return
+    }
+
+    setPincodeStatus("checking")
+    pincodeTimerRef.current = setTimeout(async () => {
+      try {
+        const backendUrl = typeof import.meta !== "undefined"
+          ? import.meta.env?.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"
+          : "http://localhost:9000"
+        const res = await fetch(
+          `${backendUrl}/store/pincodes/check?pincode=${pincode}`,
+          { headers: { "x-publishable-api-key": import.meta.env?.VITE_MEDUSA_PUBLISHABLE_KEY || "" } }
+        )
+        if (res.ok) {
+          const data = await res.json()
+          setPincodeStatus(data.serviceable ? "serviceable" : "not-serviceable")
+          if (!data.serviceable) {
+            setErrors((prev) => ({ ...prev, postal_code: `Delivery not available to ${pincode}` }))
+          } else {
+            setErrors((prev) => ({ ...prev, postal_code: "" }))
+          }
+        }
+      } catch {
+        setPincodeStatus("idle") // Silently fail — server-side will catch it
+      }
+    }, 500) // 500ms debounce
+  }, [])
 
   const handleChange = (field: string, value: string) => {
     setAddressFormData((prev: AddressData) => ({ ...prev, [field]: value }))
@@ -52,6 +88,11 @@ const AddressForm = ({
       setErrors((prev) => ({ ...prev, [field]: "" }))
     }
     setTouchedFields((prev) => ({ ...prev, [field]: true }))
+
+    // Trigger pincode check on postal_code change
+    if (field === "postal_code") {
+      checkPincode(value.trim())
+    }
   }
 
   const countriesInput = useMemo(() => {
@@ -232,15 +273,30 @@ const AddressForm = ({
           <label htmlFor="postal_code" className="block text-sm font-medium">
             Postal Code
           </label>
-          <Input
-            name="postal_code"
-            id="postal_code"
-            type="text"
-            autoComplete="postal-code"
-            value={addressFormData.postal_code}
-            onChange={(e) => handleChange("postal_code", e.target.value)}
-            placeholder="Postal code"
-          />
+          <div className="relative">
+            <Input
+              name="postal_code"
+              id="postal_code"
+              type="text"
+              autoComplete="postal-code"
+              value={addressFormData.postal_code}
+              onChange={(e) => handleChange("postal_code", e.target.value)}
+              placeholder="Postal code"
+              className={clsx(
+                pincodeStatus === "serviceable" && "border-green-500",
+                pincodeStatus === "not-serviceable" && "border-red-500",
+              )}
+            />
+            {pincodeStatus === "checking" && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">Checking...</span>
+            )}
+            {pincodeStatus === "serviceable" && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 text-sm">✓ Delivery available</span>
+            )}
+            {pincodeStatus === "not-serviceable" && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-600 text-sm">✗ Not serviceable</span>
+            )}
+          </div>
           {errors.postal_code && touchedFields.postal_code && (
             <div className="text-rose-900 text-sm mt-1">
               {errors.postal_code}
