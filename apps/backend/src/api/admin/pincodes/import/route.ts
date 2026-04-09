@@ -8,14 +8,14 @@ import { generateEntityId } from "@medusajs/framework/utils"
 /**
  * POST /admin/pincodes/import
  *
- * Bulk import endpoint. Receives all pre-parsed rows at once and writes
- * directly to the database via raw SQL, bypassing the service layer and
- * Redis event bus. This avoids Medusa Cloud's Redis Lua script limits
- * that forced the old chunked approach.
+ * Chunked bulk import. Frontend sends rows in chunks (~10K per request).
+ * Each chunk is written directly via raw SQL (bypasses Redis event bus).
  *
  * Body:
- *   rows  — array of row objects (pre-parsed by the frontend)
- *   mode  — "replace" (default, clears DB first) | "append"
+ *   rows         — array of row objects (pre-parsed by the frontend)
+ *   mode         — "replace" (default) | "append"
+ *   chunk_index  — 0-based chunk number
+ *   total_chunks — total number of chunks
  */
 export async function POST(
   req: AuthenticatedMedusaRequest,
@@ -27,8 +27,8 @@ export async function POST(
   const {
     rows,
     mode = "replace",
-    chunk_index,
-    total_chunks,
+    chunk_index = 0,
+    total_chunks = 1,
   } = req.body as {
     rows?: Record<string, string>[]
     mode?: "replace" | "append"
@@ -40,18 +40,16 @@ export async function POST(
     return res.status(400).json({ message: "rows array is required and must not be empty" })
   }
 
-  // Backward compat: if frontend still sends chunks, only clear on first chunk
-  const isFirstChunk = chunk_index === undefined || chunk_index === 0
+  const isFirstChunk = chunk_index === 0
 
   try {
-    // Clear existing records if mode=replace and this is the first (or only) request
+    // Clear existing records only on first chunk of a replace import
     if (mode === "replace" && isFirstChunk) {
       await pgConnection.raw(`DELETE FROM "serviceable_pincode"`)
       logger.info(`[pincode-import] Cleared existing records for fresh import`)
     }
 
     // Parse and validate rows
-    let imported = 0
     let skipped = 0
     const validRows: any[] = []
 
@@ -78,53 +76,70 @@ export async function POST(
       })
     }
 
-    // Bulk insert via raw SQL. Postgres allows max 65,535 params per query.
-    // 13 columns × 5000 rows = 65,000 params — just under the limit.
-    const BATCH = 5000
-    for (let i = 0; i < validRows.length; i += BATCH) {
-      const batch = validRows.slice(i, i + BATCH)
-      const cols = [
-        "id", "pincode", "officename", "officetype", "delivery", "district",
-        "statename", "divisionname", "regionname", "circlename",
-        "latitude", "longitude", "is_serviceable",
-      ]
+    if (validRows.length === 0) {
+      logger.warn(`[pincode-import] Chunk ${chunk_index}: all ${rows.length} rows invalid, 0 valid`)
+      return res.status(200).json({
+        success: true,
+        imported: 0,
+        skipped,
+        chunk_index,
+        total_chunks,
+        is_last_chunk: chunk_index === total_chunks - 1,
+      })
+    }
+
+    // Bulk insert via raw SQL in sub-batches.
+    // Postgres max: 65,535 params per query. 13 cols × 4000 rows = 52,000 (safe margin).
+    const COLS = [
+      "id", "pincode", "officename", "officetype", "delivery", "district",
+      "statename", "divisionname", "regionname", "circlename",
+      "latitude", "longitude", "is_serviceable",
+    ]
+    const SUB_BATCH = 4000
+
+    for (let i = 0; i < validRows.length; i += SUB_BATCH) {
+      const batch = validRows.slice(i, i + SUB_BATCH)
       const placeholders: string[] = []
       const values: any[] = []
       let paramIdx = 1
 
       for (const row of batch) {
-        const rowPlaceholders: string[] = []
-        for (const col of cols) {
-          rowPlaceholders.push(`$${paramIdx++}`)
+        const rowPh: string[] = []
+        for (const col of COLS) {
+          rowPh.push(`$${paramIdx++}`)
           values.push(row[col])
         }
-        placeholders.push(`(${rowPlaceholders.join(", ")})`)
+        placeholders.push(`(${rowPh.join(", ")})`)
       }
 
-      await pgConnection.raw(
-        `INSERT INTO "serviceable_pincode" (${cols.map(c => `"${c}"`).join(", ")})
-         VALUES ${placeholders.join(", ")}`,
-        values
-      )
+      if (values.length > 0) {
+        await pgConnection.raw(
+          `INSERT INTO "serviceable_pincode" (${COLS.map(c => `"${c}"`).join(", ")})
+           VALUES ${placeholders.join(", ")}`,
+          values
+        )
+      }
     }
 
-    imported = validRows.length
+    const imported = validRows.length
 
     logger.info(
-      `[pincode-import] Done: ${imported} imported, ${skipped} skipped` +
-      (chunk_index !== undefined ? ` (chunk ${chunk_index + 1}/${total_chunks})` : "")
+      `[pincode-import] Chunk ${chunk_index + 1}/${total_chunks}: ${imported} imported, ${skipped} skipped`
     )
 
     return res.status(200).json({
       success: true,
       imported,
       skipped,
-      ...(chunk_index !== undefined && { chunk_index, total_chunks, is_last_chunk: chunk_index === (total_chunks ?? 1) - 1 }),
+      chunk_index,
+      total_chunks,
+      is_last_chunk: chunk_index === total_chunks - 1,
     })
   } catch (error: any) {
-    logger.error(`[pincode-import] Failed: ${error.message}`)
+    logger.error(`[pincode-import] Chunk ${chunk_index} failed: ${error.message}`)
     return res.status(500).json({
       message: error.message || "Import failed",
+      chunk_index,
     })
   }
 }

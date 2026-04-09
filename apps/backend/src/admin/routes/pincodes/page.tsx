@@ -173,10 +173,13 @@ const PincodesPage = () => {
       return
     }
 
-    // Step 2: upload all rows in one request (direct SQL, no Redis involved)
+    // Step 2: upload in chunks (10K rows per request to stay under body/param limits)
+    const CHUNK_SIZE = 10_000
+    const totalChunks = Math.ceil(rows.length / CHUNK_SIZE)
+
     setImportProgress({
       state: "uploading",
-      message: `Uploading ${rows.length.toLocaleString()} pincodes...`,
+      message: `Uploading ${rows.length.toLocaleString()} pincodes in ${totalChunks} chunks...`,
       totalRows: rows.length,
       rowsSent: 0,
       rowsImported: 0,
@@ -188,22 +191,47 @@ const PincodesPage = () => {
     let totalImported = 0
     let totalSkipped = 0
 
-    try {
-      const json = await sdk.client.fetch<{ imported?: number; skipped?: number; message?: string }>("/admin/pincodes/import", {
-        method: "POST",
-        body: { rows, mode: "replace" },
-      })
+    for (let chunkIdx = 0; chunkIdx < totalChunks; chunkIdx++) {
+      if (abortRef.current) {
+        setImportProgress((prev) => ({ ...prev, state: "error", message: "Import cancelled by user" }))
+        if (fileInputRef.current) fileInputRef.current.value = ""
+        return
+      }
 
-      totalImported = json.imported ?? 0
-      totalSkipped = json.skipped ?? 0
-    } catch (err: any) {
-      setImportProgress({
-        ...IDLE_IMPORT,
-        state: "error",
-        message: `Import failed: ${err.message}`,
-      })
-      if (fileInputRef.current) fileInputRef.current.value = ""
-      return
+      const chunkRows = rows.slice(chunkIdx * CHUNK_SIZE, (chunkIdx + 1) * CHUNK_SIZE)
+      const pct = 10 + Math.round(((chunkIdx + 1) / totalChunks) * 85)
+
+      setImportProgress((prev) => ({
+        ...prev,
+        message: `Chunk ${chunkIdx + 1}/${totalChunks} — ${chunkRows.length.toLocaleString()} rows...`,
+        rowsSent: chunkIdx * CHUNK_SIZE + chunkRows.length,
+        percent: pct,
+      }))
+
+      try {
+        const json = await sdk.client.fetch<{ imported?: number; skipped?: number; message?: string }>("/admin/pincodes/import", {
+          method: "POST",
+          body: {
+            rows: chunkRows,
+            mode: chunkIdx === 0 ? "replace" : "append",
+            chunk_index: chunkIdx,
+            total_chunks: totalChunks,
+          },
+        })
+
+        totalImported += json.imported ?? 0
+        totalSkipped += json.skipped ?? 0
+      } catch (err: any) {
+        setImportProgress({
+          ...IDLE_IMPORT,
+          state: "error",
+          message: `Chunk ${chunkIdx + 1} failed: ${err.message}`,
+          rowsImported: totalImported,
+          rowsSkipped: totalSkipped,
+        })
+        if (fileInputRef.current) fileInputRef.current.value = ""
+        return
+      }
     }
 
     // Done
