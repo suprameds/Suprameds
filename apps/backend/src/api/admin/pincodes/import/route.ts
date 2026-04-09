@@ -90,32 +90,30 @@ export async function POST(
 
     // Bulk insert via raw SQL in sub-batches.
     // Postgres max: 65,535 params per query. 13 cols × 4000 rows = 52,000 (safe margin).
+    // Knex .raw() uses ? placeholders (not $1, $2).
     const COLS = [
       "id", "pincode", "officename", "officetype", "delivery", "district",
       "statename", "divisionname", "regionname", "circlename",
       "latitude", "longitude", "is_serviceable",
     ]
+    const ROW_PH = `(${COLS.map(() => "?").join(", ")})`
     const SUB_BATCH = 4000
 
     for (let i = 0; i < validRows.length; i += SUB_BATCH) {
       const batch = validRows.slice(i, i + SUB_BATCH)
-      const placeholders: string[] = []
       const values: any[] = []
-      let paramIdx = 1
 
       for (const row of batch) {
-        const rowPh: string[] = []
         for (const col of COLS) {
-          rowPh.push(`$${paramIdx++}`)
           values.push(row[col])
         }
-        placeholders.push(`(${rowPh.join(", ")})`)
       }
 
       if (values.length > 0) {
+        const allPlaceholders = batch.map(() => ROW_PH).join(", ")
         await pgConnection.raw(
           `INSERT INTO "serviceable_pincode" (${COLS.map(c => `"${c}"`).join(", ")})
-           VALUES ${placeholders.join(", ")}`,
+           VALUES ${allPlaceholders}`,
           values
         )
       }
