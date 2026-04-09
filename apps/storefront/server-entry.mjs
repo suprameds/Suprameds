@@ -121,8 +121,13 @@ const server = createServer(async (req, res) => {
       ),
     ]);
 
-    // Write the Web Response back to Node.js response
-    res.writeHead(webResponse.status, Object.fromEntries(webResponse.headers));
+    // Write the Web Response back to Node.js response with cache headers
+    const responseHeaders = Object.fromEntries(webResponse.headers);
+    // Cache HTML pages for 60s at CDN/proxy level, stale-while-revalidate for 5min
+    if (!responseHeaders["cache-control"] && webResponse.status === 200) {
+      responseHeaders["cache-control"] = "public, s-maxage=60, stale-while-revalidate=300";
+    }
+    res.writeHead(webResponse.status, responseHeaders);
 
     if (webResponse.body) {
       const reader = webResponse.body.getReader();

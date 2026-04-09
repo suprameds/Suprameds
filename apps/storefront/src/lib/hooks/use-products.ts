@@ -24,12 +24,8 @@ export const useProducts = ({
           "title",
           "handle",
           "thumbnail",
-          "*images",
           "*variants",
           "+variants.calculated_price",
-          "+variants.inventory_quantity",
-          "+variants.manage_inventory",
-          "+variants.allow_backorder",
         ].join(",")
 
       const response = await sdk.store.product.list({
@@ -141,7 +137,7 @@ export const useLatestProducts = ({
         offset: 0,
         order: "-created_at",
         region_id,
-        fields: "id,title,handle,thumbnail,*images,*variants,+variants.calculated_price,+variants.inventory_quantity,+variants.manage_inventory,+variants.allow_backorder",
+        fields: "id,title,handle,thumbnail,*variants,+variants.calculated_price",
       })
 
       return {
