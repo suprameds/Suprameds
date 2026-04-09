@@ -25,6 +25,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         "id",
         "display_id",
         "created_at",
+        "total",
         "items.*",
         "shipping_address.*",
         "payment_collections.payment_sessions.*",
@@ -48,8 +49,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     // Item count
     const itemCount = (order.items || []).reduce((sum: number, i: any) => sum + Number(i.quantity), 0)
 
-    // Total amount
-    const totalAmount = (order.items || []).reduce(
+    // Total amount (includes items + shipping + tax)
+    const totalAmount = Number(order.total) || (order.items || []).reduce(
       (sum: number, i: any) => sum + Number(i.unit_price) * Number(i.quantity),
       0
     )
