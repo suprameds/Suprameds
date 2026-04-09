@@ -21,10 +21,15 @@ const Store = () => {
   const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>(initialSchedule)
   const [formFilter, setFormFilter] = useState<string>("all")
 
-  const { data: categories } = useCategories({
-    fields: "id,name,handle",
-    queryParams: { parent_category_id: "null", limit: 12 },
+  // Fetch all categories, then show subcategories of "Medicines" as filter tabs
+  // (parent categories like Medicines/Wellness have 0 products directly linked)
+  const { data: allCategories } = useCategories({
+    fields: "id,name,handle,parent_category_id",
   })
+  const medicinesParent = allCategories?.find((c) => c.handle === "medicines")
+  const categories = medicinesParent
+    ? allCategories?.filter((c) => c.parent_category_id === medicinesParent.id)
+    : allCategories?.filter((c) => !c.parent_category_id)
 
   // Server-side pharma filter: returns matching product_ids for schedule/form
   const hasPharmaFilter = scheduleFilter !== "all" || formFilter !== "all"
