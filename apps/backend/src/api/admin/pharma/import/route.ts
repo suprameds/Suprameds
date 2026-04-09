@@ -247,7 +247,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
                   creates: [{
                     inventory_item_id: invItem.id,
                     location_id: stockLocation.id,
-                    stocked_quantity: Number(row.stock_qty) || 50,
+                    stocked_quantity: Number(row.stock_qty) || 0,
                   }],
                   updates: [],
                   deletes: [],
