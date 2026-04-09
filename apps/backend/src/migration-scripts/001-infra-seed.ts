@@ -406,18 +406,22 @@ export default async function infraSeed({
 
   const SUBCATEGORIES = [
     { name: "Antibiotics", handle: "antibiotics" },
-    { name: "Diabetic", handle: "diabetic" },
-    { name: "Hypertension", handle: "hypertension" },
-    { name: "Cardiac Care", handle: "cardiac-care" },
     { name: "Cholesterol", handle: "cholesterol" },
+    { name: "Diabetic", handle: "diabetic" },
     { name: "Gastroenterology", handle: "gastroenterology" },
     { name: "General Medicines", handle: "general-medicines" },
     { name: "Gynecology", handle: "gynecology" },
+    { name: "Hypertension", handle: "hypertension" },
     { name: "Nephrology", handle: "nephrology" },
     { name: "Neurology", handle: "neurology" },
+    { name: "Pain & Fever", handle: "pain-fever" },
+    { name: "Pain Management", handle: "pain-management" },
+    { name: "Thyroid", handle: "thyroid" },
+    { name: "Urology", handle: "urology" },
+    // Inactive (kept for legacy product links, hidden from storefront)
+    { name: "Cardiac Care", handle: "cardiac-care" },
     { name: "Respiratory", handle: "respiratory" },
     { name: "Dermatology", handle: "dermatology" },
-    { name: "Pain & Fever", handle: "pain-fever" },
     { name: "Vitamins & Supplements", handle: "vitamins-supplements" },
   ]
 
@@ -474,6 +478,26 @@ export default async function infraSeed({
     await ensureCategory(cat)
   }
 
+  // Create "Baby Care" subcategory under "Mother & Baby"
+  const motherBabyParent = existingByHandle.get("mother-baby")
+  if (motherBabyParent?.id) {
+    await ensureCategory({ name: "Baby Care", handle: "baby-care", parent_category_id: motherBabyParent.id })
+  }
+
+  // Deactivate legacy categories (hidden from storefront, products stay linked)
+  const INACTIVE_HANDLES = ["cardiac-care", "respiratory", "dermatology", "vitamins-supplements"]
+  for (const handle of INACTIVE_HANDLES) {
+    const cat = existingByHandle.get(handle)
+    if (cat?.id) {
+      try {
+        await productService.updateProductCategories(cat.id, { is_active: false })
+        logger.info(`  Deactivated category: ${handle}`)
+      } catch {
+        // Already inactive or doesn't exist — fine
+      }
+    }
+  }
+
   // ── 12. Product collections (flat) ────────────────────────────────────
   const COLLECTIONS = [
     { title: "Antidiabetic", handle: "antidiabetic" },
@@ -488,6 +512,10 @@ export default async function infraSeed({
     { title: "Vitamins & Wellness", handle: "vitamins-wellness" },
     { title: "Antihypertensive", handle: "antihypertensive" },
     { title: "Pain & Fever", handle: "pain-fever" },
+    { title: "Thyroid", handle: "thyroid" },
+    { title: "Urology", handle: "urology" },
+    { title: "Pain Management", handle: "pain-management" },
+    { title: "Baby Care", handle: "baby-care" },
   ]
 
   const existingCollections = await productService.listProductCollections(
