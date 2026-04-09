@@ -128,16 +128,19 @@ export const Navbar = () => {
   // Close dropdown on route change
   useEffect(() => { setSearchFocused(false) }, [location.pathname])
 
-  const { data: topLevelCategories } = useCategories({
-    fields: "id,name,handle,parent_category_id",
-    queryParams: { parent_category_id: "null" },
+  // Fetch all categories, then filter to show Medicines subcategories in the dropdown
+  const { data: allCategories } = useCategories({
+    fields: "id,name,handle,parent_category_id,is_active",
   })
 
-  const categoryLinks = topLevelCategories?.map((cat) => ({
-    id: cat.id,
-    name: cat.name,
-    handle: cat.handle,
-  })) ?? []
+  const medicinesParent = allCategories?.find((c) => c.handle === "medicines")
+  const categoryLinks = (allCategories ?? [])
+    .filter((cat) => cat.parent_category_id === medicinesParent?.id && (cat as any).is_active !== false)
+    .map((cat) => ({
+      id: cat.id,
+      name: cat.name,
+      handle: cat.handle,
+    }))
 
   // Close <details> dropdown on click-outside, Escape key, or route change
   const detailsRef = useRef<HTMLDetailsElement>(null)
