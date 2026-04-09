@@ -43,13 +43,8 @@ export async function POST(
   const isFirstChunk = chunk_index === 0
 
   try {
-    // Clear existing records only on first chunk of a replace import
-    if (mode === "replace" && isFirstChunk) {
-      await pgConnection.raw(`DELETE FROM "serviceable_pincode"`)
-      logger.info(`[pincode-import] Cleared existing records for fresh import`)
-    }
-
-    // Parse and validate rows
+    // Parse and validate rows FIRST, then delete old data only if we have valid rows.
+    // This prevents a scenario where DELETE succeeds but INSERT fails, leaving zero pincodes.
     let skipped = 0
     const validRows: any[] = []
 
@@ -86,6 +81,13 @@ export async function POST(
         total_chunks,
         is_last_chunk: chunk_index === total_chunks - 1,
       })
+    }
+
+    // Clear existing records only AFTER validation confirms we have valid rows to insert.
+    // This prevents leaving zero pincodes if the INSERT later fails.
+    if (mode === "replace" && isFirstChunk) {
+      await pgConnection.raw(`DELETE FROM "serviceable_pincode"`)
+      logger.info(`[pincode-import] Cleared existing records for fresh import`)
     }
 
     // Bulk insert via raw SQL in sub-batches.

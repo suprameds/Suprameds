@@ -8,7 +8,7 @@
 import { createServer } from "node:http";
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { readFile, stat } from "node:fs/promises";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -48,7 +48,10 @@ const MIME = {
  */
 async function tryServeStatic(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  let filePath = join(clientDir, url.pathname);
+  let filePath = resolve(join(clientDir, url.pathname));
+
+  // Prevent path traversal — resolved path must be inside clientDir
+  if (!filePath.startsWith(resolve(clientDir))) return false;
 
   try {
     const s = await stat(filePath);
