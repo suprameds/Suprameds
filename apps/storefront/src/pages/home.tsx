@@ -418,9 +418,9 @@ const Home = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { value: <><Counter end={80} suffix="%" /></>, label: "Max Savings on Generics" },
-                { value: "₹0", label: "Delivery above ₹300" },
+                { value: "Free", label: "Delivery above ₹300" },
                 { value: <><Counter end={5000} suffix="+" /></>, label: "Medicines Available" },
-                { value: "2-Day", label: "Delivery in TS & AP" },
+                { value: "2-Days", label: "Delivery in TS & AP" },
               ].map((stat, i) => (
                 <Reveal key={i} delay={i * 0.08}>
                   <div className="text-center">
