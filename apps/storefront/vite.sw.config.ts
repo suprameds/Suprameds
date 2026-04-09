@@ -61,7 +61,9 @@ export default defineConfig({
       },
       workbox: {
         globDirectory: "dist/client",
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        globPatterns: ["**/*.{js,css,ico,png,svg,woff2}"],
+        // Do NOT precache HTML pages — let the SSR server handle them.
+        // Only cache static assets (JS, CSS, fonts, images).
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -81,12 +83,14 @@ export default defineConfig({
             },
           },
           {
+            // Medusa API: NetworkFirst — always try live data, fall back to cache only on actual failure
             urlPattern: /\/store\/(regions|product-categories|products)\b/i,
-            handler: "StaleWhileRevalidate",
+            handler: "NetworkFirst",
             options: {
               cacheName: "medusa-store-api",
+              networkTimeoutSeconds: 10,
               expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
+              cacheableResponse: { statuses: [200] },
             },
           },
           {
@@ -99,8 +103,10 @@ export default defineConfig({
             },
           },
         ],
-        navigateFallback: "/offline.html",
-        navigateFallbackDenylist: [/^\/admin/, /^\/auth/],
+        // No navigateFallback — let failed navigations show the browser's native error
+        // instead of aggressively caching and serving offline.html for CORS/API issues.
+        // The app's own error-fallback.tsx handles error states gracefully.
+        navigateFallback: null,
       },
     }),
   ],
