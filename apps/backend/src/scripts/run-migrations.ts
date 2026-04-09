@@ -23,6 +23,7 @@ import rbacSeed from "../migration-scripts/002-rbac-seed"
 import ftsIndex from "../migration-scripts/003-fts-index"
 import cloudAdminBootstrap from "../migration-scripts/004-cloud-admin-bootstrap"
 // import seedProducts from "../migration-scripts/005-seed-products"  // removed from auto-run
+import updateCategories from "../migration-scripts/006-update-categories"
 
 interface MigrationStep {
   name: string
@@ -35,6 +36,7 @@ const MIGRATIONS: MigrationStep[] = [
   { name: "003-fts-index", fn: ftsIndex },
   { name: "004-cloud-admin-bootstrap", fn: cloudAdminBootstrap },
   // 005-seed-products removed from auto-run — import products manually via admin
+  { name: "006-update-categories", fn: updateCategories },
 ]
 
 export default async function runMigrations({
