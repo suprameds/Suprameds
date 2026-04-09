@@ -55,8 +55,15 @@ completeCartWorkflow.hooks.validate(
         drugProducts = await pharmaService.listDrugProducts({
           product_id: item.product_id,
         })
-      } catch {
-        continue
+      } catch (drugErr: any) {
+        // Fail CLOSED: if we can't check drug schedule, block checkout.
+        // This prevents Schedule X drugs from bypassing compliance on DB errors.
+        const logger = container.resolve("logger") as any
+        logger?.error?.(`[rx-compliance] Cannot verify drug schedule for ${item.product_id}: ${drugErr?.message}`)
+        throw new MedusaError(
+          MedusaError.Types.UNEXPECTED_STATE,
+          "Unable to verify drug compliance for your cart items. Please try again."
+        )
       }
 
       if (!drugProducts || drugProducts.length === 0) continue
@@ -108,9 +115,17 @@ completeCartWorkflow.hooks.validate(
       )
     }
 
+    // Verify prescription belongs to this customer (prevent cross-customer Rx reuse)
+    if (cart.customer_id && prescription.customer_id && prescription.customer_id !== cart.customer_id) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        "This prescription does not belong to your account. Please upload your own prescription."
+      )
+    }
+
     // Allow "approved" and "pending_review" — pharmacist verifies post-order.
     // Block "rejected", "expired", "used" — customer must upload a new one.
-    const blockedStatuses = ["rejected", "expired"]
+    const blockedStatuses = ["rejected", "expired", "used"]
     if (blockedStatuses.includes(prescription.status)) {
       throw new MedusaError(
         MedusaError.Types.NOT_ALLOWED,

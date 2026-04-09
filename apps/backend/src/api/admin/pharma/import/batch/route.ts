@@ -62,14 +62,29 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   // ── Load existing data ─────────────────────────────────────────────
-  const { data: existingProducts } = await query.graph({ entity: "product", fields: ["id", "handle"] })
-  const existingByHandle = new Map<string, string>((existingProducts as any[]).map(p => [p.handle, p.id]))
+  // Paginate to avoid OOM on large catalogs
+  let allProducts: any[] = []
+  let offset = 0
+  while (true) {
+    const { data: batch } = await query.graph({ entity: "product", fields: ["id", "handle"], pagination: { take: 1000, skip: offset } })
+    allProducts = allProducts.concat(batch as any[])
+    if ((batch as any[]).length < 1000) break
+    offset += 1000
+  }
+  const existingByHandle = new Map<string, string>(allProducts.map(p => [p.handle, p.id]))
 
   const existingDrugProducts = new Set<string>()
   try {
-    const allDrugs = await pharmaService.listDrugProducts({}, { take: 10000 })
-    for (const dp of (Array.isArray(allDrugs) ? allDrugs : (allDrugs?.[0] ?? [])) as any[]) {
-      if (dp?.product_id) existingDrugProducts.add(dp.product_id)
+    // Paginate drug products too
+    let drugOffset = 0
+    while (true) {
+      const drugs = await pharmaService.listDrugProducts({}, { take: 1000, skip: drugOffset })
+      const drugArr = (Array.isArray(drugs) ? drugs : (drugs?.[0] ?? [])) as any[]
+      for (const dp of drugArr) {
+        if (dp?.product_id) existingDrugProducts.add(dp.product_id)
+      }
+      if (drugArr.length < 1000) break
+      drugOffset += 1000
     }
   } catch { /* pharma module may not be ready */ }
 
