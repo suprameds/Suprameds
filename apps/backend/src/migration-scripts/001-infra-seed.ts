@@ -479,7 +479,7 @@ export default async function infraSeed({
   }
 
   // Create "Baby Care" subcategory under "Mother & Baby"
-  const motherBabyParent = existingByHandle.get("mother-baby")
+  const motherBabyParent = existingByHandle.get("mother-baby") as any
   if (motherBabyParent?.id) {
     await ensureCategory({ name: "Baby Care", handle: "baby-care", parent_category_id: motherBabyParent.id })
   }
@@ -487,7 +487,7 @@ export default async function infraSeed({
   // Deactivate legacy categories (hidden from storefront, products stay linked)
   const INACTIVE_HANDLES = ["cardiac-care", "respiratory", "dermatology", "vitamins-supplements"]
   for (const handle of INACTIVE_HANDLES) {
-    const cat = existingByHandle.get(handle)
+    const cat = existingByHandle.get(handle) as any
     if (cat?.id) {
       try {
         await productService.updateProductCategories(cat.id, { is_active: false })

@@ -31,7 +31,7 @@ export default async function updateCategories({
     {},
     { take: 200 }
   )
-  const byHandle = new Map(
+  const byHandle = new Map<string, any>(
     existingCategories.map((c: any) => [c.handle, c])
   )
 
