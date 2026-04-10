@@ -179,7 +179,7 @@ const InvoicePrintWidget = ({
     </div>
     <div style="display:flex;align-items:center;gap:2mm;">
       ${trackingId ? `<div style="font-size:11pt;font-weight:900;color:#000;text-align:right;">ID<br>${esc(trackingId)}</div>` : ""}
-      <div class="payment-badge ${isCod ? "cod" : "prepaid"}">${isCod ? "COD &#8377;" + totalAmount : "PREPAID"}</div>
+      <div class="payment-badge ${isCod ? "cod" : "prepaid"}">${isCod ? "COD ₹" + totalAmount : "PREPAID"}</div>
     </div>
   </div>
 </div>

@@ -63,13 +63,13 @@ function renderPrintableInvoice(
       <td class="l"><strong>${esc(it.product_title)}</strong></td>
       <td>${esc(it.batch_number)}</td>
       <td>${esc(it.expiry_date)}</td>
-      <td class="r">&#8377; ${it.unit_mrp.toFixed(2)}</td>
+      <td class="r">₹ ${it.unit_mrp.toFixed(2)}</td>
       <td>${it.quantity}</td>
       <td>St</td>
-      <td class="r">&#8377; ${it.unit_selling_price.toFixed(2)}</td>
-      <td class="r">&#8377; ${it.discount_amount.toFixed(2)}<br><span class="dim">(${discPct}%)</span></td>
-      <td class="r">&#8377; ${gstTotal.toFixed(2)} (${it.gst_rate}%)</td>
-      <td class="r">&#8377; ${it.line_total.toFixed(2)}</td>
+      <td class="r">₹ ${it.unit_selling_price.toFixed(2)}</td>
+      <td class="r">₹ ${it.discount_amount.toFixed(2)}<br><span class="dim">(${discPct}%)</span></td>
+      <td class="r">₹ ${gstTotal.toFixed(2)} (${it.gst_rate}%)</td>
+      <td class="r">₹ ${it.line_total.toFixed(2)}</td>
     </tr>`
     })
     .join("")
@@ -99,19 +99,19 @@ function renderPrintableInvoice(
       return inv.is_intra_state
         ? `<tr>
             <td class="l">${esc(hsn)}</td>
-            <td class="r">&#8377; ${v.taxable.toFixed(2)}</td>
+            <td class="r">₹ ${v.taxable.toFixed(2)}</td>
             <td>${halfRate}%</td>
-            <td class="r">&#8377; ${v.cgst.toFixed(2)}</td>
+            <td class="r">₹ ${v.cgst.toFixed(2)}</td>
             <td>${halfRate}%</td>
-            <td class="r">&#8377; ${v.sgst.toFixed(2)}</td>
-            <td class="r">&#8377; ${totalTax.toFixed(2)}</td>
+            <td class="r">₹ ${v.sgst.toFixed(2)}</td>
+            <td class="r">₹ ${totalTax.toFixed(2)}</td>
           </tr>`
         : `<tr>
             <td class="l">${esc(hsn)}</td>
-            <td class="r">&#8377; ${v.taxable.toFixed(2)}</td>
+            <td class="r">₹ ${v.taxable.toFixed(2)}</td>
             <td>${v.rate}%</td>
-            <td class="r">&#8377; ${v.igst.toFixed(2)}</td>
-            <td class="r">&#8377; ${totalTax.toFixed(2)}</td>
+            <td class="r">₹ ${v.igst.toFixed(2)}</td>
+            <td class="r">₹ ${totalTax.toFixed(2)}</td>
           </tr>`
     })
     .join("")
@@ -134,12 +134,13 @@ function renderPrintableInvoice(
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;900&display=swap" rel="stylesheet">
 <title>Tax Invoice — ${esc(inv.invoice_number)}</title>
 <style>
   @page { size: A4 portrait; margin: 8mm 10mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Noto Sans', Arial, Helvetica, sans-serif;
     color: #000;
     background: #fff;
     font-size: 9pt;
@@ -370,9 +371,9 @@ function renderPrintableInvoice(
         <td><strong>${totalQty}</strong></td>
         <td></td>
         <td></td>
-        <td class="r"><strong>&#8377; ${inv.total_discount.toFixed(2)}</strong></td>
-        <td class="r"><strong>&#8377; ${inv.total_gst.toFixed(2)}</strong></td>
-        <td class="r"><strong>&#8377; ${subTotal.toFixed(2)}</strong></td>
+        <td class="r"><strong>₹ ${inv.total_discount.toFixed(2)}</strong></td>
+        <td class="r"><strong>₹ ${inv.total_gst.toFixed(2)}</strong></td>
+        <td class="r"><strong>₹ ${subTotal.toFixed(2)}</strong></td>
       </tr>
     </tfoot>
   </table>
@@ -385,12 +386,12 @@ function renderPrintableInvoice(
     <div class="bottom-right">
       <table>
         <tr><td><strong>Amounts</strong></td><td></td></tr>
-        <tr><td>Sub Total</td><td>&#8377; ${subTotal.toFixed(2)}</td></tr>
-        <tr><td>Round off</td><td>&#8377; ${roundOff.toFixed(2)}</td></tr>
-        <tr class="bold"><td>Total</td><td>&#8377; ${total.toFixed(2)}</td></tr>
-        <tr><td>Received</td><td>&#8377; ${total.toFixed(2)}</td></tr>
-        <tr><td>Balance</td><td>&#8377; 0.00</td></tr>
-        <tr><td>You Saved</td><td>&#8377; ${youSaved.toFixed(2)}</td></tr>
+        <tr><td>Sub Total</td><td>₹ ${subTotal.toFixed(2)}</td></tr>
+        <tr><td>Round off</td><td>₹ ${roundOff.toFixed(2)}</td></tr>
+        <tr class="bold"><td>Total</td><td>₹ ${total.toFixed(2)}</td></tr>
+        <tr><td>Received</td><td>₹ ${total.toFixed(2)}</td></tr>
+        <tr><td>Balance</td><td>₹ 0.00</td></tr>
+        <tr><td>You Saved</td><td>₹ ${youSaved.toFixed(2)}</td></tr>
       </table>
     </div>
   </div>
@@ -418,12 +419,12 @@ function renderPrintableInvoice(
       <tfoot>
         <tr class="total-row">
           <td class="l"><strong>Total</strong></td>
-          <td class="r"><strong>&#8377; ${inv.total_taxable_value.toFixed(2)}</strong></td>
+          <td class="r"><strong>₹ ${inv.total_taxable_value.toFixed(2)}</strong></td>
           ${inv.is_intra_state
-            ? `<td></td><td class="r"><strong>&#8377; ${inv.total_cgst.toFixed(2)}</strong></td>
-               <td></td><td class="r"><strong>&#8377; ${inv.total_sgst.toFixed(2)}</strong></td>`
-            : `<td></td><td class="r"><strong>&#8377; ${inv.total_igst.toFixed(2)}</strong></td>`}
-          <td class="r"><strong>&#8377; ${inv.total_gst.toFixed(2)}</strong></td>
+            ? `<td></td><td class="r"><strong>₹ ${inv.total_cgst.toFixed(2)}</strong></td>
+               <td></td><td class="r"><strong>₹ ${inv.total_sgst.toFixed(2)}</strong></td>`
+            : `<td></td><td class="r"><strong>₹ ${inv.total_igst.toFixed(2)}</strong></td>`}
+          <td class="r"><strong>₹ ${inv.total_gst.toFixed(2)}</strong></td>
         </tr>
       </tfoot>
     </table>
