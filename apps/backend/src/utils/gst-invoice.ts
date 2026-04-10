@@ -51,6 +51,8 @@ export interface GstInvoice {
   total_gst: number
   grand_total: number
   amount_in_words: string
+  // Shipping
+  shipping_total: number
   // Payment
   payment_mode: string
   // References
@@ -280,9 +282,12 @@ export async function buildGstInvoice(
       "id",
       "display_id",
       "status",
+      "total",
+      "shipping_total",
       "metadata",
       "items.*",
       "shipping_address.*",
+      "shipping_methods.*",
     ],
     filters: { id: orderId },
   })
@@ -563,8 +568,9 @@ export async function buildGstInvoice(
     total_sgst: totalSgst,
     total_igst: totalIgst,
     total_gst: totalGst,
-    grand_total: grandTotal,
-    amount_in_words: amountInWords(Math.round(grandTotal)),
+    shipping_total: round2(Number(order.shipping_total ?? 0)),
+    grand_total: round2(grandTotal + Number(order.shipping_total ?? 0)),
+    amount_in_words: amountInWords(Math.round(grandTotal + Number(order.shipping_total ?? 0))),
 
     payment_mode: paymentMode,
     prescription_ref: prescriptionRef,

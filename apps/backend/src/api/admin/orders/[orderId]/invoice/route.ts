@@ -387,6 +387,7 @@ function renderPrintableInvoice(
       <table>
         <tr><td><strong>Amounts</strong></td><td></td></tr>
         <tr><td>Sub Total</td><td>₹ ${subTotal.toFixed(2)}</td></tr>
+        ${inv.shipping_total > 0 ? `<tr><td>Shipping</td><td>₹ ${inv.shipping_total.toFixed(2)}</td></tr>` : ''}
         <tr><td>Round off</td><td>₹ ${roundOff.toFixed(2)}</td></tr>
         <tr class="bold"><td>Total</td><td>₹ ${total.toFixed(2)}</td></tr>
         <tr><td>Received</td><td>₹ ${total.toFixed(2)}</td></tr>
