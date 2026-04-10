@@ -98,8 +98,8 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Wallet Balance Section */}
-      {walletBalance > 0 && (
+      {/* Wallet Balance Section — hidden until loyalty program launches */}
+      {false && walletBalance > 0 && (
         <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
           <div className="flex items-center justify-between">
             <div>

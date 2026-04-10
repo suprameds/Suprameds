@@ -202,11 +202,18 @@ export function isIntraState(
  * Calculate GST split for a line item.
  * Indian GST: intra-state = CGST + SGST (half each), inter-state = IGST (full rate).
  */
+/**
+ * Calculate GST split for a line item.
+ * Indian pharma: prices are MRP-inclusive (tax_inclusive = true in Medusa).
+ * So we back-calculate: taxable = selling_price / (1 + rate/100)
+ * GST = selling_price - taxable (already included in the price).
+ */
 export function calculateLineGst(params: {
   quantity: number
   unit_selling_price: number
   gst_rate: number
   intra_state: boolean
+  tax_inclusive?: boolean
 }): {
   taxable_value: number
   cgst: number
@@ -214,21 +221,35 @@ export function calculateLineGst(params: {
   igst: number
   line_total: number
 } {
-  const { quantity, unit_selling_price, gst_rate, intra_state } = params
-  const taxable_value = round2(unit_selling_price * quantity)
+  const { quantity, unit_selling_price, gst_rate, intra_state, tax_inclusive = true } = params
+  const gross = round2(unit_selling_price * quantity)
+
+  let taxable_value: number
+  let totalGst: number
+
+  if (tax_inclusive) {
+    // Price already includes GST — back-calculate
+    taxable_value = round2(gross / (1 + gst_rate / 100))
+    totalGst = round2(gross - taxable_value)
+  } else {
+    // Price is exclusive — add GST on top
+    taxable_value = gross
+    totalGst = round2(gross * gst_rate / 100)
+  }
 
   let cgst = 0
   let sgst = 0
   let igst = 0
 
   if (intra_state) {
-    cgst = round2((taxable_value * gst_rate) / 200)
-    sgst = round2((taxable_value * gst_rate) / 200)
+    cgst = round2(totalGst / 2)
+    sgst = round2(totalGst - cgst) // avoid rounding mismatch
   } else {
-    igst = round2((taxable_value * gst_rate) / 100)
+    igst = totalGst
   }
 
-  const line_total = round2(taxable_value + cgst + sgst + igst)
+  // line_total = what customer pays (same as gross for tax-inclusive)
+  const line_total = tax_inclusive ? gross : round2(taxable_value + totalGst)
 
   return { taxable_value, cgst, sgst, igst, line_total }
 }
@@ -425,7 +446,8 @@ export async function buildGstInvoice(
   const totalSgst = round2(items.reduce((s, i) => s + i.sgst_amount, 0))
   const totalIgst = round2(items.reduce((s, i) => s + i.igst_amount, 0))
   const totalGst = round2(totalCgst + totalSgst + totalIgst)
-  const grandTotal = round2(totalTaxableValue + totalGst)
+  // Grand total = sum of line_total (what customer pays, tax-inclusive)
+  const grandTotal = round2(items.reduce((s, i) => s + i.line_total, 0))
 
   // ── 6. Pharmacy license ──────────────────────────────────────────
 
