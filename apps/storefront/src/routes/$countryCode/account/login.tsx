@@ -76,7 +76,7 @@ function LoginPage() {
     login.mutate(
       { email, password },
       {
-        onSuccess: navigateAfterLogin,
+        onSuccess: () => navigateAfterLogin(false),
         onError: () => setError("Invalid email or password. Please try again."),
       }
     )

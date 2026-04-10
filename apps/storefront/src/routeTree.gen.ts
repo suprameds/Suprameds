@@ -47,6 +47,7 @@ import { Route as CountryCodeAccountLayoutProfileRouteImport } from './routes/$c
 import { Route as CountryCodeAccountLayoutPrescriptionsRouteImport } from './routes/$countryCode/account/_layout/prescriptions'
 import { Route as CountryCodeAccountLayoutOrdersRouteImport } from './routes/$countryCode/account/_layout/orders'
 import { Route as CountryCodeAccountLayoutMessagesRouteImport } from './routes/$countryCode/account/_layout/messages'
+import { Route as CountryCodeAccountLayoutChangePasswordRouteImport } from './routes/$countryCode/account/_layout/change-password'
 import { Route as CountryCodeAccountLayoutAddressesRouteImport } from './routes/$countryCode/account/_layout/addresses'
 import { Route as CountryCodeAccountLayoutPharmacistRxQueueRouteImport } from './routes/$countryCode/account/_layout/pharmacist/rx-queue'
 import { Route as CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport } from './routes/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId'
@@ -255,6 +256,12 @@ const CountryCodeAccountLayoutMessagesRoute =
     path: '/messages',
     getParentRoute: () => CountryCodeAccountLayoutRoute,
   } as any)
+const CountryCodeAccountLayoutChangePasswordRoute =
+  CountryCodeAccountLayoutChangePasswordRouteImport.update({
+    id: '/change-password',
+    path: '/change-password',
+    getParentRoute: () => CountryCodeAccountLayoutRoute,
+  } as any)
 const CountryCodeAccountLayoutAddressesRoute =
   CountryCodeAccountLayoutAddressesRouteImport.update({
     id: '/addresses',
@@ -306,6 +313,7 @@ export interface FileRoutesByFullPath {
   '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
+  '/$countryCode/account/change-password': typeof CountryCodeAccountLayoutChangePasswordRoute
   '/$countryCode/account/messages': typeof CountryCodeAccountLayoutMessagesRoute
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
@@ -347,6 +355,7 @@ export interface FileRoutesByTo {
   '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
+  '/$countryCode/account/change-password': typeof CountryCodeAccountLayoutChangePasswordRoute
   '/$countryCode/account/messages': typeof CountryCodeAccountLayoutMessagesRoute
   '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
@@ -390,6 +399,7 @@ export interface FileRoutesById {
   '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
   '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
   '/$countryCode/account/_layout/addresses': typeof CountryCodeAccountLayoutAddressesRoute
+  '/$countryCode/account/_layout/change-password': typeof CountryCodeAccountLayoutChangePasswordRoute
   '/$countryCode/account/_layout/messages': typeof CountryCodeAccountLayoutMessagesRoute
   '/$countryCode/account/_layout/orders': typeof CountryCodeAccountLayoutOrdersRoute
   '/$countryCode/account/_layout/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
@@ -434,6 +444,7 @@ export interface FileRouteTypes {
     | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
+    | '/$countryCode/account/change-password'
     | '/$countryCode/account/messages'
     | '/$countryCode/account/orders'
     | '/$countryCode/account/prescriptions'
@@ -475,6 +486,7 @@ export interface FileRouteTypes {
     | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/addresses'
+    | '/$countryCode/account/change-password'
     | '/$countryCode/account/messages'
     | '/$countryCode/account/orders'
     | '/$countryCode/account/prescriptions'
@@ -517,6 +529,7 @@ export interface FileRouteTypes {
     | '/$countryCode/drugs/$handle'
     | '/$countryCode/products/$handle'
     | '/$countryCode/account/_layout/addresses'
+    | '/$countryCode/account/_layout/change-password'
     | '/$countryCode/account/_layout/messages'
     | '/$countryCode/account/_layout/orders'
     | '/$countryCode/account/_layout/prescriptions'
@@ -815,6 +828,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CountryCodeAccountLayoutMessagesRouteImport
       parentRoute: typeof CountryCodeAccountLayoutRoute
     }
+    '/$countryCode/account/_layout/change-password': {
+      id: '/$countryCode/account/_layout/change-password'
+      path: '/change-password'
+      fullPath: '/$countryCode/account/change-password'
+      preLoaderRoute: typeof CountryCodeAccountLayoutChangePasswordRouteImport
+      parentRoute: typeof CountryCodeAccountLayoutRoute
+    }
     '/$countryCode/account/_layout/addresses': {
       id: '/$countryCode/account/_layout/addresses'
       path: '/addresses'
@@ -841,6 +861,7 @@ declare module '@tanstack/react-router' {
 
 interface CountryCodeAccountLayoutRouteChildren {
   CountryCodeAccountLayoutAddressesRoute: typeof CountryCodeAccountLayoutAddressesRoute
+  CountryCodeAccountLayoutChangePasswordRoute: typeof CountryCodeAccountLayoutChangePasswordRoute
   CountryCodeAccountLayoutMessagesRoute: typeof CountryCodeAccountLayoutMessagesRoute
   CountryCodeAccountLayoutOrdersRoute: typeof CountryCodeAccountLayoutOrdersRoute
   CountryCodeAccountLayoutPrescriptionsRoute: typeof CountryCodeAccountLayoutPrescriptionsRoute
@@ -857,6 +878,8 @@ const CountryCodeAccountLayoutRouteChildren: CountryCodeAccountLayoutRouteChildr
   {
     CountryCodeAccountLayoutAddressesRoute:
       CountryCodeAccountLayoutAddressesRoute,
+    CountryCodeAccountLayoutChangePasswordRoute:
+      CountryCodeAccountLayoutChangePasswordRoute,
     CountryCodeAccountLayoutMessagesRoute:
       CountryCodeAccountLayoutMessagesRoute,
     CountryCodeAccountLayoutOrdersRoute: CountryCodeAccountLayoutOrdersRoute,
