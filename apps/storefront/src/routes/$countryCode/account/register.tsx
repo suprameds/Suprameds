@@ -53,6 +53,8 @@ function RegisterPage() {
     confirm_password: "",
   })
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -211,16 +213,27 @@ function RegisterPage() {
               <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                 Password <span style={{ color: "var(--brand-red)" }}>*</span>
               </label>
-              <input
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Min. 8 characters"
-                className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
-              />
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="Min. 8 characters"
+                  className="w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((p) => !p)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-[var(--bg-tertiary)] transition-colors"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
               {form.password.length > 0 && (
                 <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
                   {passwordChecks.map((c) => (
@@ -236,16 +249,27 @@ function RegisterPage() {
               <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                 Confirm password <span style={{ color: "var(--brand-red)" }}>*</span>
               </label>
-              <input
-                name="confirm_password"
-                type="password"
-                autoComplete="new-password"
-                value={form.confirm_password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
-              />
+              <div className="relative">
+                <input
+                  name="confirm_password"
+                  type={showConfirm ? "text" : "password"}
+                  autoComplete="new-password"
+                  value={form.confirm_password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full px-3.5 py-2.5 pr-10 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
+                  style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm((p) => !p)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-[var(--bg-tertiary)] transition-colors"
+                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                  tabIndex={-1}
+                >
+                  {showConfirm ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -351,5 +375,21 @@ const PillIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
     <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
+  </svg>
+)
+
+const EyeIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+    <circle cx="12" cy="12" r="3"/>
+  </svg>
+)
+
+const EyeOffIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/>
+    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/>
+    <line x1="2" y1="2" x2="22" y2="22"/>
   </svg>
 )
