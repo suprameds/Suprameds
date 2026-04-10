@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useState } from "react"
 import { useLatestProducts } from "@/lib/hooks/use-products"
+import { useBulkPharma } from "@/lib/hooks/use-pharma"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import ProductCard from "@/components/product-card"
@@ -222,8 +223,18 @@ const Home = () => {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { region } = useLoaderData({ from: "/$countryCode/" })
 
-  const { data: latestProductsData } = useLatestProducts({ limit: 8, region_id: region?.id })
-  const products = latestProductsData?.products ?? []
+  const { data: latestProductsData } = useLatestProducts({ limit: 24, region_id: region?.id })
+  const allProducts = latestProductsData?.products ?? []
+
+  // Fetch pharma data to filter best-sellers to OTC only
+  const productIds = allProducts.map((p) => p.id)
+  const { data: pharmaMap } = useBulkPharma(productIds)
+
+  // Best-sellers: show only OTC products (no Rx required)
+  const products = allProducts.filter((p) => {
+    const drug = pharmaMap?.[p.id]
+    return !drug?.schedule || drug.schedule === "OTC"
+  }).slice(0, 8)
 
   const { data: categories } = useCategories({
     fields: "id,name,handle,parent_category_id",
