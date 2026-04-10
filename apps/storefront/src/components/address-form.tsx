@@ -118,6 +118,10 @@ const AddressForm = ({
     if (!addressFormData.city?.trim()) newErrors.city = "City is required"
     if (!addressFormData.postal_code?.trim())
       newErrors.postal_code = "Postal code is required"
+    if (addressFormData.phone && !/^[6-9]\d{9}$/.test(addressFormData.phone.replace(/\s/g, "")))
+      newErrors.phone = "Enter a valid 10-digit Indian mobile number"
+    if (addressFormData.postal_code && !/^\d{6}$/.test(addressFormData.postal_code.trim()))
+      newErrors.postal_code = "Enter a valid 6-digit PIN code"
     if (!addressFormData.country_code?.trim())
       newErrors.country_code = "Country is required"
     const countryCodeExists = countriesInput.some(
