@@ -52,9 +52,12 @@ function LoginPage() {
   const otpSend = useOtpSend()
   const otpVerify = useOtpVerify()
 
-  const navigateAfterLogin = useCallback(() => {
+  const navigateAfterLogin = useCallback((isNewUser?: boolean) => {
     if (redirectTo && redirectTo.startsWith("/")) {
       navigate({ to: redirectTo as never })
+    } else if (isNewUser) {
+      // New OTP users → account page to complete profile (add name etc.)
+      navigate({ to: "/$countryCode/account", params: { countryCode } })
     } else {
       navigate({ to: "/$countryCode", params: { countryCode } })
     }
@@ -101,7 +104,9 @@ function LoginPage() {
         onError: (err: any) => {
           const data = err?.body || err
           if (data?.fallback_channel === "email") {
-            setPhoneOtpError("SMS unavailable. Switch to Email OTP.")
+            setPhoneOtpError("SMS is currently unavailable. Please use Email OTP instead.")
+            // Auto-switch to email OTP after a brief delay
+            setTimeout(() => switchMode("email-otp"), 2000)
           } else {
             setPhoneOtpError(data?.message || "Failed to send OTP. Please try again.")
           }
@@ -122,7 +127,10 @@ function LoginPage() {
     otpVerify.mutate(
       { phone, otp: phoneOtp, country_code: "91", channel: "sms" },
       {
-        onSuccess: navigateAfterLogin,
+        onSuccess: (customer) => {
+          const isNew = !customer?.first_name
+          navigateAfterLogin(isNew)
+        },
         onError: (err: any) => {
           setPhoneOtpError(err?.body?.message || err?.message || "Invalid or expired OTP.")
         },
@@ -173,7 +181,10 @@ function LoginPage() {
     otpVerify.mutate(
       { email: otpEmail, otp: emailOtp, channel: "email" },
       {
-        onSuccess: navigateAfterLogin,
+        onSuccess: (customer) => {
+          const isNew = !customer?.first_name
+          navigateAfterLogin(isNew)
+        },
         onError: (err: any) => {
           setEmailOtpError(err?.body?.message || err?.message || "Invalid or expired OTP.")
         },
@@ -471,20 +482,37 @@ function LoginPage() {
             </div>
           )}
 
-          {/* Register link */}
+          {/* Register link — OTP modes double as signup, so adjust messaging */}
           <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "var(--border-primary)" }}>
-            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              New to Suprameds?{" "}
-              <Link
-                to="/$countryCode/account/register"
-                params={{ countryCode }}
-                search={{ redirectTo, ref: undefined }}
-                className="font-medium hover:underline"
-                style={{ color: TEAL }}
-              >
-                Create an account
-              </Link>
-            </p>
+            {mode === "email" ? (
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                New to Suprameds?{" "}
+                <Link
+                  to="/$countryCode/account/register"
+                  params={{ countryCode }}
+                  search={{ redirectTo, ref: undefined }}
+                  className="font-medium hover:underline"
+                  style={{ color: TEAL }}
+                >
+                  Create an account
+                </Link>
+                {" "}or use{" "}
+                <button type="button" onClick={() => switchMode("email-otp")} className="font-medium hover:underline" style={{ color: TEAL }}>
+                  Email OTP
+                </button>
+              </p>
+            ) : (
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                New user? OTP will create your account automatically.
+                <br />
+                <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                  Already have a password?{" "}
+                  <button type="button" onClick={() => switchMode("email")} className="font-medium hover:underline" style={{ color: TEAL }}>
+                    Sign in with password
+                  </button>
+                </span>
+              </p>
+            )}
           </div>
 
           {/* Trust footer */}
