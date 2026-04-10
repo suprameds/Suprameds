@@ -60,6 +60,7 @@ function AccountLayout() {
     { label: "Verification", to: `/${countryCode}/account/verification`, icon: ShieldNavIcon },
     { label: "Refill Reminders", to: `/${countryCode}/account/reminders`, icon: ClockIcon },
     { label: "Messages", to: `/${countryCode}/account/messages`, icon: BellIcon },
+    { label: "Change Password", to: `/${countryCode}/account/change-password`, icon: LockIcon },
   ]
 
   return (
@@ -223,6 +224,12 @@ const ShieldNavIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
     <path d="m9 12 2 2 4-4"/>
+  </svg>
+)
+
+const LockIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
   </svg>
 )
 
