@@ -1,16 +1,14 @@
-/**
- * E2E Checkout Flow Tests
- *
- * Tests the complete customer journey via API calls:
- * 1. Browse products
- * 2. Create cart + add items
- * 3. Set shipping address (pincode validation)
- * 4. Select shipping option
- * 5. Set payment (COD)
- * 6. Complete order
- *
- * Run: npx jest --testMatch="**/*.unit.spec.ts" -- checkout-flow
- */
+// E2E Checkout Flow Tests
+//
+// Tests the complete customer journey via API calls:
+// 1. Browse products
+// 2. Create cart + add items
+// 3. Set shipping address (pincode validation)
+// 4. Select shipping option
+// 5. Set payment (COD)
+// 6. Complete order
+//
+// Run: npx jest --testMatch="**/*.unit.spec.ts" -- checkout-flow
 
 const BASE_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
 const PK = process.env.MEDUSA_PUBLISHABLE_KEY || "pk_e2bd20acd56f5f1f41d1c7442ead5295eaf39af4a858c0c42fd99bd0796dcaa3"
