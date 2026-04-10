@@ -64,3 +64,22 @@ e2e/performance/results/
 # ---- Scratch ----
 tmp/
 .gstack/
+
+# Data files (generated during import/enrichment)
+apps/backend/data/*.sql
+apps/backend/data/*.json
+apps/backend/data/*.txt
+apps/backend/data/product-images/
+apps/backend/data/product-images-real/
+apps/backend/scripts/*.py
+
+# IDE
+.idea/
+
+# Temp files
+import_payload.json
+import_result.json
+tmp_*.js
+*.png
+!apps/storefront/public/**/*.png
+suprameds-test-suite/
