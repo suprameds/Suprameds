@@ -136,6 +136,46 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 - Fonts: Instrument Serif (headings) + DM Sans (body)
 - Tailwind usage: `bg-[var(--suprameds-navy)]` pattern with CSS custom properties
 
+## Product Naming Convention
+
+All product titles MUST follow this standard format:
+
+**Format:** `Brand Name Strength` in Title Case — NO dosage form in title
+
+### Rules
+1. **Title Case** for brand names: `ATORCYN` → `Atorcyn`, `ATOSKY GOLD` → `Atosky Gold`
+2. **Space** between brand and strength (no hyphens before numbers): `ATORCYN-10` → `Atorcyn 10`
+3. **Keep hyphens** that are part of brand identity (variant suffixes): `-S`, `-T`, `-P`, `-D`, `-H`, `-AM`, `-AT`, `-CD`, `-MV`, `-DSR`, `-LSR`, `-F`, `-DP`, `-VG`, `-VGM`, `-TG`
+4. **NO dosage form in title** — stored in `drug_product.dosage_form`, displayed as separate tag/badge on frontend
+5. **Keep** SR/MR/ER/CR/DR/OD designators as part of brand
+6. **Keep** combo notation: `20/75`, `10/12.5`, `10/100/1000`
+7. **Remove** redundant `TAB`, `Tab`, `SYP`, `Tablet`, `Capsule`, `Syrup` from titles
+8. **FORTE** is a brand modifier in Title Case: `Glidax M 0.5 Forte`
+9. **Handle** (URL slug) = lowercase hyphenated version of title
+
+### Examples
+```
+ATORCYN-10          → Atorcyn 10
+ATOSKY GOLD-10      → Atosky Gold 10
+ACEPRA-S            → Acepra-S
+ARICDOM-DSR         → Aricdom-DSR
+MAXFORMIN SR-500    → Maxformin SR 500
+DAXAGEST 200 SR     → Daxagest 200 SR
+ACEWOK-P SYP        → Acewok-P
+GLIDAX M 0.5 FORTE  → Glidax M 0.5 Forte
+DAPADAX-M 10/1000   → Dapadax-M 10/1000
+```
+
+### Composition Format
+Salt compositions use parenthetical strengths: `Atorvastatin (10mg) + Aspirin (75mg)`
+- Source of truth: Supracyn Pharma Product Brochure 2025
+- Generic name = salt names without strengths: `Atorvastatin + Aspirin`
+
+### Manufacturers (our brands only)
+- **Supracyn Pharma** (via Betamax Remedies): GLIMCYN, ATORCYN, ROZUCYN, SUPAN, SUPRATEL, PARACYN, METCYN, AMICYN, etc.
+- **Daxia Healthcare**: DAXABAY, DAXAFLOW, DAXTOR, DAXIL, DAXYBILE, DAXYMER, DAPADAX, CILIDAX, SIGADAX, etc.
+- **Do NOT add** Elder Pharmaceuticals or third-party products
+
 ## gstack
 
 Use the `/browse` skill from gstack for all web browsing. Never use `mcp__claude-in-chrome__*` tools.

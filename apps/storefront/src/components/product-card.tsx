@@ -164,15 +164,29 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </p>
         )}
 
-        {/* Product title */}
-        <h3 className="text-sm font-semibold leading-snug line-clamp-2 min-h-[2.5em]" style={{ color: "var(--text-primary)" }}>
-          {product.title}
-        </h3>
+        {/* Product title + dosage form badge */}
+        <div className="flex items-start gap-1.5">
+          <h3 className="text-sm font-semibold leading-snug line-clamp-2 min-h-[2.5em] flex-1" style={{ color: "var(--text-primary)" }}>
+            {product.title}
+          </h3>
+          {form && (
+            <span
+              className="shrink-0 mt-0.5 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide"
+              style={{
+                background: "var(--bg-tertiary, rgba(0,0,0,0.06))",
+                color: "var(--text-secondary)",
+                border: "1px solid var(--border-secondary)",
+              }}
+            >
+              {form}
+            </span>
+          )}
+        </div>
 
-        {/* Form / strength / pack info */}
-        {(form || strength || packSize) && (
+        {/* Strength / pack info */}
+        {(strength || packSize) && (
           <p className="text-xs line-clamp-1" style={{ color: "var(--text-secondary)" }}>
-            {[form, strength, packSize].filter(Boolean).join(" · ")}
+            {[strength, packSize].filter(Boolean).join(" · ")}
           </p>
         )}
 

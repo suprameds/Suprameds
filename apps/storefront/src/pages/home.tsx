@@ -332,7 +332,7 @@ const Home = () => {
             <div className="flex flex-wrap gap-2 mb-6">
               {[
                 { icon: "truck", text: "FREE Delivery above ₹300" },
-                { icon: "clock", text: "2-Day Delivery in T.S. & A.P." },
+                { icon: "clock", text: "2-3 Days Delivery in T.S. & A.P." },
                 { icon: "india", text: "Pan-India Speed Post" },
               ].map((pill) => (
                 <span
@@ -419,8 +419,8 @@ const Home = () => {
               {[
                 { value: <><Counter end={80} suffix="%" /></>, label: "Max Savings on Generics" },
                 { value: "Free", label: "Delivery above ₹300" },
-                { value: <><Counter end={5000} suffix="+" /></>, label: "Medicines Available" },
-                { value: "2-Days", label: "Delivery in TS & AP" },
+                { value: <><Counter end={750} suffix="+" /></>, label: "Medicines Available" },
+                { value: "2-3 Days", label: "Delivery in TS & AP" },
               ].map((stat, i) => (
                 <Reveal key={i} delay={i * 0.08}>
                   <div className="text-center">
