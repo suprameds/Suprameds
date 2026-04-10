@@ -52,15 +52,41 @@ export const completeCartOrder = async (): Promise<HttpTypes.StoreOrder> => {
     throw new Error("No cart found")
   }
 
-  const cartRes = await sdk.store.cart.complete(cartId, {})
+  try {
+    const cartRes = await sdk.store.cart.complete(cartId, {})
 
-  if (cartRes.type !== "order") {
-    throw new Error("Order creation failed")
+    if (cartRes.type !== "order") {
+      throw new Error("Order creation failed")
+    }
+
+    // Clear the cart from storage after successful completion
+    removeStoredCart()
+    return cartRes.order
+  } catch (err: any) {
+    const msg = err?.message || err?.body?.message || ""
+
+    // Idempotency conflict — the order may have already been created.
+    // Retry once: Medusa SDK generates a new idempotency key per call.
+    if (msg.includes("conflicted") || msg.includes("Idempotency")) {
+      // Small delay to let the first request finish
+      await new Promise((r) => setTimeout(r, 1500))
+
+      const retryRes = await sdk.store.cart.complete(cartId, {})
+      if (retryRes.type === "order") {
+        removeStoredCart()
+        return retryRes.order
+      }
+
+      // If still not an order, the cart might be stuck — check if order exists
+      throw new Error(
+        "Payment was processed but order confirmation failed. " +
+        "Please check My Orders — your order may already be placed. " +
+        "If not, contact support."
+      )
+    }
+
+    throw err
   }
-
-  // Clear the cart from storage after successful completion
-  removeStoredCart()
-  return cartRes.order
 }
 
 /**
