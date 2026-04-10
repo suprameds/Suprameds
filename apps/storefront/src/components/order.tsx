@@ -574,10 +574,10 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
             year: "numeric",
           })}
         </span>
-        {/* Invoice download — shown for non-cancelled orders */}
+        {/* Invoice download — hidden until invoice format is finalized */}
         <div className="flex gap-2 flex-wrap">
-          {!isCancelled && <InvoiceDownloadButton orderId={order.id} />}
-          {!isCancelled && <InvoiceEmailButton orderId={order.id} />}
+          {/* {!isCancelled && <InvoiceDownloadButton orderId={order.id} />} */}
+          {/* {!isCancelled && <InvoiceEmailButton orderId={order.id} />} */}
           {!isCancelled && <ReorderButton order={order} countryCode="in" />}
         </div>
       </div>
