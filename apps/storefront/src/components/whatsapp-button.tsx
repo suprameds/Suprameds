@@ -4,7 +4,7 @@ export default function WhatsAppButton() {
       href="https://wa.me/917674962758?text=Hi%20Suprameds%2C%20I%20need%20help%20with%20my%20order"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-transform hover:scale-110"
+      className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-full shadow-lg transition-transform hover:scale-110"
       style={{ background: "#25D366" }}
       aria-label="Chat on WhatsApp"
     >
