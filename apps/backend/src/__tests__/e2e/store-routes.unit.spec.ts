@@ -1,8 +1,6 @@
-/**
- * Store Route Tests — Cover the 7 previously untested routes
- *
- * Run: npx jest --testMatch="**/*.unit.spec.ts" -- store-routes
- */
+// Store Route Tests — Cover the 7 previously untested routes
+//
+// Run: npx jest --testMatch="**/*.unit.spec.ts" -- store-routes
 
 const BASE_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
 const PK = process.env.MEDUSA_PUBLISHABLE_KEY || "pk_e2bd20acd56f5f1f41d1c7442ead5295eaf39af4a858c0c42fd99bd0796dcaa3"
