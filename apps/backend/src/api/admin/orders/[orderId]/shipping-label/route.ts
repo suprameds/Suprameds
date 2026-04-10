@@ -368,7 +368,7 @@ function renderShippingLabel(data: {
     </div>
     <div style="display:flex;align-items:center;gap:2mm;">
       ${isCod ? `<div style="font-size:11pt;font-weight:900;color:#000;text-align:right;">ID<br>53326</div>` : ""}
-      <div class="payment-badge ${isCod ? "cod" : "prepaid"}">${isCod ? `COD &#8377;${data.totalAmount}` : "PREPAID"}</div>
+      <div class="payment-badge ${isCod ? "cod" : "prepaid"}">${isCod ? `COD ₹${data.totalAmount}` : "PREPAID"}</div>
     </div>
   </div>
 
