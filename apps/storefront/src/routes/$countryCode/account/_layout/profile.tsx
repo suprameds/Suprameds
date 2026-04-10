@@ -185,7 +185,7 @@ function ProfilePage() {
         </p>
       </div>
 
-      {/* Loyalty Points section */}
+      {/* Loyalty Points section — Coming Soon */}
       <div>
         <h2
           className="text-lg font-semibold mb-3"
@@ -193,15 +193,16 @@ function ProfilePage() {
         >
           Loyalty Rewards
         </h2>
-        <Suspense
-          fallback={
-            <div className="bg-[var(--bg-secondary)] border rounded-xl p-6 animate-pulse" style={{ borderColor: "var(--border-primary)" }}>
-              <div className="h-4 w-32 rounded" style={{ background: "var(--border-primary)" }} />
-            </div>
-          }
+        <div
+          className="bg-[var(--bg-secondary)] border rounded-xl p-6 text-center"
+          style={{ borderColor: "var(--border-primary)" }}
         >
-          <LoyaltyDashboard />
-        </Suspense>
+          <div className="text-2xl mb-2">🎁</div>
+          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Coming Soon</p>
+          <p className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
+            Earn points on every order and redeem for discounts. Stay tuned!
+          </p>
+        </div>
       </div>
     </div>
   )
