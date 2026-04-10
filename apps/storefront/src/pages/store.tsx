@@ -114,7 +114,7 @@ const Store = () => {
             {[
               { icon: "tag", text: "50–80% Off" },
               { icon: "truck", text: "Free Delivery ₹300+" },
-              { icon: "clock", text: "2-Day Delivery T.S. & A.P." },
+              { icon: "clock", text: "2-3 Days Delivery T.S. & A.P." },
             ].map((badge) => (
               <span
                 key={badge.text}
@@ -197,12 +197,12 @@ const Store = () => {
           )}
         </div>
 
-        {/* Category quick-filters */}
+        {/* Category quick-filters — horizontal scroll on mobile, wrap on desktop */}
         {categories && categories.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
+          <div className="flex overflow-x-auto md:flex-wrap gap-2 mb-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0 no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
             <button
               onClick={() => setSelectedCategory(undefined)}
-              className="px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px]"
+              className="px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px] shrink-0"
               style={{
                 background: !selectedCategory ? "var(--brand-teal)" : "var(--bg-secondary)",
                 color: !selectedCategory ? "var(--text-inverse)" : "var(--text-primary)",
@@ -215,7 +215,7 @@ const Store = () => {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(selectedCategory === cat.id ? undefined : cat.id)}
-                className="px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px]"
+                className="px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px] shrink-0"
                 style={{
                   background: selectedCategory === cat.id ? "var(--brand-teal)" : "var(--bg-secondary)",
                   color: selectedCategory === cat.id ? "var(--text-inverse)" : "var(--text-primary)",
