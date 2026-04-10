@@ -72,9 +72,17 @@ const ProductDetails = () => {
     <div style={{ background: "var(--bg-primary)" }}>
       <div className="content-container py-8 lg:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-          {/* Left: Image gallery */}
+          {/* Left: Image gallery — fall back to thumbnail if no images uploaded */}
           <div>
-            <ImageGallery images={product.images || []} />
+            <ImageGallery
+              images={
+                product.images && product.images.length > 0
+                  ? product.images
+                  : product.thumbnail
+                    ? [{ id: "thumb", url: product.thumbnail, rank: 0 } as any]
+                    : []
+              }
+            />
           </div>
 
           {/* Right: Product info */}
