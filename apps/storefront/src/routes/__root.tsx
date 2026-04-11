@@ -70,6 +70,14 @@ export const Route = createRootRouteWithContext<{
         rel: "apple-touch-icon",
         href: "/icons/apple-touch-icon-180x180.png",
       },
+      // Preload hero image so browser discovers it before CSS/JS parsing
+      {
+        rel: "preload",
+        as: "image",
+        type: "image/webp",
+        href: "/images/hero-bg.webp",
+        fetchPriority: "high",
+      } as any,
       {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react"
 
 type CartContextType = {
   isOpen: boolean
@@ -20,11 +20,12 @@ export const useCartDrawer = () => {
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false)
 
-  const openCart = () => setIsOpen(true)
-  const closeCart = () => setIsOpen(false)
+  const openCart = useCallback(() => setIsOpen(true), [])
+  const closeCart = useCallback(() => setIsOpen(false), [])
+  const value = useMemo(() => ({ isOpen, openCart, closeCart }), [isOpen, openCart, closeCart])
 
   return (
-    <CartContext.Provider value={{ isOpen, openCart, closeCart }}>
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   )

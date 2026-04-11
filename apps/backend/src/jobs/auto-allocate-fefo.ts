@@ -49,27 +49,77 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
+    // --- Batch-fetch all data upfront to avoid N+1 queries ---
+    const orderIds = pendingOrders.map((ext: any) => ext.order_id)
+
+    // 1. Batch-fetch all orders at once
+    const allOrders = await orderService.listOrders(
+      { id: orderIds },
+      { relations: ["items", "items.variant"] }
+    )
+    const orderMap = new Map<string, any>()
+    for (const o of allOrders) {
+      orderMap.set(o.id, o)
+    }
+
+    // 2. Batch-fetch all existing deductions for all orders
+    let allDeductions: any[] = []
+    try {
+      allDeductions = await batchService.listBatchDeductions(
+        { order_id: orderIds, deduction_type: "sale" },
+        { take: null }
+      )
+    } catch {
+      // None
+    }
+    const deductionsByOrderId = new Map<string, any[]>()
+    for (const d of allDeductions) {
+      const arr = deductionsByOrderId.get(d.order_id) || []
+      arr.push(d)
+      deductionsByOrderId.set(d.order_id, arr)
+    }
+
+    // 3. Collect all variant_ids across all orders
+    const allVariantIds = new Set<string>()
+    for (const o of allOrders) {
+      if (!o?.items?.length) continue
+      for (const item of o.items) {
+        if (item.variant_id) allVariantIds.add(item.variant_id)
+      }
+    }
+
+    // 4. Batch-fetch all active batches for all variants
+    let allBatches: any[] = []
+    if (allVariantIds.size > 0) {
+      allBatches = await batchService.listBatches(
+        { product_variant_id: [...allVariantIds], status: "active" },
+        { take: null, order: { expiry_date: "ASC" } }
+      )
+    }
+    const batchesByVariantId = new Map<string, any[]>()
+    for (const b of allBatches) {
+      const arr = batchesByVariantId.get(b.product_variant_id) || []
+      arr.push(b)
+      batchesByVariantId.set(b.product_variant_id, arr)
+    }
+
+    // Running stock totals — tracks in-memory available_quantity changes
+    // as allocations happen, so we can check low_stock without re-querying
+    const runningStockByBatchId = new Map<string, number>()
+    for (const b of allBatches) {
+      runningStockByBatchId.set(b.id, Number(b.available_quantity))
+    }
+
     let allocated = 0
     let failed = 0
 
     for (const ext of pendingOrders) {
       try {
-        const order = await orderService.retrieveOrder(ext.order_id, {
-          relations: ["items", "items.variant"],
-        })
-
+        const order = orderMap.get(ext.order_id)
         if (!order?.items?.length) continue
 
-        // Check for existing deductions — skip items already allocated
-        let existingDeductions: any[] = []
-        try {
-          existingDeductions = await batchService.listBatchDeductions(
-            { order_id: ext.order_id, deduction_type: "sale" },
-            { take: null }
-          )
-        } catch {
-          // None
-        }
+        // Use pre-fetched deductions for this order
+        const existingDeductions = deductionsByOrderId.get(ext.order_id) || []
         const alreadyAllocatedItems = new Set(
           existingDeductions.map((d: any) => d.order_line_item_id)
         )
@@ -82,17 +132,16 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
           const variantId = item.variant_id
           if (!variantId) continue
 
-          const batches = await batchService.listBatches(
-            { product_variant_id: variantId, status: "active" },
-            { take: null, order: { expiry_date: "ASC" } }
-          )
+          // Use pre-fetched batches for this variant
+          const batches = batchesByVariantId.get(variantId) || []
 
           // Prefer MSL-compliant batches, fall back to any non-expired
           let eligible = (batches as any[]).filter((b: any) => {
             const exp = new Date(b.expiry_date)
             exp.setHours(0, 0, 0, 0)
+            const currentAvail = runningStockByBatchId.get(b.id) ?? Number(b.available_quantity)
             const effectiveAvail =
-              Number(b.available_quantity) - Number(b.reserved_quantity ?? 0)
+              currentAvail - Number(b.reserved_quantity ?? 0)
             return exp >= mslCutoff && effectiveAvail > 0
           })
 
@@ -100,8 +149,9 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
             eligible = (batches as any[]).filter((b: any) => {
               const exp = new Date(b.expiry_date)
               exp.setHours(0, 0, 0, 0)
+              const currentAvail = runningStockByBatchId.get(b.id) ?? Number(b.available_quantity)
               const effectiveAvail =
-                Number(b.available_quantity) - Number(b.reserved_quantity ?? 0)
+                currentAvail - Number(b.reserved_quantity ?? 0)
               return exp >= today && effectiveAvail > 0
             })
           }
@@ -111,13 +161,14 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
           for (const batch of eligible) {
             if (remaining <= 0) break
 
+            const currentAvail = runningStockByBatchId.get(batch.id) ?? Number(batch.available_quantity)
             const effectiveAvail =
-              Number(batch.available_quantity) - Number(batch.reserved_quantity ?? 0)
+              currentAvail - Number(batch.reserved_quantity ?? 0)
             if (effectiveAvail <= 0) continue
 
             const allocQty = Math.min(remaining, effectiveAvail)
             const currentVersion = Number(batch.version ?? 0)
-            const newAvail = Number(batch.available_quantity) - allocQty
+            const newAvail = currentAvail - allocQty
 
             const updatePayload: Record<string, any> = {
               id: batch.id,
@@ -142,6 +193,9 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
               continue
             }
 
+            // Update in-memory running stock total
+            runningStockByBatchId.set(batch.id, newAvail)
+
             // Create proper deduction record for traceability
             await batchService.createBatchDeductions({
               batch_id: batch.id,
@@ -157,7 +211,7 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
                 batch_id: batch.id,
                 action: "deduction_sale",
                 field_name: "available_quantity",
-                old_value: String(batch.available_quantity),
+                old_value: String(currentAvail),
                 new_value: String(newAvail),
                 actor_id: "auto-allocate-fefo",
                 actor_type: "job",
@@ -179,14 +233,11 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
             )
           }
 
-          // Emit low_stock event if total active stock dropped below threshold
+          // Emit low_stock event using in-memory running totals (no extra DB query)
           try {
-            const remainingBatches = await batchService.listBatches(
-              { product_variant_id: variantId, status: "active" },
-              { take: null, select: ["available_quantity"] }
-            )
-            const totalStock = (remainingBatches as any[]).reduce(
-              (sum: number, b: any) => sum + Number(b.available_quantity), 0
+            const variantBatches = batchesByVariantId.get(variantId) || []
+            const totalStock = variantBatches.reduce(
+              (sum: number, b: any) => sum + (runningStockByBatchId.get(b.id) ?? Number(b.available_quantity)), 0
             )
             if (totalStock < LOW_STOCK_THRESHOLD) {
               const eventBus = container.resolve(Modules.EVENT_BUS) as any

@@ -145,6 +145,16 @@ export default defineConfig({
               from: process.env.RESEND_FROM_EMAIL || "Suprameds <support@supracynpharma.com>",
             },
           },
+          {
+            resolve: "./src/providers/notification-bulksms",
+            id: "bulksms",
+            options: {
+              channels: ["sms"],
+              api_id: process.env.BULKSMS_API_ID,
+              api_password: process.env.BULKSMS_API_PASSWORD,
+              sender_id: process.env.BULKSMS_SENDER_ID || "Suprra",
+            },
+          },
         ],
       },
     },
