@@ -68,7 +68,7 @@ export const Navbar = () => {
     if (trimmed) {
       saveRecentSearch(trimmed)
       navigate({
-        to: "/$countryCode/search",
+        to: "/$countryCode/store",
         params: { countryCode },
         search: { q: trimmed },
       })
@@ -100,7 +100,7 @@ export const Navbar = () => {
   const handleSubmitFromDropdown = (q: string) => {
     saveRecentSearch(q)
     navigate({
-      to: "/$countryCode/search",
+      to: "/$countryCode/store",
       params: { countryCode },
       search: { q },
     })

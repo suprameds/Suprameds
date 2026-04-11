@@ -1,10 +1,12 @@
 import ProductCard from "@/components/product-card"
+import { CATEGORY_ICON_MAP } from "@/components/search-category-chips"
 import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
-import { trackViewItemList } from "@/lib/utils/analytics"
-import { useLoaderData, useSearch } from "@tanstack/react-router"
-import { useMemo, useState, useEffect } from "react"
+import { useSearch, type SearchProduct } from "@/lib/hooks/use-search"
+import { trackViewItemList, trackSearch } from "@/lib/utils/analytics"
+import { useLoaderData, useSearch as useRouterSearch, useNavigate } from "@tanstack/react-router"
+import { useMemo, useState, useEffect, useCallback } from "react"
 import { useBulkPharma, usePharmaFilter, type DrugProductMeta } from "@/lib/hooks/use-pharma"
 import { HttpTypes } from "@medusajs/types"
 
@@ -12,17 +14,40 @@ type ScheduleFilter = "all" | "rx" | "otc"
 
 type EnrichedProduct = HttpTypes.StoreProduct & { drug_product?: DrugProductMeta }
 
+const SearchIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+)
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs)
+    return () => clearTimeout(timer)
+  }, [value, delayMs])
+  return debounced
+}
+
 const Store = () => {
-  const { region } = useLoaderData({ from: "/$countryCode/store" })
-  const searchParams = useSearch({ strict: false }) as Record<string, string>
+  const { region, countryCode } = useLoaderData({ from: "/$countryCode/store" })
+  const searchParams = useRouterSearch({ strict: false }) as Record<string, string>
+  const navigate = useNavigate()
   const initialSchedule = (searchParams?.schedule as ScheduleFilter) || "all"
+  const initialQuery = searchParams?.q || ""
 
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>()
+  const [selectedCategoryHandle, setSelectedCategoryHandle] = useState<string | undefined>()
   const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>(initialSchedule)
   const [formFilter, setFormFilter] = useState<string>("all")
 
-  // Fetch all categories, then show subcategories of "Medicines" as filter tabs
-  // (parent categories like Medicines/Wellness have 0 products directly linked)
+  // ── Search state ──
+  const [searchInput, setSearchInput] = useState(initialQuery)
+  const [searchOffset, setSearchOffset] = useState(0)
+  const debouncedSearch = useDebouncedValue(searchInput.trim(), 300)
+  const isSearchMode = debouncedSearch.length > 0
+
+  // Fetch all categories for filter chips
   const { data: allCategories } = useCategories({
     fields: "id,name,handle,parent_category_id",
   })
@@ -31,46 +56,62 @@ const Store = () => {
     ? allCategories?.filter((c) => c.parent_category_id === medicinesParent.id)
     : allCategories?.filter((c) => !c.parent_category_id)
 
-  // Server-side pharma filter: returns matching product_ids for schedule/form
+  // ── Search mode: FTS via backend ──
+  const { data: searchData, isFetching: isSearchFetching, isError: isSearchError } = useSearch({
+    q: debouncedSearch,
+    limit: 20,
+    offset: searchOffset,
+    categoryId: selectedCategoryHandle,
+  })
+
+  const searchProducts = searchData?.products ?? []
+  const searchTotalCount = searchData?.count ?? 0
+  const searchHasMore = searchOffset + 20 < searchTotalCount
+
+  // Adapt FTS results to ProductCard shape
+  const adaptedSearchProducts = searchProducts.map((p: SearchProduct) => ({
+    ...p,
+    drug_product: p.drug_product ?? undefined,
+    variants: [],
+  }))
+
+  // ── Browse mode: Medusa product listing ──
   const hasPharmaFilter = scheduleFilter !== "all" || formFilter !== "all"
   const { data: filteredIds, isFetching: isFilterFetching } = usePharmaFilter(
     scheduleFilter !== "all" ? scheduleFilter : undefined,
     formFilter !== "all" ? formFilter : undefined,
   )
 
-  // Pass filtered IDs to Medusa's paginated product list
-  // When pharma filter is active but returns 0 results, pass a dummy ID to get 0 products
   const pharmaIdFilter = hasPharmaFilter
     ? (filteredIds && filteredIds.length > 0 ? filteredIds : ["__none__"])
     : undefined
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isError, refetch } = useProducts({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching: isBrowseFetching, isError: isBrowseError, refetch } = useProducts({
     region_id: region?.id,
     query_params: {
       limit: 12,
       category_id: selectedCategory ? [selectedCategory] : undefined,
       ...(pharmaIdFilter ? { id: pharmaIdFilter } : {}),
     },
+    enabled: !isSearchMode,
   })
 
-  const products = useMemo(() => data?.pages.flatMap((page) => page.products) || [], [data?.pages])
+  const browseProducts = useMemo(() => data?.pages.flatMap((page) => page.products) || [], [data?.pages])
 
-  // Fetch pharma metadata for display (MRP, manufacturer, etc.)
-  const productIds = useMemo(() => products.map((p) => p.id).filter(Boolean), [products])
+  // Fetch pharma metadata for browse mode
+  const productIds = useMemo(() => browseProducts.map((p) => p.id).filter(Boolean), [browseProducts])
   const { data: pharmaMap } = useBulkPharma(productIds)
 
-  // Enrich products with pharma data for display
-  const enrichedProducts = useMemo((): EnrichedProduct[] => {
-    if (!pharmaMap) return products
-    return products.map((p) => {
+  const enrichedBrowseProducts = useMemo((): EnrichedProduct[] => {
+    if (!pharmaMap) return browseProducts
+    return browseProducts.map((p) => {
       const dp = pharmaMap[p.id]
       if (!dp) return p
       return { ...p, drug_product: dp }
     })
-  }, [products, pharmaMap])
+  }, [browseProducts, pharmaMap])
 
-  // Build dynamic form filter options from ALL pharma data (not just loaded page)
-  // We fetch distinct forms from the bulk pharma response
+  // Dynamic dosage form filter options
   const availableForms = useMemo(() => {
     if (!pharmaMap) return []
     const forms = new Set<string>()
@@ -80,21 +121,60 @@ const Store = () => {
     return Array.from(forms).sort()
   }, [pharmaMap])
 
+  // ── Derived state ──
+  const displayProducts = isSearchMode ? adaptedSearchProducts : enrichedBrowseProducts
+  const isLoading = isSearchMode
+    ? (isSearchFetching && searchProducts.length === 0)
+    : (isBrowseFetching || isFilterFetching)
+  const isError = isSearchMode ? isSearchError : isBrowseError
   const hasActiveFilters = hasPharmaFilter
-  const displayCount = enrichedProducts.length
-  const isLoading = isFetching || isFilterFetching
 
   const clearAll = () => {
     setScheduleFilter("all")
     setFormFilter("all")
   }
 
+  const handleCategorySelect = useCallback((catId: string | undefined, catHandle: string | undefined) => {
+    if (selectedCategory === catId) {
+      setSelectedCategory(undefined)
+      setSelectedCategoryHandle(undefined)
+    } else {
+      setSelectedCategory(catId)
+      setSelectedCategoryHandle(catHandle)
+    }
+    setSearchOffset(0)
+  }, [selectedCategory])
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = searchInput.trim()
+    if (trimmed) {
+      trackSearch(trimmed)
+      setSearchOffset(0)
+      navigate({
+        to: "/$countryCode/store",
+        params: { countryCode },
+        search: { q: trimmed },
+        replace: true,
+      })
+    }
+  }
+
+  const handleSearchInputChange = (value: string) => {
+    setSearchInput(value)
+    setSearchOffset(0)
+  }
+
+  const loadMore = useCallback(() => {
+    setSearchOffset((prev) => prev + 20)
+  }, [])
+
   useEffect(() => {
-    if (products.length) {
-      trackViewItemList(products, "All Medicines", region?.currency_code?.toUpperCase() || "INR")
+    if (!isSearchMode && browseProducts.length) {
+      trackViewItemList(browseProducts, "All Medicines", region?.currency_code?.toUpperCase() || "INR")
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products.length])
+  }, [browseProducts.length, isSearchMode])
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "80vh" }}>
@@ -138,6 +218,61 @@ const Store = () => {
       </div>
 
       <div className="content-container py-8">
+        {/* ── Search bar ── */}
+        <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto mb-6">
+          <div
+            className="flex items-center rounded-xl overflow-hidden shadow-sm"
+            style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
+          >
+            <div className="pl-4" style={{ color: "#999" }}>
+              <SearchIcon />
+            </div>
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => handleSearchInputChange(e.target.value)}
+              placeholder="Search medicines by name, composition, or generic name..."
+              className="flex-1 px-3 py-3.5 text-sm outline-none bg-transparent"
+              style={{ color: "var(--text-primary)" }}
+            />
+            {isSearchMode && isSearchFetching && (
+              <div className="pr-2">
+                <div
+                  className="w-4 h-4 border-2 rounded-full animate-spin"
+                  style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
+                />
+              </div>
+            )}
+            {searchInput.trim() && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput("")
+                  setSearchOffset(0)
+                  navigate({
+                    to: "/$countryCode/store",
+                    params: { countryCode },
+                    search: {},
+                    replace: true,
+                  })
+                }}
+                className="px-2 text-lg"
+                style={{ color: "#999" }}
+                title="Clear search"
+              >
+                ×
+              </button>
+            )}
+            <button
+              type="submit"
+              className="px-5 py-3.5 text-sm font-semibold transition-opacity hover:opacity-90"
+              style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
+            >
+              Search
+            </button>
+          </div>
+        </form>
+
         {/* ── Filter chips ── */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {/* Schedule type filter */}
@@ -163,7 +298,7 @@ const Store = () => {
           <span className="w-px h-4 mx-1" style={{ background: "var(--border-primary)" }} />
 
           {/* Dosage form filter (dynamic from loaded products) */}
-          {availableForms.length > 0 && (
+          {availableForms.length > 0 && !isSearchMode && (
             <>
               <span className="text-[11px] font-medium mr-1" style={{ color: "var(--text-secondary)" }}>Form:</span>
               {["all", ...availableForms].map((val) => (
@@ -197,12 +332,12 @@ const Store = () => {
           )}
         </div>
 
-        {/* Category quick-filters — horizontal scroll on mobile, wrap on desktop */}
+        {/* ── Category chips with icons ── */}
         {categories && categories.length > 0 && (
           <div className="flex overflow-x-auto md:flex-wrap gap-2 mb-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0 no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
             <button
-              onClick={() => setSelectedCategory(undefined)}
-              className="px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px] shrink-0"
+              onClick={() => handleCategorySelect(undefined, undefined)}
+              className="flex-shrink-0 inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px]"
               style={{
                 background: !selectedCategory ? "var(--brand-teal)" : "var(--bg-secondary)",
                 color: !selectedCategory ? "var(--text-inverse)" : "var(--text-primary)",
@@ -211,32 +346,50 @@ const Store = () => {
             >
               All
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(selectedCategory === cat.id ? undefined : cat.id)}
-                className="px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px] shrink-0"
-                style={{
-                  background: selectedCategory === cat.id ? "var(--brand-teal)" : "var(--bg-secondary)",
-                  color: selectedCategory === cat.id ? "var(--text-inverse)" : "var(--text-primary)",
-                  border: `1px solid ${selectedCategory === cat.id ? "var(--brand-teal)" : "var(--border-primary)"}`,
-                }}
-              >
-                {cat.name}
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const icon = CATEGORY_ICON_MAP[cat.handle ?? ""]
+              const isActive = selectedCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => handleCategorySelect(cat.id, cat.handle ?? undefined)}
+                  className="flex-shrink-0 inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-medium transition-colors min-h-[44px]"
+                  style={{
+                    background: isActive ? "var(--brand-teal)" : "var(--bg-secondary)",
+                    color: isActive ? "var(--text-inverse)" : "var(--text-primary)",
+                    border: `1px solid ${isActive ? "var(--brand-teal)" : "var(--border-primary)"}`,
+                  }}
+                >
+                  {icon && <span>{icon}</span>}
+                  {cat.name}
+                </button>
+              )
+            })}
           </div>
         )}
 
-        {/* Result count */}
-        {hasActiveFilters && !isLoading && (
+        {/* ── Search results heading ── */}
+        {isSearchMode && !isLoading && (
+          <div className="flex items-baseline gap-2 mb-4">
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              {searchTotalCount} result{searchTotalCount !== 1 ? "s" : ""} for <strong style={{ color: "var(--text-primary)" }}>"{debouncedSearch}"</strong>
+              {selectedCategory && categories ? (() => {
+                const cat = categories.find((c) => c.id === selectedCategory)
+                return cat ? <> in <strong style={{ color: "var(--text-primary)" }}>{cat.name}</strong></> : null
+              })() : null}
+            </p>
+          </div>
+        )}
+
+        {/* ── Browse result count ── */}
+        {!isSearchMode && hasActiveFilters && !isLoading && (
           <p className="text-xs mb-4" style={{ color: "var(--text-secondary)" }}>
-            Showing <strong style={{ color: "var(--text-primary)" }}>{displayCount}</strong> medicine{displayCount !== 1 ? "s" : ""}
+            Showing <strong style={{ color: "var(--text-primary)" }}>{displayProducts.length}</strong> medicine{displayProducts.length !== 1 ? "s" : ""}
           </p>
         )}
 
-        {/* Products grid */}
-        {isLoading && products.length === 0 ? (
+        {/* ── Products grid ── */}
+        {isLoading && displayProducts.length === 0 ? (
           <div className="flex items-center justify-center py-16">
             <div
               className="w-6 h-6 border-2 rounded-full animate-spin"
@@ -248,20 +401,24 @@ const Store = () => {
             <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
               Something went wrong loading products.
             </p>
-            <button
-              onClick={() => refetch()}
-              className="text-sm font-medium underline transition-opacity hover:opacity-70"
-              style={{ color: "var(--brand-teal)" }}
-            >
-              Try again
-            </button>
+            {!isSearchMode && (
+              <button
+                onClick={() => refetch()}
+                className="text-sm font-medium underline transition-opacity hover:opacity-70"
+                style={{ color: "var(--brand-teal)" }}
+              >
+                Try again
+              </button>
+            )}
           </div>
-        ) : enrichedProducts.length === 0 ? (
+        ) : displayProducts.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
-              No medicines found{hasActiveFilters ? " matching your filters" : selectedCategory ? " in this category" : ""}.
+              {isSearchMode
+                ? "No medicines found. Try a different search term."
+                : `No medicines found${hasActiveFilters ? " matching your filters" : selectedCategory ? " in this category" : ""}.`}
             </p>
-            {hasActiveFilters && (
+            {hasActiveFilters && !isSearchMode && (
               <button
                 onClick={clearAll}
                 className="text-sm font-medium underline transition-opacity hover:opacity-70"
@@ -274,22 +431,42 @@ const Store = () => {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {enrichedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {displayProducts.map((product) => (
+                <ProductCard key={product.id} product={product as any} />
               ))}
             </div>
 
-            {hasNextPage && (
-              <div className="text-center mt-8">
-                <Button
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                  variant="secondary"
-                  size="fit"
-                >
-                  {isFetchingNextPage ? "Loading..." : "Load More Medicines"}
-                </Button>
-              </div>
+            {/* Load more: different for search vs browse mode */}
+            {isSearchMode ? (
+              searchHasMore && (
+                <div className="text-center mt-8">
+                  <button
+                    onClick={loadMore}
+                    disabled={isSearchFetching}
+                    className="px-6 py-2.5 rounded text-sm font-medium transition-all"
+                    style={{
+                      background: isSearchFetching ? "var(--border-primary)" : "var(--bg-secondary)",
+                      color: "var(--text-primary)",
+                      border: "1px solid var(--border-primary)",
+                    }}
+                  >
+                    {isSearchFetching ? "Loading..." : "Load more results"}
+                  </button>
+                </div>
+              )
+            ) : (
+              hasNextPage && (
+                <div className="text-center mt-8">
+                  <Button
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    variant="secondary"
+                    size="fit"
+                  >
+                    {isFetchingNextPage ? "Loading..." : "Load More Medicines"}
+                  </Button>
+                </div>
+              )
             )}
           </>
         )}

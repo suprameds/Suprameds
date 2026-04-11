@@ -278,7 +278,7 @@ const Home = () => {
     const trimmed = searchQuery.trim()
     if (trimmed) {
       navigate({
-        to: "/$countryCode/search",
+        to: "/$countryCode/store",
         params: { countryCode },
         search: { q: trimmed },
       })

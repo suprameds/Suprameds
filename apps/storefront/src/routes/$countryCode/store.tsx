@@ -4,7 +4,16 @@ import Store from "@/pages/store"
 import { listProducts } from "@/lib/data/products"
 import { HttpTypes } from "@medusajs/types"
 
+type StoreSearchParams = {
+  q?: string
+  schedule?: string
+}
+
 export const Route = createFileRoute("/$countryCode/store")({
+  validateSearch: (search: Record<string, unknown>): StoreSearchParams => ({
+    q: typeof search.q === "string" ? search.q : undefined,
+    schedule: typeof search.schedule === "string" ? search.schedule : undefined,
+  }),
   loader: async ({ params, context }) => {
     const { countryCode } = params
     const { queryClient } = context

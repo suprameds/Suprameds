@@ -6,9 +6,11 @@ import { sdk } from "@/lib/utils/sdk"
 export const useProducts = ({
   query_params,
   region_id,
+  enabled = true,
 }: {
   query_params?: HttpTypes.StoreProductListParams
   region_id?: string
+  enabled?: boolean
 } = {}) => {
   return useInfiniteQuery({
     queryKey: queryKeys.products.list(query_params, region_id),
@@ -47,7 +49,7 @@ export const useProducts = ({
     getNextPageParam: (lastPage) => lastPage.next_page,
     getPreviousPageParam: (firstPage) => firstPage.next_page,
     initialPageParam: 1,
-    enabled: !!region_id,
+    enabled: !!region_id && enabled,
     staleTime: 5 * 60 * 1000, // 5 min — product catalog rarely changes
   })
 }
