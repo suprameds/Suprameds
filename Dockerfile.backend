@@ -2,14 +2,14 @@
 # Stage 1: Install ALL dependencies (cached unless lockfile changes)
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY apps/storefront/package.json apps/storefront/
 
-RUN pnpm install --no-frozen-lockfile --filter backend
+RUN pnpm install --frozen-lockfile --filter backend
 
 # Pre-create the pruned production node_modules here (while deps are cached).
 # This avoids re-downloading ~1475 packages in the build stage.
@@ -20,7 +20,7 @@ RUN pnpm --filter backend deploy --legacy --prod /app/pruned
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS build
 RUN apk add --no-cache libc6-compat
-RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules

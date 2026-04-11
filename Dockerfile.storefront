@@ -2,7 +2,7 @@
 # Stage 1: Dependencies
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS deps
-RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -16,7 +16,7 @@ RUN pnpm install --no-frozen-lockfile --filter storefront
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS build
 RUN apk add --no-cache libc6-compat
-RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
+RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
