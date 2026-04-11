@@ -65,7 +65,7 @@ function SuggestionRow({
         style={{ background: "var(--bg-primary)", border: "1px solid var(--border-primary)" }}
       >
         {product.thumbnail ? (
-          <img src={product.thumbnail} alt="" className="w-full h-full object-contain p-0.5" />
+          <img src={product.thumbnail} alt={product.title} className="w-full h-full object-contain p-0.5" />
         ) : (
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="1.5">
             <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />

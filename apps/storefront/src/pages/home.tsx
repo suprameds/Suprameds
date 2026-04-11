@@ -327,6 +327,7 @@ const Home = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for medicines, e.g. Metformin, Amlodipine..."
+                  aria-label="Search for medicines"
                   className="flex-1 px-3 py-3.5 text-sm bg-transparent outline-none placeholder:text-white/30"
                   style={{ color: "var(--text-inverse)" }}
                 />
@@ -610,6 +611,7 @@ const Home = () => {
                 ref={rxFileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,application/pdf"
+                aria-label="Upload prescription"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0]

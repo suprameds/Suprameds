@@ -41,8 +41,8 @@ export const Route = createFileRoute("/$countryCode/store")({
     const countryCode = params?.countryCode || "in"
     const regionName = region?.name || countryCode.toUpperCase()
     const canonical = `${siteUrl}/${countryCode}/store`
-    const title = `All Medicines — ${regionName} | Suprameds`
-    const description = `Browse prescription and OTC medicines available in ${regionName}. Pharmacist-dispensed. Speed Post delivery across India.`
+    const title = `Buy Prescription & OTC Medicines Online ${regionName} | Suprameds`
+    const description = `Browse 750+ generic medicines at 50-80% off MRP. Prescription and OTC drugs dispensed by registered pharmacists. Free delivery above ₹300. CDSCO-registered online pharmacy.`
 
     const { products } = loaderData || {}
 

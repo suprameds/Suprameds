@@ -177,7 +177,7 @@ const Footer = () => {
               <a href="tel:1800116117" className="text-sm font-bold" style={{ color: "#ff6b6b" }}>
                 1800-116-117
               </a>
-              <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>National Helpline · Free · 24/7</p>
+              <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.7)" }}>National Helpline · Free · 24/7</p>
             </div>
           </div>
         </div>

@@ -1,8 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router"
 
-const BACKEND_URL = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000"
-const SITE_URL = process.env.VITE_SITE_URL || "https://suprameds.in"
-const PUBLISHABLE_KEY = process.env.VITE_MEDUSA_PUBLISHABLE_KEY || ""
+// In Vite SSR, use import.meta.env for VITE_* vars. process.env only works for
+// non-VITE vars injected by the runtime (e.g. Node.js env vars in Docker).
+const BACKEND_URL =
+  import.meta.env.VITE_MEDUSA_BACKEND_URL ||
+  import.meta.env.VITE_MEDUSA_PRODUCTION_URL ||
+  process.env.MEDUSA_BACKEND_URL ||
+  "http://localhost:9000"
+const SITE_URL = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+const PUBLISHABLE_KEY = import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY || ""
 
 const COMPLIANCE_PAGES = [
   "licenses",
@@ -107,8 +113,9 @@ export const Route = createFileRoute("/sitemap.xml")({
               ]
             })
           }
-        } catch {
+        } catch (err) {
           // Backend unreachable — return minimal sitemap with static pages only
+          console.error("[Sitemap] Failed to fetch products/categories from backend:", BACKEND_URL, err)
         }
 
         const allEntries = [

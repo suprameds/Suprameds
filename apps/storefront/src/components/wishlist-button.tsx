@@ -51,7 +51,7 @@ export function WishlistButton({ productId, variantId, currentPrice, className }
       onClick={handleToggle}
       disabled={isPending}
       className={[
-        "p-2 rounded-full transition-all duration-200 disabled:opacity-60",
+        "p-2.5 rounded-full transition-all duration-200 disabled:opacity-60",
         isWishlisted
           ? "text-[var(--brand-red)] bg-white/90 shadow-sm hover:bg-white hover:text-[var(--brand-red)]"
           : "text-[var(--text-tertiary)] bg-white/80 shadow-sm hover:bg-white hover:text-[var(--brand-red)]",

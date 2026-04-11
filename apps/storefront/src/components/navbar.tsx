@@ -284,6 +284,7 @@ export const Navbar = () => {
                 onBlur={handleSearchBlur}
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Search medicines, e.g. Metformin, Paracetamol..."
+                aria-label="Search medicines"
                 className="flex-1 px-2.5 py-2 text-sm outline-none bg-transparent caret-current"
                 style={{ color: "var(--text-primary)" }}
                 suppressHydrationWarning
@@ -306,7 +307,7 @@ export const Navbar = () => {
 
           {/* Mobile menu */}
           <Drawer>
-            <DrawerTrigger className="lg:hidden" style={{ color: "var(--text-primary)" }}>
+            <DrawerTrigger className="lg:hidden p-2" style={{ color: "var(--text-primary)" }} aria-label="Open menu">
               <MenuIcon />
             </DrawerTrigger>
             <DrawerContent side="left">
@@ -334,6 +335,7 @@ export const Navbar = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search medicines..."
+                      aria-label="Search medicines"
                       className="px-2.5 py-2.5 text-sm outline-none bg-transparent flex-1"
                       style={{ color: "var(--text-primary)" }}
                     />

@@ -7,9 +7,9 @@ export const Route = createFileRoute("/returns")({
     ],
     meta: [
       { title: "Returns & Refund Policy — Suprameds" },
-      { name: "description", content: "Suprameds returns and refund policy for medicines purchased online." },
+      { name: "description", content: "Suprameds returns and refund policy. Eligible return reasons, 7-day return window, refund methods, and pharmacy recall procedures for medicines ordered online." },
       { property: "og:title", content: "Returns & Refund Policy — Suprameds" },
-      { property: "og:description", content: "Suprameds returns and refund policy for medicines purchased online." },
+      { property: "og:description", content: "Suprameds returns and refund policy. Eligible return reasons, 7-day return window, refund methods, and pharmacy recall procedures for medicines ordered online." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://suprameds.in/returns" },
     ],
