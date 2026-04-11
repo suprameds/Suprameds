@@ -28,11 +28,20 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
     const inventoryService = container.resolve(Modules.INVENTORY) as any
     const productService = container.resolve(Modules.PRODUCT) as any
 
-    // Get all active batches grouped by variant
-    const allBatches = await batchService.listBatches(
-      { status: "active" },
-      { take: null }
-    )
+    // Paginate batch loading to avoid unbounded memory usage
+    const PAGE_SIZE = 1000
+    const allBatches: any[] = []
+    let offset = 0
+    while (true) {
+      const page = await batchService.listBatches(
+        { status: "active" },
+        { take: PAGE_SIZE, skip: offset }
+      )
+      if (!page?.length) break
+      allBatches.push(...page)
+      if (page.length < PAGE_SIZE) break
+      offset += PAGE_SIZE
+    }
 
     if (!allBatches?.length) {
       logger.info(`${LOG} No active batches found`)

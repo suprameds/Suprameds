@@ -59,6 +59,8 @@ const ImageGallery = memo(function ImageGallery({ images }: ImageGalleryProps) {
                       loading={isCriticalImage ? "eager" : "lazy"}
                       fetchPriority={isFirstImage ? "high" : undefined}
                       decoding="async"
+                      width={290}
+                      height={340}
                     />
                   )}
                 </div>

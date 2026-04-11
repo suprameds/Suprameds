@@ -1,3 +1,4 @@
+import { memo } from "react"
 import { getProductPrice } from "@/lib/utils/price"
 import { Thumbnail } from "@/components/ui/thumbnail"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
@@ -269,4 +270,4 @@ const ProductCard = ({ product }: ProductCardProps) => {
   )
 }
 
-export default ProductCard
+export default memo(ProductCard)

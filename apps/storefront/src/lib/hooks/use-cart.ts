@@ -99,7 +99,14 @@ export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
       if (!variant_id) throw new Error("Missing variant ID when adding to cart")
 
       const normalizedCountryCode = country_code.toLowerCase()
-      const { regions } = await sdk.store.region.list({})
+
+      // Try cached regions first to avoid an extra API call on every add-to-cart
+      let regions = queryClient.getQueryData<HttpTypes.StoreRegion[]>(queryKeys.regions.list())
+      if (!regions) {
+        const res = await sdk.store.region.list({})
+        regions = res.regions
+        queryClient.setQueryData(queryKeys.regions.list(), regions)
+      }
       const targetRegion = regions.find((r) =>
         r.countries?.some((c) => c.iso_2 === normalizedCountryCode)
       )

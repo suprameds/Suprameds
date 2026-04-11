@@ -171,16 +171,26 @@ export default async function orderPlacedHandler({
           const today = new Date()
           today.setHours(0, 0, 0, 0)
 
+          // Batch-fetch all active batches for all variants in one query (fixes N+1)
+          const variantIds = order.items.map((i: any) => i.variant_id).filter(Boolean)
+          const allBatches = await batchService.listBatches(
+            { product_variant_id: variantIds, status: "active" },
+            { take: null, order: { expiry_date: "ASC" } }
+          )
+          const batchesByVariant = new Map<string, any[]>()
+          for (const b of allBatches) {
+            const arr = batchesByVariant.get(b.product_variant_id) || []
+            arr.push(b)
+            batchesByVariant.set(b.product_variant_id, arr)
+          }
+
           let allAllocated = true
 
           for (const item of order.items) {
             const variantId = item.variant_id
             if (!variantId) continue
 
-            const batches = await batchService.listBatches(
-              { product_variant_id: variantId, status: "active" },
-              { take: null, order: { expiry_date: "ASC" } }
-            )
+            const batches = batchesByVariant.get(variantId) || []
 
             let eligible = (batches as any[]).filter((b: any) => {
               const exp = new Date(b.expiry_date)

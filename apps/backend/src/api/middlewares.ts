@@ -47,7 +47,13 @@ function validatePasswordStrength(
  *
  * Runs on POST /store/carts/:id/line-items. Workflow hook (addToCartWorkflow.validate)
  * provides a second layer of enforcement.
+ *
+ * Uses a 5-minute in-memory cache for variant→drug lookups since drug schedules
+ * rarely change. This avoids 2 DB queries on every add-to-cart request.
  */
+const SCHEDULE_CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const scheduleCache = new Map<string, { drug: any; expires: number }>()
+
 async function scheduleXBlockAddToCart(
   req: MedusaRequest,
   res: MedusaResponse,
@@ -56,28 +62,38 @@ async function scheduleXBlockAddToCart(
   const variantId = (req.body as { variant_id?: string })?.variant_id
   if (!variantId) return next()
 
-  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-  const pharmaService = req.scope.resolve(PHARMA_MODULE) as any
+  // Check cache first
+  const cached = scheduleCache.get(variantId)
+  let drug: any = null
 
-  const { data: variants } = await query.graph({
-    entity: "variants",
-    fields: ["id", "product_id"],
-    filters: { id: [variantId] },
-  })
+  if (cached && cached.expires > Date.now()) {
+    drug = cached.drug
+  } else {
+    const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+    const pharmaService = req.scope.resolve(PHARMA_MODULE) as any
 
-  const variant = (variants as { id: string; product_id?: string }[])?.[0]
-  const productId = variant?.product_id
-  if (!productId) return next()
+    const { data: variants } = await query.graph({
+      entity: "variants",
+      fields: ["id", "product_id"],
+      filters: { id: [variantId] },
+    })
 
-  let drugProducts: any[]
-  try {
-    drugProducts = await pharmaService.listDrugProducts({ product_id: productId })
-  } catch {
-    return next()
+    const variant = (variants as { id: string; product_id?: string }[])?.[0]
+    const productId = variant?.product_id
+    if (!productId) return next()
+
+    let drugProducts: any[]
+    try {
+      drugProducts = await pharmaService.listDrugProducts({ product_id: productId })
+    } catch {
+      return next()
+    }
+
+    drug = drugProducts?.[0] ?? null
+    scheduleCache.set(variantId, { drug, expires: Date.now() + SCHEDULE_CACHE_TTL })
   }
 
-  if (!drugProducts?.length) return next()
-  const drug = drugProducts[0]
+  if (!drug) return next()
 
   if (drug.schedule === "X" || drug.is_narcotic) {
     throw new MedusaError(

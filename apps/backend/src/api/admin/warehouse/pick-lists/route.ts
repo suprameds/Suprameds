@@ -30,13 +30,42 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
       return res.json({ pick_lists: [], count: 0 })
     }
 
+    // Batch-fetch all orders at once instead of N individual retrieveOrder calls
+    const orderIds = readyOrders.map((ext: any) => ext.order_id)
+    const allOrders = await orderService.listOrders(
+      { id: orderIds },
+      { relations: ["items", "items.variant", "shipping_address"] }
+    )
+    const orderMap = new Map<string, any>()
+    for (const o of allOrders) orderMap.set(o.id, o)
+
+    // Collect all variant IDs and batch-fetch suggested batches
+    const allVariantIds = new Set<string>()
+    for (const o of allOrders) {
+      for (const item of o.items || []) {
+        if (item.variant_id) allVariantIds.add(item.variant_id)
+      }
+    }
+
+    const batchesByVariant = new Map<string, any[]>()
+    if (allVariantIds.size > 0) {
+      const allBatches = await batchService.listBatches(
+        { product_variant_id: [...allVariantIds], status: "active" },
+        { take: null, order: { expiry_date: "ASC" } }
+      )
+      for (const b of allBatches) {
+        const arr = batchesByVariant.get(b.product_variant_id) || []
+        arr.push(b)
+        batchesByVariant.set(b.product_variant_id, arr)
+      }
+    }
+
     const pickLists: any[] = []
 
     for (const ext of readyOrders) {
       try {
-        const order = await orderService.retrieveOrder(ext.order_id, {
-          relations: ["items", "items.variant", "shipping_address"],
-        })
+        const order = orderMap.get(ext.order_id)
+        if (!order) continue
 
         const pickItems: any[] = []
 
@@ -44,16 +73,8 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
           const variantId = item.variant_id
           if (!variantId) continue
 
-          // Find allocated batch for this item (FEFO)
-          const batches = await batchService.listBatches(
-            {
-              product_variant_id: variantId,
-              status: "active",
-            },
-            { take: 5, order: { expiry_date: "ASC" } }
-          )
-
-          const suggestedBatch = batches?.[0]
+          const variantBatches = batchesByVariant.get(variantId) || []
+          const suggestedBatch = variantBatches[0]
 
           pickItems.push({
             product_title: item.title,

@@ -89,6 +89,8 @@ export const Thumbnail = ({ thumbnail, alt, className, dosageForm }: ThumbnailPr
       <img
         src={thumbnail}
         alt={alt}
+        width={80}
+        height={80}
         className={clsx("w-20 h-20 object-cover bg-[var(--bg-tertiary)]", className)}
       />
     )

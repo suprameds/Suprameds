@@ -45,7 +45,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 }
 
-// ── SMS OTP via MSG91 ─────────────────────────────────────────────────
+// ── SMS OTP via BulkSMSPlans (primary) → MSG91 (fallback) ───────────
 
 async function handleSmsSend(
   _req: MedusaRequest,
@@ -75,42 +75,13 @@ async function handleSmsSend(
     })
   }
 
-  const authKey = process.env.MSG91_AUTH_KEY
-  const templateId = process.env.MSG91_TEMPLATE_ID_OTP
-
-  if (!authKey || !templateId) {
-    logger.warn("[otp/send] MSG91 not configured — suggesting email OTP fallback")
-    return res.status(503).json({
-      success: false,
-      message: "SMS service is temporarily unavailable. Please use Email OTP instead.",
-      fallback_channel: "email",
-    })
-  }
-
   const otp = generateOtp()
 
-  try {
-    const msg91Response = await fetch("https://control.msg91.com/api/v5/otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", authkey: authKey },
-      body: JSON.stringify({ template_id: templateId, mobile: identifier, otp }),
-    })
+  // Try BulkSMSPlans first, then MSG91 fallback
+  const sent = await sendViaBulkSms(identifier, otp, logger)
+    || await sendViaMsg91(identifier, otp, logger)
 
-    const result = (await msg91Response.json()) as Record<string, unknown>
-
-    if (!msg91Response.ok) {
-      logger.error(`[otp/send] MSG91 API error: ${msg91Response.status}`)
-      return res.status(502).json({
-        success: false,
-        message: "Failed to send SMS. Please try Email OTP instead.",
-        fallback_channel: "email",
-      })
-    }
-
-    await storeOtp(identifier, otp)
-    logger.info(`[otp/send] SMS OTP dispatched to ${identifier}, ref: ${result.request_id ?? result.message}`)
-  } catch (err: unknown) {
-    logger.error(`[otp/send] MSG91 request failed: ${(err as Error).message}`)
+  if (!sent) {
     return res.status(502).json({
       success: false,
       message: "SMS service is temporarily unavailable. Please try Email OTP instead.",
@@ -118,7 +89,84 @@ async function handleSmsSend(
     })
   }
 
+  await storeOtp(identifier, otp)
   res.json({ success: true, channel: "sms", message: "OTP sent to your phone" })
+}
+
+/** Send OTP via BulkSMSPlans.com HTTP API */
+async function sendViaBulkSms(phone: string, otp: string, logger: any): Promise<boolean> {
+  const apiId = process.env.BULKSMS_API_ID
+  const apiPassword = process.env.BULKSMS_API_PASSWORD
+  const senderId = process.env.BULKSMS_SENDER_ID || "Suprra"
+  const templateId = process.env.BULKSMS_DLT_OTP_TEMPLATE_ID || ""
+
+  if (!apiId || !apiPassword) {
+    logger.debug("[otp/send] BulkSMS not configured, skipping")
+    return false
+  }
+
+  const message = `${otp} is your verification code for SUPRAMEDS.`
+
+  try {
+    const params = new URLSearchParams({
+      api_id: apiId,
+      api_password: apiPassword,
+      sms_type: "OTP",
+      sms_encoding: "text",
+      sender: senderId,
+      number: phone,
+      message,
+      ...(templateId ? { template_id: templateId } : {}),
+    })
+
+    const response = await fetch(
+      `https://www.bulksmsplans.com/api/send_sms?${params.toString()}`
+    )
+    const result = (await response.json()) as Record<string, unknown>
+
+    if (!response.ok || result.status === "error") {
+      logger.warn(`[otp/send] BulkSMS failed: ${JSON.stringify(result)}`)
+      return false
+    }
+
+    logger.info(`[otp/send] OTP sent via BulkSMS to ${phone}`)
+    return true
+  } catch (err: unknown) {
+    logger.warn(`[otp/send] BulkSMS error: ${(err as Error).message}`)
+    return false
+  }
+}
+
+/** Fallback: Send OTP via MSG91 */
+async function sendViaMsg91(phone: string, otp: string, logger: any): Promise<boolean> {
+  const authKey = process.env.MSG91_AUTH_KEY
+  const templateId = process.env.MSG91_TEMPLATE_ID_OTP
+
+  if (!authKey || !templateId) {
+    logger.debug("[otp/send] MSG91 not configured, skipping")
+    return false
+  }
+
+  try {
+    const response = await fetch("https://control.msg91.com/api/v5/otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", authkey: authKey },
+      body: JSON.stringify({ template_id: templateId, mobile: phone, otp }),
+    })
+
+    const result = (await response.json()) as Record<string, unknown>
+
+    if (!response.ok) {
+      logger.warn(`[otp/send] MSG91 failed: ${response.status}`)
+      return false
+    }
+
+    logger.info(`[otp/send] OTP sent via MSG91 to ${phone}, ref: ${result.request_id ?? result.message}`)
+    return true
+  } catch (err: unknown) {
+    logger.warn(`[otp/send] MSG91 error: ${(err as Error).message}`)
+    return false
+  }
 }
 
 // ── Email OTP via Resend ──────────────────────────────────────────────

@@ -27,12 +27,28 @@ export default async function IdentifyChronicReordersJob(container: MedusaContai
   let patternsUpdated = 0
 
   try {
-    // Fetch all orders with line items
-    const { data: orders } = await query.graph({
-      entity: "order",
-      fields: ["id", "customer_id", "items.*", "created_at"],
-      filters: { status: { $ne: "canceled" } },
-    })
+    // Only scan orders from the last 12 months (older orders don't affect pattern detection)
+    const twelveMonthsAgo = new Date()
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
+
+    const PAGE_SIZE = 5000
+    const orders: any[] = []
+    let offset = 0
+    while (true) {
+      const { data: page } = await query.graph({
+        entity: "order",
+        fields: ["id", "customer_id", "items.variant_id", "created_at"],
+        filters: {
+          status: { $ne: "canceled" },
+          created_at: { $gte: twelveMonthsAgo.toISOString() },
+        },
+        pagination: { take: PAGE_SIZE, skip: offset },
+      })
+      if (!page?.length) break
+      orders.push(...page)
+      if (page.length < PAGE_SIZE) break
+      offset += PAGE_SIZE
+    }
 
     if (!orders?.length) {
       logger.info(`${LOG_PREFIX} No orders found — skipping`)
@@ -64,6 +80,17 @@ export default async function IdentifyChronicReordersJob(container: MedusaContai
       }
     }
 
+    // Pre-fetch all existing patterns to avoid N+1 queries
+    const existingPatterns = await crmService.listChronicReorderPatterns(
+      {},
+      { take: null }
+    )
+    const patternKey = (cid: string, vid: string) => `${cid}:${vid}`
+    const patternMap = new Map<string, any>()
+    for (const p of existingPatterns) {
+      patternMap.set(patternKey(p.customer_id, p.variant_id), p)
+    }
+
     // Analyze patterns for each customer × variant combination
     for (const [customerId, variantMap] of customerVariantHistory) {
       for (const [variantId, dates] of variantMap) {
@@ -92,11 +119,7 @@ export default async function IdentifyChronicReordersJob(container: MedusaContai
         const lastPurchased = dates[dates.length - 1]
         const nextExpected = new Date(lastPurchased.getTime() + avgInterval * 24 * 60 * 60 * 1000)
 
-        // Check if pattern already exists for this customer + variant
-        const [existing] = await crmService.listChronicReorderPatterns(
-          { customer_id: customerId, variant_id: variantId },
-          { take: 1 }
-        )
+        const existing = patternMap.get(patternKey(customerId, variantId))
 
         if (existing) {
           await crmService.updateChronicReorderPatterns(existing.id, {

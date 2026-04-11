@@ -292,14 +292,15 @@ const Home = () => {
           HERO — dark navy, search bar, value props
          ════════════════════════════════════════════ */}
       <section className="relative overflow-hidden" style={{ background: "var(--bg-inverse)" }}>
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url('/images/hero-bg.png')`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            opacity: 0.45,
-          }}
+        <img
+          src="/images/hero-bg.webp"
+          alt=""
+          role="presentation"
+          fetchPriority="high"
+          width={1376}
+          height={768}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ opacity: 0.45 }}
         />
 
         <div className="content-container relative z-10 py-16 lg:py-24">

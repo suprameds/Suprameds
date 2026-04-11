@@ -73,13 +73,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   let skipped = 0
   let errors = 0
 
-  // Fetch existing customers to detect duplicates
+  // Only check duplicates for the emails being imported (not all customers)
+  const importEmails = rawRows
+    .map((r) => (r["Email"] || r["email"] || "").trim().toLowerCase())
+    .filter(Boolean)
   const { data: existingCustomers } = await query.graph({
     entity: "customer",
     fields: ["id", "email"],
+    filters: { email: importEmails },
   })
   const existingEmails = new Set(
-    (existingCustomers as any[]).map((c) => c.email?.toLowerCase())
+    (existingCustomers as any[]).map((c: any) => c.email?.toLowerCase())
   )
 
   for (const rawRow of rawRows) {

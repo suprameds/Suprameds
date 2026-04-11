@@ -33,7 +33,6 @@ const Layout = () => {
           <Footer />
           <WhatsAppButton />
           <ConsentBanner />
-          <WhatsAppButton />
         </div>
       </CartProvider>
     </ToastProvider>

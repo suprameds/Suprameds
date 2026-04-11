@@ -25,11 +25,21 @@ export default async function ExpireLoyaltyPointsJob(container: MedusaContainer)
   let totalExpiredPoints = 0
 
   try {
-    // Find all earn transactions older than the cutoff that haven't been expired yet
+    // Only fetch earn transactions older than the cutoff (candidates for expiry)
     const earnTransactions = await loyaltyService.listLoyaltyTransactions(
-      { type: "earn" },
+      { type: "earn", created_at: { $lt: cutoffDate } },
       { take: null }
     )
+
+    // Pre-fetch all existing expiry transactions to avoid N+1
+    const earnIds = earnTransactions.map((tx: any) => tx.id)
+    const existingExpiries = earnIds.length > 0
+      ? await loyaltyService.listLoyaltyTransactions(
+          { type: "expire", reference_type: "earn_expiry", reference_id: earnIds },
+          { take: null, select: ["reference_id"] }
+        )
+      : []
+    const alreadyExpiredIds = new Set(existingExpiries.map((e: any) => e.reference_id))
 
     // Group unexpired earn transactions by account
     const accountExpiries = new Map<string, number>()
@@ -39,17 +49,7 @@ export default async function ExpireLoyaltyPointsJob(container: MedusaContainer)
       if (txDate >= cutoffDate) continue
       if (tx.points <= 0) continue
 
-      // Check if this transaction was already expired
-      const [alreadyExpired] = await loyaltyService.listLoyaltyTransactions(
-        {
-          type: "expire",
-          reference_type: "earn_expiry",
-          reference_id: tx.id,
-        },
-        { take: 1 }
-      )
-
-      if (alreadyExpired) continue
+      if (alreadyExpiredIds.has(tx.id)) continue
 
       // Create expiry transaction for this earn
       await loyaltyService.createLoyaltyTransactions({
