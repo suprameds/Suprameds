@@ -8,6 +8,7 @@
  * This script cds into ./server/ then runs medusa commands there.
  *
  * Environment variables:
+ *   SKIP_MIGRATIONS=true   — Skip db:migrate + seed scripts (saves ~2-3 min on deploys with no schema changes)
  *   SKIP_PRODUCT_SEED=true — Skip product/batch seeding (use on production after initial setup)
  */
 import { execSync } from "child_process"
@@ -43,16 +44,23 @@ console.log("╔═════════════════════�
 console.log("║       SUPRAMEDS — Cloud Startup Sequence        ║")
 console.log("╚══════════════════════════════════════════════════╝")
 console.log("")
+console.log(`  SKIP_MIGRATIONS=${process.env.SKIP_MIGRATIONS || "false"}`)
 console.log(`  SKIP_PRODUCT_SEED=${process.env.SKIP_PRODUCT_SEED || "false"}`)
 console.log(`  SERVER_DIR=${serverDir}`)
 console.log("")
 
-// Step 1: Run MikroORM schema migrations (creates/updates tables)
-run("npx medusa db:migrate", "Database schema migration")
+const skipMigrations = process.env.SKIP_MIGRATIONS === "true"
 
-// Step 2: Run data seed scripts (idempotent — safe to re-run)
-// In the compiled output, ./src/scripts/run-migrations.ts → ./src/scripts/run-migrations.js
-run("npx medusa exec ./src/scripts/run-migrations.js", "Data seed & migration scripts")
+if (skipMigrations) {
+  console.log("⏭  Skipping db:migrate and seed scripts (SKIP_MIGRATIONS=true)\n")
+} else {
+  // Step 1: Run MikroORM schema migrations (creates/updates tables)
+  run("npx medusa db:migrate", "Database schema migration")
+
+  // Step 2: Run data seed scripts (idempotent — safe to re-run)
+  // In the compiled output, ./src/scripts/run-migrations.ts → ./src/scripts/run-migrations.js
+  run("npx medusa exec ./src/scripts/run-migrations.js", "Data seed & migration scripts")
+}
 
 // Step 3: Start the Medusa server
 console.log("\n▶ Starting Medusa server...\n")

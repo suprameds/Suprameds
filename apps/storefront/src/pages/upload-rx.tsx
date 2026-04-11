@@ -274,6 +274,7 @@ const UploadRx = () => {
                 type="file"
                 accept={ACCEPTED_TYPES.join(",")}
                 onChange={handleInputChange}
+                aria-label="Upload prescription file"
                 className="hidden"
               />
               <input
@@ -282,6 +283,7 @@ const UploadRx = () => {
                 accept="image/jpeg,image/png,image/webp"
                 capture="environment"
                 onChange={handleInputChange}
+                aria-label="Take prescription photo"
                 className="hidden"
               />
               <div className="flex justify-center mb-4" style={{ color: "var(--brand-teal)" }}>

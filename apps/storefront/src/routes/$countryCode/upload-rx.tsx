@@ -28,7 +28,7 @@ export const Route = createFileRoute("/$countryCode/upload-rx")({
       },
     ],
     links: [
-      { rel: "canonical", href: "https://suprameds.com/in/upload-rx" },
+      { rel: "canonical", href: "https://suprameds.in/in/upload-rx" },
     ],
   }),
   component: UploadRx,

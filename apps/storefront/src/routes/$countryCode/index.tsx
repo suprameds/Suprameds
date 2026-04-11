@@ -42,8 +42,8 @@ export const Route = createFileRoute("/$countryCode/")({
     const siteUrl = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
     const countryCode = loaderData?.countryCode || "in"
     const canonical = `${siteUrl}/${countryCode}`
-    const title = `Suprameds — India's Licensed Online Pharmacy`
-    const description = `Buy prescription and OTC medicines online from a licensed pharmacy (DL: TS/HYD/2021-82149). Pharmacist-dispensed. Speed Post delivery across India.`
+    const title = `Buy Generic Medicines Online at 50-80% Off | Suprameds`
+    const description = `Buy affordable generic medicines online from India's licensed pharmacy (DL: TS/HYD/2021-82149). Same composition, 50-80% off MRP. Pharmacist-dispensed, Speed Post delivery across India.`
 
     const organizationSchema = {
       "@context": "https://schema.org",
