@@ -57,7 +57,7 @@ export const useSearch = ({
 
       return response
     },
-    enabled: q.length > 0,
+    enabled: q.length > 0 || !!categoryId,
     staleTime: 1000 * 60 * 2,
     placeholderData: (prev) => prev,
   })

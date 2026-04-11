@@ -1,3 +1,24 @@
+/** Map category handles → emoji icons for display on chips */
+export const CATEGORY_ICON_MAP: Record<string, string> = {
+  diabetic: "💊",
+  hypertension: "❤️",
+  "cardiac-care": "❤️",
+  gastroenterology: "🩺",
+  "pain-fever": "🌡️",
+  respiratory: "🫁",
+  neurology: "🧠",
+  dermatology: "🧴",
+  antibiotics: "💉",
+  cholesterol: "🔬",
+  nephrology: "🫘",
+  "vitamins-supplements": "✨",
+  gynecology: "🩷",
+  "general-medicines": "💊",
+  "pain-management": "💊",
+  thyroid: "🦋",
+  urology: "🫀",
+}
+
 const DISEASE_CATEGORIES = [
   { label: "Diabetes", value: "diabetic", icon: "💊" },
   { label: "Heart / BP", value: "hypertension,cardiac-care", icon: "❤️" },
