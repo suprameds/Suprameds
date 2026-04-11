@@ -66,12 +66,12 @@ export default async function refundApprovedHandler({
       { select: ["id", "gateway", "payment_method"] }
     )
 
-    const isRazorpay = payment?.gateway === "razorpay"
+    const isPrepaid = payment?.gateway === "paytm" || payment?.gateway === "razorpay"
     const isCod = payment?.gateway === "cod" || payment?.payment_method === "cod"
 
-    if (isRazorpay) {
-      // Auto-process Razorpay refunds immediately after approval
-      logger.info(`${LOG} Auto-processing Razorpay refund ${refund_id}`)
+    if (isPrepaid) {
+      // Auto-process prepaid (Paytm/Razorpay) refunds immediately after approval
+      logger.info(`${LOG} Auto-processing ${payment.gateway} refund ${refund_id}`)
 
       try {
         // Resolve the container's DI scope for workflow execution
@@ -79,7 +79,7 @@ export default async function refundApprovedHandler({
         await ProcessRefundWorkflow(moduleContainer).run({
           input: { refund_id },
         })
-        logger.info(`${LOG} Auto-processed refund ${refund_id} via Razorpay`)
+        logger.info(`${LOG} Auto-processed refund ${refund_id} via ${payment.gateway}`)
       } catch (workflowErr: any) {
         logger.error(
           `${LOG} Auto-process workflow failed for refund ${refund_id}: ${workflowErr.message}. ` +

@@ -30,17 +30,17 @@ const PaymentStatusBadge = () => {
 
         const session = sessions[0]
         const payment = payments[0]
-        const isRazorpay = session?.provider_id?.includes("razorpay")
+        const isPrepaid = session?.provider_id?.includes("paytm") || session?.provider_id?.includes("razorpay")
         const isCaptured = payment?.captured_at != null
 
         setStatus({
-          type: isRazorpay ? "prepaid" : "cod",
+          type: isPrepaid ? "prepaid" : "cod",
           payment_status: isCaptured
             ? "captured"
             : payment
               ? "authorized"
               : "pending",
-          provider: isRazorpay ? "Razorpay" : "Cash on Delivery",
+          provider: isPrepaid ? (session?.provider_id?.includes("paytm") ? "Paytm" : "Razorpay") : "Cash on Delivery",
           amount: payment?.amount || session?.amount || 0,
         })
       })
@@ -54,9 +54,9 @@ const PaymentStatusBadge = () => {
   const badge =
     status.type === "prepaid" ? (
       status.payment_status === "captured" ? (
-        <Badge color="green">Paid via Razorpay</Badge>
+        <Badge color="green">Paid Online</Badge>
       ) : (
-        <Badge color="orange">Razorpay — Pending Capture</Badge>
+        <Badge color="orange">Online — Pending Capture</Badge>
       )
     ) : status.payment_status === "captured" ? (
       <Badge color="green">COD — Payment Received</Badge>

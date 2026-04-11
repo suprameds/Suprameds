@@ -1,7 +1,7 @@
 import { model } from "@medusajs/framework/utils"
 
 /**
- * PaymentRecord — payment tracking for Razorpay/Stripe/COD.
+ * PaymentRecord — payment tracking for Paytm/Razorpay/Stripe/COD.
  * Supports auth → capture split for partial Rx approvals.
  */
 const PaymentRecord = model.define("payment_record", {
@@ -9,8 +9,8 @@ const PaymentRecord = model.define("payment_record", {
 
   order_id: model.text(),
 
-  // razorpay | stripe | cod
-  gateway: model.enum(["razorpay", "stripe", "cod"]),
+  // paytm | razorpay | stripe | cod
+  gateway: model.enum(["paytm", "razorpay", "stripe", "cod"]),
 
   // null for COD
   gateway_payment_id: model.text().nullable(),

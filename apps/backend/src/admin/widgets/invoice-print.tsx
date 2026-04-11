@@ -22,7 +22,7 @@ const InvoicePrintWidget = ({
       .then((r) => r.json())
       .then(({ order }) => {
         const sessions = order?.payment_collections?.[0]?.payment_sessions ?? []
-        const isCod = !sessions.some((s: any) => s.provider_id?.includes("razorpay"))
+        const isCod = !sessions.some((s: any) => s.provider_id?.includes("paytm") || s.provider_id?.includes("razorpay"))
         const mode = isCod ? "COD" : "PREPAID"
         setPaymentMode(mode as "COD" | "PREPAID")
         if (isCod) setTrackingId(INDIA_POST_COD_ID)
@@ -55,7 +55,7 @@ const InvoicePrintWidget = ({
 
       let paymentMode = "COD"
       const sessions = order.payment_collections?.[0]?.payment_sessions ?? []
-      if (sessions[0]?.provider_id?.includes("razorpay")) paymentMode = "PREPAID"
+      if (sessions[0]?.provider_id?.includes("paytm") || sessions[0]?.provider_id?.includes("razorpay")) paymentMode = "PREPAID"
 
       const orderDate = new Date(order.created_at).toLocaleDateString("en-IN", {
         day: "2-digit", month: "short", year: "numeric",
@@ -243,7 +243,7 @@ const InvoicePrintWidget = ({
           <Heading level="h2">Print</Heading>
           {paymentMode && (
             <Badge color={paymentMode === "COD" ? "orange" : "green"}>
-              {paymentMode === "COD" ? "Cash on Delivery" : "Prepaid (Razorpay)"}
+              {paymentMode === "COD" ? "Cash on Delivery" : "Prepaid (Online)"}
             </Badge>
           )}
         </div>

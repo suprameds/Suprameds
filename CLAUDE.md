@@ -238,6 +238,21 @@ Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/pla
 | Storefront (TanStack Start) | 3000 | GET / | Dockerfile.storefront |
 | Redis | 6379 | — | redis:7-alpine |
 
+### Required Railway Environment Variables
+| Variable | Service | Value |
+|----------|---------|-------|
+| `PAYTM_MERCHANT_ID` | Backend | `TGyHMI87629179310548` |
+| `PAYTM_MERCHANT_KEY` | Backend | (secret — set in Railway) |
+| `PAYTM_WEBSITE_NAME` | Backend | `DEFAULT` |
+| `PAYTM_CALLBACK_URL` | Backend | `https://backend-production-9d3a.up.railway.app/webhooks/paytm` |
+| `VITE_PAYTM_MERCHANT_ID` | Storefront | `TGyHMI87629179310548` |
+
+### Go-Live Checklist
+- [ ] **Paytm callback URL**: When switching to custom domain (`api.suprameds.in`), update `PAYTM_CALLBACK_URL` on Railway backend to `https://api.suprameds.in/webhooks/paytm` — otherwise Paytm payment callbacks will fail
+- [ ] **Paytm webhook in dashboard**: Log into Paytm Business dashboard → Settings → Webhook URL → set to the same callback URL above
+- [ ] **DNS**: Verify `api.suprameds.in` CNAME points to Railway backend before changing callback URL
+- [ ] **Test payment**: Place a test order with Paytm after any callback URL change to confirm end-to-end flow
+
 ### Custom deploy hooks
 - Pre-merge: CI runs TypeScript check, ESLint, tests, and Docker build
 - Deploy trigger: automatic on push to main (Railway auto-deploy)

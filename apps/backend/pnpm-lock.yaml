@@ -70,7 +70,10 @@ importers:
         version: 13.7.0
       medusa-plugin-razorpay-v2:
         specifier: ^0.1.4
-        version: 0.1.4(@medusajs/admin-sdk@2.13.4)(@medusajs/cli@2.13.4(@types/node@20.0.0))(@medusajs/framework@2.13.4(@medusajs/cli@2.13.4(@types/node@20.0.0))(@types/node@20.0.0)(ioredis@5.10.1)(vite@5.2.11(@types/node@20.0.0)(lightningcss@1.30.2))(zod@4.1.12))(@medusajs/icons@2.13.4(react@19.1.1))(@medusajs/medusa@2.13.4)(@medusajs/test-utils@2.13.4)(@medusajs/ui@4.1.0(@types/react-dom@19.1.1(@types/react@19.1.1))(@types/react@19.1.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.8.3))(@mikro-orm/cli@6.4.16(pg@8.16.0))(@mikro-orm/core@6.4.16)(@mikro-orm/knex@6.4.16(@mikro-orm/core@6.4.16)(pg@8.16.0))(@mikro-orm/migrations@6.4.16(@mikro-orm/core@6.4.16)(@types/node@20.0.0)(pg@8.16.0))(@mikro-orm/postgresql@6.4.16(@mikro-orm/core@6.4.16))(awilix@8.0.1)(pg@8.16.0)
+        version: 0.1.4(@medusajs/admin-sdk@2.13.4)(@medusajs/cli@2.13.4(@types/node@20.0.0))(@medusajs/framework@2.13.4(@medusajs/cli@2.13.4(@types/node@20.0.0))(@types/node@20.0.0)(ioredis@5.10.1)(vite@5.2.11(@types/node@20.0.0)(lightningcss@1.30.2))(zod@4.1.12))(@medusajs/icons@2.13.4(react@19.1.1))(@medusajs/medusa@2.13.4)(@medusajs/test-utils@2.13.4)(@medusajs/ui@4.1.0(@types/react-dom@19.1.1(@types/react@19.1.1))(@types/react@19.1.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.8.3))(@mikro-orm/cli@6.4.16(pg@8.20.0))(@mikro-orm/core@6.4.16)(@mikro-orm/knex@6.4.16(@mikro-orm/core@6.4.16)(pg@8.20.0))(@mikro-orm/migrations@6.4.16(@mikro-orm/core@6.4.16)(@types/node@20.0.0)(pg@8.20.0))(@mikro-orm/postgresql@6.4.16(@mikro-orm/core@6.4.16))(awilix@8.0.1)(pg@8.20.0)
+      paytmchecksum:
+        specifier: ^1.5.1
+        version: 1.5.1
       pdfkit:
         specifier: ^0.18.0
         version: 0.18.0
@@ -4017,8 +4020,8 @@ packages:
     peerDependencies:
       react: 19.1.1
 
-  '@react-email/components@1.0.11':
-    resolution: {integrity: sha512-s0CX31+S/u1MhBWYFAuZru0NHNExTY+OeZC9OrGyzl8PGQ0Iz/4gq3O4rHUVuA1D7FjAcPbwG1Up0yey/Xh6dw==}
+  '@react-email/components@1.0.12':
+    resolution: {integrity: sha512-tH18JhPDWgE+3jnYkzyB6ZrZdfNnEsFe4PwmuXmlOw4NGIysP8wPY5aXZg++pTG9qUabXg1nzX/FGHGkObH8xQ==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       react: 19.1.1
@@ -4090,8 +4093,8 @@ packages:
       react: 19.1.1
       react-dom: 19.1.1
 
-  '@react-email/render@2.0.5':
-    resolution: {integrity: sha512-oAsSpY/vYt9ReDcRQDBLxENwCNAklkE6bvP5Kl9ZlmVr/RZpfhloJp8xc/OZki/YF2nisRRX50aEy8P9v3R5GA==}
+  '@react-email/render@2.0.6':
+    resolution: {integrity: sha512-xOzaYkH3jLZKqN5MqrTXYnmqBYUnZSVbkxdb5PGGmDcK6sKDVMliaDiSwfXajRC9JtSHTcGc2tmGLHWuCgVpog==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       react: 19.1.1
@@ -7657,6 +7660,9 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
 
+  paytmchecksum@1.5.1:
+    resolution: {integrity: sha512-RnimtEcnP3b7FiakPYkyO416UubaUflG5e2HlM2UYhryZ9wXwoRZ5k8XEK4wxaK+d7qIzWDMFUo1LICgaU+J0A==}
+
   pdfkit@0.18.0:
     resolution: {integrity: sha512-NvUwSDZ0eYEzqAiWwVQkRkjYUkZ48kcsHuCO31ykqPPIVkwoSDjDGiwIgHHNtsiwls3z3P/zy4q00hl2chg2Ug==}
 
@@ -11031,7 +11037,7 @@ snapshots:
       '@react-email/button': 0.2.1(react@19.1.1)
       '@react-email/code-block': 0.2.1(react@19.1.1)
       '@react-email/code-inline': 0.0.6(react@19.1.1)
-      '@react-email/components': 1.0.11(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@react-email/components': 1.0.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@react-email/container': 0.0.16(react@19.1.1)
       '@react-email/heading': 0.0.16(react@19.1.1)
       '@react-email/hr': 0.0.12(react@19.1.1)
@@ -11586,26 +11592,6 @@ snapshots:
       - supports-color
       - tedious
 
-  '@mikro-orm/cli@6.4.16(pg@8.16.0)':
-    dependencies:
-      '@jercle/yargonaut': 1.1.5
-      '@mikro-orm/core': 6.4.16
-      '@mikro-orm/knex': 6.4.16(@mikro-orm/core@6.4.16)(pg@8.16.0)
-      fs-extra: 11.3.0
-      tsconfig-paths: 4.2.0
-      yargs: 17.7.2
-    transitivePeerDependencies:
-      - better-sqlite3
-      - libsql
-      - mariadb
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
-
   '@mikro-orm/cli@6.4.16(pg@8.20.0)':
     dependencies:
       '@jercle/yargonaut': 1.1.5
@@ -11658,25 +11644,6 @@ snapshots:
       knex: 3.1.0(pg@8.20.0)
       sqlstring: 2.3.3
     transitivePeerDependencies:
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - sqlite3
-      - supports-color
-      - tedious
-
-  '@mikro-orm/migrations@6.4.16(@mikro-orm/core@6.4.16)(@types/node@20.0.0)(pg@8.16.0)':
-    dependencies:
-      '@mikro-orm/core': 6.4.16
-      '@mikro-orm/knex': 6.4.16(@mikro-orm/core@6.4.16)(pg@8.16.0)
-      fs-extra: 11.3.0
-      umzug: 3.8.2(@types/node@20.0.0)
-    transitivePeerDependencies:
-      - '@types/node'
-      - better-sqlite3
-      - libsql
-      - mariadb
       - mysql
       - mysql2
       - pg
@@ -14294,7 +14261,7 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
-  '@react-email/components@1.0.11(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+  '@react-email/components@1.0.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       '@react-email/body': 0.3.0(react@19.1.1)
       '@react-email/button': 0.2.1(react@19.1.1)
@@ -14311,7 +14278,7 @@ snapshots:
       '@react-email/link': 0.0.13(react@19.1.1)
       '@react-email/markdown': 0.0.18(react@19.1.1)
       '@react-email/preview': 0.0.14(react@19.1.1)
-      '@react-email/render': 2.0.5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+      '@react-email/render': 2.0.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@react-email/row': 0.0.13(react@19.1.1)
       '@react-email/section': 0.0.17(react@19.1.1)
       '@react-email/tailwind': 2.0.7(@react-email/body@0.3.0(react@19.1.1))(@react-email/button@0.2.1(react@19.1.1))(@react-email/code-block@0.2.1(react@19.1.1))(@react-email/code-inline@0.0.6(react@19.1.1))(@react-email/container@0.0.16(react@19.1.1))(@react-email/heading@0.0.16(react@19.1.1))(@react-email/hr@0.0.12(react@19.1.1))(@react-email/img@0.0.12(react@19.1.1))(@react-email/link@0.0.13(react@19.1.1))(@react-email/preview@0.0.14(react@19.1.1))(@react-email/text@0.1.6(react@19.1.1))(react@19.1.1)
@@ -14368,7 +14335,7 @@ snapshots:
       react: 19.1.1
       react-dom: 19.1.1(react@19.1.1)
 
-  '@react-email/render@2.0.5(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+  '@react-email/render@2.0.6(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       html-to-text: 9.0.5
       prettier: 3.8.1
@@ -18102,7 +18069,7 @@ snapshots:
 
   media-typer@0.3.0: {}
 
-  medusa-plugin-razorpay-v2@0.1.4(@medusajs/admin-sdk@2.13.4)(@medusajs/cli@2.13.4(@types/node@20.0.0))(@medusajs/framework@2.13.4(@medusajs/cli@2.13.4(@types/node@20.0.0))(@types/node@20.0.0)(ioredis@5.10.1)(vite@5.2.11(@types/node@20.0.0)(lightningcss@1.30.2))(zod@4.1.12))(@medusajs/icons@2.13.4(react@19.1.1))(@medusajs/medusa@2.13.4)(@medusajs/test-utils@2.13.4)(@medusajs/ui@4.1.0(@types/react-dom@19.1.1(@types/react@19.1.1))(@types/react@19.1.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.8.3))(@mikro-orm/cli@6.4.16(pg@8.16.0))(@mikro-orm/core@6.4.16)(@mikro-orm/knex@6.4.16(@mikro-orm/core@6.4.16)(pg@8.16.0))(@mikro-orm/migrations@6.4.16(@mikro-orm/core@6.4.16)(@types/node@20.0.0)(pg@8.16.0))(@mikro-orm/postgresql@6.4.16(@mikro-orm/core@6.4.16))(awilix@8.0.1)(pg@8.16.0):
+  medusa-plugin-razorpay-v2@0.1.4(@medusajs/admin-sdk@2.13.4)(@medusajs/cli@2.13.4(@types/node@20.0.0))(@medusajs/framework@2.13.4(@medusajs/cli@2.13.4(@types/node@20.0.0))(@types/node@20.0.0)(ioredis@5.10.1)(vite@5.2.11(@types/node@20.0.0)(lightningcss@1.30.2))(zod@4.1.12))(@medusajs/icons@2.13.4(react@19.1.1))(@medusajs/medusa@2.13.4)(@medusajs/test-utils@2.13.4)(@medusajs/ui@4.1.0(@types/react-dom@19.1.1(@types/react@19.1.1))(@types/react@19.1.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.8.3))(@mikro-orm/cli@6.4.16(pg@8.20.0))(@mikro-orm/core@6.4.16)(@mikro-orm/knex@6.4.16(@mikro-orm/core@6.4.16)(pg@8.20.0))(@mikro-orm/migrations@6.4.16(@mikro-orm/core@6.4.16)(@types/node@20.0.0)(pg@8.20.0))(@mikro-orm/postgresql@6.4.16(@mikro-orm/core@6.4.16))(awilix@8.0.1)(pg@8.20.0):
     dependencies:
       '@medusajs/admin-sdk': 2.13.4
       '@medusajs/cli': 2.13.4(@types/node@20.0.0)
@@ -18111,13 +18078,13 @@ snapshots:
       '@medusajs/medusa': 2.13.4(@medusajs/admin-sdk@2.13.4)(@medusajs/cli@2.13.4(@types/node@20.0.0))(@medusajs/framework@2.13.4(@medusajs/cli@2.13.4(@types/node@20.0.0))(@types/node@20.0.0)(ioredis@5.10.1)(vite@5.2.11(@types/node@20.0.0)(lightningcss@1.30.2))(zod@4.1.12))(@medusajs/icons@2.13.4(react@19.1.1))(@medusajs/test-utils@2.13.4)(@medusajs/ui@4.1.0(@types/react-dom@19.1.1(@types/react@19.1.1))(@types/react@19.1.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.8.3))(@swc/core@1.5.7(@swc/helpers@0.5.19))(@types/node@20.0.0)(@types/react-dom@19.1.1(@types/react@19.1.1))(@types/react@19.1.1)(awilix@8.0.1)(lightningcss@1.30.2)(picomatch@4.0.3)(posthog-node@5.28.4(rxjs@7.8.2))(react-dom@19.1.1(react@19.1.1))(react-router-dom@6.30.3(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(typescript@5.8.3)(yalc@1.0.0-pre.53)
       '@medusajs/test-utils': 2.13.4(@medusajs/core-flows@2.13.4(@medusajs/framework@2.13.4(@medusajs/cli@2.13.4(@types/node@20.0.0))(@types/node@20.0.0)(ioredis@5.10.1)(vite@5.2.11(@types/node@20.0.0)(lightningcss@1.30.2))(zod@4.1.12)))(@medusajs/framework@2.13.4(@medusajs/cli@2.13.4(@types/node@20.0.0))(@types/node@20.0.0)(ioredis@5.10.1)(vite@5.2.11(@types/node@20.0.0)(lightningcss@1.30.2))(zod@4.1.12))(@medusajs/medusa@2.13.4)
       '@medusajs/ui': 4.1.0(@types/react-dom@19.1.1(@types/react@19.1.1))(@types/react@19.1.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)(typescript@5.8.3)
-      '@mikro-orm/cli': 6.4.16(pg@8.16.0)
+      '@mikro-orm/cli': 6.4.16(pg@8.20.0)
       '@mikro-orm/core': 6.4.16
-      '@mikro-orm/knex': 6.4.16(@mikro-orm/core@6.4.16)(pg@8.16.0)
-      '@mikro-orm/migrations': 6.4.16(@mikro-orm/core@6.4.16)(@types/node@20.0.0)(pg@8.16.0)
+      '@mikro-orm/knex': 6.4.16(@mikro-orm/core@6.4.16)(pg@8.20.0)
+      '@mikro-orm/migrations': 6.4.16(@mikro-orm/core@6.4.16)(@types/node@20.0.0)(pg@8.20.0)
       '@mikro-orm/postgresql': 6.4.16(@mikro-orm/core@6.4.16)
       awilix: 8.0.1
-      pg: 8.16.0
+      pg: 8.20.0
       razorpay: 2.9.6
     transitivePeerDependencies:
       - debug
@@ -18479,6 +18446,8 @@ snapshots:
   path-to-regexp@8.3.0: {}
 
   path-type@4.0.0: {}
+
+  paytmchecksum@1.5.1: {}
 
   pdfkit@0.18.0:
     dependencies:

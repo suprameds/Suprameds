@@ -12,6 +12,10 @@ export const isManual = (providerId?: string) => {
   return providerId?.startsWith("pp_system_default") || providerId === "manual"
 }
 
+export const isPaytm = (providerId?: string) => {
+  return providerId?.startsWith("pp_paytm_") || providerId === "paytm"
+}
+
 export const isRazorpay = (providerId?: string) => {
   return providerId?.startsWith("pp_razorpay_") || providerId === "razorpay"
 }

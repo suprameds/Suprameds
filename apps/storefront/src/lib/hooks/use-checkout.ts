@@ -170,7 +170,7 @@ export const useInitiateCartPaymentSession = () => {
           )
           return result.payment_collection
         } catch (err: unknown) {
-          // Session creation failed (e.g., Razorpay API error) — don't propagate for COD
+          // Session creation failed (e.g., Paytm/Razorpay API error) — don't propagate for COD
           if (provider_id === "pp_system_default") {
             // COD doesn't need a real payment session to proceed
             return cart.payment_collection

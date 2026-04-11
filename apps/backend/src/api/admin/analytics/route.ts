@@ -106,6 +106,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const paymentSplitQuery = `
       SELECT
         CASE
+          WHEN pp."id" ILIKE '%paytm%' THEN 'paytm'
           WHEN pp."id" ILIKE '%razorpay%' THEN 'razorpay'
           WHEN pp."id" ILIKE '%cod%' OR pp."id" ILIKE '%cash%' THEN 'cod'
           WHEN pp."id" ILIKE '%system%' THEN 'system_default'

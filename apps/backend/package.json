@@ -52,6 +52,7 @@
     "date-fns": "^4.1.0",
     "firebase-admin": "^13.7.0",
     "medusa-plugin-razorpay-v2": "^0.1.4",
+    "paytmchecksum": "^1.5.1",
     "pdfkit": "^0.18.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",

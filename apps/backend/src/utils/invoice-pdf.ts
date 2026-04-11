@@ -107,6 +107,7 @@ export async function generateInvoicePdf(
       doc.font("Helvetica").fontSize(8).fillColor("#000")
       const paymentLabel =
         invoice.payment_mode === "cod" ? "Cash on Delivery" :
+        invoice.payment_mode === "paytm" ? "Paid Online (Paytm)" :
         invoice.payment_mode === "razorpay" ? "Paid Online (Razorpay)" :
         invoice.payment_mode === "online" ? "Paid Online" :
         invoice.payment_mode.toUpperCase()

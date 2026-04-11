@@ -16,6 +16,11 @@ export const paymentMethodsData: Record<
     icon: <Cash />,
     description: "Pay in cash when your order arrives at your doorstep",
   },
+  pp_paytm_paytm: {
+    title: "Paytm",
+    icon: <CreditCard />,
+    description: "UPI, Cards, NetBanking, Wallets",
+  },
   pp_razorpay_razorpay: {
     title: "Razorpay",
     icon: <CreditCard />,

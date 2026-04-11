@@ -485,8 +485,8 @@ export async function buildGstInvoice(
       const sessions =
         (pcData as any[])?.[0]?.payment_collections?.[0]?.payment_sessions ?? []
       const providerId = sessions[0]?.provider_id ?? ""
-      if (providerId.includes("razorpay")) {
-        paymentMode = "razorpay"
+      if (providerId.includes("paytm") || providerId.includes("razorpay")) {
+        paymentMode = providerId.includes("paytm") ? "paytm" : "razorpay"
       } else if (
         providerId.includes("manual") ||
         providerId.includes("cod") ||

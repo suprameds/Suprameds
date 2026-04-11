@@ -3,6 +3,7 @@ import { useCompleteCartOrder } from "@/lib/hooks/use-checkout"
 import {
   getActivePaymentSession,
   isManual,
+  isPaytm,
   isRazorpay,
   isStripe,
 } from "@/lib/utils/checkout"
@@ -10,6 +11,7 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
 import { useLocation, useNavigate } from "@tanstack/react-router"
 import { useRef, useState } from "react"
+import { PaytmPaymentButton } from "@/components/paytm-payment-button"
 import { RazorpayPaymentButton } from "@/components/razorpay-payment-button"
 
 type PaymentButtonProps = {
@@ -32,6 +34,15 @@ const PaymentButton = ({ cart, className, disabled }: PaymentButtonProps) => {
   switch (true) {
     case isStripe(paymentSession?.provider_id):
       return <StripePaymentButton notReady={notReady} className={className} />
+    case isPaytm(paymentSession?.provider_id):
+      return (
+        <PaytmPaymentButton
+          cart={cart}
+          session={paymentSession!}
+          notReady={notReady}
+          className={className}
+        />
+      )
     case isRazorpay(paymentSession?.provider_id):
       return (
         <RazorpayPaymentButton
@@ -57,7 +68,7 @@ const StripePaymentButton = ({
   return (
     <div className="flex flex-col gap-2">
       <div className="text-sm text-[var(--text-tertiary)]">
-        Card payments are coming soon. Please use Razorpay or Cash on Delivery.
+        Card payments are coming soon. Please use Paytm or Cash on Delivery.
       </div>
       <Button disabled className={className}>
         Card payments coming soon

@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────
-# Stage 1: Install ALL dependencies (needed for build)
+# Stage 1: Install ALL dependencies (cached unless lockfile changes)
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@10.12.3 --activate
@@ -9,10 +9,16 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
 COPY apps/storefront/package.json apps/storefront/
 
-RUN pnpm install --no-frozen-lockfile --filter backend
+# frozen-lockfile ensures reproducible installs and allows Railway
+# to cache this layer when pnpm-lock.yaml hasn't changed.
+RUN pnpm install --frozen-lockfile --filter backend
+
+# Pre-create the pruned production node_modules here (while deps are cached).
+# This avoids re-downloading ~1475 packages in the build stage.
+RUN pnpm --filter backend deploy --legacy --prod /app/pruned
 
 # ──────────────────────────────────────────────
-# Stage 2: Build
+# Stage 2: Build (only re-runs when source changes)
 # ──────────────────────────────────────────────
 FROM node:20-alpine AS build
 RUN apk add --no-cache libc6-compat
@@ -38,10 +44,6 @@ RUN pnpm --filter backend build
 RUN test -f apps/backend/.medusa/server/public/admin/index.html \
     || (echo "ERROR: Admin dashboard was not built — index.html missing" && exit 1)
 
-# Create a lean production node_modules using pnpm deploy.
-# This produces a flat directory with only production dependencies.
-RUN pnpm --filter backend deploy --legacy --prod /app/pruned
-
 # ──────────────────────────────────────────────
 # Stage 3: Production
 # ──────────────────────────────────────────────
@@ -52,9 +54,8 @@ WORKDIR /app
 # Copy the compiled Medusa build output (server + admin + compiled modules)
 COPY --from=build /app/apps/backend/.medusa/server ./server
 
-# Copy the lean production node_modules from pnpm deploy.
-# This is MUCH smaller than a full npm install (~200MB vs ~800MB).
-COPY --from=build /app/pruned/node_modules ./server/node_modules
+# Copy the lean production node_modules from deps stage (cached!).
+COPY --from=deps /app/pruned/node_modules ./server/node_modules
 
 # Copy the cloud startup script (runs migrations + starts medusa)
 COPY apps/backend/src/scripts/cloud-start.mjs ./cloud-start.mjs

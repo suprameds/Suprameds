@@ -302,7 +302,7 @@ const AnalyticsPage = () => {
                 {dashboard.payment_methods.map((pm) => (
                   <Table.Row key={pm.method}>
                     <Table.Cell>
-                      <Badge color={pm.method === "razorpay" ? "blue" : "grey"}>
+                      <Badge color={pm.method === "paytm" || pm.method === "razorpay" ? "blue" : "grey"}>
                         {pm.method.toUpperCase()}
                       </Badge>
                     </Table.Cell>

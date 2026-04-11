@@ -67,6 +67,21 @@ export default defineConfig({
       dependencies: [Modules.PAYMENT, ContainerRegistrationKeys.LOGGER],
       options: {
         providers: [
+          // Paytm Business — primary payment gateway
+          ...(process.env.PAYTM_MERCHANT_ID
+            ? [{
+                resolve: "./src/providers/payment-paytm",
+                id: "paytm",
+                options: {
+                  merchant_id: process.env.PAYTM_MERCHANT_ID,
+                  merchant_key: process.env.PAYTM_MERCHANT_KEY,
+                  website_name: process.env.PAYTM_WEBSITE_NAME ?? "DEFAULT",
+                  callback_url: process.env.PAYTM_CALLBACK_URL ?? "",
+                  test_mode: process.env.PAYTM_TEST_MODE === "true",
+                },
+              }]
+            : []),
+          // Razorpay — backup payment gateway
           ...((process.env.RAZORPAY_TEST_KEY_ID || process.env.RAZORPAY_KEY_ID)
             ? [{
                 resolve: "./src/providers/payment-razorpay",
