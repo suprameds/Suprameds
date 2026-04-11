@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { useRegister } from "@/lib/hooks/use-customer"
+import { useCustomer, useRegister } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { sdk } from "@/lib/utils/sdk"
 
@@ -25,6 +25,14 @@ function RegisterPage() {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const navigate = useNavigate()
   const register = useRegister()
+  const { data: customer, isLoading: customerLoading } = useCustomer()
+
+  // Redirect logged-in users to account page
+  useEffect(() => {
+    if (!customerLoading && customer) {
+      navigate({ to: "/$countryCode/account", params: { countryCode } })
+    }
+  }, [customerLoading, customer, navigate, countryCode])
 
   // Referral code: from URL param or manual input
   const [manualRefCode, setManualRefCode] = useState("")
