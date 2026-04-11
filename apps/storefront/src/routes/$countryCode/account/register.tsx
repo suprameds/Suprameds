@@ -30,7 +30,7 @@ function RegisterPage() {
   // Redirect logged-in users to account page
   useEffect(() => {
     if (!customerLoading && customer) {
-      navigate({ to: "/$countryCode/account", params: { countryCode } })
+      navigate({ to: "/$countryCode", params: { countryCode } })
     }
   }, [customerLoading, customer, navigate, countryCode])
 

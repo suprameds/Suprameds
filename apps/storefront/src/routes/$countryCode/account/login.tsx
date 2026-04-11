@@ -33,7 +33,7 @@ function LoginPage() {
       if (redirectTo && redirectTo.startsWith("/")) {
         navigate({ to: redirectTo as never })
       } else {
-        navigate({ to: "/$countryCode/account", params: { countryCode } })
+        navigate({ to: "/$countryCode", params: { countryCode } })
       }
     }
   }, [customerLoading, customer, navigate, countryCode, redirectTo])
