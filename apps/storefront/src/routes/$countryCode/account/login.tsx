@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react-router"
 import { useCallback, useEffect, useRef, useState, forwardRef } from "react"
-import { useLogin, useOtpSend, useOtpVerify } from "@/lib/hooks/use-customer"
+import { useCustomer, useLogin, useOtpSend, useOtpVerify } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 
 export const Route = createFileRoute("/$countryCode/account/login")({
@@ -25,6 +25,18 @@ function LoginPage() {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const navigate = useNavigate()
   const login = useLogin()
+  const { data: customer, isLoading: customerLoading } = useCustomer()
+
+  // Redirect already-logged-in users
+  useEffect(() => {
+    if (!customerLoading && customer) {
+      if (redirectTo && redirectTo.startsWith("/")) {
+        navigate({ to: redirectTo as never })
+      } else {
+        navigate({ to: "/$countryCode/account", params: { countryCode } })
+      }
+    }
+  }, [customerLoading, customer, navigate, countryCode, redirectTo])
 
   const [mode, setMode] = useState<LoginMode>("email")
 
