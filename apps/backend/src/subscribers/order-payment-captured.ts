@@ -101,6 +101,12 @@ export default async function paymentCapturedHandler({
     // createOrderFulfillmentWorkflow.hooks.fulfillmentCreated hook.
     // See: src/workflows/hooks/fulfillment-fefo-mrp-check.ts
 
+    // TODO: Auto-refund on item removal (planned)
+    // When items are removed from an order post-capture, automatically
+    // calculate the refund amount and trigger the raise-refund →
+    // approve-refund → process-refund workflow. Currently handled
+    // manually through the admin refunds page.
+
     // ── 3. Send payment confirmation notification ───────────────────
     try {
       const notificationService = container.resolve(Modules.NOTIFICATION) as any

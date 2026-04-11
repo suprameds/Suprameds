@@ -1,7 +1,8 @@
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { Container, Heading, Badge, Text, Button } from "@medusajs/ui"
+import { Container, Heading, Badge, Text, Button, toast } from "@medusajs/ui"
+import { sdk } from "../lib/client"
 
 type CodOrderData = {
   id: string
@@ -43,6 +44,7 @@ const CodVerificationStatusWidget = () => {
   const [codOrder, setCodOrder] = useState<CodOrderData | null>(null)
   const [loading, setLoading] = useState(true)
   const [confirming, setConfirming] = useState(false)
+  const [marking, setMarking] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchCodStatus = async () => {
@@ -103,6 +105,25 @@ const CodVerificationStatusWidget = () => {
       setError((err as Error).message)
     } finally {
       setConfirming(false)
+    }
+  }
+
+  const handleMarkCollected = async () => {
+    setMarking(true)
+    setError(null)
+    try {
+      await sdk.client.fetch(`/admin/pharma/cod/mark-collected`, {
+        method: "POST",
+        body: { order_id: orderId },
+      })
+      toast.success("COD payment marked as collected")
+      await fetchCodStatus()
+    } catch (err: any) {
+      const msg = err?.message || "Failed to mark payment"
+      setError(msg)
+      toast.error("Failed to mark payment", { description: msg })
+    } finally {
+      setMarking(false)
     }
   }
 
@@ -185,6 +206,28 @@ const CodVerificationStatusWidget = () => {
           >
             {confirming ? "Confirming..." : "Manually Confirm"}
           </Button>
+        </div>
+      )}
+
+      {/* Mark as Collected — shown for dispatched COD orders */}
+      {codOrder!.status === "dispatched" && (
+        <div className="px-6 py-4 border-t border-ui-border-base">
+          <Button
+            variant="primary"
+            size="small"
+            disabled={marking}
+            onClick={handleMarkCollected}
+          >
+            {marking ? "Processing..." : "Mark Payment as Collected"}
+          </Button>
+          <Text className="text-xs text-ui-fg-muted mt-1">
+            Use this when India Post confirms COD payment received
+          </Text>
+        </div>
+      )}
+      {codOrder!.status === "delivered_collected" && (
+        <div className="px-6 py-4 border-t border-ui-border-base">
+          <Badge color="green">Payment Collected</Badge>
         </div>
       )}
     </Container>
