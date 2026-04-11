@@ -1,4 +1,5 @@
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { stateNameToCode, getSellerStateCode } from "./gst-state-codes"
 
 const LOG_PREFIX = "[invoice]"
 
@@ -574,5 +575,361 @@ export async function buildGstInvoice(
 
     payment_mode: paymentMode,
     prescription_ref: prescriptionRef,
+  }
+}
+
+// ── GSTR-1 Export Types ─────────────────────────────────────────────
+
+export interface Gstr1ValidationIssue {
+  order_id: string
+  display_id?: number
+  field: string
+  message: string
+  severity: "warning" | "error"
+}
+
+export interface Gstr1LineItem {
+  order_id: string
+  display_id: number
+  invoice_number: string
+  invoice_date: string
+  place_of_supply: string
+  place_of_supply_code: string | null
+  buyer_state: string
+  is_intra_state: boolean
+  hsn_code: string
+  gst_rate: number
+  taxable_value: number
+  cgst: number
+  sgst: number
+  igst: number
+  line_total: number
+  product_title: string
+}
+
+export interface Gstr1Report {
+  period: string
+  gstin: string
+  seller_state_code: string
+  b2c_small: Gstr1LineItem[]
+  b2c_large: Gstr1LineItem[]
+  hsn_summary: Array<{
+    hsn_code: string
+    gst_rate: number
+    quantity: number
+    taxable_value: number
+    cgst: number
+    sgst: number
+    igst: number
+    total: number
+  }>
+  nil_rated: Gstr1LineItem[]
+  validation: Gstr1ValidationIssue[]
+  totals: {
+    total_invoices: number
+    total_taxable_value: number
+    total_cgst: number
+    total_sgst: number
+    total_igst: number
+    total_gst: number
+    grand_total: number
+  }
+  generated_at: string
+}
+
+// ── GSTR-1 Data Loading (batch-optimized) ───────────────────────────
+
+/**
+ * Load all order tax data for a period, batch-optimized.
+ * Returns classified GSTR-1 line items ready for section assignment.
+ *
+ * B2C only — no B2B GSTIN classification needed.
+ */
+export async function loadGstr1Data(
+  container: any,
+  period: { month: number; year: number }
+): Promise<Gstr1Report> {
+  const query = container.resolve(ContainerRegistrationKeys.QUERY)
+  const logger = container.resolve(ContainerRegistrationKeys.LOGGER) as any
+  const pharmaService = container.resolve("pharmaCore") as any
+  const batchService = container.resolve("pharmaInventoryBatch") as any
+
+  const LOG = "[gstr1]"
+  const validation: Gstr1ValidationIssue[] = []
+
+  // Period boundaries
+  const startDate = new Date(period.year, period.month - 1, 1)
+  const endDate = new Date(period.year, period.month, 0, 23, 59, 59)
+  const periodStr = `${period.year}-${String(period.month).padStart(2, "0")}`
+
+  logger.info(`${LOG} Loading GSTR-1 data for ${periodStr}`)
+
+  // 1. Fetch all delivered orders for the period
+  const { data: orders } = await query.graph({
+    entity: "order",
+    fields: [
+      "id",
+      "display_id",
+      "status",
+      "total",
+      "shipping_total",
+      "created_at",
+      "items.*",
+      "shipping_address.*",
+    ],
+    filters: {
+      created_at: {
+        $gte: startDate.toISOString(),
+        $lte: endDate.toISOString(),
+      },
+    },
+  })
+
+  // Filter to completed/delivered orders
+  const completedOrders = (orders as any[]).filter(
+    (o) => o.status === "completed" || o.status === "fulfilled"
+  )
+
+  if (!completedOrders.length) {
+    logger.info(`${LOG} No completed orders for ${periodStr}`)
+    return emptyGstr1Report(periodStr)
+  }
+
+  logger.info(`${LOG} Found ${completedOrders.length} orders for ${periodStr}`)
+
+  // 2. Batch-load drug product data for all product IDs
+  const allProductIds = new Set<string>()
+  for (const order of completedOrders) {
+    for (const item of order.items || []) {
+      if (item.product_id) allProductIds.add(item.product_id)
+    }
+  }
+
+  const drugProductMap = new Map<string, any>()
+  if (allProductIds.size > 0) {
+    try {
+      const drugProducts = await pharmaService.listDrugProducts(
+        {},
+        { take: null }
+      )
+      for (const dp of drugProducts as any[]) {
+        if (dp.product_id) drugProductMap.set(dp.product_id, dp)
+      }
+    } catch (err: any) {
+      logger.warn(`${LOG} Could not batch-load drug products: ${err?.message}`)
+    }
+  }
+
+  // 3. Seller state
+  const sellerState = process.env.WAREHOUSE_STATE || "Telangana"
+  const sellerStateCode = getSellerStateCode()
+
+  // 4. Process each order into GSTR-1 line items
+  const DEFAULT_GST_RATE = 5
+  const allLineItems: Gstr1LineItem[] = []
+
+  for (const order of completedOrders) {
+    const buyerState =
+      order.shipping_address?.province || order.shipping_address?.state || ""
+    const buyerStateCode = stateNameToCode(buyerState)
+    const intraState = isIntraState(sellerState, buyerState)
+
+    // Validate buyer state
+    if (!buyerState) {
+      validation.push({
+        order_id: order.id,
+        display_id: order.display_id,
+        field: "shipping_address.province",
+        message: "Empty buyer state, defaulting to intra-state",
+        severity: "warning",
+      })
+    } else if (!buyerStateCode) {
+      validation.push({
+        order_id: order.id,
+        display_id: order.display_id,
+        field: "shipping_address.province",
+        message: `Unknown state "${buyerState}", defaulting to intra-state`,
+        severity: "warning",
+      })
+    }
+
+    // Get invoice number from supply memo metadata if available
+    const invoiceNumber = order.metadata?.invoice_number
+      ?? `INV-${order.display_id}`
+
+    const invoiceDate = new Date(order.created_at).toISOString().split("T")[0]
+
+    for (const item of order.items || []) {
+      const drugProduct = item.product_id
+        ? drugProductMap.get(item.product_id)
+        : null
+
+      const gstRate = drugProduct?.gst_rate ?? DEFAULT_GST_RATE
+      const hsnCode = drugProduct?.hsn_code ?? ""
+
+      // Validate HSN
+      if (!hsnCode) {
+        validation.push({
+          order_id: order.id,
+          display_id: order.display_id,
+          field: "hsn_code",
+          message: `Missing HSN for "${item.title}", using fallback 30049099`,
+          severity: "warning",
+        })
+      }
+
+      const quantity = Number(item.quantity)
+      const unitSellingPrice = Number(item.unit_price)
+
+      // Validate zero amounts
+      if (unitSellingPrice <= 0 || quantity <= 0) {
+        validation.push({
+          order_id: order.id,
+          display_id: order.display_id,
+          field: "amount",
+          message: `Zero/negative amount for "${item.title}" (price: ${unitSellingPrice}, qty: ${quantity})`,
+          severity: "error",
+        })
+        continue
+      }
+
+      const gst = calculateLineGst({
+        quantity,
+        unit_selling_price: unitSellingPrice,
+        gst_rate: gstRate,
+        intra_state: intraState,
+      })
+
+      allLineItems.push({
+        order_id: order.id,
+        display_id: order.display_id,
+        invoice_number: invoiceNumber,
+        invoice_date: invoiceDate,
+        place_of_supply: buyerState || sellerState,
+        place_of_supply_code: buyerStateCode ?? sellerStateCode,
+        buyer_state: buyerState,
+        is_intra_state: intraState,
+        hsn_code: hsnCode || "30049099",
+        gst_rate: gstRate,
+        taxable_value: gst.taxable_value,
+        cgst: gst.cgst,
+        sgst: gst.sgst,
+        igst: gst.igst,
+        line_total: gst.line_total,
+        product_title: item.title ?? "",
+      })
+    }
+  }
+
+  // 5. Classify into GSTR-1 sections (B2C only)
+  const b2cLarge: Gstr1LineItem[] = []
+  const b2cSmall: Gstr1LineItem[] = []
+  const nilRated: Gstr1LineItem[] = []
+
+  // Group line items by order to check B2C Large threshold (per invoice)
+  const orderTotals = new Map<string, number>()
+  for (const item of allLineItems) {
+    const current = orderTotals.get(item.order_id) ?? 0
+    orderTotals.set(item.order_id, current + item.line_total)
+  }
+
+  for (const item of allLineItems) {
+    if (item.gst_rate === 0) {
+      nilRated.push(item)
+    } else if (!item.is_intra_state && (orderTotals.get(item.order_id) ?? 0) > 250000) {
+      // Inter-state B2C invoice exceeding Rs 2,50,000 = B2C Large (GSTR-1 Table 5)
+      b2cLarge.push(item)
+    } else {
+      b2cSmall.push(item)
+    }
+  }
+
+  // 6. HSN Summary — aggregate by HSN code + rate
+  const hsnMap = new Map<string, {
+    hsn_code: string
+    gst_rate: number
+    quantity: number
+    taxable_value: number
+    cgst: number
+    sgst: number
+    igst: number
+    total: number
+  }>()
+
+  for (const item of allLineItems) {
+    const key = `${item.hsn_code}:${item.gst_rate}`
+    const existing = hsnMap.get(key)
+    if (existing) {
+      existing.quantity += 1
+      existing.taxable_value = round2(existing.taxable_value + item.taxable_value)
+      existing.cgst = round2(existing.cgst + item.cgst)
+      existing.sgst = round2(existing.sgst + item.sgst)
+      existing.igst = round2(existing.igst + item.igst)
+      existing.total = round2(existing.total + item.line_total)
+    } else {
+      hsnMap.set(key, {
+        hsn_code: item.hsn_code,
+        gst_rate: item.gst_rate,
+        quantity: 1,
+        taxable_value: item.taxable_value,
+        cgst: item.cgst,
+        sgst: item.sgst,
+        igst: item.igst,
+        total: item.line_total,
+      })
+    }
+  }
+
+  // 7. Compute totals
+  const totals = {
+    total_invoices: new Set(allLineItems.map((i) => i.order_id)).size,
+    total_taxable_value: round2(allLineItems.reduce((s, i) => s + i.taxable_value, 0)),
+    total_cgst: round2(allLineItems.reduce((s, i) => s + i.cgst, 0)),
+    total_sgst: round2(allLineItems.reduce((s, i) => s + i.sgst, 0)),
+    total_igst: round2(allLineItems.reduce((s, i) => s + i.igst, 0)),
+    total_gst: 0,
+    grand_total: round2(allLineItems.reduce((s, i) => s + i.line_total, 0)),
+  }
+  totals.total_gst = round2(totals.total_cgst + totals.total_sgst + totals.total_igst)
+
+  logger.info(
+    `${LOG} GSTR-1 for ${periodStr}: ${totals.total_invoices} invoices, ` +
+    `₹${totals.grand_total} total, ${validation.length} validation issues`
+  )
+
+  return {
+    period: periodStr,
+    gstin: process.env.PHARMACY_GSTIN ?? "NOT_SET",
+    seller_state_code: sellerStateCode,
+    b2c_small: b2cSmall,
+    b2c_large: b2cLarge,
+    hsn_summary: Array.from(hsnMap.values()),
+    nil_rated: nilRated,
+    validation,
+    totals,
+    generated_at: new Date().toISOString(),
+  }
+}
+
+function emptyGstr1Report(period: string): Gstr1Report {
+  return {
+    period,
+    gstin: process.env.PHARMACY_GSTIN ?? "NOT_SET",
+    seller_state_code: getSellerStateCode(),
+    b2c_small: [],
+    b2c_large: [],
+    hsn_summary: [],
+    nil_rated: [],
+    validation: [],
+    totals: {
+      total_invoices: 0,
+      total_taxable_value: 0,
+      total_cgst: 0,
+      total_sgst: 0,
+      total_igst: 0,
+      total_gst: 0,
+      grand_total: 0,
+    },
+    generated_at: new Date().toISOString(),
   }
 }
