@@ -6,7 +6,7 @@ import {
   useInitiateCartPaymentSession,
 } from "@/lib/hooks/use-checkout"
 import { queryKeys } from "@/lib/utils/query-keys"
-import { isStripe as isStripeFunc, isRazorpay as isRazorpayProvider, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
+import { isStripe as isStripeFunc, isPaytm as isPaytmProvider, isRazorpay as isRazorpayProvider, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
 import { HttpTypes } from "@medusajs/types"
 import { useQueryClient } from "@tanstack/react-query"
 import { useCallback, useState } from "react"
@@ -86,7 +86,9 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
       await queryClient.refetchQueries({ predicate: queryKeys.cart.predicate })
       onNext()
     } catch (err) {
-      if (isRazorpayProvider(selectedPaymentMethod)) {
+      if (isPaytmProvider(selectedPaymentMethod)) {
+        showToast("Paytm payment setup failed. Please try again or use Cash on Delivery.")
+      } else if (isRazorpayProvider(selectedPaymentMethod)) {
         showToast("Razorpay payment setup failed. Please try again or use Cash on Delivery.")
       } else {
         showToast(err instanceof Error ? err.message : "Payment setup failed")

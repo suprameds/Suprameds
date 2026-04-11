@@ -7,9 +7,9 @@ export const Route = createFileRoute("/terms")({
     ],
     meta: [
       { title: "Terms of Service — Suprameds" },
-      { name: "description", content: "Suprameds terms of service for online pharmacy platform." },
+      { name: "description", content: "Terms of service for Suprameds, India's licensed online pharmacy. Covers eligibility, prescription medicines, pricing, delivery, returns, and legal information." },
       { property: "og:title", content: "Terms of Service — Suprameds" },
-      { property: "og:description", content: "Suprameds terms of service for online pharmacy platform." },
+      { property: "og:description", content: "Terms of service for Suprameds, India's licensed online pharmacy. Covers eligibility, prescription medicines, pricing, delivery, returns, and legal information." },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://suprameds.in/terms" },
     ],
@@ -53,7 +53,7 @@ function Terms() {
             },
             {
               title: "5. Pricing and Payment",
-              content: `All prices are in INR and inclusive of applicable GST. The MRP displayed is the maximum legal retail price under the Drug Price Control Order. We do not charge above MRP. COD orders include a transparent surcharge shown before confirmation. Payment is processed by Razorpay and Stripe — we do not store card details.`,
+              content: `All prices are in INR and inclusive of applicable GST. The MRP displayed is the maximum legal retail price under the Drug Price Control Order. We do not charge above MRP. COD orders include a transparent surcharge shown before confirmation. Payment is processed by Paytm — we do not store card details.`,
             },
             {
               title: "6. Delivery",

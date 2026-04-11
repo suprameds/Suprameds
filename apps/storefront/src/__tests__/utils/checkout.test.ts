@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { isStripe, isManual, isRazorpay, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
+import { isStripe, isManual, isPaytm, isRazorpay, getActivePaymentSession, isPaidWithGiftCard } from "@/lib/utils/checkout"
 import type { HttpTypes } from "@medusajs/types"
 
 describe("isStripe", () => {
@@ -43,6 +43,24 @@ describe("isManual", () => {
 
   it("returns undefined/false for undefined", () => {
     expect(isManual(undefined)).toBeFalsy()
+  })
+})
+
+describe("isPaytm", () => {
+  it("returns true for pp_paytm_ prefix", () => {
+    expect(isPaytm("pp_paytm_paytm")).toBe(true)
+  })
+
+  it("returns true for literal 'paytm'", () => {
+    expect(isPaytm("paytm")).toBe(true)
+  })
+
+  it("returns false for manual", () => {
+    expect(isPaytm("pp_system_default")).toBe(false)
+  })
+
+  it("returns false for razorpay", () => {
+    expect(isPaytm("pp_razorpay_live")).toBe(false)
   })
 })
 

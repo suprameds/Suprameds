@@ -7,7 +7,7 @@ import type { ReactNode } from "react"
 // ---- Mocks must be declared before imports ----
 
 const mockMutateAsync = vi.fn()
-const mockPaymentProviders = [{ id: "pp_system_default" }, { id: "pp_razorpay_razorpay" }]
+const mockPaymentProviders = [{ id: "pp_system_default" }, { id: "pp_paytm_paytm" }, { id: "pp_razorpay_razorpay" }]
 const mockShowToast = vi.fn()
 
 vi.mock("@/lib/hooks/use-checkout", () => ({
@@ -20,6 +20,7 @@ vi.mock("@/lib/hooks/use-checkout", () => ({
 
 vi.mock("@/lib/utils/checkout", () => ({
   isStripe: (id?: string) => id?.startsWith("pp_stripe_"),
+  isPaytm: (id?: string) => id?.startsWith("pp_paytm_") || id === "paytm",
   isRazorpay: (id?: string) => id?.startsWith("pp_razorpay_") || id === "razorpay",
   getActivePaymentSession: vi.fn(),
   isPaidWithGiftCard: () => false,

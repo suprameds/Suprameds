@@ -12,7 +12,7 @@ class PaymentModuleService extends MedusaService({
 }) {
   async authorizeFull(data: {
     order_id: string
-    gateway: "razorpay" | "stripe" | "cod"
+    gateway: "paytm" | "razorpay" | "stripe" | "cod"
     gateway_payment_id?: string
     payment_method: string
     amount: number
@@ -97,7 +97,7 @@ class PaymentModuleService extends MedusaService({
   }) {
     return await this.createPaymentRecords({
       order_id: data.order_id,
-      gateway: "razorpay",
+      gateway: "paytm",
       gateway_payment_id: null,
       payment_method: "payment_link",
       authorized_amount: data.amount,

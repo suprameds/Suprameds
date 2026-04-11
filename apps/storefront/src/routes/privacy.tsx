@@ -93,7 +93,7 @@ function PrivacyPolicy() {
               content: `We never sell your personal data. We share data only as follows:
               <ul class="mt-2 space-y-1.5">
                 <li><strong>India Post:</strong> Delivery address and phone number for shipment</li>
-                <li><strong>Payment processors (Razorpay/Stripe):</strong> Transaction data only. We never store card numbers.</li>
+                <li><strong>Payment processors (Paytm):</strong> Transaction data only. We never store card numbers.</li>
                 <li><strong>MSG91/Twilio:</strong> Phone number for transactional SMS/WhatsApp only</li>
                 <li><strong>CDSCO inspectors:</strong> Prescription and dispensing records on court order or regulatory inspection</li>
                 <li><strong>Law enforcement:</strong> When legally required by court order</li>

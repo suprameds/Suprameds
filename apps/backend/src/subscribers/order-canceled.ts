@@ -169,7 +169,7 @@ export default async function orderCanceledHandler({
     captureException(err, { subscriber: "order-canceled", orderId, step: "loyalty-reversal" })
   }
 
-  // 3. Auto-refund Razorpay payments on cancellation
+  // 3. Auto-refund prepaid (Paytm/Razorpay) payments on cancellation
   //    (renumbered from step 2 after adding loyalty reversal)
   try {
     const orderService = container.resolve(Modules.ORDER) as any

@@ -23,12 +23,17 @@ vi.mock("@/lib/utils/checkout", () => ({
       (s: any) => s.status === "pending"
     ),
   isStripe: (id?: string) => id?.startsWith("pp_stripe_"),
+  isPaytm: (id?: string) => id?.startsWith("pp_paytm_") || id === "paytm",
   isManual: (id?: string) => id?.startsWith("pp_system_default") || id === "manual",
   isRazorpay: (id?: string) => id?.startsWith("pp_razorpay_"),
 }))
 
 vi.mock("@/lib/utils/region", () => ({
   getCountryCodeFromPath: () => "in",
+}))
+
+vi.mock("./paytm-payment-button", () => ({
+  PaytmPaymentButton: () => <button>Paytm Pay</button>,
 }))
 
 vi.mock("./razorpay-payment-button", () => ({

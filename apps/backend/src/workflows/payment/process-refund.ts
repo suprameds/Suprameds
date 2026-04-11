@@ -60,8 +60,10 @@ export const resolvePaymentMethodStep = createStep(
 
     if (!payment) {
       // payment_id may not exist yet if order was COD without a gateway record
-      return new StepResponse({ payment: null, is_razorpay: false, is_cod: true })
+      return new StepResponse({ payment: null, is_paytm: false, is_razorpay: false, is_cod: true })
     }
+
+    const isPaytm = payment.gateway === "paytm"
 
     const isRazorpay =
       payment.gateway === "razorpay" ||
@@ -71,7 +73,7 @@ export const resolvePaymentMethodStep = createStep(
 
     const isCod = payment.gateway === "cod" || payment.payment_method === "cod"
 
-    return new StepResponse({ payment, is_razorpay: isRazorpay, is_cod: isCod })
+    return new StepResponse({ payment, is_paytm: isPaytm, is_razorpay: isRazorpay, is_cod: isCod })
   }
 )
 
@@ -89,6 +91,7 @@ export const processGatewayRefundStep = createStep(
     input: {
       refund_id: string
       payment: any
+      is_paytm: boolean
       is_razorpay: boolean
       is_cod: boolean
       amount: number
@@ -97,6 +100,61 @@ export const processGatewayRefundStep = createStep(
   ) => {
     const logger = container.resolve("logger") as any
 
+    // Paytm refund
+    if (input.is_paytm && input.payment?.gateway_payment_id) {
+      try {
+        // @ts-ignore
+        const PaytmChecksum = require("paytmchecksum")
+        const refId = `RFND_${Date.now()}`
+
+        const paytmBody = {
+          mid: process.env.PAYTM_MERCHANT_ID,
+          txnType: "REFUND",
+          orderId: input.payment.metadata?.paytmOrderId || input.payment.order_id,
+          txnId: input.payment.gateway_payment_id,
+          refId,
+          refundAmount: String(input.amount.toFixed(2)),
+        }
+
+        const signature = await PaytmChecksum.generateSignature(
+          JSON.stringify(paytmBody),
+          process.env.PAYTM_MERCHANT_KEY
+        )
+
+        const baseUrl = process.env.PAYTM_TEST_MODE === "true"
+          ? "https://securegw-stage.paytm.in"
+          : "https://securegw.paytm.in"
+
+        const res = await fetch(`${baseUrl}/refund/apply`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ body: paytmBody, head: { signature } }),
+        })
+
+        const result = await res.json() as any
+
+        if (result.body?.resultInfo?.resultStatus === "PENDING" ||
+            result.body?.resultInfo?.resultStatus === "TXN_SUCCESS") {
+          logger.info(
+            `[process-refund] Paytm refund initiated: ${refId} for txn ${input.payment.gateway_payment_id}`
+          )
+          return new StepResponse({
+            gateway_refund_id: result.body?.refundId || refId,
+            needs_bank_details: false,
+          })
+        }
+
+        throw new Error(result.body?.resultInfo?.resultMsg || "Paytm refund failed")
+      } catch (err: any) {
+        logger.error(`[process-refund] Paytm refund failed: ${err.message}`)
+        throw new MedusaError(
+          MedusaError.Types.UNEXPECTED_STATE,
+          `Paytm refund failed: ${err.message}`
+        )
+      }
+    }
+
+    // Razorpay refund (backup gateway)
     if (input.is_razorpay && input.payment?.gateway_payment_id) {
       try {
         const Razorpay = require("razorpay")
@@ -312,6 +370,7 @@ export const ProcessRefundWorkflow = createWorkflow(
     const gatewayResult = processGatewayRefundStep({
       refund_id: input.refund_id,
       payment: paymentInfo.payment,
+      is_paytm: paymentInfo.is_paytm,
       is_razorpay: paymentInfo.is_razorpay,
       is_cod: paymentInfo.is_cod,
       amount: refund.amount,

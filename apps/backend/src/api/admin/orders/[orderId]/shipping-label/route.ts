@@ -59,7 +59,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     let paymentMode = "COD"
     const sessions = order.payment_collections?.[0]?.payment_sessions ?? []
     const providerId = sessions[0]?.provider_id ?? ""
-    if (providerId.includes("razorpay")) {
+    if (providerId.includes("paytm") || providerId.includes("razorpay")) {
       paymentMode = "PREPAID"
     }
 
