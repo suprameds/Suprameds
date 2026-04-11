@@ -1,5 +1,6 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
+import { isIntraState } from "../../../../utils/gst-invoice"
 import { createLogger } from "../../../../lib/logger"
 
 const logger = createLogger("admin:reports:sales-tax")
@@ -26,7 +27,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
       },
       {
         take: null,
-        relations: ["items"],
+        relations: ["items", "shipping_address"],
       }
     )
 
@@ -64,7 +65,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       },
       {
         take: null,
-        relations: ["items"],
+        relations: ["items", "shipping_address"],
       }
     )
 
@@ -84,6 +85,7 @@ function getFirstOfMonth(): string {
 }
 
 function buildTaxReport(orders: any[], from: string, to: string) {
+  const sellerState = process.env.WAREHOUSE_STATE || "Telangana"
   const gstSlabs: Record<string, { items: number; taxable_value: number; cgst: number; sgst: number; igst: number }> = {
     "0": { items: 0, taxable_value: 0, cgst: 0, sgst: 0, igst: 0 },
     "5": { items: 0, taxable_value: 0, cgst: 0, sgst: 0, igst: 0 },
@@ -98,6 +100,10 @@ function buildTaxReport(orders: any[], from: string, to: string) {
     totalRevenue += Number(order.total) || 0
     totalTax += Number(order.tax_total) || 0
 
+    const buyerState =
+      order.shipping_address?.province || order.shipping_address?.state || ""
+    const intraState = isIntraState(sellerState, buyerState)
+
     for (const item of order.items || []) {
       const rate = String(item.metadata?.gst_rate ?? 5)
       if (!gstSlabs[rate]) {
@@ -106,14 +112,16 @@ function buildTaxReport(orders: any[], from: string, to: string) {
 
       const lineTotal = (item.unit_price ?? 0) * (item.quantity ?? 1)
       const lineTax = Number(item.tax_total) || 0
-      const rateNum = Number(rate)
 
       gstSlabs[rate].items += item.quantity ?? 1
       gstSlabs[rate].taxable_value += lineTotal
-      // CGST + SGST for intra-state; IGST for inter-state
-      // Default to intra-state (Telangana warehouse)
-      gstSlabs[rate].cgst += lineTax / 2
-      gstSlabs[rate].sgst += lineTax / 2
+
+      if (intraState) {
+        gstSlabs[rate].cgst += lineTax / 2
+        gstSlabs[rate].sgst += lineTax / 2
+      } else {
+        gstSlabs[rate].igst += lineTax
+      }
     }
   }
 
