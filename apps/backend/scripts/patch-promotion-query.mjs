@@ -14,15 +14,42 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { resolve } from "path";
 
-const TARGET = resolve(
-  import.meta.dirname,
-  "../node_modules/@medusajs/promotion/dist/utils/compute-actions/build-promotion-rule-query-filter-from-context.js"
-);
+import { readdirSync } from "fs";
 
-if (!existsSync(TARGET)) {
-  console.log("[patch-promotion] File not found, skipping");
+// Search multiple possible locations (regular node_modules + pnpm store + pruned deploy)
+const FILENAME = "build-promotion-rule-query-filter-from-context.js";
+const SEARCH_DIRS = [
+  resolve(import.meta.dirname, "../node_modules"),
+  resolve(import.meta.dirname, "../../node_modules"),
+  "/app/pruned/node_modules",
+  "/app/server/node_modules",
+];
+
+function findFile(dir) {
+  try {
+    const entries = readdirSync(dir, { withFileTypes: true, recursive: true });
+    for (const e of entries) {
+      if (e.name === FILENAME && e.isFile()) {
+        const full = resolve(e.parentPath ?? e.path, e.name);
+        if (full.includes("@medusajs/promotion")) return full;
+      }
+    }
+  } catch { /* dir doesn't exist */ }
+  return null;
+}
+
+let TARGET = null;
+for (const dir of SEARCH_DIRS) {
+  TARGET = findFile(dir);
+  if (TARGET) break;
+}
+
+if (!TARGET) {
+  console.log("[patch-promotion] File not found in any search path, skipping");
   process.exit(0);
 }
+
+console.log(`[patch-promotion] Found: ${TARGET}`);
 
 const src = readFileSync(TARGET, "utf8");
 
