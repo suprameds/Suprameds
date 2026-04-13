@@ -14,35 +14,48 @@
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { resolve } from "path";
 
-import { readdirSync } from "fs";
+import { execSync } from "child_process";
 
-// Search multiple possible locations (regular node_modules + pnpm store + pruned deploy)
-const FILENAME = "build-promotion-rule-query-filter-from-context.js";
-const SEARCH_DIRS = [
-  resolve(import.meta.dirname, "../node_modules"),
-  resolve(import.meta.dirname, "../../node_modules"),
-  "/app/pruned/node_modules",
-  "/app/server/node_modules",
-];
+// Find the file anywhere under the working directory or common Docker paths
+const SUBPATH = "@medusajs/promotion/dist/utils/compute-actions/build-promotion-rule-query-filter-from-context.js";
 
-function findFile(dir) {
-  try {
-    const entries = readdirSync(dir, { withFileTypes: true, recursive: true });
-    for (const e of entries) {
-      if (e.name === FILENAME && e.isFile()) {
-        const full = resolve(e.parentPath ?? e.path, e.name);
-        if (full.includes("@medusajs/promotion")) return full;
-      }
-    }
-  } catch { /* dir doesn't exist */ }
+function findTarget() {
+  // Try direct known paths first (fast)
+  const directPaths = [
+    resolve(import.meta.dirname, "../node_modules", SUBPATH),
+    resolve(import.meta.dirname, "../../node_modules", SUBPATH),
+    resolve(import.meta.dirname, "../../../node_modules", SUBPATH),
+    "/app/node_modules/" + SUBPATH,
+    "/app/pruned/node_modules/" + SUBPATH,
+    "/app/server/node_modules/" + SUBPATH,
+  ];
+  for (const p of directPaths) {
+    if (existsSync(p)) return p;
+  }
+
+  // Fallback: use find command to search pnpm .pnpm store
+  const searchRoots = [
+    resolve(import.meta.dirname, "../node_modules/.pnpm"),
+    resolve(import.meta.dirname, "../../node_modules/.pnpm"),
+    resolve(import.meta.dirname, "../../../node_modules/.pnpm"),
+    "/app/node_modules/.pnpm",
+    "/app/pruned/node_modules/.pnpm",
+    "/app/server/node_modules/.pnpm",
+  ];
+  for (const root of searchRoots) {
+    if (!existsSync(root)) continue;
+    try {
+      const result = execSync(
+        `find "${root}" -path "*/@medusajs/promotion/dist/utils/compute-actions/build-promotion-rule-query-filter-from-context.js" -type f 2>/dev/null | head -1`,
+        { encoding: "utf8", timeout: 10000 }
+      ).trim();
+      if (result) return result;
+    } catch { /* find failed */ }
+  }
   return null;
 }
 
-let TARGET = null;
-for (const dir of SEARCH_DIRS) {
-  TARGET = findFile(dir);
-  if (TARGET) break;
-}
+const TARGET = findTarget();
 
 if (!TARGET) {
   console.log("[patch-promotion] File not found in any search path, skipping");
