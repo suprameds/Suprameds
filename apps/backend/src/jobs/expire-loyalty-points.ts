@@ -68,10 +68,25 @@ export default async function ExpireLoyaltyPointsJob(container: MedusaContainer)
       totalExpiredPoints += tx.points
     }
 
-    // Deduct expired points from each account balance
+    const accountIds = [...accountExpiries.keys()]
+    const accountMap = new Map<string, any>()
+    if (accountIds.length > 0) {
+      const accounts = await loyaltyService.listLoyaltyAccounts(
+        { id: accountIds },
+        { take: null }
+      )
+      for (const a of accounts) {
+        accountMap.set(a.id, a)
+      }
+    }
+
     for (const [accountId, pointsToDeduct] of accountExpiries) {
       try {
-        const account = await loyaltyService.retrieveLoyaltyAccount(accountId)
+        const account = accountMap.get(accountId)
+        if (!account) {
+          logger.error(`${LOG_PREFIX} Account ${accountId} not found — skipping balance update`)
+          continue
+        }
         const newBalance = Math.max(0, account.points_balance - pointsToDeduct)
 
         await loyaltyService.updateLoyaltyAccounts(accountId, {

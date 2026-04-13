@@ -20,33 +20,28 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       throw notFound()
     }
 
-    // Single comprehensive product fetch with all needed fields
-    const product = await queryClient.ensureQueryData({
-      queryKey: ["product", handle, region.id],
-      queryFn: async () => {
-        try {
-          return await retrieveProduct({
-            handle,
-            region_id: region.id,
-            fields:
-              "*variants, +variants.inventory_quantity, +variants.manage_inventory, +variants.allow_backorder, +variants.calculated_price, *images, *options, *options.values, *collection, *tags",
-          })
-        } catch {
-          throw notFound()
-        }
-      },
-    })
-
-    // Fetch pharma metadata via custom endpoint using SDK (auto-includes publishable key + auth)
-    let pharma: { drug_product: any } | null = null
-    try {
-      pharma = await sdk.client.fetch<{ drug_product: any }>(
+    // Fetch product and pharma metadata in parallel (both available after region resolves)
+    const [product, pharma] = await Promise.all([
+      queryClient.ensureQueryData({
+        queryKey: ["product", handle, region.id],
+        queryFn: async () => {
+          try {
+            return await retrieveProduct({
+              handle,
+              region_id: region.id,
+              fields:
+                "*variants, +variants.inventory_quantity, +variants.manage_inventory, +variants.allow_backorder, +variants.calculated_price, *images, *options, *options.values, *collection, *tags",
+            })
+          } catch {
+            throw notFound()
+          }
+        },
+      }),
+      sdk.client.fetch<{ drug_product: any }>(
         `/store/products/pharma?handle=${encodeURIComponent(handle)}`,
         { method: "GET" }
-      )
-    } catch {
-      // pharma metadata unavailable — non-pharma product or module not loaded
-    }
+      ).catch(() => null as { drug_product: any } | null),
+    ])
 
     if (pharma?.drug_product) {
       ;(product as any).drug_product = pharma.drug_product

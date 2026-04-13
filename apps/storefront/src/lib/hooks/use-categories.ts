@@ -22,5 +22,6 @@ export const useCategories = ({
       return product_categories
     },
     enabled,
+    staleTime: 30 * 60 * 1000, // 30 min — categories change rarely
   })
 }

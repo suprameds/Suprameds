@@ -149,5 +149,6 @@ export const useLatestProducts = ({
       }
     },
     enabled: !!region_id,
+    staleTime: 5 * 60 * 1000, // 5 min — match other product hooks
   })
 }

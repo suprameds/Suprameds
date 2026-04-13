@@ -83,22 +83,56 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
     let synced = 0
     let skipped = 0
 
+    const allSkus = [...stockBySku.keys()]
+
+    const skuToItems = new Map<string, any[]>()
+    if (allSkus.length > 0) {
+      try {
+        const [inventoryItems] = await inventoryService.listInventoryItems(
+          { sku: allSkus },
+          { take: null }
+        )
+        for (const item of inventoryItems ?? []) {
+          const list = skuToItems.get(item.sku) || []
+          list.push(item)
+          skuToItems.set(item.sku, list)
+        }
+      } catch (err) {
+        logger.error(`${LOG} Failed to batch-fetch inventory items — aborting sync: ${(err as Error).message}`)
+        throw err
+      }
+    }
+
+    const allItemIds = Array.from(skuToItems.values()).flat().map((i: any) => i.id)
+    const itemToLevels = new Map<string, any[]>()
+    if (allItemIds.length > 0) {
+      try {
+        const [levels] = await inventoryService.listInventoryLevels(
+          { inventory_item_id: allItemIds },
+          { take: null }
+        )
+        for (const level of levels ?? []) {
+          const list = itemToLevels.get(level.inventory_item_id) || []
+          list.push(level)
+          itemToLevels.set(level.inventory_item_id, list)
+        }
+      } catch (err) {
+        logger.error(`${LOG} Failed to batch-fetch inventory levels — aborting sync: ${(err as Error).message}`)
+        throw err
+      }
+    }
+
     for (const [sku, totalStock] of stockBySku) {
       try {
-        // Find inventory items by actual product SKU
-        const [inventoryItems] = await inventoryService.listInventoryItems({ sku })
-
-        if (!inventoryItems?.length) {
+        const items = skuToItems.get(sku)
+        if (!items?.length) {
           skipped++
           continue
         }
 
-        for (const item of inventoryItems) {
-          const [levels] = await inventoryService.listInventoryLevels({
-            inventory_item_id: item.id,
-          })
-
-          for (const level of levels ?? []) {
+        for (const item of items) {
+          const levels = itemToLevels.get(item.id) ?? []
+          for (const level of levels) {
             await inventoryService.updateInventoryLevels({
               id: level.id,
               stocked_quantity: totalStock,

@@ -1,5 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, MedusaError, Modules } from "@medusajs/framework/utils"
 
 /**
  * GET /store/products/pharma?handle=<product-handle>
@@ -15,6 +15,19 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       MedusaError.Types.INVALID_DATA,
       "Missing required query param: handle"
     )
+  }
+
+  // ── Cache check ──
+  const cacheService = req.scope.resolve(Modules.CACHE)
+  const cacheKey = `store:products:pharma:${handle}`
+
+  try {
+    const cached = await cacheService.get<any>(cacheKey)
+    if (cached) {
+      return res.json(cached)
+    }
+  } catch {
+    // Cache read failure is non-fatal — proceed with DB query
   }
 
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
@@ -41,8 +54,14 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
   const drug_product = (drugProducts as any[])?.[0] ?? null
 
-  return res.json({
-    drug_product,
-  })
+  const result = { drug_product }
+
+  try {
+    await cacheService.set(cacheKey, result, 900) // 15 min TTL
+  } catch {
+    // Cache write failure is non-fatal
+  }
+
+  return res.json(result)
 }
 
