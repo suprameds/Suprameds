@@ -2,6 +2,7 @@ import { defineRouteConfig } from "@medusajs/admin-sdk"
 import { Container, Heading, Text, Table, Badge, Select } from "@medusajs/ui"
 import { ChartBar } from "@medusajs/icons"
 import { useEffect, useState, useCallback } from "react"
+import { sdk } from "../../lib/client"
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -128,25 +129,14 @@ const AnalyticsPage = () => {
     setLoading(true)
     setError(null)
     try {
-      const [dashRes, revRes, prodRes] = await Promise.all([
-        fetch("/admin/analytics?type=dashboard", { credentials: "include" }),
-        fetch(
-          `/admin/analytics/revenue?from=${dateStr(thirtyDaysAgo)}&to=${dateStr(today)}&granularity=day`,
-          { credentials: "include" }
-        ),
-        fetch(`/admin/analytics/products?view=${productView}&limit=20`, {
-          credentials: "include",
-        }),
-      ])
-
-      if (!dashRes.ok) throw new Error(`Dashboard: HTTP ${dashRes.status}`)
-      if (!revRes.ok) throw new Error(`Revenue: HTTP ${revRes.status}`)
-      if (!prodRes.ok) throw new Error(`Products: HTTP ${prodRes.status}`)
-
       const [dashData, revData, prodData] = await Promise.all([
-        dashRes.json(),
-        revRes.json(),
-        prodRes.json(),
+        sdk.client.fetch<DashboardData>("/admin/analytics?type=dashboard"),
+        sdk.client.fetch<RevenueData>(
+          `/admin/analytics/revenue?from=${dateStr(thirtyDaysAgo)}&to=${dateStr(today)}&granularity=day`
+        ),
+        sdk.client.fetch<ProductData>(
+          `/admin/analytics/products?view=${productView}&limit=20`
+        ),
       ])
 
       setDashboard(dashData)
