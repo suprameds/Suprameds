@@ -159,8 +159,9 @@ class LoyaltyModuleService extends MedusaService({
     return tier
   }
 
-  async generateReferralCode(customerId: string) {
-    const [account] = await this.listLoyaltyAccounts({ customer_id: customerId })
+  async generateReferralCode(customerId: string, existingAccount?: any) {
+    const account = existingAccount
+      ?? (await this.listLoyaltyAccounts({ customer_id: customerId }))?.[0]
 
     if (!account) {
       const newAccount = await this.createLoyaltyAccounts({

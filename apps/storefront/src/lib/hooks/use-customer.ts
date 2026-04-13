@@ -44,7 +44,7 @@ export const useCustomer = () => {
         return null
       }
     },
-    staleTime: Infinity,
+    staleTime: 15 * 60 * 1000, // 15 min — customer data can change (profile/address updates)
     gcTime: 1000 * 60 * 60,
     retry: 1,
     refetchOnWindowFocus: true,

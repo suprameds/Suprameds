@@ -40,7 +40,7 @@ export const useCart = ({ fields }: { fields?: string } = {}) => {
         return null
       }
     },
-    staleTime: 0
+    staleTime: 30 * 1000, // 30s — mutations invalidate cache; avoid refetch on every mount
   })
 }
 

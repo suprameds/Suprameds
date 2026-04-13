@@ -9,6 +9,7 @@ export const useRegions = ({ fields }: { fields?: string } = {}) => {
       const { regions } = await sdk.store.region.list({ fields })
       return regions
     },
+    staleTime: 30 * 60 * 1000, // 30 min — regions almost never change
   })
 }
 
@@ -27,5 +28,6 @@ export const useRegion = ({
         region.countries?.some(country => country.iso_2 === country_code.toLowerCase())
       ) || null
     },
+    staleTime: 30 * 60 * 1000, // 30 min — regions almost never change
   })
 }

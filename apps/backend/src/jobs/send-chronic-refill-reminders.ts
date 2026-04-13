@@ -60,33 +60,50 @@ export default async function SendChronicRefillRemindersJob(container: MedusaCon
 
     logger.info(`${LOG_PREFIX} Found ${duePatterns.length} due reminders`)
 
+    const allVariantIds = [...new Set(duePatterns.map((p: any) => p.variant_id).filter(Boolean))]
+
+    const variantMap = new Map<string, any>()
+    if (allVariantIds.length > 0) {
+      const { data: variants } = await query.graph({
+        entity: "product_variant",
+        fields: ["id", "product_id", "title"],
+        filters: { id: allVariantIds },
+      })
+      for (const v of variants ?? []) {
+        variantMap.set(v.id, v)
+      }
+    }
+
+    const productIds = [...new Set(
+      Array.from(variantMap.values()).map((v: any) => v.product_id).filter(Boolean)
+    )]
+    const drugMap = new Map<string, any>()
+    if (productIds.length > 0) {
+      const drugs = await pharmaService.listDrugProducts(
+        { product_id: productIds },
+        { take: null }
+      )
+      for (const d of drugs) {
+        drugMap.set(d.product_id, d)
+      }
+    }
+
     for (const pattern of duePatterns) {
       try {
-        // Look up the product variant to get the product_id
-        const { data: variants } = await query.graph({
-          entity: "product_variant",
-          fields: ["id", "product_id", "title"],
-          filters: { id: pattern.variant_id },
-        })
-
-        const variant = variants?.[0]
+        const variant = variantMap.get(pattern.variant_id)
         if (!variant) {
           logger.warn(`${LOG_PREFIX} Variant ${pattern.variant_id} not found — skipping`)
           skippedCount++
           continue
         }
 
-        // Look up drug schedule for compliance check
         let displayName = variant.title || "your medicine"
         let isRx = false
 
         if (variant.product_id) {
-          const [drug] = await pharmaService.listDrugProducts({
-            product_id: variant.product_id,
-          })
+          const drug = drugMap.get(variant.product_id)
           if (drug) {
             isRx = drug.schedule === "H" || drug.schedule === "H1"
-            // For OTC drugs, use generic_name; for Rx drugs, use generic label per compliance
             displayName = isRx
               ? "your prescription medicine"
               : (drug.generic_name || variant.title || "your medicine")

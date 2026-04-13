@@ -1,5 +1,6 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { createHash } from "crypto"
 
 /**
  * GET /store/products/pharma/bulk
@@ -22,6 +23,20 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const dosageFormParam = req.query.dosage_form as string | undefined
 
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
+  const cacheService = req.scope.resolve(Modules.CACHE)
+
+  // Build a cache key from all query params
+  const paramHash = createHash("sha256").update(JSON.stringify({ ids: idsParam, schedule: scheduleParam, dosage_form: dosageFormParam })).digest("hex").slice(0, 16)
+  const cacheKey = `store:products:pharma:bulk:${paramHash}`
+
+  try {
+    const cached = await cacheService.get<any>(cacheKey)
+    if (cached) {
+      return res.json(cached)
+    }
+  } catch {
+    // Cache read failure is non-fatal
+  }
 
   // ── FILTER mode: return matching product_ids ──
   if (!idsParam && (scheduleParam || dosageFormParam)) {
@@ -47,7 +62,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       .map((dp) => dp.product_id)
       .filter(Boolean)
 
-    return res.json({ product_ids: productIds })
+    const filterResult = { product_ids: productIds }
+
+    try {
+      await cacheService.set(cacheKey, filterResult, 900) // 15 min TTL
+    } catch {
+      // Cache write failure is non-fatal
+    }
+
+    return res.json(filterResult)
   }
 
   // ── ENRICH mode: return metadata keyed by product_id ──
@@ -93,5 +116,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     }
   }
 
-  return res.json({ drug_products: byProductId })
+  const enrichResult = { drug_products: byProductId }
+
+  try {
+    await cacheService.set(cacheKey, enrichResult, 900) // 15 min TTL
+  } catch {
+    // Cache write failure is non-fatal
+  }
+
+  return res.json(enrichResult)
 }

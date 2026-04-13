@@ -10,27 +10,27 @@ export const Route = createFileRoute("/$countryCode/categories/$handle")({
     const { countryCode, handle } = params
     const { queryClient } = context
 
-    // Pre-fetch region data
-    const region = await queryClient.ensureQueryData({
-      queryKey: ["region", countryCode],
-      queryFn: () => getRegion({ country_code: countryCode }),
-    })
+    // Fetch region and category in parallel (they are independent)
+    const [region, category] = await Promise.all([
+      queryClient.ensureQueryData({
+        queryKey: ["region", countryCode],
+        queryFn: () => getRegion({ country_code: countryCode }),
+      }),
+      queryClient.ensureQueryData({
+        queryKey: ["category", handle],
+        queryFn: async () => {
+          try {
+            return await retrieveCategory({ handle })
+          } catch {
+            throw notFound()
+          }
+        },
+      }),
+    ])
 
     if (!region || !handle) {
       throw notFound()
     }
-
-    // Fetch category by handle
-    const category = await queryClient.ensureQueryData({
-      queryKey: ["category", handle],
-      queryFn: async () => {
-        try {
-          return await retrieveCategory({ handle })
-        } catch {
-          throw notFound()
-        }
-      },
-    })
 
     const { products } = await queryClient.ensureQueryData({
       queryKey: ["products", { region_id: region.id, category_id: category!.id }],

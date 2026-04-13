@@ -20,7 +20,10 @@ class WishlistModuleService extends MedusaService({ WishlistItem }) {
   async getPopularWishlistedProducts(
     limit = 10
   ): Promise<{ product_id: string; count: number }[]> {
-    const all = await this.listWishlistItems({})
+    const all = await this.listWishlistItems(
+      {},
+      { select: ["product_id"], take: null }
+    )
     const counts: Record<string, number> = {}
     for (const item of all) {
       counts[item.product_id] = (counts[item.product_id] || 0) + 1
