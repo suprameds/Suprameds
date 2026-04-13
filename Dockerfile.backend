@@ -7,6 +7,7 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/
+COPY apps/backend/scripts/patch-promotion-query.mjs apps/backend/scripts/
 COPY apps/storefront/package.json apps/storefront/
 
 RUN pnpm install --frozen-lockfile --filter backend
@@ -54,6 +55,10 @@ COPY --from=build /app/apps/backend/.medusa/server ./server
 
 # Copy the lean production node_modules from deps stage (cached!).
 COPY --from=deps /app/pruned/node_modules ./server/node_modules
+
+# Apply promotion query patch to production deps (MikroORM raw() quoting bug)
+COPY apps/backend/scripts/patch-promotion-query.mjs ./server/scripts/patch-promotion-query.mjs
+RUN cd server && node scripts/patch-promotion-query.mjs || true
 
 # Copy the cloud startup script (runs migrations + starts medusa)
 COPY apps/backend/src/scripts/cloud-start.mjs ./cloud-start.mjs
