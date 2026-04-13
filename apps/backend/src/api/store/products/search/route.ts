@@ -1,5 +1,5 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
+import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 
 /**
  * GET /store/products/search?q=paracetamol&limit=20&offset=0&category_id=diabetic,cardiac-care
@@ -22,6 +22,19 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
   if (!q && !categoryIdRaw) {
     return res.json({ products: [], count: 0 })
+  }
+
+  // ── Cache check (keyed on normalized query params) ──
+  const cacheService = req.scope.resolve(Modules.CACHE)
+  const cacheKey = `store:products:search:${q}:${categoryIdRaw}:${limit}:${offset}`
+
+  try {
+    const cached = await cacheService.get<any>(cacheKey)
+    if (cached) {
+      return res.json(cached)
+    }
+  } catch {
+    // Cache read failure is non-fatal — proceed with DB query
   }
 
   const pgConnection = req.scope.resolve(
@@ -184,7 +197,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         : null,
     }))
 
-    return res.json({ products, count: totalCount })
+    const response = { products, count: totalCount }
+
+    try {
+      await cacheService.set(cacheKey, response, 120) // 2 min TTL for search
+    } catch {
+      // Cache write failure is non-fatal
+    }
+
+    return res.json(response)
   } catch (error) {
     req.scope
       .resolve(ContainerRegistrationKeys.LOGGER)
