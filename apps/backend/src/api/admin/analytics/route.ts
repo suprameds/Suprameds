@@ -140,6 +140,35 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       GROUP BY order_type
     `
 
+    // ── 6. Prescription pipeline stats ─────────────────────────────
+    const rxPipelineQuery = `
+      SELECT
+        COUNT(*) FILTER (WHERE p."status" = 'pending_review') AS pending_review,
+        COUNT(*) FILTER (WHERE p."status" = 'approved') AS approved,
+        COUNT(*) FILTER (WHERE p."status" = 'rejected') AS rejected,
+        COUNT(*) FILTER (WHERE p."status" = 'expired') AS expired,
+        COUNT(*) AS total_prescriptions,
+        COALESCE(
+          AVG(EXTRACT(EPOCH FROM (p."reviewed_at" - p."created_at")) / 3600)
+          FILTER (WHERE p."reviewed_at" IS NOT NULL),
+          0
+        ) AS avg_review_hours
+      FROM "prescription" p
+      WHERE p."deleted_at" IS NULL
+    `
+
+    // ── 7. Compliance alerts ───────────────────────────────────────
+    const complianceQuery = `
+      SELECT
+        (SELECT COUNT(*) FROM "override_request"
+         WHERE "status" IN ('pending_primary', 'pending_secondary')) AS pending_overrides,
+        (SELECT COUNT(*) FROM "pharmacy_license"
+         WHERE "is_active" = true AND "valid_until" < NOW() + INTERVAL '30 days') AS expiring_licenses,
+        (SELECT COUNT(*) FROM "h1_register_entry"
+         WHERE "entry_date" >= (NOW() AT TIME ZONE 'UTC' + INTERVAL ${IST_OFFSET})::date
+        ) AS h1_entries_today
+    `
+
     // Run all queries in parallel
     const [
       orderStatsResult,
@@ -147,12 +176,16 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       statusDistResult,
       paymentSplitResult,
       rxOtcResult,
+      rxPipelineResult,
+      complianceResult,
     ] = await Promise.all([
       db.raw(orderStatsQuery),
       db.raw(topProductsQuery),
       db.raw(statusDistQuery),
       db.raw(paymentSplitQuery),
-      db.raw(rxOtcQuery).catch(() => ({ rows: [] })), // Graceful fallback if table doesn't exist
+      db.raw(rxOtcQuery).catch(() => ({ rows: [] })),
+      db.raw(rxPipelineQuery).catch(() => ({ rows: [] })),
+      db.raw(complianceQuery).catch(() => ({ rows: [] })),
     ])
 
     const stats = orderStatsResult.rows?.[0] ?? orderStatsResult?.[0]?.[0] ?? {}
@@ -187,6 +220,9 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       )
     )
 
+    const rxPipeline = rxPipelineResult.rows?.[0] ?? rxPipelineResult?.[0]?.[0] ?? {}
+    const compliance = complianceResult.rows?.[0] ?? complianceResult?.[0]?.[0] ?? {}
+
     return res.json({
       type: "dashboard",
       generated_at: new Date().toISOString(),
@@ -208,6 +244,19 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
       status_distribution: statusDistribution,
       payment_methods: paymentMethods,
       rx_otc_ratio: rxOtcRatio,
+      rx_pipeline: {
+        pending_review: Number(rxPipeline.pending_review ?? 0),
+        approved: Number(rxPipeline.approved ?? 0),
+        rejected: Number(rxPipeline.rejected ?? 0),
+        expired: Number(rxPipeline.expired ?? 0),
+        total: Number(rxPipeline.total_prescriptions ?? 0),
+        avg_review_hours: Number(Number(rxPipeline.avg_review_hours ?? 0).toFixed(1)),
+      },
+      compliance_alerts: {
+        pending_overrides: Number(compliance.pending_overrides ?? 0),
+        expiring_licenses: Number(compliance.expiring_licenses ?? 0),
+        h1_entries_today: Number(compliance.h1_entries_today ?? 0),
+      },
     })
   } catch (err) {
     logger.error(`[analytics] Dashboard query failed: ${(err as Error).message}`)
