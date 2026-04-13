@@ -120,9 +120,7 @@ export const DELETE = async (
     if (!items.length) {
       return res.status(404).json({ error: "Wishlist item not found" })
     }
-    for (const item of items) {
-      await wishlistService.deleteWishlistItems(item.id)
-    }
+    await wishlistService.deleteWishlistItems(items.map((i: any) => i.id))
   }
 
   return res.json({ success: true })
