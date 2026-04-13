@@ -11,9 +11,9 @@ export default async function cacheInvalidationHandler({
   const cacheService = container.resolve(Modules.CACHE)
 
   const keysToInvalidate = [
-    "store:products:list",
-    "store:categories:list",
-    "store:regions:list",
+    "store:products:*",
+    "store:categories:*",
+    "store:regions:*",
   ]
 
   for (const key of keysToInvalidate) {

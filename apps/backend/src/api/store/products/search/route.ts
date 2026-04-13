@@ -1,5 +1,6 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { createHash } from "crypto"
 
 /**
  * GET /store/products/search?q=paracetamol&limit=20&offset=0&category_id=diabetic,cardiac-care
@@ -26,7 +27,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
   // ── Cache check (keyed on normalized query params) ──
   const cacheService = req.scope.resolve(Modules.CACHE)
-  const cacheKey = `store:products:search:${q}:${categoryIdRaw}:${limit}:${offset}`
+  const paramHash = createHash("sha256").update(JSON.stringify({ q, categoryIdRaw, limit, offset })).digest("hex").slice(0, 16)
+  const cacheKey = `store:products:search:${paramHash}`
 
   try {
     const cached = await cacheService.get<any>(cacheKey)

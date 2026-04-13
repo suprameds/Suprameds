@@ -31,9 +31,9 @@ describe("cacheInvalidationHandler (unit)", () => {
       data: { id: "prod_123" },
     } as any)
 
-    expect(mockCacheService.invalidate).toHaveBeenCalledWith("store:products:list")
-    expect(mockCacheService.invalidate).toHaveBeenCalledWith("store:categories:list")
-    expect(mockCacheService.invalidate).toHaveBeenCalledWith("store:regions:list")
+    expect(mockCacheService.invalidate).toHaveBeenCalledWith("store:products:*")
+    expect(mockCacheService.invalidate).toHaveBeenCalledWith("store:categories:*")
+    expect(mockCacheService.invalidate).toHaveBeenCalledWith("store:regions:*")
     expect(mockCacheService.invalidate).toHaveBeenCalledTimes(3)
   })
 

@@ -98,7 +98,8 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
           skuToItems.set(item.sku, list)
         }
       } catch (err) {
-        logger.warn(`${LOG} Failed to batch-fetch inventory items: ${(err as Error).message}`)
+        logger.error(`${LOG} Failed to batch-fetch inventory items — aborting sync: ${(err as Error).message}`)
+        throw err
       }
     }
 
@@ -116,7 +117,8 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
           itemToLevels.set(level.inventory_item_id, list)
         }
       } catch (err) {
-        logger.warn(`${LOG} Failed to batch-fetch inventory levels: ${(err as Error).message}`)
+        logger.error(`${LOG} Failed to batch-fetch inventory levels — aborting sync: ${(err as Error).message}`)
+        throw err
       }
     }
 

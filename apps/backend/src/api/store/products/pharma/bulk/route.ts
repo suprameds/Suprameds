@@ -1,5 +1,6 @@
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
+import { createHash } from "crypto"
 
 /**
  * GET /store/products/pharma/bulk
@@ -25,7 +26,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const cacheService = req.scope.resolve(Modules.CACHE)
 
   // Build a cache key from all query params
-  const cacheKey = `store:products:pharma:bulk:${idsParam ?? ""}:${scheduleParam ?? ""}:${dosageFormParam ?? ""}`
+  const paramHash = createHash("sha256").update(JSON.stringify({ ids: idsParam, schedule: scheduleParam, dosage_form: dosageFormParam })).digest("hex").slice(0, 16)
+  const cacheKey = `store:products:pharma:bulk:${paramHash}`
 
   try {
     const cached = await cacheService.get<any>(cacheKey)
