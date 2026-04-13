@@ -1,6 +1,7 @@
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
 import { Container, Heading, Button, Badge, toast } from "@medusajs/ui"
 import { useState, useEffect } from "react"
+import { sdk } from "../lib/client"
 
 const INDIA_POST_COD_ID = "52236"
 
@@ -18,8 +19,7 @@ const InvoicePrintWidget = ({
   // Detect payment mode on mount and auto-fill India Post ID for COD
   useEffect(() => {
     if (!orderId) return
-    fetch(`/admin/orders/${orderId}?fields=payment_collections.payment_sessions.*`, { credentials: "include" })
-      .then((r) => r.json())
+    sdk.client.fetch<{ order: any }>(`/admin/orders/${orderId}?fields=payment_collections.payment_sessions.*`)
       .then(({ order }) => {
         const sessions = order?.payment_collections?.[0]?.payment_sessions ?? []
         const isCod = !sessions.some((s: any) => s.provider_id?.includes("paytm") || s.provider_id?.includes("razorpay"))
