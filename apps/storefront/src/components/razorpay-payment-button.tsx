@@ -3,7 +3,7 @@ import { useCompleteCartOrder } from "@/lib/hooks/use-checkout"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
 import { useLocation, useNavigate } from "@tanstack/react-router"
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { useRazorpay } from "react-razorpay"
 
 /** Razorpay session data from Medusa payment session */
@@ -38,6 +38,7 @@ export function RazorpayPaymentButton({
   className,
 }: RazorpayPaymentButtonProps) {
   const [submitting, setSubmitting] = useState(false)
+  const lockRef = useRef(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -50,6 +51,8 @@ export function RazorpayPaymentButton({
   const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined
 
   const handlePaymentSuccess = useCallback(async () => {
+    if (lockRef.current) return
+    lockRef.current = true
     try {
       const order = await completeOrderMutation.mutateAsync()
       navigate({
@@ -57,6 +60,7 @@ export function RazorpayPaymentButton({
         replace: true,
       })
     } catch (err) {
+      lockRef.current = false
       setErrorMessage(err instanceof Error ? err.message : "Failed to place order")
     } finally {
       setSubmitting(false)

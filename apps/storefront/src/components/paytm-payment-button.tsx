@@ -112,7 +112,11 @@ export function PaytmPaymentButton({
 
   const { isLoaded: paytmLoaded, error: paytmError } = usePaytmScript(mid)
 
+  const lockRef = useRef(false)
+
   const handlePaymentSuccess = useCallback(async () => {
+    if (lockRef.current) return
+    lockRef.current = true
     try {
       const order = await completeOrderMutation.mutateAsync()
       navigate({
@@ -120,6 +124,7 @@ export function PaytmPaymentButton({
         replace: true,
       })
     } catch (err) {
+      lockRef.current = false
       setErrorMessage(
         err instanceof Error ? err.message : "Failed to place order"
       )

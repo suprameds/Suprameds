@@ -65,19 +65,32 @@ export const completeCartOrder = async (): Promise<HttpTypes.StoreOrder> => {
   } catch (err: any) {
     const msg = err?.message || err?.body?.message || ""
 
-    // Idempotency conflict — the order may have already been created.
-    // Retry once: Medusa SDK generates a new idempotency key per call.
-    if (msg.includes("conflicted") || msg.includes("Idempotency")) {
-      // Small delay to let the first request finish
-      await new Promise((r) => setTimeout(r, 1500))
+    // Idempotency conflict — the order may have already been created
+    // by a concurrent request. Wait for it to finish, then retry.
+    if (msg.includes("conflicted") || msg.includes("Idempotency") || msg.includes("already being completed")) {
+      // Wait longer — cart completion can take 5-8 seconds on first attempt
+      await new Promise((r) => setTimeout(r, 4000))
 
-      const retryRes = await sdk.store.cart.complete(cartId, {})
-      if (retryRes.type === "order") {
-        removeStoredCart()
-        return retryRes.order
+      try {
+        const retryRes = await sdk.store.cart.complete(cartId, {})
+        if (retryRes.type === "order") {
+          removeStoredCart()
+          return retryRes.order
+        }
+      } catch (retryErr: any) {
+        const retryMsg = retryErr?.message || ""
+        // Still conflicting — wait longer and try once more
+        if (retryMsg.includes("conflicted") || retryMsg.includes("Idempotency") || retryMsg.includes("already being completed")) {
+          await new Promise((r) => setTimeout(r, 5000))
+          const finalRes = await sdk.store.cart.complete(cartId, {})
+          if (finalRes.type === "order") {
+            removeStoredCart()
+            return finalRes.order
+          }
+        }
+        throw retryErr
       }
 
-      // If still not an order, the cart might be stuck — check if order exists
       throw new Error(
         "Payment was processed but order confirmation failed. " +
         "Please check My Orders — your order may already be placed. " +
