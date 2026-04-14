@@ -22,22 +22,23 @@ export const useCustomer = () => {
   return useQuery({
     queryKey: queryKeys.customer.current(),
     queryFn: async () => {
-      // Try session-based auth first (email/password login)
+      // Try SDK auth first (works for email/password AND OTP if token was set)
       try {
         const { customer } = await sdk.store.customer.retrieve()
         return customer
       } catch {
-        // Fallback: try stored OTP JWT for phone-based login
+        // Fallback: try stored OTP JWT (phone/email OTP login from before SDK token fix)
         const otpToken = getStoredOtpToken()
         if (otpToken) {
           try {
-            const { customer } = await sdk.client.fetch<{ customer: any }>(
-              "/store/customers/me",
-              { headers: { Authorization: `Bearer ${otpToken}` } }
-            )
+            // Set the token in the SDK so future calls don't need this fallback
+            await sdk.client.setToken(otpToken)
+            const { customer } = await sdk.store.customer.retrieve()
             return customer
           } catch {
+            // Token expired or invalid — clear it
             clearStoredOtpToken()
+            await sdk.client.clearToken()
             return null
           }
         }
@@ -202,12 +203,13 @@ export const useOtpVerify = () => {
         throw new Error("OTP verification failed")
       }
 
+      // Store in our custom key (backward compat) AND in the SDK's auth state.
+      // Setting the SDK token is critical — without it, sdk.store.customer.retrieve()
+      // fails with 401 and the account layout guard bounces to login.
       setStoredOtpToken(response.token)
+      await sdk.client.setToken(response.token)
 
-      const { customer } = await sdk.client.fetch<{ customer: any }>(
-        "/store/customers/me",
-        { headers: { Authorization: `Bearer ${response.token}` } }
-      )
+      const { customer } = await sdk.store.customer.retrieve()
 
       return customer
     },
