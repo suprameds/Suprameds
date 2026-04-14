@@ -258,6 +258,14 @@ export default defineMiddlewares({
       method: "POST",
       bodyParser: { preserveRawBody: true },
     },
+    // Razorpay payment verification — rate-limited to prevent brute-force
+    {
+      matcher: "/store/razorpay/verify",
+      method: "POST",
+      middlewares: [
+        createRateLimiter({ windowMs: 60 * 1000, maxRequests: 10 }),
+      ],
+    },
     // ── Rate limiting ────────────────────────────────────────────────
     // OTP send: 3 requests per 10 minutes per IP
     {

@@ -192,7 +192,7 @@ const OrderRxReviewWidget = () => {
 
       // Fetch order items to check drug schedules
       const orderResp = await fetch(
-        `/admin/orders/${orderId}?fields=id,items.*`,
+        `/admin/orders/${orderId}?fields=+customer_id,items.*`,
         { credentials: "include" }
       )
       if (orderResp.ok) {
@@ -219,9 +219,18 @@ const OrderRxReviewWidget = () => {
       const resp = await fetch(`/admin/prescriptions?order_id=${orderId}`, {
         credentials: "include",
       })
-      if (!resp.ok) throw new Error("Failed to fetch prescriptions")
-      const json = await resp.json()
-      setPrescriptions(json.prescriptions ?? [])
+      if (!resp.ok) {
+        if (resp.status === 401) {
+          console.warn("[OrderRxReview] Session expired (401) fetching prescriptions")
+          toast.error("Session expired — please refresh the page")
+        } else {
+          console.warn(`[OrderRxReview] Prescriptions fetch failed with status ${resp.status}`)
+        }
+        setPrescriptions([])
+      } else {
+        const json = await resp.json()
+        setPrescriptions(json.prescriptions ?? [])
+      }
     } catch {
       toast.error("Failed to load prescriptions")
     } finally {

@@ -1,10 +1,19 @@
 import { Button } from "@/components/ui/button"
 import { useCompleteCartOrder } from "@/lib/hooks/use-checkout"
+import { getStoredCart } from "@/lib/utils/cart"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { sdk } from "@/lib/utils/sdk"
 import { HttpTypes } from "@medusajs/types"
 import { useLocation, useNavigate } from "@tanstack/react-router"
 import { useCallback, useRef, useState } from "react"
 import { useRazorpay } from "react-razorpay"
+
+/** Razorpay handler callback response */
+interface RazorpaySuccessResponse {
+  razorpay_payment_id: string
+  razorpay_order_id: string
+  razorpay_signature: string
+}
 
 /** Razorpay session data from Medusa payment session */
 interface RazorpaySessionData {
@@ -50,10 +59,33 @@ export function RazorpayPaymentButton({
   const razorpayOrderId = sessionData?.razorpayOrder?.id
   const keyId = import.meta.env.VITE_RAZORPAY_KEY_ID as string | undefined
 
-  const handlePaymentSuccess = useCallback(async () => {
+  const handlePaymentSuccess = useCallback(async (response: RazorpaySuccessResponse) => {
     if (lockRef.current) return
     lockRef.current = true
     try {
+      const cartId = getStoredCart()
+      if (!cartId) throw new Error("No cart found")
+
+      // Verify the Razorpay signature and authorize the payment session
+      // BEFORE completing the cart — prevents the race condition where
+      // Razorpay API hasn't yet reflected "paid" status.
+      const verifyResult = await sdk.client.fetch<{ success: boolean; message?: string }>(
+        "/store/razorpay/verify",
+        {
+          method: "POST",
+          body: {
+            cart_id: cartId,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+          },
+        },
+      )
+
+      if (!verifyResult.success) {
+        throw new Error(verifyResult.message || "Payment verification failed")
+      }
+
       const order = await completeOrderMutation.mutateAsync()
       navigate({
         to: `/${countryCode}/order/${order.id}/confirmed`,
@@ -91,8 +123,8 @@ export function RazorpayPaymentButton({
           setErrorMessage("Payment cancelled")
         },
       },
-      handler: (/* response: RazorpaySuccesshandlerArgs */) => {
-        handlePaymentSuccess()
+      handler: (response: RazorpaySuccessResponse) => {
+        handlePaymentSuccess(response)
       },
       prefill: {
         name: [cart.billing_address?.first_name, cart.billing_address?.last_name].filter(Boolean).join(" ") || undefined,
