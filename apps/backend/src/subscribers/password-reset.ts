@@ -32,7 +32,9 @@ export default async function resetPasswordHandler({
       const storefrontUrl =
         process.env.STOREFRONT_URL ||
         process.env.MEDUSA_STOREFRONT_URL ||
-        "http://localhost:5173"
+        (process.env.NODE_ENV === "production"
+          ? "https://store.supracynpharma.com"
+          : "http://localhost:5173")
       resetUrl = `${storefrontUrl}/in/account/reset-password?token=${token}&email=${encodeURIComponent(email)}`
     } else {
       // Admin user — build URL to the Medusa admin reset-password page
