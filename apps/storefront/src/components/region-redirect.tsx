@@ -48,7 +48,7 @@ const RegionRedirect = ({
             setStoredCountryCode(countryCode!)
             const cartId = getStoredCart()
 
-            if (!cartId) {
+            if (!cartId && !createCartMutation.isPending) {
               const region = regions.find((r) =>
                 r.countries?.some((c) => c.iso_2 === countryCode)
               )
@@ -72,7 +72,7 @@ const RegionRedirect = ({
 
           const cartId = getStoredCart()
 
-          if (!cartId) {
+          if (!cartId && !createCartMutation.isPending) {
             const region = regions.find((r) =>
               r.countries?.some((c) => c.iso_2 === countryCode)
             )

@@ -17,6 +17,11 @@ import {
 
 const DEFAULT_CART_FIELDS = "+items.total, +shipping_methods.name"
 
+// Module-level lock to prevent concurrent cart creation across hooks.
+// Without this, two simultaneous useAddToCart calls can both see
+// cartId=null and each create a new cart, orphaning the first one.
+let _cartCreationPromise: Promise<string> | null = null
+
 export const useCart = ({ fields }: { fields?: string } = {}) => {
   return useQuery({
     queryKey: queryKeys.cart.current(fields),
@@ -118,11 +123,17 @@ export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
       let cartId = getStoredCart()
 
       if (!cartId) {
-        const { cart } = await sdk.store.cart.create({ region_id: targetRegion.id }, {
-          fields: requestFields || fields || DEFAULT_CART_FIELDS,
-        })
-        setStoredCart(cart.id)
-        cartId = cart.id
+        // Use a module-level lock so concurrent add-to-cart calls share
+        // the same cart creation promise instead of each creating one.
+        if (!_cartCreationPromise) {
+          _cartCreationPromise = sdk.store.cart.create({ region_id: targetRegion.id }, {
+            fields: requestFields || fields || DEFAULT_CART_FIELDS,
+          }).then(({ cart }) => {
+            setStoredCart(cart.id)
+            return cart.id
+          }).finally(() => { _cartCreationPromise = null })
+        }
+        cartId = await _cartCreationPromise
       } else {
         // If a cart already exists in a different region, create a region-aligned cart.
         // This prevents Medusa price resolution failures during add-to-cart.
