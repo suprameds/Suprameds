@@ -62,11 +62,17 @@ export default defineConfig({
     },
   },
   modules: {
-    // Redis-backed cache (falls back to in-memory when REDIS_URL is unset)
+    // Redis-backed modules (fall back to in-memory when REDIS_URL is unset)
     ...(process.env.REDIS_URL
       ? {
           [Modules.CACHE]: {
             resolve: "@medusajs/medusa/cache-redis",
+            options: {
+              redisUrl: process.env.REDIS_URL,
+            },
+          },
+          [Modules.EVENT_BUS]: {
+            resolve: "@medusajs/medusa/event-bus-redis",
             options: {
               redisUrl: process.env.REDIS_URL,
             },
