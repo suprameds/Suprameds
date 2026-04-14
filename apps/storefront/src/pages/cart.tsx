@@ -10,7 +10,7 @@ import { Loading } from "@/components/ui/loading"
 import { useCart, useCreateCart } from "@/lib/hooks/use-cart"
 import { sortCartItems } from "@/lib/utils/cart"
 import { Link, useLoaderData } from "@tanstack/react-router"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 
 const DEFAULT_CART_FIELDS = "+items.*, +shipping_methods.*, *promotions"
 
@@ -64,9 +64,13 @@ const Cart = () => {
   })
   const createCartMutation = useCreateCart()
 
-  if (!cart && !cartLoading && !createCartMutation.isPending) {
-    createCartMutation.mutate({ region_id: region.id })
-  }
+  // Create a cart if none exists — must be in useEffect, not during render,
+  // to prevent React from firing multiple mutations across re-renders.
+  useEffect(() => {
+    if (!cart && !cartLoading && !createCartMutation.isPending) {
+      createCartMutation.mutate({ region_id: region.id })
+    }
+  }, [cart, cartLoading, createCartMutation, region.id])
 
   const cartItems = sortCartItems(cart?.items || [])
 
