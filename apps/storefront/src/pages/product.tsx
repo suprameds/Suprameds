@@ -174,7 +174,7 @@ const ProductDetails = () => {
               className="rounded-lg p-4 flex flex-col gap-2.5 mt-2"
               style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
             >
-              <DeliveryEstimate />
+              <DeliveryEstimate showLocationButton />
               <div className="flex items-center gap-2.5 text-xs" style={{ color: "var(--text-primary)" }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-teal)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>

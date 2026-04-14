@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { useSetCartAddresses } from "@/lib/hooks/use-checkout"
 import { useCustomer, useCustomerAddresses } from "@/lib/hooks/use-customer"
+import { useLocation } from "@/lib/hooks/use-location"
 import { getStoredCountryCode } from "@/lib/utils/region"
 import { AddressFormData } from "@/lib/types/global"
 import { HttpTypes } from "@medusajs/types"
@@ -59,6 +60,9 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
   const didAutofillFromSavedAddress = useRef(false)
   const storedCountryCode = getStoredCountryCode()
 
+  // GPS-detected location for auto-filling pincode/state on new addresses
+  const { pincode: detectedPincode, state: detectedState } = useLocation()
+
   // "saved_<id>" for a stored address, "new" for blank form
   const [selectedAddressId, setSelectedAddressId] = useState<string>("new")
 
@@ -108,6 +112,22 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
   useEffect(() => {
     if (!email && customer?.email) setEmail(customer.email)
   }, [customer?.email]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-fill pincode/state from GPS detection (only for new addresses with empty fields)
+  useEffect(() => {
+    if (selectedAddressId !== "new") return
+    if (!detectedPincode) return
+
+    setShippingAddress((prev) => {
+      // Only fill if user hasn't typed a pincode yet
+      if (prev.postal_code) return prev
+      return {
+        ...prev,
+        postal_code: detectedPincode,
+        province: detectedState || prev.province,
+      }
+    })
+  }, [detectedPincode, detectedState, selectedAddressId])
 
   const handleSelectSavedAddress = (addr: HttpTypes.StoreCustomerAddress) => {
     setSelectedAddressId(`saved_${addr.id}`)
