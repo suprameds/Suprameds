@@ -59,7 +59,12 @@ if (import.meta.env.PROD && typeof window !== "undefined" && "serviceWorker" in 
           newWorker.addEventListener("statechange", () => {
             if (newWorker.state !== "installed" || !navigator.serviceWorker.controller) return
 
+            // Don't show if already displayed or dismissed this session
+            if (document.getElementById("pwa-update-toast")) return
+            if (sessionStorage.getItem("pwa-update-dismissed")) return
+
             const toast = document.createElement("div")
+            toast.id = "pwa-update-toast"
             toast.setAttribute("role", "alert")
             Object.assign(toast.style, {
               position: "fixed",
@@ -97,7 +102,11 @@ if (import.meta.env.PROD && typeof window !== "undefined" && "serviceWorker" in 
             })
             document.getElementById("pwa-dismiss-btn")?.addEventListener("click", () => {
               toast.remove()
+              sessionStorage.setItem("pwa-update-dismissed", "1")
             })
+
+            // Auto-dismiss after 15 seconds if user ignores it
+            setTimeout(() => { toast.remove() }, 15000)
           })
         })
 
