@@ -85,14 +85,38 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     tsqueryString = tokens.map((t) => `${t}:*`).join(" & ")
   }
 
+  // ── Helper: map DB rows to product response objects ──
+  const mapRows = (rows: Record<string, unknown>[]) =>
+    rows.map((row) => ({
+      id: row.id,
+      title: row.title,
+      handle: row.handle,
+      thumbnail: row.thumbnail,
+      description: row.description,
+      subtitle: row.subtitle,
+      status: row.status,
+      drug_product: row.dp_id
+        ? {
+            id: row.dp_id,
+            schedule: row.schedule,
+            generic_name: row.generic_name,
+            dosage_form: row.dosage_form,
+            strength: row.strength,
+            composition: row.composition,
+            gst_rate: row.gst_rate,
+            manufacturer: row.manufacturer,
+          }
+        : null,
+    }))
+
   try {
-    let searchQuery: string
+    let rows: Record<string, unknown>[] = []
 
     if (tsqueryString) {
       // ── FTS mode: q provided (optionally with category filter) ──
       bindings.tsquery = tsqueryString
 
-      searchQuery = `
+      const ftsQuery = `
         WITH fts AS (
           SELECT
             p."id",
@@ -141,9 +165,68 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         LIMIT :limit
         OFFSET :offset
       `
+
+      const ftsResult = await pgConnection.raw(ftsQuery, bindings)
+      rows = ftsResult?.rows ?? ftsResult?.[0] ?? []
+
+      // ── Fuzzy fallback: if FTS returns 0 results, try trigram similarity ──
+      // This catches typos like "Paracetmol" → "Paracetamol"
+      if (rows.length === 0 && q.length >= 3) {
+        const fuzzyBindings: Record<string, unknown> = {
+          q: q.toLowerCase(),
+          threshold: 0.25,
+          limit,
+          offset,
+        }
+
+        // Copy category bindings if present
+        if (isUuid) fuzzyBindings.categoryId = categoryIdRaw
+        categoryHandles.forEach((h, i) => { fuzzyBindings[`handle_${i}`] = h })
+
+        const fuzzyQuery = `
+          SELECT
+            p."id",
+            p."title",
+            p."handle",
+            p."thumbnail",
+            p."description",
+            p."subtitle",
+            p."status",
+            dp."id"              AS dp_id,
+            dp."schedule",
+            dp."generic_name",
+            dp."dosage_form",
+            dp."strength",
+            dp."composition",
+            dp."gst_rate",
+            dp."manufacturer_license" AS manufacturer,
+            GREATEST(
+              similarity(LOWER(p."title"), :q),
+              similarity(LOWER(COALESCE(dp."generic_name", '')), :q),
+              similarity(LOWER(COALESCE(dp."composition", '')), :q)
+            ) AS sim_score,
+            COUNT(*) OVER() AS total_count
+          FROM "product" p
+          LEFT JOIN "drug_product" dp ON dp."product_id" = p."id" AND dp."deleted_at" IS NULL
+          ${categoryJoin}
+          WHERE p."deleted_at" IS NULL
+            AND p."status" = 'published'
+            AND (
+              similarity(LOWER(p."title"), :q) > :threshold
+              OR similarity(LOWER(COALESCE(dp."generic_name", '')), :q) > :threshold
+              OR similarity(LOWER(COALESCE(dp."composition", '')), :q) > :threshold
+            )
+          ORDER BY sim_score DESC, p."title" ASC
+          LIMIT :limit
+          OFFSET :offset
+        `
+
+        const fuzzyResult = await pgConnection.raw(fuzzyQuery, fuzzyBindings)
+        rows = fuzzyResult?.rows ?? fuzzyResult?.[0] ?? []
+      }
     } else {
       // ── Category-only mode: no q, just browsing by category ──
-      searchQuery = `
+      const categoryQuery = `
         SELECT
           p."id",
           p."title",
@@ -170,35 +253,13 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         LIMIT :limit
         OFFSET :offset
       `
+
+      const catResult = await pgConnection.raw(categoryQuery, bindings)
+      rows = catResult?.rows ?? catResult?.[0] ?? []
     }
 
-    const result = await pgConnection.raw(searchQuery, bindings)
-
-    const rows = result?.rows ?? result?.[0] ?? []
-    const totalCount = rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0
-
-    const products = rows.map((row: Record<string, unknown>) => ({
-      id: row.id,
-      title: row.title,
-      handle: row.handle,
-      thumbnail: row.thumbnail,
-      description: row.description,
-      subtitle: row.subtitle,
-      status: row.status,
-      drug_product: row.dp_id
-        ? {
-            id: row.dp_id,
-            schedule: row.schedule,
-            generic_name: row.generic_name,
-            dosage_form: row.dosage_form,
-            strength: row.strength,
-            composition: row.composition,
-            gst_rate: row.gst_rate,
-            manufacturer: row.manufacturer,
-          }
-        : null,
-    }))
-
+    const totalCount = rows.length > 0 ? parseInt(rows[0].total_count as string, 10) : 0
+    const products = mapRows(rows)
     const response = { products, count: totalCount }
 
     try {
