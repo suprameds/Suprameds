@@ -10,7 +10,10 @@ COPY apps/backend/package.json apps/backend/pnpm-lock.yaml apps/backend/
 COPY apps/backend/scripts/patch-promotion-query.mjs apps/backend/scripts/
 COPY apps/storefront/package.json apps/storefront/pnpm-lock.yaml apps/storefront/
 
-RUN pnpm install --frozen-lockfile --filter backend
+# pnpm v10 split lockfiles: workspace lockfiles live in apps/backend/pnpm-lock.yaml
+# --frozen-lockfile only checks the root lockfile (which has no workspace importers)
+# so we use --no-frozen-lockfile like the storefront Dockerfile
+RUN pnpm install --no-frozen-lockfile --filter backend
 
 # Pre-create the pruned production node_modules here (while deps are cached).
 # This avoids re-downloading ~1475 packages in the build stage.
