@@ -9,6 +9,7 @@ import {
 } from "@medusajs/ui"
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams } from "react-router-dom"
+import { sdk } from "../lib/client"
 
 type Prescription = {
   id: string
@@ -69,44 +70,36 @@ const PrescriptionUploadWidget = () => {
     if (!orderId) return
     setLoading(true)
     try {
-      const [orderResp, rxResp] = await Promise.all([
-        fetch(
-          `/admin/orders/${orderId}?fields=+customer_id,+email,items.*`,
-          { credentials: "include" }
+      const [orderJson, rxJson] = await Promise.all([
+        sdk.client.fetch<{ order: any }>(
+          `/admin/orders/${orderId}`,
+          { query: { fields: "+customer_id,+email,items.*" } }
         ),
-        fetch(`/admin/prescriptions?order_id=${orderId}`, {
-          credentials: "include",
-        }),
+        sdk.client.fetch<{ prescriptions: Prescription[] }>(
+          `/admin/prescriptions`,
+          { query: { order_id: orderId } }
+        ),
       ])
 
-      if (orderResp.ok) {
-        const orderJson = await orderResp.json()
-        setCustomerId(orderJson.order?.customer_id ?? null)
+      setCustomerId(orderJson.order?.customer_id ?? null)
 
-        // Check if any item is Schedule H/H1 (Rx)
-        const orderItems = orderJson.order?.items ?? []
-        const productIds = orderItems.map((i: any) => i.product_id).filter(Boolean)
-        let hasRx = false
-        if (productIds.length > 0) {
-          try {
-            const drugResp = await fetch(
-              `/admin/pharma/drug-products?product_id=${productIds.join(",")}`,
-              { credentials: "include" }
-            )
-            if (drugResp.ok) {
-              const drugJson = await drugResp.json()
-              const drugs = drugJson.drug_products ?? []
-              hasRx = drugs.some((d: any) => d.schedule === "H" || d.schedule === "H1")
-            }
-          } catch { hasRx = true }
-        }
-        setIsRxOrder(hasRx)
+      // Check if any item is Schedule H/H1 (Rx)
+      const orderItems = orderJson.order?.items ?? []
+      const productIds = orderItems.map((i: any) => i.product_id).filter(Boolean)
+      let hasRx = false
+      if (productIds.length > 0) {
+        try {
+          const drugJson = await sdk.client.fetch<{ drug_products: any[] }>(
+            `/admin/pharma/drug-products`,
+            { query: { product_id: productIds.join(",") } }
+          )
+          const drugs = drugJson.drug_products ?? []
+          hasRx = drugs.some((d: any) => d.schedule === "H" || d.schedule === "H1")
+        } catch { hasRx = true }
       }
+      setIsRxOrder(hasRx)
 
-      if (rxResp.ok) {
-        const rxJson = await rxResp.json()
-        setPrescriptions(rxJson.prescriptions ?? [])
-      }
+      setPrescriptions(rxJson.prescriptions ?? [])
     } catch {
       toast.error("Failed to load order data")
     } finally {
@@ -164,24 +157,17 @@ const PrescriptionUploadWidget = () => {
     try {
       const base64 = await fileToBase64(selectedFile)
 
-      const resp = await fetch("/admin/prescriptions", {
+      await sdk.client.fetch("/admin/prescriptions", {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           order_id: orderId,
           customer_id: customerId,
           file: base64,
           original_filename: selectedFile.name,
           mime_type: selectedFile.type,
           file_size_bytes: selectedFile.size,
-        }),
+        },
       })
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}))
-        throw new Error(err.message || "Upload failed")
-      }
 
       toast.success("Prescription uploaded successfully")
       clearSelection()

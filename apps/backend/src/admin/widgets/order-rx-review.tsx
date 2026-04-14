@@ -13,6 +13,7 @@ import {
 import { useState, useEffect, useCallback } from "react"
 import { useParams } from "react-router-dom"
 import { XMark } from "@medusajs/icons"
+import { sdk } from "../lib/client"
 
 type PrescriptionLine = {
   id: string
@@ -191,45 +192,36 @@ const OrderRxReviewWidget = () => {
       setLoading(true)
 
       // Fetch order items to check drug schedules
-      const orderResp = await fetch(
-        `/admin/orders/${orderId}?fields=+customer_id,items.*`,
-        { credentials: "include" }
-      )
-      if (orderResp.ok) {
-        const orderJson = await orderResp.json()
+      try {
+        const orderJson = await sdk.client.fetch<{ order: any }>(
+          `/admin/orders/${orderId}`,
+          { query: { fields: "+customer_id,items.*" } }
+        )
         const orderItems = orderJson.order?.items ?? []
         const productIds = orderItems.map((i: any) => i.product_id).filter(Boolean)
         let hasRx = false
         if (productIds.length > 0) {
           try {
-            const drugResp = await fetch(
-              `/admin/pharma/drug-products?product_id=${productIds.join(",")}`,
-              { credentials: "include" }
+            const drugJson = await sdk.client.fetch<{ drug_products: any[] }>(
+              `/admin/pharma/drug-products`,
+              { query: { product_id: productIds.join(",") } }
             )
-            if (drugResp.ok) {
-              const drugJson = await drugResp.json()
-              const drugs = drugJson.drug_products ?? []
-              hasRx = drugs.some((d: any) => d.schedule === "H" || d.schedule === "H1")
-            }
+            const drugs = drugJson.drug_products ?? []
+            hasRx = drugs.some((d: any) => d.schedule === "H" || d.schedule === "H1")
           } catch { hasRx = true }
         }
         setIsRxOrder(hasRx)
-      }
+      } catch { /* order fetch failed — continue to load prescriptions anyway */ }
 
-      const resp = await fetch(`/admin/prescriptions?order_id=${orderId}`, {
-        credentials: "include",
-      })
-      if (!resp.ok) {
-        if (resp.status === 401) {
-          console.warn("[OrderRxReview] Session expired (401) fetching prescriptions")
-          toast.error("Session expired — please refresh the page")
-        } else {
-          console.warn(`[OrderRxReview] Prescriptions fetch failed with status ${resp.status}`)
-        }
-        setPrescriptions([])
-      } else {
-        const json = await resp.json()
+      try {
+        const json = await sdk.client.fetch<{ prescriptions: Prescription[] }>(
+          `/admin/prescriptions`,
+          { query: { order_id: orderId } }
+        )
         setPrescriptions(json.prescriptions ?? [])
+      } catch (err: any) {
+        console.warn("[OrderRxReview] Prescriptions fetch failed:", err?.message)
+        setPrescriptions([])
       }
     } catch {
       toast.error("Failed to load prescriptions")
@@ -271,22 +263,16 @@ const OrderRxReviewWidget = () => {
 
     setSubmitting(rxId)
     try {
-      const resp = await fetch(`/admin/prescriptions/${rxId}`, {
+      await sdk.client.fetch(`/admin/prescriptions/${rxId}`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           action: "approve",
           doctor_name: form.doctorName || undefined,
           doctor_reg_no: form.doctorReg || undefined,
           patient_name: form.patientName || undefined,
           pharmacist_notes: form.pharmacistNotes || undefined,
-        }),
+        },
       })
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}))
-        throw new Error(err.message || "Approval failed")
-      }
       toast.success("Prescription approved")
       updateForm(rxId, { mode: "idle" })
       fetchPrescriptions()
@@ -306,20 +292,14 @@ const OrderRxReviewWidget = () => {
 
     setSubmitting(rxId)
     try {
-      const resp = await fetch(`/admin/prescriptions/${rxId}`, {
+      await sdk.client.fetch(`/admin/prescriptions/${rxId}`, {
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           action: "reject",
           rejection_reason: form.rejectionReason,
           pharmacist_notes: form.pharmacistNotes || undefined,
-        }),
+        },
       })
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}))
-        throw new Error(err.message || "Rejection failed")
-      }
       toast.success("Prescription rejected")
       updateForm(rxId, { mode: "idle" })
       fetchPrescriptions()
