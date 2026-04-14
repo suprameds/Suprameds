@@ -228,13 +228,16 @@ const Home = () => {
 
   // Fetch pharma data to filter best-sellers to OTC only
   const productIds = allProducts.map((p) => p.id)
-  const { data: pharmaMap } = useBulkPharma(productIds)
+  const { data: pharmaMap, isError: pharmaError } = useBulkPharma(productIds)
 
   // Best-sellers: show only OTC products (no Rx required)
-  const products = allProducts.filter((p) => {
-    const drug = pharmaMap?.[p.id]
-    return !drug?.schedule || drug.schedule === "OTC"
-  }).slice(0, 8)
+  // If pharma API fails, show all products rather than empty page
+  const products = pharmaError || !pharmaMap
+    ? allProducts.slice(0, 8)
+    : allProducts.filter((p) => {
+        const drug = pharmaMap[p.id]
+        return !drug?.schedule || drug.schedule === "OTC"
+      }).slice(0, 8)
 
   const { data: categories } = useCategories({
     fields: "id,name,handle,parent_category_id",
