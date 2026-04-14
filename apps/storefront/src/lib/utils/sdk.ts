@@ -28,8 +28,9 @@ export const sdk = new Medusa({
   debug: import.meta.env.DEV,
   publishableKey: PUBLISHABLE_KEY,
   auth: {
-    // Native apps use JWT bearer tokens (WebView cookie limitations);
-    // Web uses session cookies (SSR-compatible, CSRF-safe with SameSite)
-    type: isNative ? "jwt" : "session",
+    // Use JWT bearer tokens for all platforms — survives backend restarts
+    // without requiring persistent Redis sessions. The SDK stores the token
+    // in localStorage automatically.
+    type: "jwt",
   },
 })
