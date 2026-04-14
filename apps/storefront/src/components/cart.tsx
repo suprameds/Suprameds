@@ -379,7 +379,7 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
         />
       )}
 
-      <DeliveryEstimate />
+      <DeliveryEstimate showLocationButton />
     </div>
   )
 }
