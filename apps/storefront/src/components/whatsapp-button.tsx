@@ -1,4 +1,12 @@
+import { useKeyboardVisible } from "@/lib/hooks/use-keyboard-visible"
+import { isNativeApp } from "@/lib/utils/capacitor"
+
 export default function WhatsAppButton() {
+  const keyboardVisible = useKeyboardVisible()
+
+  // Hide FAB when keyboard is open in native app
+  if (isNativeApp() && keyboardVisible) return null
+
   return (
     <a
       href="https://wa.me/917674962758?text=Hi%20Suprameds%2C%20I%20need%20help%20with%20my%20order"

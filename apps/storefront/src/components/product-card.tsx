@@ -1,4 +1,5 @@
 import { memo } from "react"
+import { hapticImpact, hapticNotification } from "@/lib/utils/haptics"
 import { getProductPrice } from "@/lib/utils/price"
 import { Thumbnail } from "@/components/ui/thumbnail"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
@@ -79,6 +80,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.stopPropagation()
     if (!variant?.id || isBlocked) return
     if (!requireAuth()) return
+    hapticImpact("medium")
     addToCartMutation.mutate(
       {
         variant_id: variant.id,
@@ -87,7 +89,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         product,
         variant,
       },
-      { onSuccess: () => openCart() }
+      { onSuccess: () => { hapticNotification("success"); openCart() } }
     )
   }
 

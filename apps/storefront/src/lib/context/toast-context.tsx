@@ -1,3 +1,4 @@
+import { hapticNotification } from "@/lib/utils/haptics"
 import { createContext, ReactNode, useContext, useState } from "react"
 
 type ToastContextType = {
@@ -22,6 +23,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
 
   const showToast = (msg: string) => {
     setMessage(msg)
+    hapticNotification("success")
     // Auto-dismiss after 3 seconds
     setTimeout(() => {
       setMessage(null)

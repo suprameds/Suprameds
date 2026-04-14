@@ -13,6 +13,7 @@ import { Link, useLocation } from "@tanstack/react-router"
 import { isEqual } from "lodash-es"
 import { Minus, Plus } from "@medusajs/icons"
 import { trackAddToCart } from "@/lib/utils/analytics"
+import { hapticImpact, hapticNotification } from "@/lib/utils/haptics"
 import { memo, useEffect, useMemo, useState } from "react"
 
 type DrugSchedule = "OTC" | "H" | "H1" | "X"
@@ -126,6 +127,7 @@ const ProductActions = memo(function ProductActions({
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
     if (!requireAuth()) return null
+    hapticImpact("medium")
 
     try {
       await addToCartMutation.mutateAsync({
@@ -138,6 +140,7 @@ const ProductActions = memo(function ProductActions({
       })
       const variantIndex = product.variants?.findIndex((v) => v.id === selectedVariant.id) ?? 0
       trackAddToCart(product, variantIndex, quantity, region?.currency_code?.toUpperCase() || "INR")
+      hapticNotification("success")
       setQuantity(1)
       openCart()
     } catch {

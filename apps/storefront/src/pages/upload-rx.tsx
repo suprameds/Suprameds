@@ -1,5 +1,7 @@
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useUploadPrescription } from "@/lib/hooks/use-prescriptions"
+import { isNativeApp } from "@/lib/utils/capacitor"
+import { hapticNotification } from "@/lib/utils/haptics"
 import { sdk } from "@/lib/utils/sdk"
 import { Link, useLoaderData } from "@tanstack/react-router"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -104,6 +106,28 @@ const UploadRx = () => {
     if (file) handleFileSelect(file)
   }
 
+  /** Use native camera via Capacitor Camera plugin */
+  const handleNativeCamera = async () => {
+    try {
+      const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera")
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Prompt,
+        quality: 85,
+        allowEditing: false,
+      })
+      if (!photo.dataUrl) return
+      // Convert data URL to File
+      const res = await fetch(photo.dataUrl)
+      const blob = await res.blob()
+      const ext = photo.format === "png" ? "png" : "jpg"
+      const file = new File([blob], `prescription.${ext}`, { type: `image/${ext === "jpg" ? "jpeg" : ext}` })
+      handleFileSelect(file)
+    } catch {
+      // User cancelled or camera unavailable
+    }
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragOver(false)
@@ -152,8 +176,10 @@ const UploadRx = () => {
         file_size_bytes: selectedFile.size,
       })
 
+      hapticNotification("success")
       setState("success")
     } catch {
+      hapticNotification("error")
       setErrorMsg("Upload failed. Please try again.")
       setState("error")
     }
@@ -295,12 +321,16 @@ const UploadRx = () => {
               <p className="text-xs mb-3" style={{ color: "#999" }}>
                 JPG, PNG, WebP, or PDF — max 10 MB
               </p>
-              {isMobile && !selectedFile && (
+              {(isMobile || isNativeApp()) && !selectedFile && (
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation()
-                    cameraInputRef.current?.click()
+                    if (isNativeApp()) {
+                      handleNativeCamera()
+                    } else {
+                      cameraInputRef.current?.click()
+                    }
                   }}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-opacity hover:opacity-90"
                   style={{ background: "var(--bg-inverse)", color: "var(--text-inverse)" }}
