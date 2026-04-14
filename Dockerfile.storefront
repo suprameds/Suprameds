@@ -6,8 +6,8 @@ RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/storefront/package.json apps/storefront/
-COPY apps/backend/package.json apps/backend/
+COPY apps/storefront/package.json apps/storefront/pnpm-lock.yaml apps/storefront/
+COPY apps/backend/package.json apps/backend/pnpm-lock.yaml apps/backend/
 
 RUN pnpm install --no-frozen-lockfile --filter storefront
 

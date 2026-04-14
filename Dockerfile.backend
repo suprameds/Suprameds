@@ -6,9 +6,9 @@ RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY apps/backend/package.json apps/backend/
+COPY apps/backend/package.json apps/backend/pnpm-lock.yaml apps/backend/
 COPY apps/backend/scripts/patch-promotion-query.mjs apps/backend/scripts/
-COPY apps/storefront/package.json apps/storefront/
+COPY apps/storefront/package.json apps/storefront/pnpm-lock.yaml apps/storefront/
 
 RUN pnpm install --frozen-lockfile --filter backend
 
