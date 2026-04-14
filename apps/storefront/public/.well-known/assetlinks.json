@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.suprameds.app",
+      "sha256_cert_fingerprints": [
+        "TODO: Replace with your signing certificate SHA-256 fingerprint. Get it with: keytool -list -v -keystore your-keystore.jks | grep SHA256"
+      ]
+    }
+  }
+]

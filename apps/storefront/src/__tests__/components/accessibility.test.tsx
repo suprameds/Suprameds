@@ -43,6 +43,35 @@ vi.mock("@/lib/context/toast-context", () => ({
 
 vi.mock("@tanstack/react-router", () => ({
   Outlet: () => <div data-testid="outlet">Page</div>,
+  useLocation: () => ({ pathname: "/in" }),
+}))
+
+vi.mock("@tanstack/react-query", () => ({
+  useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+}))
+
+vi.mock("@/components/bottom-tab-bar", () => ({
+  BottomTabBar: () => null,
+}))
+
+vi.mock("@/components/offline-screen", () => ({
+  OfflineScreen: () => null,
+}))
+
+vi.mock("@/components/pull-to-refresh", () => ({
+  PullToRefresh: ({ children }: any) => <>{children}</>,
+}))
+
+vi.mock("@/components/animated-outlet", () => ({
+  AnimatedOutlet: () => <div data-testid="outlet">Page</div>,
+}))
+
+vi.mock("@/lib/utils/capacitor", () => ({
+  isNativeApp: () => false,
+}))
+
+vi.mock("@/lib/hooks/use-android-back-button", () => ({
+  useAndroidBackButton: () => {},
 }))
 
 import Layout from "@/components/layout"

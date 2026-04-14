@@ -32,7 +32,7 @@ const html = `<!DOCTYPE html>
   <link rel="shortcut icon" href="/favicon.ico" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180x180.png" />
-  <meta name="theme-color" content="#1E2D5A" />
+  <meta name="theme-color" content="#0D1B2A" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="description" content="Suprameds — CDSCO-registered online pharmacy. Pharmacist-dispensed medicines delivered across India." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />

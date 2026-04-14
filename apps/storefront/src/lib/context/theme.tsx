@@ -1,4 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
+import { syncStatusBarTheme } from "@/lib/capacitor"
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 
 type Theme = "light" | "dark" | "system"
@@ -49,6 +50,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       el.classList.remove("dark")
     }
+    syncStatusBarTheme(r)
   }, [theme])
 
   // Listen for system preference changes when in "system" mode
@@ -63,6 +65,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       } else {
         document.documentElement.classList.remove("dark")
       }
+      syncStatusBarTheme(r)
     }
     mq.addEventListener("change", handler)
     return () => mq.removeEventListener("change", handler)
