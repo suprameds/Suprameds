@@ -13,7 +13,6 @@ import {
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { isNativeApp } from "@/lib/utils/capacitor"
 import { Link, useLocation, useNavigate } from "@tanstack/react-router"
 import { useState, useRef, useEffect } from "react"
 
@@ -307,8 +306,8 @@ export const Navbar = () => {
             />
           </form>
 
-          {/* Mobile menu — hidden when running in native app (bottom tabs replace it) */}
-          {!isNativeApp() && <Drawer>
+          {/* Mobile menu */}
+          <Drawer>
             <DrawerTrigger className="lg:hidden p-2" style={{ color: "var(--text-primary)" }} aria-label="Open menu">
               <MenuIcon />
             </DrawerTrigger>
@@ -413,7 +412,7 @@ export const Navbar = () => {
                 </div>
               </div>
             </DrawerContent>
-          </Drawer>}
+          </Drawer>
 
           {/* Logo — mobile only (centered) */}
           <div className="lg:hidden flex-1 flex justify-center">
