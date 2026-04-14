@@ -216,17 +216,11 @@ export const useCompleteCartOrder = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const cartId = getStoredCart()
-      if (!cartId) throw new Error("No cart found")
-
-      const cartRes = await sdk.store.cart.complete(cartId, {})
-
-      if (cartRes.type !== "order") {
-        throw new Error("Order creation failed")
-      }
-
-      removeStoredCart()
-      return cartRes.order
+      // Use completeCartOrder which has idempotency conflict retry logic —
+      // Medusa rejects concurrent cart.complete() calls with an idempotency
+      // error even on single clicks if the previous request is still running.
+      const { completeCartOrder } = await import("@/lib/data/checkout/complete")
+      return await completeCartOrder()
     },
     onSuccess: async () => {
       // Remove (don't null-out) cart cache so useCart transitions to
