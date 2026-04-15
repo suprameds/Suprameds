@@ -85,10 +85,11 @@ const Store = () => {
   // Wait for pharma filter to finish before building the ID filter.
   // While still fetching, leave pharmaIdFilter undefined so the browse
   // query is disabled and doesn't fire with the "__none__" sentinel.
+  // Cap at 60 IDs to avoid URL-too-long CORS failures on the product API.
   const pharmaIdFilter = hasPharmaFilter
     ? (isFilterFetching
         ? undefined  // still loading — don't query yet
-        : (filteredIds && filteredIds.length > 0 ? filteredIds : ["__none__"]))
+        : (filteredIds && filteredIds.length > 0 ? filteredIds.slice(0, 60) : ["__none__"]))
     : undefined
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching: isBrowseFetching, isError: isBrowseError, refetch } = useProducts({
