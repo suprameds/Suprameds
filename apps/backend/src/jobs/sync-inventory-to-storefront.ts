@@ -88,7 +88,7 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
     const skuToItems = new Map<string, any[]>()
     if (allSkus.length > 0) {
       try {
-        const [inventoryItems] = await inventoryService.listInventoryItems(
+        const inventoryItems = await inventoryService.listInventoryItems(
           { sku: allSkus },
           { take: null }
         )
@@ -107,7 +107,7 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
     const itemToLevels = new Map<string, any[]>()
     if (allItemIds.length > 0) {
       try {
-        const [levels] = await inventoryService.listInventoryLevels(
+        const levels = await inventoryService.listInventoryLevels(
           { inventory_item_id: allItemIds },
           { take: null }
         )
