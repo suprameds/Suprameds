@@ -135,6 +135,15 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 - **ICacheService.invalidate() supports globs**: `invalidate("store:products:*")` works because `@medusajs/cache-redis` uses Redis SCAN + MATCH internally. Don't assume it only takes exact keys.
 - **Cache key injection**: Never interpolate raw user input into cache keys. Use `createHash("sha256").update(JSON.stringify(params)).digest("hex").slice(0,16)` to hash query params. Raw input with `:` colons can collide with key namespace delimiters.
 - **Cache key namespace**: Medusa prefixes all cache keys with `medusa:` via `getCacheKey()`. When debugging Redis directly, keys appear as `medusa:store:products:pharma:handle`.
+- **OTP login must set SDK token**: After OTP verify returns a JWT, call `sdk.client.setToken(token)` to store it in `medusa_auth_token` (localStorage). Without this, `sdk.store.customer.retrieve()` fails with 401 and account pages redirect to login. The custom `_suprameds_otp_jwt` key alone is not enough.
+- **Admin widgets must use `sdk.client.fetch()`**: Never use raw `fetch()` with `credentials: "include"` in admin dashboard extensions. The admin uses JWT auth (not session cookies), so raw fetch gets 401. Import `sdk` from `../lib/client` and use `sdk.client.fetch()` which automatically adds the Bearer token.
+- **medusa-config.ts Redis modules**: When `REDIS_URL` is set, register BOTH `Modules.CACHE` (cache-redis) AND `Modules.EVENT_BUS` (event-bus-redis). Without event-bus-redis, subscribers (like password-reset) silently fail because events don't reach them. The log will show "Local Event Bus installed" as a warning.
+- **Modules.LOCKING has no Redis variant in Medusa v2.13**: Do NOT register `@medusajs/medusa/locking-redis` — it doesn't exist and crashes the server on startup with "No service found in module Locking". The in-memory locking provider is the only option.
+- **Shipment crash with manage_inventory=false**: Medusa's `createOrderShipmentWorkflow` crashes with "Cannot read properties of undefined (reading 'required_quantity')" when fulfillment items have `inventory_item_id: null` (which happens when `manage_inventory=false`). Fixed via runtime patch `scripts/patch-shipment-workflow.mjs`.
+- **STOREFRONT_URL env var**: Must be set on Railway backend (`https://store.supracynpharma.com`). Used by password-reset subscriber to build reset links. Without it, reset emails contain `http://localhost:5173` URLs. Code has a fallback for `NODE_ENV=production` but the env var is more reliable.
+- **Runtime patches in Dockerfile.backend**: Two patches must run after `pnpm install`: (1) `patch-promotion-query.mjs` fixes MikroORM raw() quoting, (2) `patch-shipment-workflow.mjs` fixes null guard for manage_inventory=false. Both must be applied to BOTH `apps/backend/node_modules` (build stage) and `/app/pruned/node_modules` (production stage).
+- **TanStack Router route tree**: Adding new route files (e.g., `$countryCode/$.tsx`) requires the route tree to regenerate. This happens automatically on `pnpm dev` or `pnpm build`, NOT via tsc. Use `@ts-expect-error` for new route path strings until the route tree regenerates.
+- **Homepage resilience**: `useBulkPharma()` can fail (503) when the pharma API is down. The homepage must show products even when pharma metadata is unavailable. Check `isError` and fall back to showing all products instead of filtering to OTC-only.
 
 ## Design System
 - Colors: `--suprameds-navy` (#1E2D5A), `--suprameds-green` (#27AE60), `--suprameds-amber` (#F39C12), `--suprameds-cream` (#FAFAF8), `--suprameds-charcoal` (#2C3E50)
@@ -193,8 +202,33 @@ Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/pla
 - **Always run lint before pushing**: `cd apps/storefront && npx eslint src/ --max-warnings 0`
 - **Always type-check before pushing**: `cd apps/backend && npx tsc --noEmit` and `cd apps/storefront && npx tsc --noEmit`
 - CI pipeline runs: TypeScript check, ESLint (zero warnings), Vitest/Jest, Storefront build, Backend build, Docker image build, E2E Playwright, Accessibility audit, Security audit
-- Docker build uses `pnpm install --frozen-lockfile --filter backend` — if you add new dependencies, run `pnpm install` at root to update lockfile before pushing
-- **pnpm lockfile workspace importers**: If `--frozen-lockfile` fails in Docker with "specifiers don't match", the lockfile is missing workspace importer sections. Fix: delete `pnpm-lock.yaml`, run `pnpm install` from a clean dir (no node_modules), commit the regenerated lockfile.
+- **pnpm v10 split lockfiles**: Each workspace app (`apps/backend/`, `apps/storefront/`) has its own `pnpm-lock.yaml`. The root lockfile only covers root devDependencies. Docker COPY steps must include workspace lockfiles.
+- **Backend Docker uses `--no-frozen-lockfile`**: `--frozen-lockfile` fails because the root lockfile has no workspace importers. Storefront Dockerfile also uses `--no-frozen-lockfile`.
+- **After adding any dependency**: Run `pnpm install` in the workspace where you added it AND commit both the workspace lockfile and root lockfile. If deploy fails with "specifiers don't match", delete lockfiles, remove `node_modules`, and `pnpm install` from root.
+
+### Pre-Push Checklist (run ALL before `git push`)
+```bash
+# 1. Type-check both apps
+cd apps/backend && npx tsc --noEmit
+cd apps/storefront && npx tsc --noEmit
+
+# 2. Run tests
+cd apps/storefront && pnpm test          # 92 Vitest tests
+cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"  # 635 Jest tests
+
+# 3. Lint storefront
+cd apps/storefront && npx eslint src/ --max-warnings 0
+
+# 4. If you added/changed dependencies: ensure lockfiles are committed
+git diff --name-only | grep -E "package.json|pnpm-lock"
+# If lockfile changed, commit it. If workspace lockfiles are missing, run:
+# pnpm install   (from the workspace where dep was added)
+
+# 5. If you added new route files: route tree will regenerate on build (OK to have @ts-expect-error)
+
+# 6. Verify Dockerfile copies any new scripts
+grep "COPY.*scripts" Dockerfile.backend   # must include all patch scripts
+```
 
 ### Deployment (Railway)
 - **Branch strategy**: Push to `development` for staging deploy, merge to `main` for production
