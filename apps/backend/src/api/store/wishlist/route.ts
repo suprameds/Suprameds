@@ -2,12 +2,14 @@ import {
   AuthenticatedMedusaRequest,
   MedusaResponse,
 } from "@medusajs/framework/http"
+import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
 import { WISHLIST_MODULE } from "../../../modules/wishlist"
 
 /**
  * GET /store/wishlist
  *
- * Returns all wishlist items for the authenticated customer.
+ * Returns all wishlist items for the authenticated customer,
+ * enriched with live product data (title, handle, thumbnail, price).
  */
 export const GET = async (
   req: AuthenticatedMedusaRequest,
@@ -19,10 +21,59 @@ export const GET = async (
   }
 
   const wishlistService = req.scope.resolve(WISHLIST_MODULE) as any
+  const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
 
   const items = await wishlistService.getWishlistForCustomer(customerId)
 
-  return res.json({ wishlist: items, count: items.length })
+  if (!items.length) {
+    return res.json({ wishlist: [], count: 0 })
+  }
+
+  // Fetch product data for all wishlist items in a single query
+  const productIds = [...new Set(items.map((i: any) => i.product_id))]
+  let productMap: Record<string, any> = {}
+
+  try {
+    const { data: products } = await query.graph({
+      entity: "product",
+      fields: ["id", "title", "handle", "thumbnail", "*variants.calculated_price"],
+      filters: { id: productIds },
+      context: {
+        variants: {
+          calculated_price: {
+            context: {
+              currency_code: "inr",
+            },
+          },
+        },
+      },
+    })
+
+    for (const p of (Array.isArray(products) ? products : [])) {
+      productMap[p.id] = p
+    }
+  } catch {
+    // Product query failed — return items without enrichment
+  }
+
+  const enriched = items.map((item: any) => {
+    const product = productMap[item.product_id]
+    const cheapestVariant = product?.variants
+      ?.filter((v: any) => v.calculated_price?.calculated_amount != null)
+      ?.sort((a: any, b: any) =>
+        a.calculated_price.calculated_amount - b.calculated_price.calculated_amount
+      )?.[0]
+
+    return {
+      ...item,
+      product_title: product?.title ?? null,
+      product_handle: product?.handle ?? null,
+      thumbnail: product?.thumbnail ?? null,
+      current_price: cheapestVariant?.calculated_price?.calculated_amount ?? null,
+    }
+  })
+
+  return res.json({ wishlist: enriched, count: enriched.length })
 }
 
 /**
