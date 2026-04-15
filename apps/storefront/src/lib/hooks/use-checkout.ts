@@ -214,6 +214,12 @@ export const useInitiateCartPaymentSession = () => {
 export const useCompleteCartOrder = () => {
   const queryClient = useQueryClient()
 
+  const clearCartCache = () => {
+    queryClient.removeQueries({ predicate: queryKeys.cart.predicate })
+    queryClient.removeQueries({ predicate: queryKeys.payments.predicate })
+    queryClient.removeQueries({ predicate: queryKeys.shipping.predicate })
+  }
+
   return useMutation({
     mutationFn: async () => {
       // Use completeCartOrder which has idempotency conflict retry logic —
@@ -222,14 +228,21 @@ export const useCompleteCartOrder = () => {
       const { completeCartOrder } = await import("@/lib/data/checkout/complete")
       return await completeCartOrder()
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       // Remove (don't null-out) cart cache so useCart transitions to
       // isLoading=true. This prevents checkout's "empty cart → redirect
       // to cart" guard from racing the payment button's navigation to
       // the order confirmation page.
-      queryClient.removeQueries({ predicate: queryKeys.cart.predicate })
-      queryClient.removeQueries({ predicate: queryKeys.payments.predicate })
-      queryClient.removeQueries({ predicate: queryKeys.shipping.predicate })
+      clearCartCache()
+    },
+    onError: (error) => {
+      // If the error indicates a concurrency issue (order likely placed),
+      // completeCartOrder already called removeStoredCart(). Clear the
+      // React Query cache too so the UI stops showing stale cart items.
+      const msg = error instanceof Error ? error.message : ""
+      if (msg.includes("likely placed") || msg.includes("My Orders")) {
+        clearCartCache()
+      }
     },
   })
 }
