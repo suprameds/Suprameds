@@ -101,9 +101,12 @@ const H1RegisterPage = () => {
         { query: { format: "json", from: fromDate, to: toDate } }
       )
       setEntries(json.entries ?? [])
-    } catch (err) {
+    } catch (err: any) {
       console.error("[h1-register]", err)
-      toast.error("Failed to load H1 register entries")
+      // Don't show error toast for empty results or 404 (module may not have data yet)
+      if (err?.status !== 404) {
+        toast.error("Failed to load H1 register entries")
+      }
       setEntries([])
     } finally {
       setLoading(false)
