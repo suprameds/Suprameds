@@ -136,11 +136,16 @@ export function SearchDropdown({
   const hasQuery = query.trim().length > 0
   const { data, isFetching } = useSearch({ q: query.trim(), limit: 5, offset: 0 })
   const [recents, setRecents] = useState<RecentSearch[]>([])
+  const [hasMounted, setHasMounted] = useState(false)
 
-  // Load recents on mount / open
+  // Only load recents after hydration to avoid SSR mismatch
   useEffect(() => {
-    if (isOpen) setRecents(getRecents())
-  }, [isOpen])
+    setHasMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (hasMounted && isOpen) setRecents(getRecents())
+  }, [hasMounted, isOpen])
 
   const products = data?.products ?? []
 
