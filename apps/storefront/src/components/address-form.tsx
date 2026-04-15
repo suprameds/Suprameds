@@ -15,6 +15,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 type AddressData = HttpTypes.StoreCreateCustomerAddress | HttpTypes.StoreAddAddress | AddressFormData;
 
+/** Strip +91, 91 prefix, or leading 0 from Indian phone numbers */
+export function normalizeIndianPhone(raw: string): string {
+  let v = raw.replace(/[\s\-()]/g, "")
+  if (v.startsWith("+91")) v = v.slice(3)
+  else if (v.startsWith("91") && v.length > 10) v = v.slice(2)
+  if (v.startsWith("0") && v.length === 11) v = v.slice(1)
+  return v
+}
+
 interface AddressFormProps {
   addressFormData: AddressData;
   setAddressFormData: React.Dispatch<React.SetStateAction<any>>;
@@ -82,12 +91,8 @@ const AddressForm = ({
   }, [])
 
   const handleChange = (field: string, value: string) => {
-    // Normalize Indian phone: strip +91, 91 prefix, or leading 0
     if (field === "phone") {
-      value = value.replace(/\s/g, "")
-      if (value.startsWith("+91")) value = value.slice(3)
-      else if (value.startsWith("91") && value.length > 10) value = value.slice(2)
-      if (value.startsWith("0") && value.length === 11) value = value.slice(1)
+      value = normalizeIndianPhone(value)
     }
 
     setAddressFormData((prev: AddressData) => ({ ...prev, [field]: value }))
