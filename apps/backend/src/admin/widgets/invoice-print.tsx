@@ -199,12 +199,27 @@ const InvoicePrintWidget = ({
     }
   }
 
-  const handlePrintInvoice = () => {
-    window.open(
-      `/admin/orders/${orderId}/invoice`,
-      `invoice-${orderId}`,
-      "width=900,height=700"
-    )
+  const handlePrintInvoice = async () => {
+    try {
+      const token = await sdk.client.getToken()
+      const baseUrl = (sdk as any).config?.baseUrl || ""
+      const res = await fetch(`${baseUrl}/admin/orders/${orderId}/invoice`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        credentials: "include",
+      })
+      if (!res.ok) throw new Error("Failed to load invoice")
+      const html = await res.text()
+      const w = window.open("", `invoice-${orderId}`, "width=900,height=700")
+      if (w) {
+        w.document.open()
+        w.document.write(html)
+        w.document.close()
+      }
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to load invoice")
+    }
   }
 
   const handleDownloadInvoicePdf = async () => {
