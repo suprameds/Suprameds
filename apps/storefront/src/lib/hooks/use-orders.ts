@@ -10,6 +10,7 @@ export const useCustomerOrders = ({ fields }: { fields?: string } = {}) => {
       return orders
     },
     staleTime: 2 * 60 * 1000, // 2 min — order list doesn't change frequently
+    retry: 1,
   })
 }
 

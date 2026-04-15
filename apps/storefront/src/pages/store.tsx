@@ -82,8 +82,13 @@ const Store = () => {
     formFilter !== "all" ? formFilter : undefined,
   )
 
+  // Wait for pharma filter to finish before building the ID filter.
+  // While still fetching, leave pharmaIdFilter undefined so the browse
+  // query is disabled and doesn't fire with the "__none__" sentinel.
   const pharmaIdFilter = hasPharmaFilter
-    ? (filteredIds && filteredIds.length > 0 ? filteredIds : ["__none__"])
+    ? (isFilterFetching
+        ? undefined  // still loading — don't query yet
+        : (filteredIds && filteredIds.length > 0 ? filteredIds : ["__none__"]))
     : undefined
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching: isBrowseFetching, isError: isBrowseError, refetch } = useProducts({
@@ -93,7 +98,7 @@ const Store = () => {
       category_id: selectedCategory ? [selectedCategory] : undefined,
       ...(pharmaIdFilter ? { id: pharmaIdFilter } : {}),
     },
-    enabled: !isSearchMode,
+    enabled: !isSearchMode && (!hasPharmaFilter || !isFilterFetching),
   })
 
   const browseProducts = useMemo(() => data?.pages.flatMap((page) => page.products) || [], [data?.pages])

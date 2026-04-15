@@ -22,7 +22,7 @@ function OrdersPage() {
 
   const [returnModalOrderId, setReturnModalOrderId] = useState<string | null>(null)
 
-  const { data: orders, isLoading } = useCustomerOrders({
+  const { data: orders, isLoading, isError, refetch } = useCustomerOrders({
     fields:
       "id,display_id,status,fulfillment_status,created_at,total,currency_code," +
       "items,*payment_collections.payment_sessions",
@@ -42,6 +42,19 @@ function OrdersPage() {
       {isLoading ? (
         <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
           <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Loading your orders...</p>
+        </div>
+      ) : isError ? (
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
+          <p className="text-sm mb-3" style={{ color: "var(--text-tertiary)" }}>
+            Unable to load your orders. Please try again.
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="text-sm font-medium underline transition-opacity hover:opacity-70"
+            style={{ color: "var(--brand-teal)" }}
+          >
+            Retry
+          </button>
         </div>
       ) : !orders?.length ? (
         <div className="bg-[var(--bg-secondary)] border rounded-xl p-12 text-center" style={{ borderColor: "var(--border-primary)" }}>
