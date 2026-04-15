@@ -77,12 +77,8 @@ export default defineConfig({
               redisUrl: process.env.REDIS_URL,
             },
           },
-          [Modules.LOCKING]: {
-            resolve: "@medusajs/medusa/locking-redis",
-            options: {
-              redisUrl: process.env.REDIS_URL,
-            },
-          },
+          // Note: Modules.LOCKING uses in-memory provider (no Redis variant in Medusa v2.13)
+          // The in-memory locking is acceptable — stale locks clear on deploy/restart
         }
       : {}),
     payment: {
