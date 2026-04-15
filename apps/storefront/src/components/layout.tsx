@@ -14,6 +14,21 @@ import { AnimatedOutlet } from "@/components/animated-outlet"
 import { useAndroidBackButton } from "@/lib/hooks/use-android-back-button"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import { useQueryClient } from "@tanstack/react-query"
+import { useRouterState } from "@tanstack/react-router"
+
+/** Top navigation progress bar — shows instantly on route transitions */
+function NavigationProgress() {
+  const isLoading = useRouterState({ select: (s) => s.isLoading })
+  if (!isLoading) return null
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[9999] h-[3px]">
+      <div
+        className="h-full animate-progress-bar"
+        style={{ background: "var(--brand-teal, #0E7C86)" }}
+      />
+    </div>
+  )
+}
 
 /** Runs native-only hooks that require provider context (toast, router) */
 function NativeHooks() {
@@ -41,6 +56,7 @@ const Layout = () => {
           >
             Skip to main content
           </a>
+          <NavigationProgress />
           <PushNotificationManager />
           <Navbar />
 
