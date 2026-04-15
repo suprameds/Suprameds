@@ -1,4 +1,4 @@
-import AddressForm from "@/components/address-form"
+import AddressForm, { normalizeIndianPhone } from "@/components/address-form"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -30,7 +30,7 @@ function savedToForm(
     postal_code: addr.postal_code || "",
     province: addr.province || "",
     country_code: addr.country_code || fallbackCountry,
-    phone: addr.phone || "",
+    phone: normalizeIndianPhone(addr.phone || ""),
   }
 }
 
@@ -77,7 +77,7 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
     province: cart.shipping_address?.province || "",
     country_code:
       cart.shipping_address?.country_code || storedCountryCode || "",
-    phone: cart.shipping_address?.phone || "",
+    phone: normalizeIndianPhone(cart.shipping_address?.phone || ""),
   })
   const [billingAddress, setBillingAddress] = useState<AddressFormData>({
     first_name: cart.billing_address?.first_name || "",
@@ -89,7 +89,7 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
     postal_code: cart.billing_address?.postal_code || "",
     province: cart.billing_address?.province || "",
     country_code: cart.billing_address?.country_code || storedCountryCode || "",
-    phone: cart.billing_address?.phone || "",
+    phone: normalizeIndianPhone(cart.billing_address?.phone || ""),
   })
 
   // Auto-select first saved address when addresses load (only once)
