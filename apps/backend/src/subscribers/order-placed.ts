@@ -45,19 +45,33 @@ export default async function orderPlacedHandler({
         `Prescription check for order ${orderId}: order.metadata.prescription_id = ${prescriptionId ?? "NOT SET"}`
       )
 
-      // Fallback: if order metadata doesn't have it, check the original cart
-      if (!prescriptionId && order.cart_id) {
+      // Fallback: if order metadata doesn't have it, resolve cart via
+      // the order_cart link and check the original cart's metadata.
+      // order.cart_id is NOT a standard Medusa field — must use the link.
+      if (!prescriptionId) {
         try {
-          const cartService = container.resolve(Modules.CART) as any
-          const cart = await cartService.retrieveCart(order.cart_id)
-          prescriptionId = (cart?.metadata as any)?.prescription_id
-          if (prescriptionId) {
-            logger.info(
-              `Found prescription_id ${prescriptionId} in cart ${order.cart_id} metadata (not in order metadata)`
-            )
+          const query = container.resolve(ContainerRegistrationKeys.QUERY) as any
+          const { data: orderCartLink } = await query.graph({
+            entity: "order_cart",
+            fields: ["cart_id"],
+            filters: { order_id: orderId },
+          })
+          const cartId = Array.isArray(orderCartLink)
+            ? orderCartLink[0]?.cart_id
+            : orderCartLink?.cart_id
+
+          if (cartId) {
+            const cartService = container.resolve(Modules.CART) as any
+            const cart = await cartService.retrieveCart(cartId)
+            prescriptionId = (cart?.metadata as any)?.prescription_id
+            if (prescriptionId) {
+              logger.info(
+                `Found prescription_id ${prescriptionId} in cart ${cartId} metadata (not in order metadata)`
+              )
+            }
           }
         } catch (cartErr) {
-          logger.warn(`Could not read cart ${order.cart_id} for prescription fallback: ${(cartErr as Error).message}`)
+          logger.warn(`Could not read cart for prescription fallback: ${(cartErr as Error).message}`)
         }
       }
 
