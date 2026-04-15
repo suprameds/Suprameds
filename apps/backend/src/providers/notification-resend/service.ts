@@ -4,6 +4,7 @@ import {
 } from "@medusajs/framework/utils"
 import { Resend } from "resend"
 import { render } from "@react-email/render"
+import React from "react"
 
 type ResendOptions = {
   api_key: string
@@ -254,8 +255,15 @@ class ResendNotificationProviderService extends AbstractNotificationProviderServ
       // Priority 1: React Email component
       const mod = await reactEmailTemplates[templateName]()
       const Component = mod.default
+      if (typeof Component !== "function") {
+        throw new MedusaError(
+          MedusaError.Types.UNEXPECTED_STATE,
+          `Email template "${templateName}" default export is not a component (got ${typeof Component})`
+        )
+      }
       subject = mod.subject(templateData)
-      html = await render(Component(templateData as any))
+      // Use React.createElement for reliable rendering in compiled output
+      html = await render(React.createElement(Component, templateData as any))
       this.logger.info(`[resend] Rendered React Email template "${templateName}" for ${to}`)
     } else if (templateName && templates[templateName]) {
       // Priority 2: Inline template
