@@ -22,6 +22,7 @@ export const GET = async (
 
   const wishlistService = req.scope.resolve(WISHLIST_MODULE) as any
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
+  const logger = req.scope.resolve("logger") as any
 
   const items = await wishlistService.getWishlistForCustomer(customerId)
 
@@ -36,14 +37,19 @@ export const GET = async (
   try {
     const { data: products } = await query.graph({
       entity: "product",
-      fields: ["id", "title", "handle", "thumbnail", "*variants.calculated_price"],
+      fields: [
+        "id",
+        "title",
+        "handle",
+        "thumbnail",
+        "variants.id",
+        "variants.calculated_price.*",
+      ],
       filters: { id: productIds },
       context: {
         variants: {
           calculated_price: {
-            context: {
-              currency_code: "inr",
-            },
+            context: { currency_code: "inr" },
           },
         },
       },
@@ -52,8 +58,21 @@ export const GET = async (
     for (const p of (Array.isArray(products) ? products : [])) {
       productMap[p.id] = p
     }
-  } catch {
-    // Product query failed — return items without enrichment
+  } catch (err: any) {
+    // Pricing context failed — try without pricing
+    logger.warn(`[wishlist] Product enrichment with pricing failed: ${err.message}. Trying without pricing.`)
+    try {
+      const { data: products } = await query.graph({
+        entity: "product",
+        fields: ["id", "title", "handle", "thumbnail"],
+        filters: { id: productIds },
+      })
+      for (const p of (Array.isArray(products) ? products : [])) {
+        productMap[p.id] = p
+      }
+    } catch (err2: any) {
+      logger.warn(`[wishlist] Product enrichment failed entirely: ${err2.message}`)
+    }
   }
 
   const enriched = items.map((item: any) => {
@@ -73,6 +92,8 @@ export const GET = async (
     }
   })
 
+  // Prevent browser from caching stale wishlist data (product info can change)
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
   return res.json({ wishlist: enriched, count: enriched.length })
 }
 
