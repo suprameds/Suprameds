@@ -7,7 +7,7 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
 COPY apps/backend/package.json apps/backend/pnpm-lock.yaml apps/backend/
-COPY apps/backend/scripts/patch-promotion-query.mjs apps/backend/scripts/
+COPY apps/backend/scripts/patch-promotion-query.mjs apps/backend/scripts/patch-shipment-workflow.mjs apps/backend/scripts/
 COPY apps/storefront/package.json apps/storefront/pnpm-lock.yaml apps/storefront/
 
 # pnpm v10 split lockfiles: workspace lockfiles live in apps/backend/pnpm-lock.yaml
@@ -19,8 +19,13 @@ RUN pnpm install --no-frozen-lockfile --filter backend
 # This avoids re-downloading ~1475 packages in the build stage.
 RUN pnpm --filter backend deploy --legacy --prod /app/pruned
 
-# Patch @medusajs/promotion MikroORM raw() quoting bug in pruned deps
+# Patch @medusajs/promotion MikroORM raw() quoting bug
 RUN cd apps/backend && node scripts/patch-promotion-query.mjs || true
+
+# Patch @medusajs/core-flows shipment null guard (manage_inventory=false crash)
+# Patch both: apps/backend/node_modules (for build) and pruned/node_modules (for production)
+RUN cd apps/backend && node scripts/patch-shipment-workflow.mjs || true
+RUN cd /app/pruned && node /app/apps/backend/scripts/patch-shipment-workflow.mjs || true
 
 # ──────────────────────────────────────────────
 # Stage 2: Build (only re-runs when source changes)
