@@ -145,6 +145,7 @@ export const Route = createRootRouteWithContext<{
         : []),
     ],
   }),
+  pendingMs: 0,
   pendingComponent: RouteLoadingFallback,
   errorComponent: RouteErrorFallback,
   notFoundComponent: NotFound,
