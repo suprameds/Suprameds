@@ -34,12 +34,10 @@ const InvoicePrintWidget = ({
 
   const handlePrintShippingLabel = async () => {
     try {
-      const resp = await fetch(
-        `/admin/orders/${orderId}?fields=id,display_id,created_at,total,items.*,shipping_address.*,payment_collections.payment_sessions.*`,
-        { credentials: "include" }
+      const { order } = await sdk.client.fetch<{ order: any }>(
+        `/admin/orders/${orderId}`,
+        { query: { fields: "id,display_id,created_at,total,items.*,shipping_address.*,payment_collections.payment_sessions.*" } }
       )
-      if (!resp.ok) throw new Error("Failed to fetch order")
-      const { order } = await resp.json()
 
       const addr = order.shipping_address || {}
       const customerName = [addr.first_name, addr.last_name].filter(Boolean).join(" ") || "—"
@@ -212,7 +210,12 @@ const InvoicePrintWidget = ({
   const handleDownloadInvoicePdf = async () => {
     setDownloading(true)
     try {
-      const res = await fetch(`/admin/invoices/${orderId}/pdf`, {
+      const token = await sdk.client.getToken()
+      const baseUrl = (sdk as any).config?.baseUrl || ""
+      const res = await fetch(`${baseUrl}/admin/invoices/${orderId}/pdf`, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         credentials: "include",
       })
       if (!res.ok) {
