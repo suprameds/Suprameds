@@ -179,6 +179,23 @@ export const ReorderButton = ({
       if (!region) throw new Error("Region not found")
 
       let cartId = getStoredCart()
+
+      // Verify the stored cart is still usable (not completed/deleted)
+      if (cartId) {
+        try {
+          const { cart: existing } = await sdk.store.cart.retrieve(cartId)
+          if ((existing as any).completed_at) {
+            const { removeStoredCart } = await import("@/lib/utils/cart")
+            removeStoredCart()
+            cartId = undefined
+          }
+        } catch {
+          const { removeStoredCart } = await import("@/lib/utils/cart")
+          removeStoredCart()
+          cartId = undefined
+        }
+      }
+
       if (!cartId) {
         const { cart } = await sdk.store.cart.create({ region_id: region.id })
         setStoredCart(cart.id)
