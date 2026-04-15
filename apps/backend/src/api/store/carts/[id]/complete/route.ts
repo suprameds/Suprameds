@@ -5,7 +5,6 @@ import {
   Modules,
   remoteQueryObjectFromString,
 } from "@medusajs/framework/utils"
-import { completeCartWorkflowId } from "@medusajs/core-flows"
 
 /**
  * Custom cart completion route that checks for an existing order BEFORE
@@ -74,7 +73,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   const we = req.scope.resolve(Modules.WORKFLOW_ENGINE) as any
 
   const { errors, result, transaction } = await we.run(
-    completeCartWorkflowId,
+    "complete-cart",
     {
       input: { id: cart_id },
       throwOnError: false,
