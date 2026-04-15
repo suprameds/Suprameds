@@ -30,8 +30,8 @@ export default function WishlistPage() {
     return Math.round(((item.price_at_addition - item.current_price) / item.price_at_addition) * 100)
   }
 
-  const formatRupees = (paise: number) =>
-    `₹${(paise / 100).toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
+  const formatRupees = (amount: number) =>
+    `₹${amount.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
 
   const handleRemove = (id: string) => {
     const item = items.find((i) => i.id === id)
@@ -216,7 +216,7 @@ function WishlistCard({
   countryCode: string
   dropPct: number | null
   threshold: number
-  formatRupees: (paise: number) => string
+  formatRupees: (amount: number) => string
   onRemove: () => void
   onAlertToggle: () => void
   onThresholdChange: (val: number) => void
