@@ -28,6 +28,7 @@ vi.mock("@/lib/utils/region", () => ({
 }))
 
 vi.mock("@/components/address-form", () => ({
+  normalizeIndianPhone: (phone: string) => phone?.replace(/\D/g, "").slice(-10) || "",
   default: ({ setAddressFormData, setIsFormValid }: any) => {
     // Simulate a valid form by calling setIsFormValid(true)
     if (setIsFormValid) {
