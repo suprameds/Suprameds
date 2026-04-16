@@ -4,6 +4,7 @@ import { useBulkPharma } from "@/lib/hooks/use-pharma"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import ProductCard from "@/components/product-card"
+import { ProductGridSkeleton } from "@/components/ui/skeletons"
 import { RecentlyViewed } from "@/components/recently-viewed"
 import { Reveal } from "@/components/ui/reveal"
 import { Counter } from "@/components/ui/counter"
@@ -223,7 +224,7 @@ const Home = () => {
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { region } = useLoaderData({ from: "/$countryCode/" })
 
-  const { data: latestProductsData } = useLatestProducts({ limit: 24, region_id: region?.id })
+  const { data: latestProductsData, isFetching: productsLoading } = useLatestProducts({ limit: 24, region_id: region?.id })
   const allProducts = latestProductsData?.products ?? []
 
   // Fetch pharma data to filter best-sellers to OTC only
@@ -515,8 +516,7 @@ const Home = () => {
       {/* ════════════════════════════════════════════
           FEATURED PRODUCTS
          ════════════════════════════════════════════ */}
-      {products.length > 0 && (
-        <section className="content-container py-14 lg:py-18">
+      <section className="content-container py-14 lg:py-18">
           <Reveal>
           <div className="flex items-end justify-between mb-8">
             <div>
@@ -535,12 +535,17 @@ const Home = () => {
             </Link>
           </div>
 
+          {productsLoading && products.length === 0 ? (
+            <ProductGridSkeleton count={4} />
+          ) : products.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
             {products.slice(0, 8).map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
+          ) : null}
 
+          {products.length > 0 && (
           <div className="mt-6 md:hidden text-center">
             <Link
               to="/$countryCode/store"
@@ -551,9 +556,9 @@ const Home = () => {
               View all medicines <ArrowRight />
             </Link>
           </div>
+          )}
           </Reveal>
         </section>
-      )}
 
       {/* ════════════════════════════════════════════
           RECENTLY VIEWED
