@@ -140,6 +140,11 @@ export default defineMiddlewares({
       method: "POST",
       bodyParser: { preserveRawBody: true },
     },
+    {
+      matcher: "/webhook/paytm_webhook",
+      method: "POST",
+      bodyParser: { preserveRawBody: true },
+    },
     // Prescription upload needs a larger body limit for base64 image data
     {
       matcher: "/store/prescriptions",
