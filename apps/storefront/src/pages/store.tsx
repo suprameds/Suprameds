@@ -8,6 +8,7 @@ import { trackViewItemList, trackSearch } from "@/lib/utils/analytics"
 import { useLoaderData, useSearch as useRouterSearch, useNavigate } from "@tanstack/react-router"
 import { useMemo, useState, useEffect, useCallback } from "react"
 import { useBulkPharma, usePharmaFilter, type DrugProductMeta } from "@/lib/hooks/use-pharma"
+import { buildPharmaIdFilter } from "@/lib/utils/store-filters"
 import { HttpTypes } from "@medusajs/types"
 
 type ScheduleFilter = "all" | "rx" | "otc"
@@ -82,15 +83,11 @@ const Store = () => {
     formFilter !== "all" ? formFilter : undefined,
   )
 
-  // Wait for pharma filter to finish before building the ID filter.
-  // While still fetching, leave pharmaIdFilter undefined so the browse
-  // query is disabled and doesn't fire with the "__none__" sentinel.
-  // Cap at 60 IDs to avoid URL-too-long CORS failures on the product API.
-  const pharmaIdFilter = hasPharmaFilter
-    ? (isFilterFetching
-        ? undefined  // still loading — don't query yet
-        : (filteredIds && filteredIds.length > 0 ? filteredIds.slice(0, 60) : ["__none__"]))
-    : undefined
+  const pharmaIdFilter = buildPharmaIdFilter({
+    hasPharmaFilter,
+    isFilterFetching,
+    filteredIds,
+  })
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching: isBrowseFetching, isError: isBrowseError, refetch } = useProducts({
     region_id: region?.id,
