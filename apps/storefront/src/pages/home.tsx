@@ -186,7 +186,61 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 }
 
 function getCategoryIcon(handle: string): React.ReactNode {
-  return CATEGORY_ICONS[handle] || CATEGORY_ICONS.default
+  const icon = CATEGORY_ICONS[handle] || CATEGORY_ICONS.default
+  // Wrap in a size scaler — icons are 24x24 SVGs, scale up for the larger circles
+  return <span className="scale-125">{icon}</span>
+}
+
+/** Per-category emoji for homepage cards (matches store page chips) */
+const CATEGORY_EMOJI: Record<string, string> = {
+  antibiotics: "💉",
+  diabetic: "🩸",
+  hypertension: "❤️",
+  "cardiac-care": "❤️",
+  cholesterol: "🔬",
+  gastroenterology: "🩺",
+  "general-medicines": "💊",
+  gynecology: "🩷",
+  nephrology: "🫘",
+  neurology: "🧠",
+  respiratory: "🫁",
+  dermatology: "🧴",
+  "pain-fever": "🌡️",
+  "pain-management": "💊",
+  "vitamins-supplements": "✨",
+  thyroid: "🦋",
+  urology: "🫀",
+  medicines: "💊",
+  wellness: "🌿",
+  "personal-care": "🧑",
+  devices: "🩻",
+  "mother-baby": "👶",
+}
+
+/** Per-category color schemes for the circular icon backgrounds */
+const CATEGORY_COLORS: Record<string, { bg: string; icon: string }> = {
+  antibiotics:            { bg: "linear-gradient(135deg, #FEE2E2, #FECACA)", icon: "#DC2626" },
+  diabetic:               { bg: "linear-gradient(135deg, #DBEAFE, #BFDBFE)", icon: "#2563EB" },
+  hypertension:           { bg: "linear-gradient(135deg, #FCE7F3, #FBCFE8)", icon: "#DB2777" },
+  "cardiac-care":         { bg: "linear-gradient(135deg, #FEE2E2, #FECACA)", icon: "#E11D48" },
+  cholesterol:            { bg: "linear-gradient(135deg, #FEF3C7, #FDE68A)", icon: "#D97706" },
+  gastroenterology:       { bg: "linear-gradient(135deg, #D1FAE5, #A7F3D0)", icon: "#059669" },
+  "general-medicines":    { bg: "linear-gradient(135deg, #E0E7FF, #C7D2FE)", icon: "#4F46E5" },
+  gynecology:             { bg: "linear-gradient(135deg, #FCE7F3, #FBCFE8)", icon: "#EC4899" },
+  nephrology:             { bg: "linear-gradient(135deg, #CCFBF1, #99F6E4)", icon: "#0D9488" },
+  neurology:              { bg: "linear-gradient(135deg, #EDE9FE, #DDD6FE)", icon: "#7C3AED" },
+  respiratory:            { bg: "linear-gradient(135deg, #CFFAFE, #A5F3FC)", icon: "#0891B2" },
+  dermatology:            { bg: "linear-gradient(135deg, #FFF7ED, #FED7AA)", icon: "#EA580C" },
+  "pain-fever":           { bg: "linear-gradient(135deg, #FEF2F2, #FECACA)", icon: "#EF4444" },
+  "vitamins-supplements": { bg: "linear-gradient(135deg, #ECFDF5, #A7F3D0)", icon: "#10B981" },
+  medicines:              { bg: "linear-gradient(135deg, #E0F2FE, #BAE6FD)", icon: "#0284C7" },
+  wellness:               { bg: "linear-gradient(135deg, #F0FDF4, #BBF7D0)", icon: "#16A34A" },
+  "personal-care":        { bg: "linear-gradient(135deg, #FDF4FF, #F5D0FE)", icon: "#A855F7" },
+  devices:                { bg: "linear-gradient(135deg, #F0F9FF, #BAE6FD)", icon: "#0369A1" },
+  "mother-baby":          { bg: "linear-gradient(135deg, #FFF1F2, #FFE4E6)", icon: "#F43F5E" },
+  thyroid:                { bg: "linear-gradient(135deg, #FEF9C3, #FEF08A)", icon: "#CA8A04" },
+  urology:                { bg: "linear-gradient(135deg, #DBEAFE, #93C5FD)", icon: "#3B82F6" },
+  default:                { bg: "linear-gradient(135deg, #F0FDFA, #CCFBF1)", icon: "#0E7C86" },
 }
 
 /* ── FAQ data ── */
@@ -480,36 +534,43 @@ const Home = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 lg:gap-4">
-              {categories.map((cat) => (
-                <Link
-                  key={cat.id}
-                  to="/$countryCode/categories/$handle"
-                  params={{ countryCode, handle: cat.handle }}
-                  className="group flex flex-col items-center gap-3 p-5 rounded-xl text-center transition-all hover:shadow-md hover:-translate-y-0.5"
-                  style={{ background: "var(--bg-tertiary)", border: "1px solid var(--border-primary)" }}
-                >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center transition-colors group-hover:bg-[#E0F7FA]"
-                    style={{ background: "#E8F5E9", color: "var(--brand-teal)" }}
+            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 sm:overflow-visible sm:pb-0">
+              {categories.map((cat) => {
+                const emoji = CATEGORY_EMOJI[cat.handle] || "💊"
+                const colors = CATEGORY_COLORS[cat.handle] || CATEGORY_COLORS.default
+                return (
+                  <Link
+                    key={cat.id}
+                    to="/$countryCode/categories/$handle"
+                    params={{ countryCode, handle: cat.handle }}
+                    className="group flex flex-col items-center gap-2.5 p-4 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px] sm:w-auto"
+                    style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
                   >
-                    {getCategoryIcon(cat.handle)}
-                  </div>
-                  <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{cat.name}</span>
-                </Link>
-              ))}
+                    <div
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110 shadow-sm"
+                      style={{ background: colors.bg }}
+                    >
+                      {emoji}
+                    </div>
+                    <span className="text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "var(--text-primary)" }}>{cat.name}</span>
+                  </Link>
+                )
+              })}
 
               {/* Always-visible "All Medicines" card */}
               <Link
                 to="/$countryCode/store"
                 params={{ countryCode }}
-                className="group flex flex-col items-center gap-3 p-5 rounded-xl text-center transition-all hover:shadow-md hover:-translate-y-0.5"
+                className="group flex flex-col items-center gap-2.5 p-4 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px] sm:w-auto"
                 style={{ background: "var(--bg-inverse)" }}
               >
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(14,124,134,0.2)", color: "var(--brand-teal-light)" }}>
-                  <ArrowRight />
+                <div
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110"
+                  style={{ background: "rgba(14,124,134,0.25)" }}
+                >
+                  🏥
                 </div>
-                <span className="text-sm font-medium" style={{ color: "var(--text-inverse)" }}>All Medicines</span>
+                <span className="text-[11px] font-semibold leading-tight" style={{ color: "var(--text-inverse)" }}>All Medicines</span>
               </Link>
             </div>
             </Reveal>
