@@ -20,12 +20,13 @@ export interface BlogPostFull extends BlogPostSummary {
   seo_description: string | null
 }
 
-export function useBlogPosts(category?: string) {
+export function useBlogPosts(category?: string, search?: string) {
   return useQuery({
-    queryKey: ["blog", "posts", category || "all"],
+    queryKey: ["blog", "posts", category || "all", search || ""],
     queryFn: async () => {
       const params = new URLSearchParams({ limit: "100" })
       if (category && category !== "all") params.set("category", category)
+      if (search && search.trim()) params.set("q", search.trim())
       const res = await sdk.client.fetch<{
         posts: BlogPostSummary[]
         count: number
