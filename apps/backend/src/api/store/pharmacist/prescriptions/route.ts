@@ -11,9 +11,11 @@ const logger = createLogger("store:pharmacist:prescriptions")
  * Pharmacist: list prescriptions with optional status filter.
  * Pending prescriptions are sorted by urgency (H1 first, then oldest first).
  * Query: ?status=pending_review|approved|rejected|expired|used
+ *        ?customer_id=cus_xxx (filter by customer)
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const status = req.query.status as string | undefined
+  const customerId = req.query.customer_id as string | undefined
 
   try {
     const prescriptionService = req.scope.resolve(PRESCRIPTION_MODULE) as any
@@ -21,6 +23,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
     const filters: Record<string, any> = {}
     if (status) filters.status = status
+    if (customerId) filters.customer_id = customerId
 
     const rawPrescriptions = await prescriptionService.listPrescriptions(
       filters,
