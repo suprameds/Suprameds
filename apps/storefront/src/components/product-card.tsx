@@ -15,6 +15,8 @@ interface ProductCardProps {
   product: HttpTypes.StoreProduct;
   /** When true, pharma metadata is still loading — hide schedule-dependent UI */
   pharmaLoading?: boolean;
+  /** Index in the product grid — first 8 load eagerly, rest lazy */
+  index?: number;
 }
 
 type DrugProduct = {
@@ -50,7 +52,7 @@ function getDiscountPercent(product: HttpTypes.StoreProduct, drug?: DrugProduct)
   return Math.round(((original - current) / original) * 100)
 }
 
-const ProductCard = ({ product, pharmaLoading }: ProductCardProps) => {
+const ProductCard = ({ product, pharmaLoading, index }: ProductCardProps) => {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const drug = (product as any)?.drug_product as DrugProduct | undefined
@@ -156,6 +158,7 @@ const ProductCard = ({ product, pharmaLoading }: ProductCardProps) => {
           thumbnail={product.thumbnail}
           alt={product.title}
           dosageForm={drug?.dosage_form}
+          loading={index !== undefined && index < 8 ? "eager" : "lazy"}
           className="absolute inset-0 object-contain object-center w-full h-full p-3 transition-transform duration-500 group-hover:scale-105"
         />
       </div>
