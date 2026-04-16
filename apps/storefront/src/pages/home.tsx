@@ -186,35 +186,7 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 }
 
 function getCategoryIcon(handle: string): React.ReactNode {
-  const icon = CATEGORY_ICONS[handle] || CATEGORY_ICONS.default
-  // Wrap in a size scaler — icons are 24x24 SVGs, scale up for the larger circles
-  return <span className="scale-125">{icon}</span>
-}
-
-/** Per-category emoji for homepage cards (matches store page chips) */
-const CATEGORY_EMOJI: Record<string, string> = {
-  antibiotics: "💉",
-  diabetic: "🩸",
-  hypertension: "❤️",
-  "cardiac-care": "❤️",
-  cholesterol: "🔬",
-  gastroenterology: "🩺",
-  "general-medicines": "💊",
-  gynecology: "🩷",
-  nephrology: "🫘",
-  neurology: "🧠",
-  respiratory: "🫁",
-  dermatology: "🧴",
-  "pain-fever": "🌡️",
-  "pain-management": "💊",
-  "vitamins-supplements": "✨",
-  thyroid: "🦋",
-  urology: "🫀",
-  medicines: "💊",
-  wellness: "🌿",
-  "personal-care": "🧑",
-  devices: "🩻",
-  "mother-baby": "👶",
+  return CATEGORY_ICONS[handle] || CATEGORY_ICONS.default
 }
 
 /** Per-category color schemes for the circular icon backgrounds */
@@ -536,23 +508,22 @@ const Home = () => {
 
             <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 sm:overflow-visible sm:pb-0">
               {categories.map((cat) => {
-                const emoji = CATEGORY_EMOJI[cat.handle] || "💊"
                 const colors = CATEGORY_COLORS[cat.handle] || CATEGORY_COLORS.default
                 return (
                   <Link
                     key={cat.id}
                     to="/$countryCode/categories/$handle"
                     params={{ countryCode, handle: cat.handle }}
-                    className="group flex flex-col items-center gap-2.5 p-4 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px] sm:w-auto"
+                    className="group flex flex-col items-center gap-3 p-5 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px] sm:w-auto"
                     style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
                   >
                     <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110 shadow-sm"
-                      style={{ background: colors.bg }}
+                      className="w-14 h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                      style={{ background: colors.bg, color: colors.icon }}
                     >
-                      {emoji}
+                      <span className="[&>svg]:w-6 [&>svg]:h-6">{getCategoryIcon(cat.handle)}</span>
                     </div>
-                    <span className="text-[11px] font-semibold leading-tight line-clamp-2" style={{ color: "var(--text-primary)" }}>{cat.name}</span>
+                    <span className="text-xs font-semibold leading-tight line-clamp-2" style={{ color: "var(--text-primary)" }}>{cat.name}</span>
                   </Link>
                 )
               })}
@@ -561,16 +532,18 @@ const Home = () => {
               <Link
                 to="/$countryCode/store"
                 params={{ countryCode }}
-                className="group flex flex-col items-center gap-2.5 p-4 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px] sm:w-auto"
+                className="group flex flex-col items-center gap-3 p-5 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px] sm:w-auto"
                 style={{ background: "var(--bg-inverse)" }}
               >
                 <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-transform group-hover:scale-110"
-                  style={{ background: "rgba(14,124,134,0.25)" }}
+                  className="w-14 h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+                  style={{ background: "rgba(14,124,134,0.25)", color: "#5EEAD4" }}
                 >
-                  🏥
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14"/><path d="M12 5l7 7-7 7"/>
+                  </svg>
                 </div>
-                <span className="text-[11px] font-semibold leading-tight" style={{ color: "var(--text-inverse)" }}>All Medicines</span>
+                <span className="text-xs font-semibold leading-tight" style={{ color: "var(--text-inverse)" }}>All Medicines</span>
               </Link>
             </div>
             </Reveal>
