@@ -81,8 +81,14 @@ function RegisterPage() {
     e.preventDefault()
     setError("")
 
-    if (!form.first_name || !form.last_name || !form.email || !form.password) {
+    if (!form.first_name || !form.last_name || !form.phone || !form.password) {
       setError("Please fill in all required fields.")
+      return
+    }
+    // Validate phone is 10 digits
+    const cleanPhone = form.phone.replace(/\D/g, "").slice(-10)
+    if (cleanPhone.length !== 10) {
+      setError("Please enter a valid 10-digit mobile number.")
       return
     }
     if (!allChecksMet) {
@@ -94,13 +100,16 @@ function RegisterPage() {
       return
     }
 
+    // If email is blank, generate a placeholder from the phone number
+    const email = form.email.trim() || `${cleanPhone}@phone.suprameds.in`
+
     register.mutate(
       {
-        email: form.email,
+        email,
         password: form.password,
         first_name: form.first_name,
         last_name: form.last_name,
-        phone: form.phone || undefined,
+        phone: cleanPhone,
         metadata: activeRefCode && referralData?.valid ? { referred_by: activeRefCode } : undefined,
       },
       {
@@ -115,7 +124,7 @@ function RegisterPage() {
           const msg =
             err instanceof Error ? err.message : "Registration failed."
           if (msg.toLowerCase().includes("exists") || msg.toLowerCase().includes("duplicate")) {
-            setError("An account with this email already exists.")
+            setError("An account with this phone number or email already exists.")
           } else {
             setError(msg || "Registration failed. Please try again.")
           }
@@ -179,23 +188,7 @@ function RegisterPage() {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                Email address <span style={{ color: "var(--brand-red)" }}>*</span>
-              </label>
-              <input
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
-                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
-              />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                Mobile number
+                Mobile number <span style={{ color: "var(--brand-red)" }}>*</span>
               </label>
               <div className="relative flex">
                 <span
@@ -215,6 +208,25 @@ function RegisterPage() {
                   style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
                 />
               </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                Email address <span className="text-xs font-normal" style={{ color: "var(--text-tertiary)" }}>(optional)</span>
+              </label>
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
+                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
+              />
+              <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                For order updates. You can add it later in your profile.
+              </p>
             </div>
 
             <div className="flex flex-col gap-1.5">
