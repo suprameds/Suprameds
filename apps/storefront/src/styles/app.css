@@ -29,6 +29,15 @@ html {
   animation: progress-bar 2s ease-out forwards;
 }
 
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 @layer base {
   :root {
     /* ── Semantic Color Tokens (Light Theme) ── */
