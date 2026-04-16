@@ -16,7 +16,8 @@
     "cap:sync": "cap sync android",
     "cap:open": "cap open android",
     "cap:run": "cap run android",
-    "mobile": "pnpm build:mobile && pnpm cap:sync"
+    "mobile": "pnpm build:mobile && pnpm cap:sync",
+    "import:blog": "npx vite-node scripts/import-blog-posts.tsx"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.0",

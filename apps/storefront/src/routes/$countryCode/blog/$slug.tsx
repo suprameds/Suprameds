@@ -1,16 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router"
 import BlogArticlePage from "@/pages/blog/article"
-import { sdk } from "@/lib/utils/sdk"
 import type { BlogPostFull } from "@/lib/hooks/use-blog"
 
-// @ts-expect-error Route tree not yet regenerated for new blog routes
+const BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"
+
 export const Route = createFileRoute("/$countryCode/blog/$slug")({
   loader: async ({ params }: { params: { slug: string } }) => {
     try {
-      const res = await sdk.client.fetch<{ post: BlogPostFull }>(
-        `/store/blog/${params.slug}`,
-        { method: "GET" }
-      )
+      const response = await fetch(`${BACKEND_URL}/blog/${params.slug}`)
+      const res = await response.json() as { post: BlogPostFull }
       return { post: res.post }
     } catch {
       return { post: null }

@@ -46,7 +46,6 @@ const blogCollectionSchema = {
   },
 }
 
-// @ts-expect-error Route tree not yet regenerated for new blog routes
 export const Route = createFileRoute("/$countryCode/blog/")({
   head: () => ({
     meta: [
