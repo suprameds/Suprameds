@@ -1,4 +1,8 @@
 import type { ReactNode } from "react"
+import { batch1 } from "./blog-articles-batch1"
+import { batch2 } from "./blog-articles-batch2"
+import { batch3 } from "./blog-articles-batch3"
+import { batch4 } from "./blog-articles-batch4"
 
 export interface BlogPost {
   slug: string
@@ -12,7 +16,8 @@ export interface BlogPost {
   content: () => ReactNode
 }
 
-export const blogPosts: BlogPost[] = [
+// Original 4 articles + 100 new articles, sorted newest first
+const originalPosts: BlogPost[] = [
   {
     slug: "what-are-generic-medicines",
     title: "What Are Generic Medicines? Are They Safe?",
@@ -468,6 +473,15 @@ export const blogPosts: BlogPost[] = [
     ),
   },
 ]
+
+// Merge all batches and sort by date (newest first)
+export const blogPosts: BlogPost[] = [
+  ...originalPosts,
+  ...batch1,
+  ...batch2,
+  ...batch3,
+  ...batch4,
+].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
 export const blogCategories = [
   { key: "all" as const, label: "All" },
