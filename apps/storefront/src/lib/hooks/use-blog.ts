@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
-import { sdk } from "@/lib/utils/sdk"
+
+const BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"
 
 export interface BlogPostSummary {
   id: string
@@ -27,10 +28,8 @@ export function useBlogPosts(category?: string, search?: string) {
       const params = new URLSearchParams({ limit: "100" })
       if (category && category !== "all") params.set("category", category)
       if (search && search.trim()) params.set("q", search.trim())
-      const res = await sdk.client.fetch<{
-        posts: BlogPostSummary[]
-        count: number
-      }>(`/store/blog?${params}`, { method: "GET" })
+      const response = await fetch(`${BACKEND_URL}/blog?${params}`)
+      const res = await response.json() as { posts: BlogPostSummary[]; count: number }
       return res
     },
     staleTime: 10 * 60 * 1000, // 10 min — blog content rarely changes
@@ -41,10 +40,8 @@ export function useBlogPost(slug: string) {
   return useQuery({
     queryKey: ["blog", "post", slug],
     queryFn: async () => {
-      const res = await sdk.client.fetch<{ post: BlogPostFull }>(
-        `/store/blog/${slug}`,
-        { method: "GET" }
-      )
+      const response = await fetch(`${BACKEND_URL}/blog/${slug}`)
+      const res = await response.json() as { post: BlogPostFull }
       return res.post
     },
     enabled: !!slug,

@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router"
 import CreateOrderPage from "@/pages/account/pharmacist/create-order"
 
 export const Route = createFileRoute(
-  // @ts-expect-error Route path not in route tree yet — regenerates on pnpm dev/build
   "/$countryCode/account/_layout/pharmacist/create-order"
 )({
   head: () => ({
