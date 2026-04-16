@@ -45,7 +45,23 @@ import { WALLET_MODULE } from "../../modules/wallet"
 // Task 1: Prescription linking + auto Rx lines
 // ─────────────────────────────────────────────────
 async function linkPrescription(container: any, orderId: string, cart: any) {
-  const prescriptionId = (cart?.metadata as any)?.prescription_id
+  let prescriptionId = (cart?.metadata as any)?.prescription_id
+
+  // Fallback: check order metadata if cart metadata doesn't have it
+  // (Medusa may propagate cart.metadata → order.metadata on completion)
+  if (!prescriptionId) {
+    try {
+      const orderService = container.resolve(Modules.ORDER) as any
+      const order = await orderService.retrieveOrder(orderId)
+      prescriptionId = (order?.metadata as any)?.prescription_id
+      if (prescriptionId) {
+        console.info(`[hook:link-rx] Found prescription_id in order.metadata (not cart.metadata)`)
+      }
+    } catch {
+      // order retrieval failed — continue without fallback
+    }
+  }
+
   if (!prescriptionId) return
 
   try {
