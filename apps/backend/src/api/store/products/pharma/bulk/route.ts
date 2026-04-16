@@ -65,7 +65,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     const filterResult = { product_ids: productIds }
 
     try {
-      await cacheService.set(cacheKey, filterResult, 900) // 15 min TTL
+      await cacheService.set(cacheKey, filterResult, 300) // 5 min TTL (MRP compliance)
     } catch {
       // Cache write failure is non-fatal
     }
@@ -119,7 +119,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const enrichResult = { drug_products: byProductId }
 
   try {
-    await cacheService.set(cacheKey, enrichResult, 900) // 15 min TTL
+    await cacheService.set(cacheKey, enrichResult, 300) // 5 min TTL (MRP compliance)
   } catch {
     // Cache write failure is non-fatal
   }

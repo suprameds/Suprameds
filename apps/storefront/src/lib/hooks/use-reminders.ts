@@ -29,6 +29,7 @@ export const useReminders = () => {
       )
       return res
     },
+    staleTime: 5 * 60 * 1000, // 5 min — reminders rarely change, mutations invalidate
   })
 }
 

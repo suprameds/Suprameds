@@ -127,10 +127,15 @@ export const useLogout = () => {
     },
     onSuccess: () => {
       clearStoredOtpToken()
-      // Clear FCM push token so next user doesn't get old notifications
-      try { localStorage.removeItem("_suprameds_fcm_token") } catch { /* SSR */ }
-      // Clear cart so next user starts fresh
-      try { localStorage.removeItem("medusa_cart") } catch { /* SSR */ }
+      // Clear all user-specific localStorage on logout (shared device safety)
+      try {
+        localStorage.removeItem("_suprameds_fcm_token")    // push notifications
+        localStorage.removeItem("medusa_cart")              // cart
+        localStorage.removeItem("_suprameds_location")      // cached location
+        localStorage.removeItem("_suprameds_recently_viewed") // browsing history
+        localStorage.removeItem("_suprameds_search_recents")  // search history
+        localStorage.removeItem("suprameds-theme")          // theme preference
+      } catch { /* SSR */ }
       queryClient.setQueryData(queryKeys.customer.current(), null)
       queryClient.invalidateQueries({ queryKey: queryKeys.customer.all })
     },
@@ -333,5 +338,6 @@ export const useCustomerAddresses = () => {
       const { addresses } = await sdk.store.customer.listAddress()
       return addresses
     },
+    staleTime: 5 * 60 * 1000, // 5 min — addresses rarely change, mutations invalidate
   })
 }
