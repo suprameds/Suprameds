@@ -13,6 +13,8 @@ import { useRequireAuth } from "@/lib/hooks/use-require-auth"
 
 interface ProductCardProps {
   product: HttpTypes.StoreProduct;
+  /** When true, pharma metadata is still loading — hide schedule-dependent UI */
+  pharmaLoading?: boolean;
 }
 
 type DrugProduct = {
@@ -48,7 +50,7 @@ function getDiscountPercent(product: HttpTypes.StoreProduct, drug?: DrugProduct)
   return Math.round(((original - current) / original) * 100)
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, pharmaLoading }: ProductCardProps) => {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const drug = (product as any)?.drug_product as DrugProduct | undefined
@@ -236,8 +238,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
         </div>
 
-        {/* ── Add to Cart button (OTC only) ── */}
-        {!isBlocked && !isRx && (
+        {/* ── Add to Cart button (OTC only, hidden while pharma data loads) ── */}
+        {!isBlocked && !isRx && !pharmaLoading && (
           <div className="pt-2 pointer-events-auto">
             <button
               type="button"

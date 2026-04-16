@@ -96,7 +96,7 @@ const Store = () => {
 
   // Fetch pharma metadata for browse mode
   const productIds = useMemo(() => browseProducts.map((p) => p.id).filter(Boolean), [browseProducts])
-  const { data: pharmaMap } = useBulkPharma(productIds)
+  const { data: pharmaMap, isFetching: isPharmaFetching } = useBulkPharma(productIds)
 
   const enrichedBrowseProducts = useMemo((): EnrichedProduct[] => {
     if (!pharmaMap) return browseProducts
@@ -351,7 +351,7 @@ const Store = () => {
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {displayProducts.map((product) => (
-                <ProductCard key={product.id} product={product as any} />
+                <ProductCard key={product.id} product={product as any} pharmaLoading={!isSearchMode && isPharmaFetching && !(product as any).drug_product} />
               ))}
             </div>
 
