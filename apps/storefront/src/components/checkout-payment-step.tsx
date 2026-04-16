@@ -11,7 +11,8 @@ import { HttpTypes } from "@medusajs/types"
 import { useQueryClient } from "@tanstack/react-query"
 import { useCallback, useState } from "react"
 import { useToast } from "@/lib/context/toast-context"
-import { useWallet, useApplyWallet, useRemoveWallet } from "@/lib/hooks/use-wallet"
+// Uncomment when loyalty program launches:
+// import { useWallet, useApplyWallet, useRemoveWallet } from "@/lib/hooks/use-wallet"
 
 interface PaymentStepProps {
   cart: HttpTypes.StoreCart;
@@ -43,31 +44,14 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
   const isStripe = isStripeFunc(selectedPaymentMethod)
 
-  // ── Wallet integration ──
-  const { data: walletData } = useWallet()
-  const applyWallet = useApplyWallet()
-  const removeWallet = useRemoveWallet()
-  const walletBalance = walletData?.wallet?.balance ?? 0
-  const walletApplied = Number((cart.metadata as any)?.wallet_amount ?? 0)
-  const isWalletApplied = walletApplied > 0
-
-  const handleWalletToggle = useCallback(async () => {
-    if (!cart.id) return
-    try {
-      if (isWalletApplied) {
-        await removeWallet.mutateAsync({ cart_id: cart.id })
-      } else {
-        // Apply up to the full cart total or wallet balance (whichever is smaller)
-        const cartTotal = cart.total ?? 0
-        const amountToApply = Math.min(walletBalance, cartTotal)
-        if (amountToApply > 0) {
-          await applyWallet.mutateAsync({ cart_id: cart.id, amount: amountToApply })
-        }
-      }
-    } catch {
-      showToast("Failed to update wallet. Please try again.")
-    }
-  }, [cart.id, cart.total, isWalletApplied, walletBalance, applyWallet, removeWallet, showToast])
+  // ── Wallet integration (uncomment when loyalty program launches) ──
+  // const { data: walletData } = useWallet()
+  // const applyWallet = useApplyWallet()
+  // const removeWallet = useRemoveWallet()
+  // const walletBalance = walletData?.wallet?.balance ?? 0
+  // const walletApplied = Number((cart.metadata as any)?.wallet_amount ?? 0)
+  // const isWalletApplied = walletApplied > 0
+  // const handleWalletToggle = useCallback(async () => { ... }, [...])
 
   // Stripe needs setError for its card component
   const setError = useCallback((msg: string | null) => { if (msg) showToast(msg) }, [showToast])
@@ -100,8 +84,8 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Wallet Balance Section — hidden until loyalty program launches */}
-      {false && walletBalance > 0 && (
+      {/* Wallet Balance Section — uncomment when loyalty program launches
+      {walletBalance > 0 && (
         <div className="rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -139,6 +123,7 @@ const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
           </div>
         </div>
       )}
+      */}
 
       {!paidByGiftcard && availablePaymentMethods.length === 0 && (
         <p className="text-sm text-[var(--text-tertiary)] animate-pulse">

@@ -1,4 +1,4 @@
-import { getStoredCart, removeStoredCart} from "@/lib/utils/cart"
+import { getStoredCart } from "@/lib/utils/cart"
 import { queryKeys } from "@/lib/utils/query-keys"
 import { sdk } from "@/lib/utils/sdk"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"

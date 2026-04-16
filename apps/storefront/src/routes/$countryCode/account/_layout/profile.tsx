@@ -1,8 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { lazy, Suspense, useState } from "react"
+import { useState } from "react"
 import { useCustomer, useUpdateCustomer } from "@/lib/hooks/use-customer"
-
-const LoyaltyDashboard = lazy(() => import("@/components/loyalty-dashboard"))
 
 export const Route = createFileRoute("/$countryCode/account/_layout/profile")({
   head: () => ({
