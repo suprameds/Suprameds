@@ -1,5 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import Cart from "@/pages/cart"
+import { CartSkeleton } from "@/components/ui/skeletons"
 import { getRegion } from "@/lib/data/regions"
 
 export const Route = createFileRoute("/$countryCode/cart")({
@@ -27,5 +28,6 @@ export const Route = createFileRoute("/$countryCode/cart")({
       countryCode,
     }
   },
+  pendingComponent: CartSkeleton,
   component: Cart,
 })

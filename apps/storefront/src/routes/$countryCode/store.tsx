@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { getRegion } from "@/lib/data/regions"
 import Store from "@/pages/store"
+import { StorePageSkeleton } from "@/components/ui/skeletons"
 import { listProducts } from "@/lib/data/products"
 import { HttpTypes } from "@medusajs/types"
 
@@ -87,5 +88,6 @@ export const Route = createFileRoute("/$countryCode/store")({
       ],
     }
   },
+  pendingComponent: StorePageSkeleton,
   component: Store,
 })

@@ -1,3 +1,4 @@
+import { AccountListSkeleton } from "@/components/ui/skeletons"
 import { createFileRoute, Link, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
 import { useCustomerOrders } from "@/lib/hooks/use-orders"
@@ -40,9 +41,7 @@ function OrdersPage() {
       </div>
 
       {isLoading ? (
-        <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
-          <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Loading your orders...</p>
-        </div>
+        <AccountListSkeleton rows={3} />
       ) : isError ? (
         <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 text-center" style={{ borderColor: "var(--border-primary)" }}>
           <p className="text-sm mb-3" style={{ color: "var(--text-tertiary)" }}>

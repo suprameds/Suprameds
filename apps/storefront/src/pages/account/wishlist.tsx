@@ -1,3 +1,4 @@
+import { AccountListSkeleton } from "@/components/ui/skeletons"
 import { useState } from "react"
 import { Link, useLocation } from "@tanstack/react-router"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
@@ -61,13 +62,7 @@ export default function WishlistPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
-          Loading wishlist...
-        </p>
-      </div>
-    )
+    return <AccountListSkeleton />
   }
 
   return (

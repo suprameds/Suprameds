@@ -1,3 +1,4 @@
+import { ProductGridSkeleton } from "@/components/ui/skeletons"
 import ProductCard from "@/components/product-card"
 import { CATEGORY_ICON_MAP } from "@/components/search-category-chips"
 import { Button } from "@/components/ui/button"
@@ -313,12 +314,7 @@ const Store = () => {
 
         {/* ── Products grid ── */}
         {isLoading && displayProducts.length === 0 ? (
-          <div className="flex items-center justify-center py-16">
-            <div
-              className="w-6 h-6 border-2 rounded-full animate-spin"
-              style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
-            />
-          </div>
+          <ProductGridSkeleton count={8} />
         ) : isError ? (
           <div className="text-center py-16">
             <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>
