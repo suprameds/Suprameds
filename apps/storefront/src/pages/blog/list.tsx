@@ -1,0 +1,158 @@
+import { blogPosts, blogCategories } from "@/lib/data/blog-posts"
+import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { Link, useLocation } from "@tanstack/react-router"
+import { useState } from "react"
+
+const categoryColors: Record<string, string> = {
+  guides: "var(--brand-teal)",
+  health: "var(--brand-green)",
+  pharmacy: "#8e44ad",
+  savings: "#e67e22",
+}
+
+const BlogListPage = () => {
+  const location = useLocation()
+  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
+  const [activeCategory, setActiveCategory] = useState<string>("all")
+
+  const filtered =
+    activeCategory === "all"
+      ? blogPosts
+      : blogPosts.filter((p) => p.category === activeCategory)
+
+  return (
+    <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
+      {/* Header */}
+      <div
+        style={{
+          background: "var(--bg-secondary)",
+          borderBottom: "1px solid var(--border-primary)",
+        }}
+      >
+        <div className="content-container py-12 md:py-16">
+          <h1
+            className="text-3xl md:text-4xl font-bold tracking-tight"
+            style={{
+              color: "var(--text-primary)",
+              fontFamily: "Fraunces, Georgia, serif",
+            }}
+          >
+            Health &amp; Medicine Blog
+          </h1>
+          <p
+            className="mt-3 text-base md:text-lg max-w-2xl"
+            style={{ color: "var(--text-secondary)" }}
+          >
+            Expert articles on generic medicines, pharmacy tips, and practical health
+            guides from India's licensed online pharmacy.
+          </p>
+        </div>
+      </div>
+
+      <div className="content-container py-8 md:py-12">
+        {/* Category filter chips */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {blogCategories.map((cat) => {
+            const isActive = activeCategory === cat.key
+            return (
+              <button
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                style={{
+                  background: isActive ? "var(--brand-teal)" : "var(--bg-secondary)",
+                  color: isActive ? "#fff" : "var(--text-secondary)",
+                  border: `1px solid ${isActive ? "var(--brand-teal)" : "var(--border-primary)"}`,
+                }}
+              >
+                {cat.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Article grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {filtered.map((post) => (
+            <Link
+              key={post.slug}
+              to={"/$countryCode/blog/$slug" as any}
+              params={{ countryCode, slug: post.slug } as any}
+              className="group block rounded-xl border overflow-hidden transition-all hover:shadow-lg"
+              style={{
+                background: "var(--bg-secondary)",
+                borderColor: "var(--border-primary)",
+              }}
+            >
+              <div className="p-6 md:p-8">
+                {/* Category badge + read time */}
+                <div className="flex items-center gap-3 mb-4">
+                  <span
+                    className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide"
+                    style={{
+                      background: `color-mix(in srgb, ${categoryColors[post.category] || "var(--brand-teal)"} 12%, transparent)`,
+                      color: categoryColors[post.category] || "var(--brand-teal)",
+                    }}
+                  >
+                    {post.category}
+                  </span>
+                  <span
+                    className="text-xs"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
+                    {post.readTime}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <h2
+                  className="text-xl font-semibold leading-snug group-hover:underline"
+                  style={{
+                    color: "var(--text-primary)",
+                    fontFamily: "Fraunces, Georgia, serif",
+                  }}
+                >
+                  {post.title}
+                </h2>
+
+                {/* Description */}
+                <p
+                  className="mt-3 text-sm leading-relaxed line-clamp-3"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  {post.description}
+                </p>
+
+                {/* Date + author */}
+                <div
+                  className="mt-5 flex items-center gap-2 text-xs"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
+                  <time dateTime={post.date}>
+                    {new Date(post.date).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </time>
+                  <span>·</span>
+                  <span>{post.author}</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {filtered.length === 0 && (
+          <div className="text-center py-16">
+            <p style={{ color: "var(--text-tertiary)" }}>
+              No articles in this category yet. Check back soon.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default BlogListPage

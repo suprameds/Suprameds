@@ -263,6 +263,15 @@ export const Navbar = () => {
             >
               Rx Policy
             </Link>
+
+            <Link
+              to={"/$countryCode/blog" as any}
+              params={{ countryCode } as any}
+              className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[var(--bg-tertiary)]"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Blog
+            </Link>
           </div>
 
           {/* ── Search bar (expanded, desktop) ── */}
@@ -375,6 +384,7 @@ export const Navbar = () => {
                 </div>
                 {[
                   { label: "Prescription Policy", href: "/prescription-policy" },
+                  { label: "Blog", href: `/${countryCode}/blog` },
                   { label: "Our Licenses", href: "/pharmacy/licenses" },
                   { label: "Grievance Officer", href: "/grievance" },
                 ].map((item) => (
