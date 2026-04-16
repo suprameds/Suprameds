@@ -564,6 +564,24 @@ const PrescriptionCard = ({
             )}
           </div>
 
+          {/* Thumbnail preview */}
+          {prescription.file_url && !prescription.original_filename?.endsWith(".pdf") && (
+            <img
+              src={prescription.file_url}
+              alt="Prescription"
+              className="w-14 h-14 rounded-lg object-cover flex-shrink-0 border"
+              style={{ borderColor: "var(--border-primary)" }}
+            />
+          )}
+          {prescription.file_url && prescription.original_filename?.endsWith(".pdf") && (
+            <div
+              className="w-14 h-14 rounded-lg flex items-center justify-center flex-shrink-0 border"
+              style={{ borderColor: "var(--border-primary)", background: "var(--bg-tertiary)" }}
+            >
+              <span className="text-[10px] font-bold" style={{ color: "var(--text-tertiary)" }}>PDF</span>
+            </div>
+          )}
+
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
