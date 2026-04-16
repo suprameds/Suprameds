@@ -1070,6 +1070,23 @@ function PrescriptionSelector({
                 onChange={() => onSelect(rx.id)}
                 className="accent-[var(--brand-teal)]"
               />
+              {/* Thumbnail */}
+              {rx.file_url && !rx.original_filename?.endsWith(".pdf") ? (
+                <img
+                  src={rx.file_url}
+                  alt="Rx"
+                  className="w-12 h-12 rounded-lg object-cover flex-shrink-0 border"
+                  style={{ borderColor: "var(--border-primary)" }}
+                />
+              ) : rx.file_url ? (
+                <div
+                  className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 border"
+                  style={{ borderColor: "var(--border-primary)", background: "var(--bg-tertiary)" }}
+                >
+                  <span className="text-[10px] font-bold" style={{ color: "var(--text-tertiary)" }}>PDF</span>
+                </div>
+              ) : null}
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
