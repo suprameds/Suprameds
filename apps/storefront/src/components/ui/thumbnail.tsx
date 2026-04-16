@@ -5,6 +5,8 @@ type ThumbnailProps = {
   alt: string
   className?: string
   dosageForm?: string | null
+  /** Set to "eager" for above-the-fold images, defaults to "lazy" */
+  loading?: "lazy" | "eager"
 }
 
 /** Dosage form icon — renders the appropriate medicine shape */
@@ -83,7 +85,7 @@ function MedicineIcon({ form }: { form?: string | null }) {
   )
 }
 
-export const Thumbnail = ({ thumbnail, alt, className, dosageForm }: ThumbnailProps) => {
+export const Thumbnail = ({ thumbnail, alt, className, dosageForm, loading = "lazy" }: ThumbnailProps) => {
   if (thumbnail) {
     return (
       <img
@@ -91,6 +93,8 @@ export const Thumbnail = ({ thumbnail, alt, className, dosageForm }: ThumbnailPr
         alt={alt}
         width={80}
         height={80}
+        loading={loading}
+        decoding="async"
         className={clsx("w-20 h-20 object-cover bg-[var(--bg-tertiary)]", className)}
       />
     )

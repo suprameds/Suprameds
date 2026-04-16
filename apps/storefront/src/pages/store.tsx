@@ -350,8 +350,8 @@ const Store = () => {
         ) : (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {displayProducts.map((product) => (
-                <ProductCard key={product.id} product={product as any} pharmaLoading={!isSearchMode && isPharmaFetching && !(product as any).drug_product} />
+              {displayProducts.map((product, idx) => (
+                <ProductCard key={product.id} product={product as any} index={idx} pharmaLoading={!isSearchMode && isPharmaFetching && !(product as any).drug_product} />
               ))}
             </div>
 
