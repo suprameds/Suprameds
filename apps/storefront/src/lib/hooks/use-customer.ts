@@ -127,6 +127,10 @@ export const useLogout = () => {
     },
     onSuccess: () => {
       clearStoredOtpToken()
+      // Clear FCM push token so next user doesn't get old notifications
+      try { localStorage.removeItem("_suprameds_fcm_token") } catch { /* SSR */ }
+      // Clear cart so next user starts fresh
+      try { localStorage.removeItem("medusa_cart") } catch { /* SSR */ }
       queryClient.setQueryData(queryKeys.customer.current(), null)
       queryClient.invalidateQueries({ queryKey: queryKeys.customer.all })
     },
@@ -252,6 +256,7 @@ export const useUpdateCustomer = () => {
     },
     onSuccess: (customer) => {
       queryClient.setQueryData(queryKeys.customer.current(), customer)
+      queryClient.invalidateQueries({ queryKey: queryKeys.customer.all })
     },
   })
 }
