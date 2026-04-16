@@ -1,4 +1,5 @@
 import Home from "@/pages/home"
+import { HomePageSkeleton } from "@/components/ui/skeletons"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { getRegion } from "@/lib/data/regions"
 import { listProducts } from "@/lib/data/products"
@@ -94,5 +95,6 @@ export const Route = createFileRoute("/$countryCode/")({
       ],
     }
   },
+  pendingComponent: HomePageSkeleton,
   component: Home,
 })

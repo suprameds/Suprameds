@@ -6,7 +6,7 @@ import {
 } from "@/components/cart"
 import { LoyaltyRedeem } from "@/components/loyalty-redeem"
 import { Button } from "@/components/ui/button"
-import { Loading } from "@/components/ui/loading"
+import { CartSkeleton } from "@/components/ui/skeletons"
 import { useCart, useCreateCart } from "@/lib/hooks/use-cart"
 import { sortCartItems } from "@/lib/utils/cart"
 import { Link, useLoaderData } from "@tanstack/react-router"
@@ -83,7 +83,7 @@ const Cart = () => {
     <div style={{ background: "var(--bg-primary)", minHeight: "80vh" }}>
       <div className="content-container py-6 sm:py-10 lg:py-12 pb-28 md:pb-10 lg:pb-12">
         {cartLoading ? (
-          <Loading />
+          <CartSkeleton />
         ) : cartItems.length === 0 ? (
           <CartEmpty />
         ) : (

@@ -3,6 +3,7 @@ import { getRegion } from "@/lib/data/regions"
 import { queryKeys } from "@/lib/utils/query-keys"
 import { sdk } from "@/lib/utils/sdk"
 import ProductDetails from "@/pages/product"
+import { ProductDetailSkeleton } from "@/components/ui/skeletons"
 import { HttpTypes } from "@medusajs/types"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 
@@ -203,5 +204,6 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
       ],
     }
   },
+  pendingComponent: ProductDetailSkeleton,
   component: ProductDetails,
 })

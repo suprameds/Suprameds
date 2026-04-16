@@ -1,3 +1,4 @@
+import { AccountListSkeleton } from "@/components/ui/skeletons"
 import { useCustomerPrescriptions, type PrescriptionSummary } from "@/lib/hooks/use-prescriptions"
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { Link, useLocation } from "@tanstack/react-router"
@@ -81,24 +82,7 @@ export default function PrescriptionsPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="flex flex-col gap-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="rounded-xl border p-5 animate-pulse"
-              style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-20 rounded-lg" style={{ background: "var(--bg-tertiary)" }} />
-                <div className="flex-1">
-                  <div className="h-4 w-24 rounded mb-2" style={{ background: "var(--bg-tertiary)" }} />
-                  <div className="h-3 w-40 rounded mb-1.5" style={{ background: "var(--bg-tertiary)" }} />
-                  <div className="h-3 w-32 rounded" style={{ background: "var(--bg-tertiary)" }} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <AccountListSkeleton rows={3} />
       ) : isError ? (
         <div
           className="rounded-xl border p-8 text-center"
