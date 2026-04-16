@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 type AddressData = HttpTypes.StoreCreateCustomerAddress | HttpTypes.StoreAddAddress | AddressFormData;
 
 /** Strip +91, 91 prefix, or leading 0 from Indian phone numbers */
+// eslint-disable-next-line react-refresh/only-export-components
 export function normalizeIndianPhone(raw: string): string {
   let v = raw.replace(/[\s\-()]/g, "")
   if (v.startsWith("+91")) v = v.slice(3)

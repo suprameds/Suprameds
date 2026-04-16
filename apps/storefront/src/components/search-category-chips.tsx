@@ -1,4 +1,5 @@
 /** Map category handles → emoji icons for display on chips */
+// eslint-disable-next-line react-refresh/only-export-components
 export const CATEGORY_ICON_MAP: Record<string, string> = {
   diabetic: "💊",
   hypertension: "❤️",
