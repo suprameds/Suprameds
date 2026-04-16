@@ -1,7 +1,7 @@
 import { useBlogPosts } from "@/lib/hooks/use-blog"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { Link, useLocation } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const categoryColors: Record<string, string> = {
   guides: "var(--brand-teal)",
@@ -18,12 +18,23 @@ const categories = [
   { key: "savings", label: "Savings" },
 ]
 
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs)
+    return () => clearTimeout(timer)
+  }, [value, delayMs])
+  return debounced
+}
+
 const BlogListPage = () => {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const [activeCategory, setActiveCategory] = useState<string>("all")
+  const [searchInput, setSearchInput] = useState("")
+  const debouncedSearch = useDebouncedValue(searchInput, 300)
 
-  const { data, isLoading } = useBlogPosts(activeCategory)
+  const { data, isLoading } = useBlogPosts(activeCategory, debouncedSearch)
   const posts = data?.posts ?? []
 
   return (
@@ -52,10 +63,48 @@ const BlogListPage = () => {
             Expert articles on generic medicines, pharmacy tips, and practical health
             guides from India's licensed online pharmacy.
           </p>
+
+          {/* Search bar */}
+          <div className="mt-6 max-w-lg">
+            <div
+              className="flex items-center rounded-xl overflow-hidden"
+              style={{ background: "var(--bg-primary)", border: "1px solid var(--border-primary)" }}
+            >
+              <div className="pl-4" style={{ color: "var(--text-tertiary)" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Search articles..."
+                className="flex-1 px-3 py-3 text-sm outline-none bg-transparent"
+                style={{ color: "var(--text-primary)" }}
+              />
+              {searchInput && (
+                <button
+                  onClick={() => setSearchInput("")}
+                  className="px-3 text-lg"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="content-container py-8 md:py-12">
+        {/* Search results count */}
+        {debouncedSearch && !isLoading && (
+          <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+            {posts.length} result{posts.length !== 1 ? "s" : ""} for <strong style={{ color: "var(--text-primary)" }}>"{debouncedSearch}"</strong>
+          </p>
+        )}
+
         {/* Category filter chips */}
         <div className="flex flex-wrap gap-2 mb-8">
           {categories.map((cat) => {
