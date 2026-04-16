@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button"
 import { useProducts } from "@/lib/hooks/use-products"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { useSearch, type SearchProduct } from "@/lib/hooks/use-search"
-import { trackViewItemList, trackSearch } from "@/lib/utils/analytics"
-import { useLoaderData, useSearch as useRouterSearch, useNavigate } from "@tanstack/react-router"
+import { trackViewItemList } from "@/lib/utils/analytics"
+import { useLoaderData, useSearch as useRouterSearch } from "@tanstack/react-router"
 import { useMemo, useState, useEffect, useCallback } from "react"
 import { useBulkPharma, usePharmaFilter, type DrugProductMeta } from "@/lib/hooks/use-pharma"
 import { buildPharmaIdFilter } from "@/lib/utils/store-filters"
@@ -14,12 +14,6 @@ import { HttpTypes } from "@medusajs/types"
 type ScheduleFilter = "all" | "rx" | "otc"
 
 type EnrichedProduct = HttpTypes.StoreProduct & { drug_product?: DrugProductMeta }
-
-const SearchIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-  </svg>
-)
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value)
@@ -31,9 +25,8 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 const Store = () => {
-  const { region, countryCode } = useLoaderData({ from: "/$countryCode/store" })
+  const { region } = useLoaderData({ from: "/$countryCode/store" })
   const searchParams = useRouterSearch({ strict: false }) as Record<string, string>
-  const navigate = useNavigate()
   const initialSchedule = (searchParams?.schedule as ScheduleFilter) || "all"
   const initialQuery = searchParams?.q || ""
 
@@ -42,10 +35,9 @@ const Store = () => {
   const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>(initialSchedule)
   const [formFilter, setFormFilter] = useState<string>("all")
 
-  // ── Search state ──
-  const [searchInput, setSearchInput] = useState(initialQuery)
+  // ── Search state (driven by navbar ?q= param) ──
   const [searchOffset, setSearchOffset] = useState(0)
-  const debouncedSearch = useDebouncedValue(searchInput.trim(), 300)
+  const debouncedSearch = useDebouncedValue(initialQuery.trim(), 300)
   const isSearchMode = debouncedSearch.length > 0
 
   // Fetch all categories for filter chips
@@ -148,26 +140,6 @@ const Store = () => {
     setSearchOffset(0)
   }, [selectedCategory])
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    const trimmed = searchInput.trim()
-    if (trimmed) {
-      trackSearch(trimmed)
-      setSearchOffset(0)
-      navigate({
-        to: "/$countryCode/store",
-        params: { countryCode },
-        search: { q: trimmed },
-        replace: true,
-      })
-    }
-  }
-
-  const handleSearchInputChange = (value: string) => {
-    setSearchInput(value)
-    setSearchOffset(0)
-  }
-
   const loadMore = useCallback(() => {
     setSearchOffset((prev) => prev + 20)
   }, [])
@@ -221,60 +193,8 @@ const Store = () => {
       </div>
 
       <div className="content-container py-8">
-        {/* ── Search bar ── */}
-        <form onSubmit={handleSearchSubmit} className="max-w-2xl mx-auto mb-6">
-          <div
-            className="flex items-center rounded-xl overflow-hidden shadow-sm"
-            style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
-          >
-            <div className="pl-4" style={{ color: "#999" }}>
-              <SearchIcon />
-            </div>
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => handleSearchInputChange(e.target.value)}
-              placeholder="Search medicines by name, composition, or generic name..."
-              className="flex-1 px-3 py-3.5 text-sm outline-none bg-transparent"
-              style={{ color: "var(--text-primary)" }}
-            />
-            {isSearchMode && isSearchFetching && (
-              <div className="pr-2">
-                <div
-                  className="w-4 h-4 border-2 rounded-full animate-spin"
-                  style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }}
-                />
-              </div>
-            )}
-            {searchInput.trim() && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchInput("")
-                  setSearchOffset(0)
-                  navigate({
-                    to: "/$countryCode/store",
-                    params: { countryCode },
-                    search: {},
-                    replace: true,
-                  })
-                }}
-                className="px-2 text-lg"
-                style={{ color: "#999" }}
-                title="Clear search"
-              >
-                ×
-              </button>
-            )}
-            <button
-              type="submit"
-              className="px-5 py-3.5 text-sm font-semibold transition-opacity hover:opacity-90"
-              style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
-            >
-              Search
-            </button>
-          </div>
-        </form>
+        {/* Search bar removed — navbar already has one. Search state is
+            driven by the ?q= URL param which the navbar search sets. */}
 
         {/* ── Filter chips ── */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
