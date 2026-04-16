@@ -1,6 +1,6 @@
-import { blogPosts } from "@/lib/data/blog-posts"
+import { useBlogPost, useBlogPosts } from "@/lib/hooks/use-blog"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { Link, useLoaderData, useLocation } from "@tanstack/react-router"
+import { Link, useLocation, useParams } from "@tanstack/react-router"
 
 const categoryColors: Record<string, string> = {
   guides: "var(--brand-teal)",
@@ -28,11 +28,73 @@ const ArrowLeftIcon = () => (
 const BlogArticlePage = () => {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
-  const { post } = useLoaderData({ from: "/$countryCode/blog/$slug" as any })
+  const { slug } = useParams({ strict: false }) as { slug: string }
 
-  const relatedPosts = blogPosts
-    .filter((p) => p.slug !== post.slug)
+  const { data: post, isLoading } = useBlogPost(slug)
+  const { data: allPostsData } = useBlogPosts()
+
+  const relatedPosts = (allPostsData?.posts ?? [])
+    .filter((p) => p.slug !== slug)
     .slice(0, 3)
+
+  if (isLoading) {
+    return (
+      <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
+        <div className="content-container py-8 md:py-12 animate-pulse">
+          <div
+            className="h-4 w-24 rounded mb-8"
+            style={{ background: "var(--bg-tertiary)" }}
+          />
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div
+                className="h-6 w-16 rounded-full"
+                style={{ background: "var(--bg-tertiary)" }}
+              />
+              <div
+                className="h-4 w-20"
+                style={{ background: "var(--bg-tertiary)" }}
+              />
+            </div>
+            <div
+              className="h-10 w-3/4 mb-4 rounded"
+              style={{ background: "var(--bg-tertiary)" }}
+            />
+            <div
+              className="h-4 w-1/3 mb-10 rounded"
+              style={{ background: "var(--bg-tertiary)" }}
+            />
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="h-4 w-full mb-3 rounded"
+                style={{ background: "var(--bg-tertiary)" }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!post) {
+    return (
+      <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
+        <div className="content-container py-16 text-center">
+          <p style={{ color: "var(--text-tertiary)" }}>Article not found.</p>
+          <Link
+            to={"/$countryCode/blog" as any}
+            params={{ countryCode } as any}
+            className="inline-flex items-center gap-2 mt-4 text-sm font-medium"
+            style={{ color: "var(--brand-teal)" }}
+          >
+            <ArrowLeftIcon />
+            Back to Blog
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
@@ -61,7 +123,7 @@ const BlogArticlePage = () => {
               {post.category}
             </span>
             <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-              {post.readTime}
+              {post.read_time}
             </span>
           </div>
           <h1
@@ -90,7 +152,10 @@ const BlogArticlePage = () => {
         </header>
 
         {/* Article content with prose styling */}
-        <article className="blog-prose">{post.content()}</article>
+        <article
+          className="blog-prose"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
 
         {/* CTA */}
         <div

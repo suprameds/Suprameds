@@ -9,7 +9,7 @@ import { RecentlyViewed } from "@/components/recently-viewed"
 import { Reveal } from "@/components/ui/reveal"
 import { Counter } from "@/components/ui/counter"
 import { Link, useLocation, useLoaderData, useNavigate } from "@tanstack/react-router"
-import { blogPosts } from "@/lib/data/blog-posts"
+import { useBlogPosts } from "@/lib/hooks/use-blog"
 
 /* ── Inline SVG icons (tree-shakeable, no icon lib) ── */
 
@@ -245,6 +245,9 @@ const Home = () => {
     fields: "id,name,handle,parent_category_id",
     queryParams: { parent_category_id: "null" } as any,
   })
+
+  const { data: blogData, isLoading: blogLoading } = useBlogPosts()
+  const blogPosts = blogData?.posts ?? []
 
   const [searchQuery, setSearchQuery] = useState("")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
@@ -756,6 +759,24 @@ const Home = () => {
             </Link>
           </div>
 
+          {blogLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl overflow-hidden border animate-pulse"
+                  style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
+                >
+                  <div className="h-40" style={{ background: "var(--bg-tertiary)" }} />
+                  <div className="p-4">
+                    <div className="h-4 w-3/4 mb-2 rounded" style={{ background: "var(--bg-tertiary)" }} />
+                    <div className="h-3 w-full mb-3 rounded" style={{ background: "var(--bg-tertiary)" }} />
+                    <div className="h-3 w-1/2 rounded" style={{ background: "var(--bg-tertiary)" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : blogPosts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {blogPosts.slice(0, 4).map((post) => (
               <Link
@@ -795,12 +816,13 @@ const Home = () => {
                   <div className="flex items-center gap-2 text-[10px]" style={{ color: "var(--text-tertiary)" }}>
                     <span>{new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
                     <span>·</span>
-                    <span>{post.readTime}</span>
+                    <span>{post.read_time}</span>
                   </div>
                 </div>
               </Link>
             ))}
           </div>
+          ) : null}
 
           <div className="mt-6 md:hidden text-center">
             <Link

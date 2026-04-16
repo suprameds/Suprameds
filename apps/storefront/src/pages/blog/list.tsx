@@ -1,4 +1,4 @@
-import { blogPosts, blogCategories } from "@/lib/data/blog-posts"
+import { useBlogPosts } from "@/lib/hooks/use-blog"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { Link, useLocation } from "@tanstack/react-router"
 import { useState } from "react"
@@ -10,15 +10,21 @@ const categoryColors: Record<string, string> = {
   savings: "#e67e22",
 }
 
+const categories = [
+  { key: "all", label: "All" },
+  { key: "guides", label: "Guides" },
+  { key: "health", label: "Health" },
+  { key: "pharmacy", label: "Pharmacy" },
+  { key: "savings", label: "Savings" },
+]
+
 const BlogListPage = () => {
   const location = useLocation()
   const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const [activeCategory, setActiveCategory] = useState<string>("all")
 
-  const filtered =
-    activeCategory === "all"
-      ? blogPosts
-      : blogPosts.filter((p) => p.category === activeCategory)
+  const { data, isLoading } = useBlogPosts(activeCategory)
+  const posts = data?.posts ?? []
 
   return (
     <div style={{ background: "var(--bg-primary)", minHeight: "100vh" }}>
@@ -52,7 +58,7 @@ const BlogListPage = () => {
       <div className="content-container py-8 md:py-12">
         {/* Category filter chips */}
         <div className="flex flex-wrap gap-2 mb-8">
-          {blogCategories.map((cat) => {
+          {categories.map((cat) => {
             const isActive = activeCategory === cat.key
             return (
               <button
@@ -71,79 +77,122 @@ const BlogListPage = () => {
           })}
         </div>
 
-        {/* Article grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filtered.map((post) => (
-            <Link
-              key={post.slug}
-              to={"/$countryCode/blog/$slug" as any}
-              params={{ countryCode, slug: post.slug } as any}
-              className="group block rounded-xl border overflow-hidden transition-all hover:shadow-lg"
-              style={{
-                background: "var(--bg-secondary)",
-                borderColor: "var(--border-primary)",
-              }}
-            >
-              <div className="p-6 md:p-8">
-                {/* Category badge + read time */}
-                <div className="flex items-center gap-3 mb-4">
-                  <span
-                    className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide"
-                    style={{
-                      background: `color-mix(in srgb, ${categoryColors[post.category] || "var(--brand-teal)"} 12%, transparent)`,
-                      color: categoryColors[post.category] || "var(--brand-teal)",
-                    }}
-                  >
-                    {post.category}
-                  </span>
-                  <span
-                    className="text-xs"
-                    style={{ color: "var(--text-tertiary)" }}
-                  >
-                    {post.readTime}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h2
-                  className="text-xl font-semibold leading-snug group-hover:underline"
-                  style={{
-                    color: "var(--text-primary)",
-                    fontFamily: "Fraunces, Georgia, serif",
-                  }}
-                >
-                  {post.title}
-                </h2>
-
-                {/* Description */}
-                <p
-                  className="mt-3 text-sm leading-relaxed line-clamp-3"
-                  style={{ color: "var(--text-secondary)" }}
-                >
-                  {post.description}
-                </p>
-
-                {/* Date + author */}
-                <div
-                  className="mt-5 flex items-center gap-2 text-xs"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  <time dateTime={post.date}>
-                    {new Date(post.date).toLocaleDateString("en-IN", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </time>
-                  <span>·</span>
-                  <span>{post.author}</span>
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl border overflow-hidden animate-pulse"
+                style={{
+                  background: "var(--bg-secondary)",
+                  borderColor: "var(--border-primary)",
+                }}
+              >
+                <div className="p-6 md:p-8">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div
+                      className="h-6 w-16 rounded-full"
+                      style={{ background: "var(--bg-tertiary)" }}
+                    />
+                    <div
+                      className="h-4 w-20"
+                      style={{ background: "var(--bg-tertiary)" }}
+                    />
+                  </div>
+                  <div
+                    className="h-6 w-3/4 mb-3 rounded"
+                    style={{ background: "var(--bg-tertiary)" }}
+                  />
+                  <div
+                    className="h-4 w-full mb-2 rounded"
+                    style={{ background: "var(--bg-tertiary)" }}
+                  />
+                  <div
+                    className="h-4 w-2/3 rounded"
+                    style={{ background: "var(--bg-tertiary)" }}
+                  />
                 </div>
               </div>
-            </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {filtered.length === 0 && (
+        {/* Article grid */}
+        {!isLoading && posts.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {posts.map((post) => (
+              <Link
+                key={post.slug}
+                to={"/$countryCode/blog/$slug" as any}
+                params={{ countryCode, slug: post.slug } as any}
+                className="group block rounded-xl border overflow-hidden transition-all hover:shadow-lg"
+                style={{
+                  background: "var(--bg-secondary)",
+                  borderColor: "var(--border-primary)",
+                }}
+              >
+                <div className="p-6 md:p-8">
+                  {/* Category badge + read time */}
+                  <div className="flex items-center gap-3 mb-4">
+                    <span
+                      className="inline-block px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide"
+                      style={{
+                        background: `color-mix(in srgb, ${categoryColors[post.category] || "var(--brand-teal)"} 12%, transparent)`,
+                        color: categoryColors[post.category] || "var(--brand-teal)",
+                      }}
+                    >
+                      {post.category}
+                    </span>
+                    <span
+                      className="text-xs"
+                      style={{ color: "var(--text-tertiary)" }}
+                    >
+                      {post.read_time}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <h2
+                    className="text-xl font-semibold leading-snug group-hover:underline"
+                    style={{
+                      color: "var(--text-primary)",
+                      fontFamily: "Fraunces, Georgia, serif",
+                    }}
+                  >
+                    {post.title}
+                  </h2>
+
+                  {/* Description */}
+                  <p
+                    className="mt-3 text-sm leading-relaxed line-clamp-3"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {post.description}
+                  </p>
+
+                  {/* Date + author */}
+                  <div
+                    className="mt-5 flex items-center gap-2 text-xs"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
+                    <time dateTime={post.date}>
+                      {new Date(post.date).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </time>
+                    <span>·</span>
+                    <span>{post.author}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {!isLoading && posts.length === 0 && (
           <div className="text-center py-16">
             <p style={{ color: "var(--text-tertiary)" }}>
               No articles in this category yet. Check back soon.
