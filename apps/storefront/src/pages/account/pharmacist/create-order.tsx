@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Link, useLocation } from "@tanstack/react-router"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import {
@@ -7,6 +7,8 @@ import {
   usePharmacistProductSearch,
   type SearchProduct,
 } from "@/lib/hooks/use-pharmacist"
+import { useQuery } from "@tanstack/react-query"
+import { sdk } from "@/lib/utils/sdk"
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -722,30 +724,11 @@ export default function CreateOrderPage() {
 
       {/* Section 3: Prescription (conditional) */}
       {selectedCustomer && hasRxItems && (
-        <section
-          className="rounded-xl border p-5"
-          style={{ background: "rgba(245,158,11,0.06)", borderColor: "var(--brand-amber)" }}
-        >
-          <h2 className="text-sm font-semibold mb-2" style={{ color: "var(--brand-amber)" }}>
-            3. Prescription Required
-          </h2>
-          <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
-            This order contains prescription medicines. Please attach a prescription.
-          </p>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="Prescription ID"
-              value={selectedPrescriptionId}
-              onChange={(e) => setSelectedPrescriptionId(e.target.value)}
-              className="flex-1 px-3.5 py-2.5 rounded-lg border text-sm outline-none"
-              style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
-            />
-            {selectedPrescriptionId.trim() && (
-              <span className="text-lg" style={{ color: "var(--brand-green)" }}>&#10003;</span>
-            )}
-          </div>
-        </section>
+        <PrescriptionSelector
+          customerId={selectedCustomer.id}
+          selectedPrescriptionId={selectedPrescriptionId}
+          onSelect={setSelectedPrescriptionId}
+        />
       )}
 
       {/* Section 4: Shipping + Place Order */}
@@ -952,5 +935,202 @@ export default function CreateOrderPage() {
         </section>
       )}
     </div>
+  )
+}
+
+// ── Prescription Selector Component ──────────────────────────────────
+
+function PrescriptionSelector({
+  customerId,
+  selectedPrescriptionId,
+  onSelect,
+}: {
+  customerId: string
+  selectedPrescriptionId: string
+  onSelect: (id: string) => void
+}) {
+  const [showUpload, setShowUpload] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Fetch prescriptions for this customer
+  const { data: prescriptions, isLoading, refetch } = useQuery({
+    queryKey: ["pharmacist", "customer-prescriptions", customerId],
+    queryFn: async () => {
+      const res = await sdk.client.fetch<{ prescriptions: any[] }>(
+        `/store/pharmacist/prescriptions?customer_id=${customerId}`,
+        { method: "GET" }
+      )
+      return res.prescriptions ?? []
+    },
+    enabled: !!customerId,
+  })
+
+  const validPrescriptions = (prescriptions ?? []).filter(
+    (rx: any) => rx.status === "approved" || rx.status === "pending_review"
+  )
+
+  const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      alert("File too large. Max 10MB.")
+      return
+    }
+
+    const allowed = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
+    if (!allowed.includes(file.type)) {
+      alert("Only JPG, PNG, WebP, or PDF files accepted.")
+      return
+    }
+
+    setUploading(true)
+    try {
+      // Read file as base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result as string
+          resolve(result.split(",")[1]) // strip data:... prefix
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+
+      // Upload file
+      const uploadRes = await sdk.client.fetch<{ file_key: string; file_url: string }>(
+        "/store/prescriptions/upload-file",
+        { method: "POST", body: { filename: file.name, content_type: file.type, content: base64 } }
+      )
+
+      // Create prescription record linked to the customer
+      const rxRes = await sdk.client.fetch<{ prescription: any }>(
+        "/store/prescriptions",
+        {
+          method: "POST",
+          body: {
+            file_key: uploadRes.file_key,
+            file_url: uploadRes.file_url,
+            original_filename: file.name,
+            content_type: file.type,
+            file_size_bytes: file.size,
+            customer_id: customerId,
+          },
+        }
+      )
+
+      // Select the newly uploaded prescription
+      if (rxRes.prescription?.id) {
+        onSelect(rxRes.prescription.id)
+      }
+
+      // Refresh the list
+      refetch()
+      setShowUpload(false)
+    } catch (err: any) {
+      alert("Upload failed: " + (err.message || "Please try again"))
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
+  }, [customerId, onSelect, refetch])
+
+  return (
+    <section
+      className="rounded-xl border p-5"
+      style={{ background: "rgba(245,158,11,0.06)", borderColor: "var(--brand-amber)" }}
+    >
+      <h2 className="text-sm font-semibold mb-2" style={{ color: "var(--brand-amber)" }}>
+        3. Prescription Required
+      </h2>
+      <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
+        This order contains prescription medicines. Select an existing prescription or upload a new one.
+      </p>
+
+      {/* Existing prescriptions */}
+      {isLoading ? (
+        <p className="text-xs py-3" style={{ color: "var(--text-tertiary)" }}>Loading prescriptions...</p>
+      ) : validPrescriptions.length > 0 ? (
+        <div className="flex flex-col gap-2 mb-3">
+          {validPrescriptions.map((rx: any) => (
+            <label
+              key={rx.id}
+              className="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all"
+              style={{
+                borderColor: selectedPrescriptionId === rx.id ? "var(--brand-teal)" : "var(--border-primary)",
+                background: selectedPrescriptionId === rx.id ? "rgba(14,124,134,0.04)" : "var(--bg-primary)",
+              }}
+            >
+              <input
+                type="radio"
+                name="prescription"
+                checked={selectedPrescriptionId === rx.id}
+                onChange={() => onSelect(rx.id)}
+                className="accent-[var(--brand-teal)]"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                    {rx.original_filename || "Prescription"}
+                  </span>
+                  <span
+                    className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                    style={{
+                      background: rx.status === "approved" ? "rgba(34,197,94,0.1)" : "rgba(245,158,11,0.1)",
+                      color: rx.status === "approved" ? "#16a34a" : "#d97706",
+                    }}
+                  >
+                    {rx.status === "approved" ? "Approved" : "Pending Review"}
+                  </span>
+                </div>
+                <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                  {rx.doctor_name ? `Dr. ${rx.doctor_name}` : "Doctor not specified"} · Uploaded{" "}
+                  {new Date(rx.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                </span>
+              </div>
+            </label>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs py-2 mb-2" style={{ color: "var(--text-tertiary)" }}>
+          No prescriptions found for this customer.
+        </p>
+      )}
+
+      {/* Upload new */}
+      {showUpload ? (
+        <div className="flex items-center gap-3 p-3 rounded-lg border" style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,application/pdf"
+            onChange={handleFileUpload}
+            disabled={uploading}
+            className="text-xs flex-1"
+          />
+          {uploading && (
+            <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "var(--border-primary)", borderTopColor: "var(--brand-teal)" }} />
+          )}
+          <button onClick={() => setShowUpload(false)} className="text-xs" style={{ color: "var(--text-tertiary)" }}>Cancel</button>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowUpload(true)}
+          className="text-xs font-medium px-3 py-2 rounded-lg border transition-all hover:opacity-80"
+          style={{ color: "var(--brand-teal)", borderColor: "var(--brand-teal)" }}
+        >
+          + Upload New Prescription
+        </button>
+      )}
+
+      {/* Selected confirmation */}
+      {selectedPrescriptionId && (
+        <div className="flex items-center gap-2 mt-3 text-xs" style={{ color: "var(--brand-green)" }}>
+          <span>&#10003;</span> Prescription attached
+        </div>
+      )}
+    </section>
   )
 }
