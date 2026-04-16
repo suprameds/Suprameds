@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router"
-// @ts-expect-error Page will be created in a subsequent task
 import CreateOrderPage from "@/pages/account/pharmacist/create-order"
 
 export const Route = createFileRoute(
