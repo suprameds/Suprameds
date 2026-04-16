@@ -9,6 +9,7 @@ import { RecentlyViewed } from "@/components/recently-viewed"
 import { Reveal } from "@/components/ui/reveal"
 import { Counter } from "@/components/ui/counter"
 import { Link, useLocation, useLoaderData, useNavigate } from "@tanstack/react-router"
+import { blogPosts } from "@/lib/data/blog-posts"
 
 /* ── Inline SVG icons (tree-shakeable, no icon lib) ── */
 
@@ -728,6 +729,89 @@ const Home = () => {
             </div>
             <h3 className="text-sm font-bold mb-2" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>Data Privacy</h3>
             <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>DPDP Act 2023 compliant. Encrypted prescription storage. Your data is never shared.</p>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════
+          HEALTH BLOG — SEO content preview
+         ════════════════════════════════════════════ */}
+      <section style={{ background: "var(--bg-secondary)", borderTop: "1px solid var(--border-primary)" }}>
+        <div className="content-container py-14 lg:py-18">
+          <Reveal>
+          <div className="flex items-end justify-between mb-8">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal)" }}>Learn</p>
+              <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>
+                Health Blog
+              </h2>
+            </div>
+            <Link
+              to={"/$countryCode/blog" as any}
+              params={{ countryCode } as any}
+              className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
+              style={{ background: "var(--brand-teal)" }}
+            >
+              See All
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {blogPosts.slice(0, 4).map((post) => (
+              <Link
+                key={post.slug}
+                to={"/$countryCode/blog/$slug" as any}
+                params={{ countryCode, slug: post.slug } as any}
+                className="group rounded-xl overflow-hidden border transition-all hover:shadow-lg"
+                style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
+              >
+                {/* Colored header bar based on category */}
+                <div
+                  className="h-40 flex items-end p-4"
+                  style={{
+                    background: post.category === "guides"
+                      ? "linear-gradient(135deg, #0E7C86, #134E5E)"
+                      : post.category === "health"
+                      ? "linear-gradient(135deg, #27AE60, #1E8449)"
+                      : post.category === "savings"
+                      ? "linear-gradient(135deg, #F39C12, #D68910)"
+                      : "linear-gradient(135deg, #1E2D5A, #2C3E50)",
+                  }}
+                >
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.2)", color: "white" }}>
+                    {post.category}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h3
+                    className="text-sm font-semibold mb-2 line-clamp-2 group-hover:underline"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {post.title}
+                  </h3>
+                  <p className="text-xs line-clamp-2 mb-3" style={{ color: "var(--text-tertiary)" }}>
+                    {post.description}
+                  </p>
+                  <div className="flex items-center gap-2 text-[10px]" style={{ color: "var(--text-tertiary)" }}>
+                    <span>{new Date(post.date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    <span>·</span>
+                    <span>{post.readTime}</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-6 md:hidden text-center">
+            <Link
+              to={"/$countryCode/blog" as any}
+              params={{ countryCode } as any}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-lg text-white"
+              style={{ background: "var(--brand-teal)" }}
+            >
+              See All Articles <ArrowRight />
+            </Link>
+          </div>
           </Reveal>
         </div>
       </section>
