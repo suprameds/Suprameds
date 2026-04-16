@@ -80,6 +80,32 @@ const EMPTY_ADDRESS: AddressData = {
 const FREE_SHIPPING_THRESHOLD = 300
 const SHIPPING_COST = 50
 
+// ── Draft persistence (localStorage) ──────────────────────────────
+
+interface Draft {
+  id: string
+  savedAt: string
+  customer: CustomerData
+  cartItems: CartItem[]
+  prescriptionId: string
+  notes: string
+}
+
+const DRAFTS_KEY = "suprameds_pharmacist_drafts"
+
+function loadDrafts(): Draft[] {
+  if (typeof window === "undefined") return []
+  try {
+    return JSON.parse(localStorage.getItem(DRAFTS_KEY) || "[]")
+  } catch {
+    return []
+  }
+}
+
+function saveDrafts(drafts: Draft[]) {
+  localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts))
+}
+
 // ── Component ──────────────────────────────────────────────────────
 
 export default function CreateOrderPage() {
@@ -100,6 +126,7 @@ export default function CreateOrderPage() {
   const [newAddress, setNewAddress] = useState<AddressData>({ ...EMPTY_ADDRESS })
   const [notes, setNotes] = useState("")
   const [orderResult, setOrderResult] = useState<OrderResult | null>(null)
+  const [drafts, setDrafts] = useState<Draft[]>(loadDrafts)
   const searchRef = useRef<HTMLDivElement>(null)
 
   // Hooks
@@ -130,7 +157,6 @@ export default function CreateOrderPage() {
     selectedCustomer &&
     cartItems.length > 0 &&
     activeAddress &&
-    activeAddress.first_name &&
     activeAddress.address_1 &&
     activeAddress.city &&
     activeAddress.postal_code &&
@@ -227,8 +253,8 @@ export default function CreateOrderPage() {
         customer_id: selectedCustomer.id,
         items: cartItems.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity })),
         shipping_address: {
-          first_name: activeAddress.first_name,
-          last_name: activeAddress.last_name,
+          first_name: activeAddress.first_name || selectedCustomer.first_name || "Customer",
+          last_name: activeAddress.last_name || selectedCustomer.last_name || "",
           address_1: activeAddress.address_1,
           address_2: activeAddress.address_2,
           city: activeAddress.city,
@@ -261,6 +287,40 @@ export default function CreateOrderPage() {
     setOrderResult(null)
     customerLookup.reset()
     createOrder.reset()
+  }
+
+  function handleSaveDraft() {
+    if (!selectedCustomer || cartItems.length === 0) return
+    const draft: Draft = {
+      id: `draft_${Date.now()}`,
+      savedAt: new Date().toISOString(),
+      customer: selectedCustomer,
+      cartItems,
+      prescriptionId: selectedPrescriptionId,
+      notes,
+    }
+    const updated = [draft, ...drafts.filter((d) => d.id !== draft.id)].slice(0, 20) // max 20 drafts
+    setDrafts(updated)
+    saveDrafts(updated)
+    handleReset()
+  }
+
+  function handleLoadDraft(draft: Draft) {
+    setSelectedCustomer(draft.customer)
+    setPhone(draft.customer.phone?.replace("+91", "") || "")
+    setCartItems(draft.cartItems)
+    setSelectedPrescriptionId(draft.prescriptionId)
+    setNotes(draft.notes)
+    // Remove the loaded draft
+    const updated = drafts.filter((d) => d.id !== draft.id)
+    setDrafts(updated)
+    saveDrafts(updated)
+  }
+
+  function handleDeleteDraft(draftId: string) {
+    const updated = drafts.filter((d) => d.id !== draftId)
+    setDrafts(updated)
+    saveDrafts(updated)
   }
 
   // ── Success Screen ──
@@ -331,6 +391,53 @@ export default function CreateOrderPage() {
           Back to Rx Queue
         </Link>
       </div>
+
+      {/* Saved Drafts */}
+      {drafts.length > 0 && (
+        <section
+          className="rounded-xl border p-4 mb-1"
+          style={{ background: "rgba(14,124,134,0.03)", borderColor: "var(--brand-teal)" }}
+        >
+          <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+            Saved Drafts ({drafts.length})
+          </h3>
+          <div className="flex flex-col gap-2">
+            {drafts.map((draft) => (
+              <div
+                key={draft.id}
+                className="flex items-center justify-between p-3 rounded-lg border"
+                style={{ background: "var(--bg-primary)", borderColor: "var(--border-primary)" }}
+              >
+                <div>
+                  <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                    {draft.customer.first_name} {draft.customer.last_name}
+                  </span>
+                  <span className="text-xs ml-2" style={{ color: "var(--text-tertiary)" }}>
+                    {draft.cartItems.length} item{draft.cartItems.length !== 1 ? "s" : ""} · saved{" "}
+                    {new Date(draft.savedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleLoadDraft(draft)}
+                    className="px-3 py-1.5 rounded text-xs font-semibold text-white"
+                    style={{ background: "var(--brand-teal)" }}
+                  >
+                    Resume
+                  </button>
+                  <button
+                    onClick={() => handleDeleteDraft(draft.id)}
+                    className="px-3 py-1.5 rounded text-xs font-medium"
+                    style={{ color: "var(--brand-red)", background: "rgba(239,68,68,0.06)" }}
+                  >
+                    Discard
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Section 1: Customer Selector */}
       <section
@@ -817,15 +924,25 @@ export default function CreateOrderPage() {
             style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
           />
 
-          {/* Place Order */}
-          <button
-            onClick={handlePlaceOrder}
-            disabled={!canPlaceOrder || createOrder.isPending}
-            className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-            style={{ background: "var(--brand-teal)" }}
-          >
-            {createOrder.isPending ? "Placing..." : "Place Order"}
-          </button>
+          {/* Place Order + Save Draft */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleSaveDraft}
+              disabled={!selectedCustomer || cartItems.length === 0 || createOrder.isPending}
+              className="flex-1 py-3 rounded-lg text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-50 border"
+              style={{ color: "var(--brand-teal)", borderColor: "var(--brand-teal)", background: "transparent" }}
+            >
+              Save as Draft
+            </button>
+            <button
+              onClick={handlePlaceOrder}
+              disabled={!canPlaceOrder || createOrder.isPending}
+              className="flex-[2] py-3 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+              style={{ background: "var(--brand-teal)" }}
+            >
+              {createOrder.isPending ? "Placing..." : "Place Order"}
+            </button>
+          </div>
 
           {createOrder.isError && (
             <p className="text-xs mt-2 text-center" style={{ color: "var(--brand-red)" }}>
