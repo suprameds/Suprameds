@@ -57,7 +57,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const result = { drug_product }
 
   try {
-    await cacheService.set(cacheKey, result, 900) // 15 min TTL
+    await cacheService.set(cacheKey, result, 300) // 5 min TTL (MRP compliance)
   } catch {
     // Cache write failure is non-fatal
   }

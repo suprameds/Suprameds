@@ -26,6 +26,7 @@ export const useWishlist = () => {
       )
       return res
     },
+    staleTime: 2 * 60 * 1000, // 2 min — mutations invalidate on changes
   })
 }
 
