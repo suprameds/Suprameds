@@ -32,24 +32,34 @@ export default function RxQueuePage() {
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <h1
-            className="text-xl lg:text-2xl font-semibold"
-            style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
-          >
-            Rx Queue
-          </h1>
-          <span
-            className="px-2 py-0.5 rounded-full text-[10px] font-bold"
-            style={{ background: "rgba(14,124,134,0.1)", color: "var(--brand-teal)" }}
-          >
-            Pharmacist
-          </span>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h1
+              className="text-xl lg:text-2xl font-semibold"
+              style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
+            >
+              Rx Queue
+            </h1>
+            <span
+              className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+              style={{ background: "rgba(14,124,134,0.1)", color: "var(--brand-teal)" }}
+            >
+              Pharmacist
+            </span>
+          </div>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+            Review prescriptions and create orders for customers.
+          </p>
         </div>
-        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-          Review prescriptions and create orders for customers.
-        </p>
+        <Link
+          to={"/$countryCode/account/pharmacist/create-order" as any}
+          params={{ countryCode } as any}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
+          style={{ background: "var(--brand-teal)" }}
+        >
+          + Create Order
+        </Link>
       </div>
 
       {/* Status filter tabs */}

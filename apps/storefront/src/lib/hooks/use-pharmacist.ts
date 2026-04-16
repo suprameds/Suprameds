@@ -166,3 +166,78 @@ export function useCreateOrderForCustomer() {
     },
   })
 }
+
+// ── Pharmacist Create Order hooks ──
+
+type CustomerLookupResult = {
+  found: boolean
+  customer: {
+    id: string
+    first_name: string
+    last_name: string
+    phone: string
+    email: string
+    addresses: Array<{
+      id: string
+      first_name: string
+      last_name: string
+      address_1: string
+      address_2?: string
+      city: string
+      province?: string
+      postal_code: string
+      country_code: string
+      phone?: string
+      is_default_shipping?: boolean
+    }>
+  } | null
+}
+
+export function usePharmacistCustomerLookup() {
+  return useMutation({
+    mutationFn: async (data: {
+      phone: string
+      first_name?: string
+      last_name?: string
+    }): Promise<CustomerLookupResult> => {
+      return await sdk.client.fetch<CustomerLookupResult>(
+        "/store/pharmacist/customers/lookup",
+        { method: "POST", body: data }
+      )
+    },
+  })
+}
+
+type CreateOrderResult = {
+  order_id: string
+  display_id: number
+  total: number
+  message: string
+}
+
+export function usePharmacistCreateOrder() {
+  return useMutation({
+    mutationFn: async (data: {
+      customer_id: string
+      items: Array<{ variant_id: string; quantity: number }>
+      shipping_address: {
+        first_name: string
+        last_name: string
+        address_1: string
+        address_2?: string
+        city: string
+        province?: string
+        postal_code: string
+        country_code: string
+        phone?: string
+      }
+      prescription_id?: string
+      notes?: string
+    }): Promise<CreateOrderResult> => {
+      return await sdk.client.fetch<CreateOrderResult>(
+        "/store/pharmacist/orders/create",
+        { method: "POST", body: data }
+      )
+    },
+  })
+}
