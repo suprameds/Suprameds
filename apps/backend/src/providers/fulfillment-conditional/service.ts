@@ -17,6 +17,7 @@ const logger = createLogger("provider:fulfillment-conditional")
  * — NOT nested under context.cart.
  */
 
+// Keep in sync with apps/storefront/src/lib/utils/shipping.ts
 const FREE_SHIPPING_THRESHOLD = 300
 const STANDARD_SHIPPING_CHARGE = 50
 

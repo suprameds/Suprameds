@@ -29,14 +29,12 @@ import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
 import { clsx } from "clsx"
 import { useState } from "react"
-
-
-const FREE_DELIVERY_THRESHOLD = 300
+import { FREE_DELIVERY_THRESHOLD, calculateDeliveryRemaining, isEligibleForFreeDelivery } from "@/lib/utils/shipping"
 
 export const FreeDeliveryBar = ({ subtotal }: { subtotal: number; currencyCode: string }) => {
-  const remaining = Math.max(0, FREE_DELIVERY_THRESHOLD - subtotal)
+  const remaining = calculateDeliveryRemaining(subtotal)
   const progress = Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)
-  const qualified = remaining <= 0
+  const qualified = isEligibleForFreeDelivery(subtotal)
 
   return (
     <div
@@ -346,7 +344,7 @@ export const CartSummary = ({ cart }: CartSummaryProps) => {
             }
 
             const itemTotal = cart.item_subtotal ?? cart.subtotal ?? 0
-            return itemTotal >= FREE_DELIVERY_THRESHOLD
+            return isEligibleForFreeDelivery(itemTotal)
               ? <span className="text-sm font-semibold" style={{ color: "var(--brand-green)" }}>FREE</span>
               : <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>Calculated at checkout</span>
           })()}
