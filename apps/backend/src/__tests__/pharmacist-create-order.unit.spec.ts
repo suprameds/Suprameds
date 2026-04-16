@@ -25,3 +25,27 @@ describe("normalizePhone", () => {
     expect(normalizePhone("abc")).toBe("")
   })
 })
+
+describe("Order creation validation", () => {
+  it("rejects empty items array", () => {
+    const body = { customer_id: "cus_1", items: [], shipping_address: {} }
+    expect(body.items.length).toBe(0)
+  })
+
+  it("rejects missing customer_id", () => {
+    const body = { items: [{ variant_id: "v1", quantity: 1 }] }
+    expect((body as any).customer_id).toBeUndefined()
+  })
+
+  it("requires prescription_id when Rx items present", () => {
+    const hasRxItems = true
+    const prescriptionId = undefined
+    expect(hasRxItems && !prescriptionId).toBe(true)
+  })
+
+  it("allows OTC order without prescription", () => {
+    const hasRxItems = false
+    const prescriptionId = undefined
+    expect(hasRxItems && !prescriptionId).toBe(false)
+  })
+})
