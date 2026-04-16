@@ -134,6 +134,7 @@ const Footer = () => {
             <ul className="space-y-2.5">
               {[
                 { label: "Upload Prescription", href: `/${countryCode}/upload-rx` },
+                { label: "Health Blog", href: `/${countryCode}/blog` },
                 { label: "My Account", href: `/${countryCode}/account` },
                 { label: "My Orders", href: `/${countryCode}/account/orders` },
               ].map((item) => (
