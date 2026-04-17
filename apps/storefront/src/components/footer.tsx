@@ -80,16 +80,13 @@ const Footer = () => {
 
           {/* Brand + Address */}
           <div className="lg:col-span-1 flex flex-col gap-5">
-            <Link to="/$countryCode" params={{ countryCode }} className="flex items-center gap-2 hover:opacity-80 transition-opacity w-fit">
-              <div className="w-7 h-7 rounded flex items-center justify-center flex-shrink-0" style={{ background: "var(--brand-teal)" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-inverse)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
-                  <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
-                </svg>
-              </div>
-              <span className="text-xl font-semibold" style={{ color: "var(--text-inverse)", fontFamily: "Fraunces, Georgia, serif" }}>
-                Suprameds
-              </span>
+            <Link to="/$countryCode" params={{ countryCode }} className="flex items-center hover:opacity-80 transition-opacity w-fit">
+              <img
+                src="/images/suprameds-logo.jpg"
+                alt="Suprameds — Healthcare at your doorstep"
+                className="h-10 brightness-0 invert"
+                style={{ objectFit: "contain" }}
+              />
             </Link>
             <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.55)" }}>
               A licensed online pharmacy serving India since 2022. Pharmacist-dispensed medicines, delivered to your door.

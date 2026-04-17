@@ -189,20 +189,14 @@ export const Navbar = () => {
           <Link
             to="/$countryCode"
             params={{ countryCode }}
-            className="hidden lg:flex items-center gap-2 hover:opacity-80 transition-opacity flex-shrink-0"
+            className="hidden lg:flex items-center hover:opacity-80 transition-opacity flex-shrink-0"
           >
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, var(--brand-teal), #0a9272)" }}
-            >
-              <PillIcon />
-            </div>
-            <span
-              className="text-lg font-semibold tracking-tight"
-              style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
-            >
-              Suprameds
-            </span>
+            <img
+              src="/images/suprameds-logo.jpg"
+              alt="Suprameds — Healthcare at your doorstep"
+              className="h-9"
+              style={{ objectFit: "contain" }}
+            />
           </Link>
 
           {/* ── Desktop nav links ── */}
@@ -323,8 +317,8 @@ export const Navbar = () => {
             </DrawerTrigger>
             <DrawerContent side="left">
               <DrawerHeader>
-                <DrawerTitle className="font-serif text-lg" style={{ color: "var(--text-primary)" }}>
-                  Suprameds
+                <DrawerTitle>
+                  <img src="/images/suprameds-logo.jpg" alt="Suprameds" className="h-8" style={{ objectFit: "contain" }} />
                 </DrawerTitle>
               </DrawerHeader>
               <div className="flex flex-col py-4">
@@ -430,20 +424,14 @@ export const Navbar = () => {
             <Link
               to="/$countryCode"
               params={{ countryCode }}
-              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+              className="flex items-center hover:opacity-80 transition-opacity"
             >
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, var(--brand-teal), #0a9272)" }}
-              >
-                <PillIcon />
-              </div>
-              <span
-                className="text-lg font-semibold tracking-tight"
-                style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
-              >
-                Suprameds
-              </span>
+              <img
+                src="/images/suprameds-logo.jpg"
+                alt="Suprameds"
+                className="h-8"
+                style={{ objectFit: "contain" }}
+              />
             </Link>
           </div>
 
