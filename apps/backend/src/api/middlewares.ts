@@ -13,6 +13,22 @@ import { requireMfa } from "./admin/middlewares/mfa-guard"
 import { requirePharmacistRole } from "./store/pharmacist/guard"
 
 /**
+ * CORS middleware for public blog routes.
+ * Medusa only applies CORS to /store/* and /admin/* paths automatically.
+ * Our /blog/* routes need explicit CORS headers for storefront access.
+ */
+function blogCors(req: MedusaRequest, res: MedusaResponse, next: MedusaNextFunction) {
+  const origin = req.headers.origin || "*"
+  res.setHeader("Access-Control-Allow-Origin", origin)
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS")
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
+  if (req.method === "OPTIONS") {
+    return res.status(204).end()
+  }
+  next()
+}
+
+/**
  * Password strength validation middleware for registration.
  * Enforces: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit.
  */
@@ -164,6 +180,16 @@ export default defineMiddlewares({
       matcher: "/store/carts/:id/loyalty-redeem",
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
+    // ── Public blog routes — CORS for storefront access ────────────────
+    {
+      matcher: "/blog/*",
+      middlewares: [blogCors],
+    },
+    {
+      matcher: "/blog",
+      middlewares: [blogCors],
+    },
+
     // ── Pharmacist storefront routes — customer auth + role check ──────
     {
       matcher: "/store/pharmacist/*",
