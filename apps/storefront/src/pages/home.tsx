@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 import { useLatestProducts } from "@/lib/hooks/use-products"
 import { useBulkPharma } from "@/lib/hooks/use-pharma"
 import { useCategories } from "@/lib/hooks/use-categories"
@@ -267,10 +267,17 @@ const Home = () => {
         return !drug?.schedule || drug.schedule === "OTC"
       }).slice(0, 8)
 
-  const { data: categories } = useCategories({
+  const { data: allCats } = useCategories({
     fields: "id,name,handle,parent_category_id",
-    queryParams: { parent_category_id: "null" } as any,
   })
+  // Show medicine subcategories (Antibiotics, Diabetic, etc.) not parent categories
+  const medicinesParent = allCats?.find((c) => c.handle === "medicines")
+  const categories = useMemo(() => {
+    if (!allCats || !medicinesParent) return allCats?.filter((c) => !c.parent_category_id) ?? []
+    return allCats
+      .filter((c) => c.parent_category_id === medicinesParent.id)
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }, [allCats, medicinesParent])
 
   const { data: blogData, isLoading: blogLoading } = useBlogPosts()
   const blogPosts = blogData?.posts ?? []
@@ -507,7 +514,7 @@ const Home = () => {
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 sm:overflow-visible sm:pb-0">
-              {categories.map((cat) => {
+              {categories.map((cat: any) => {
                 const colors = CATEGORY_COLORS[cat.handle] || CATEGORY_COLORS.default
                 return (
                   <Link
