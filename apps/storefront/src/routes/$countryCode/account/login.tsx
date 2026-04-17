@@ -243,22 +243,73 @@ function LoginPage() {
   const NAVY = "var(--text-primary)"
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg-tertiary)" }}>
+    <div className="min-h-screen flex" style={{ background: "var(--bg-primary)" }}>
+      {/* ── Left panel: brand visual (hidden on mobile) ── */}
+      <div
+        className="hidden lg:flex lg:w-[45%] xl:w-[50%] flex-col justify-between p-12 relative overflow-hidden"
+        style={{ background: "linear-gradient(145deg, #0A3D42, #0E7C86 40%, #134E5E)" }}
+      >
+        {/* Decorative circles */}
+        <div className="absolute -top-20 -left-20 w-72 h-72 rounded-full opacity-10" style={{ background: "white" }} />
+        <div className="absolute bottom-10 -right-16 w-56 h-56 rounded-full opacity-[0.07]" style={{ background: "white" }} />
+        <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full opacity-[0.05]" style={{ background: "white" }} />
+
+        <div>
+          <Link to="/$countryCode" params={{ countryCode }} className="inline-block mb-12">
+            <span className="text-2xl font-bold text-white" style={{ fontFamily: "Fraunces, Georgia, serif" }}>
+              Suprameds
+            </span>
+          </Link>
+
+          <h2
+            className="text-3xl xl:text-4xl font-semibold text-white leading-tight mb-4"
+            style={{ fontFamily: "Fraunces, Georgia, serif" }}
+          >
+            Quality medicines,
+            <br />
+            affordable prices.
+          </h2>
+          <p className="text-sm leading-relaxed max-w-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
+            India's licensed online pharmacy. Same composition, 50-80% less than branded alternatives.
+            Pharmacist-verified, delivered to your door.
+          </p>
+        </div>
+
+        {/* Trust badges at bottom */}
+        <div className="flex flex-wrap gap-6 mt-auto pt-8">
+          {[
+            { label: "Licensed Pharmacy", sub: "DL: TS/HYD/2021-82149" },
+            { label: "Pharmacist Verified", sub: "Every order checked" },
+            { label: "Pan-India Delivery", sub: "Speed Post" },
+          ].map((badge) => (
+            <div key={badge.label}>
+              <p className="text-xs font-semibold text-white">{badge.label}</p>
+              <p className="text-[10px]" style={{ color: "rgba(255,255,255,0.45)" }}>{badge.sub}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Right panel: login form ── */}
+      <div className="flex-1 flex items-center justify-center px-4 py-8 lg:px-12">
       <div className="w-full max-w-md">
+        {/* Mobile logo (hidden on desktop) */}
+        <div className="lg:hidden text-center mb-6">
+          <Link to="/$countryCode" params={{ countryCode }} className="inline-block">
+            <span className="text-xl font-bold" style={{ color: NAVY, fontFamily: "Fraunces, Georgia, serif" }}>
+              Suprameds
+            </span>
+          </Link>
+        </div>
+
         <div className="bg-[var(--bg-secondary)] border rounded-xl p-8 shadow-sm" style={{ borderColor: "var(--border-primary)" }}>
           {/* Header */}
-          <div className="mb-6 text-center">
-            <div
-              className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-4"
-              style={{ background: NAVY }}
-            >
-              <PillIcon />
-            </div>
+          <div className="mb-6">
             <h1
               className="text-2xl font-semibold"
               style={{ color: NAVY, fontFamily: "Fraunces, Georgia, serif" }}
             >
-              Sign in to Suprameds
+              Sign in
             </h1>
             <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
               Access your orders, prescriptions, and account
@@ -546,6 +597,12 @@ function LoginPage() {
             </p>
           </div>
         </div>
+
+        {/* Mobile-only: "Please sign in to continue" banner */}
+        <p className="lg:hidden text-center text-xs mt-4" style={{ color: "var(--text-tertiary)" }}>
+          India's licensed online pharmacy · DL: TS/HYD/2021-82149
+        </p>
+      </div>
       </div>
     </div>
   )
