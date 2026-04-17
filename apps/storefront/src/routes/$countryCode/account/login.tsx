@@ -256,9 +256,7 @@ function LoginPage() {
 
         <div>
           <Link to="/$countryCode" params={{ countryCode }} className="inline-block mb-12">
-            <span className="text-2xl font-bold text-white" style={{ fontFamily: "Fraunces, Georgia, serif" }}>
-              Suprameds
-            </span>
+            <img src="/images/suprameds-logo.jpg" alt="Suprameds" className="h-10 brightness-0 invert" style={{ objectFit: "contain" }} />
           </Link>
 
           <h2
@@ -296,9 +294,7 @@ function LoginPage() {
         {/* Mobile logo (hidden on desktop) */}
         <div className="lg:hidden text-center mb-6">
           <Link to="/$countryCode" params={{ countryCode }} className="inline-block">
-            <span className="text-xl font-bold" style={{ color: NAVY, fontFamily: "Fraunces, Georgia, serif" }}>
-              Suprameds
-            </span>
+            <img src="/images/suprameds-logo.jpg" alt="Suprameds" className="h-9" style={{ objectFit: "contain" }} />
           </Link>
         </div>
 
