@@ -513,7 +513,7 @@ const Home = () => {
               </Link>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 sm:overflow-visible sm:pb-0">
+            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory">
               {categories.map((cat: any) => {
                 const colors = CATEGORY_COLORS[cat.handle] || CATEGORY_COLORS.default
                 return (
@@ -521,7 +521,7 @@ const Home = () => {
                     key={cat.id}
                     to="/$countryCode/categories/$handle"
                     params={{ countryCode, handle: cat.handle }}
-                    className="group flex flex-col items-center gap-3 p-5 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px] sm:w-auto"
+                    className="group flex flex-col items-center gap-3 p-5 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px]"
                     style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
                   >
                     <div
@@ -539,7 +539,7 @@ const Home = () => {
               <Link
                 to="/$countryCode/store"
                 params={{ countryCode }}
-                className="group flex flex-col items-center gap-3 p-5 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px] sm:w-auto"
+                className="group flex flex-col items-center gap-3 p-5 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px]"
                 style={{ background: "var(--bg-inverse)" }}
               >
                 <div
