@@ -2,6 +2,7 @@ import crypto from "crypto"
 import { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { getVerifyToken, isWhatsAppConfigured, markMessageRead } from "../../../lib/whatsapp"
 import { createLogger } from "../../../lib/logger"
+import { captureException } from "../../../lib/sentry"
 
 const logger = createLogger("webhook:whatsapp")
 
@@ -116,8 +117,12 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
               `${msg.text?.body?.slice(0, 100) ?? msg.type}`
           )
 
-          // Auto-read incoming messages
-          markMessageRead(msg.id).catch(() => {})
+          // Auto-read incoming messages. Best-effort: delivery failure must not
+          // break the webhook response, but log so we can diagnose token issues.
+          markMessageRead(msg.id).catch((err) => {
+            logger.warn(`markMessageRead failed for msg=${msg.id}: ${(err as Error).message}`)
+            captureException(err, { webhook: "whatsapp", step: "mark-read", msgId: msg.id })
+          })
 
           // Future: handle document/image uploads as prescription submissions
           if (msg.type === "image" || msg.type === "document") {
@@ -146,5 +151,6 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     }
   } catch (err) {
     logger.error(`Error processing webhook: ${(err as Error).message}`)
+    captureException(err, { webhook: "whatsapp", step: "process-body" })
   }
 }

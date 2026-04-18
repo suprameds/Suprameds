@@ -75,14 +75,15 @@ async function getRedisClient(): Promise<any | null> {
     redisAvailable = true
 
     return redisClient
-  } catch {
+  } catch (err) {
+    console.warn(`[rate-limiter] Redis unavailable, falling back to in-memory: ${(err as Error).message}`)
     redisClient = null
     return null
   }
 }
 
 // Kick off the Redis connection at module load — non-blocking.
-// If it fails the in-memory fallback takes over transparently.
+// Errors are already logged inside getRedisClient; in-memory fallback takes over.
 getRedisClient().catch(() => {})
 
 // ── Factory ──────────────────────────────────────────────────────────────────

@@ -27,7 +27,9 @@ const InvoicePrintWidget = ({
         setPaymentMode(mode as "COD" | "PREPAID")
         if (isCod) setTrackingId(INDIA_POST_COD_ID)
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.warn(`[invoice-print] Failed to detect payment mode for order=${orderId}:`, err)
+      })
   }, [orderId])
 
   if (!orderId) return null

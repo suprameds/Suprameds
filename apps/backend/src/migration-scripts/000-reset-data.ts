@@ -67,8 +67,11 @@ export default async function resetData({ container }: { container: MedusaContai
     await pgConnection.raw(`SET session_replication_role = 'origin'`)
     logger.info(`Truncated ${tableNames.length} tables`)
   } catch (err) {
-    // Ensure triggers are re-enabled even on error
-    await pgConnection.raw(`SET session_replication_role = 'origin'`).catch(() => {})
+    // Ensure triggers are re-enabled even on error. If this cleanup itself fails,
+    // surface it — leaving session_replication_role=replica sticks to the connection.
+    await pgConnection.raw(`SET session_replication_role = 'origin'`).catch((cleanupErr) => {
+      logger.error(`Reset cleanup FAILED to restore session_replication_role: ${(cleanupErr as Error).message}`)
+    })
     logger.error(`Reset error: ${(err as Error).message}`)
     throw err
   }
