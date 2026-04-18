@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="80dp"
-    android:height="80dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <!-- Pill icon matching Suprameds brand -->
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Suprameds S logo mark with brand gradient approximation -->
     <path
-        android:pathData="M10.5,20.5 L20.5,10.5 A4.95,4.95 0,1,0 13.5,3.5 L3.5,13.5 A4.95,4.95 0,1,0 10.5,20.5 Z"
+        android:pathData="M62,12 Q84,12 84,32 Q84,46 64,50 L36,50 Q16,50 16,68 Q16,88 38,88 L58,88"
+        android:strokeWidth="22"
+        android:strokeLineCap="round"
         android:strokeColor="#0E7C86"
-        android:strokeWidth="1.5"
-        android:fillColor="@android:color/transparent" />
-    <path
-        android:pathData="M8.5,8.5 L15.5,15.5"
-        android:strokeColor="#0E7C86"
-        android:strokeWidth="1.5"
         android:fillColor="@android:color/transparent" />
 </vector>
