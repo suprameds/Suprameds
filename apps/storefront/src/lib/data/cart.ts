@@ -177,16 +177,23 @@ export const addToCart = async ({
     cartId = (await createCart({ region_id: region.id })).id
   } else {
     // Ensure existing cart belongs to same region as the selected country.
+    let existingCart: HttpTypes.StoreCart | null = null
     try {
-      const existingCart = await retrieveCart({
+      existingCart = await retrieveCart({
         cart_id: cartId,
         fields: "id,region_id",
       })
+    } catch (err) {
+      // 404 from the backend means the cart was garbage-collected — fine to recreate.
+      // Anything else (network, 500) means we're creating a ghost cart and losing
+      // whatever was in the old one. Surface it so monitoring catches the regression.
+      console.warn(
+        `[cart] retrieveCart failed for id=${cartId}, creating new cart:`,
+        err,
+      )
+    }
 
-      if (!existingCart || existingCart.region_id !== region.id) {
-        cartId = (await createCart({ region_id: region.id })).id
-      }
-    } catch {
+    if (!existingCart || existingCart.region_id !== region.id) {
       cartId = (await createCart({ region_id: region.id })).id
     }
   }

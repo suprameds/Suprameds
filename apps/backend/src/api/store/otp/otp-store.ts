@@ -46,13 +46,15 @@ async function getRedis(): Promise<any | null> {
     await redisClient.ping()
     redisReady = true
     return redisClient
-  } catch {
+  } catch (err) {
+    console.warn(`[otp-store] Redis unavailable, falling back to in-memory: ${(err as Error).message}`)
     redisClient = null
     return null
   }
 }
 
-// Kick off Redis connection at module load — non-blocking
+// Kick off Redis connection at module load — non-blocking.
+// Errors are already logged inside getRedis; the in-memory fallback takes over.
 getRedis().catch(() => {})
 
 // ── In-memory fallback store ─────────────────────────────────────────

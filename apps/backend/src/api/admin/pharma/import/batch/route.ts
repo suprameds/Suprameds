@@ -313,10 +313,17 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
                 } as any,
               })
               if (cp.variantId) {
-                await link.create({
-                  [Modules.PRODUCT]: { variant_id: cp.variantId },
-                  [Modules.INVENTORY]: { inventory_item_id: inv.id },
-                }).catch(() => {})
+                try {
+                  await link.create({
+                    [Modules.PRODUCT]: { variant_id: cp.variantId },
+                    [Modules.INVENTORY]: { inventory_item_id: inv.id },
+                  })
+                } catch (linkErr: any) {
+                  // Link may already exist — log anything else so we can diagnose import regressions.
+                  if (!/already.*exist|duplicate/i.test(linkErr?.message ?? "")) {
+                    logger.warn(`[batch-import] link.create fallback failed for variant=${cp.variantId}: ${linkErr?.message}`)
+                  }
+                }
               }
             }
           } catch (invErr: any) {

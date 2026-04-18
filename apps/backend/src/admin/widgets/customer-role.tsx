@@ -19,7 +19,9 @@ const CustomerRoleWidget = ({ data: customer }: { data: { id: string } }) => {
     sdk.client
       .fetch<{ role: string }>(`/admin/customers/${customer.id}/role`)
       .then((data) => setCurrentRole(data.role || "customer"))
-      .catch(() => {})
+      .catch((err) => {
+        console.warn(`[customer-role] Failed to load role for customer=${customer.id}:`, err)
+      })
       .finally(() => setLoading(false))
   }, [customer?.id])
 
