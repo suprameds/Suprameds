@@ -4,7 +4,6 @@ import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { BrandLogo } from "@/components/auth/brand-logo"
 import { ArrowRightIcon, ShieldCheckIcon } from "@/components/auth/auth-icons"
 
-// @ts-expect-error — route tree regenerates on pnpm dev/build
 export const Route = createFileRoute("/$countryCode/onboarding")({
   head: () => ({
     meta: [
