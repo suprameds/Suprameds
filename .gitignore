@@ -61,12 +61,21 @@ e2e/performance/results/
 
 # ---- Claude Code local ----
 .claude/settings.local.json
+.claude/settings.json
+.claude/launch.json
+.claude/plans/
+.claude/scheduled_tasks.lock
 .claude/worktrees/
 .playwright-mcp/
 
 # ---- Scratch ----
 tmp/
 .gstack/
+
+# ---- Graphify ----
+.graphify_*
+graphify-out/
+apps/graphify-out/
 
 # Data files (generated during import/enrichment)
 apps/backend/data/*.sql

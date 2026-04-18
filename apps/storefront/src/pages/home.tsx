@@ -279,7 +279,7 @@ const Home = () => {
       .sort((a, b) => a.name.localeCompare(b.name))
   }, [allCats, medicinesParent])
 
-  const { data: blogData, isLoading: blogLoading } = useBlogPosts()
+  const { data: blogData, isLoading: blogLoading } = useBlogPosts("health")
   const blogPosts = blogData?.posts ?? []
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -327,7 +327,7 @@ const Home = () => {
   }
 
   return (
-    <div style={{ background: "var(--bg-tertiary)" }}>
+    <div style={{ background: "var(--bg-secondary)" }}>
 
       {/* ════════════════════════════════════════════
           HERO — dark navy, search bar, value props
@@ -787,7 +787,7 @@ const Home = () => {
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: "var(--brand-teal)" }}>Learn</p>
               <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>
-                Health Blog
+                Health Tips
               </h2>
             </div>
             <Link

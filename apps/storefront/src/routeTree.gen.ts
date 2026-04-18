@@ -27,6 +27,7 @@ import { Route as PharmacyLicensesRouteImport } from './routes/pharmacy/licenses
 import { Route as CountryCodeUploadRxRouteImport } from './routes/$countryCode/upload-rx'
 import { Route as CountryCodeStoreRouteImport } from './routes/$countryCode/store'
 import { Route as CountryCodeSearchRouteImport } from './routes/$countryCode/search'
+import { Route as CountryCodeOnboardingRouteImport } from './routes/$countryCode/onboarding'
 import { Route as CountryCodeCheckoutRouteImport } from './routes/$countryCode/checkout'
 import { Route as CountryCodeCartRouteImport } from './routes/$countryCode/cart'
 import { Route as CountryCodeAccountRouteImport } from './routes/$countryCode/account'
@@ -144,6 +145,11 @@ const CountryCodeStoreRoute = CountryCodeStoreRouteImport.update({
 const CountryCodeSearchRoute = CountryCodeSearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => CountryCodeRoute,
+} as any)
+const CountryCodeOnboardingRoute = CountryCodeOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => CountryCodeRoute,
 } as any)
 const CountryCodeCheckoutRoute = CountryCodeCheckoutRouteImport.update({
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/$countryCode/account': typeof CountryCodeAccountLayoutRouteWithChildren
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
+  '/$countryCode/onboarding': typeof CountryCodeOnboardingRoute
   '/$countryCode/search': typeof CountryCodeSearchRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
   '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
@@ -372,6 +379,7 @@ export interface FileRoutesByTo {
   '/$countryCode/account': typeof CountryCodeAccountLayoutIndexRoute
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
+  '/$countryCode/onboarding': typeof CountryCodeOnboardingRoute
   '/$countryCode/search': typeof CountryCodeSearchRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
   '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
@@ -419,6 +427,7 @@ export interface FileRoutesById {
   '/$countryCode/account': typeof CountryCodeAccountRouteWithChildren
   '/$countryCode/cart': typeof CountryCodeCartRoute
   '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
+  '/$countryCode/onboarding': typeof CountryCodeOnboardingRoute
   '/$countryCode/search': typeof CountryCodeSearchRoute
   '/$countryCode/store': typeof CountryCodeStoreRoute
   '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
+    | '/$countryCode/onboarding'
     | '/$countryCode/search'
     | '/$countryCode/store'
     | '/$countryCode/upload-rx'
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
+    | '/$countryCode/onboarding'
     | '/$countryCode/search'
     | '/$countryCode/store'
     | '/$countryCode/upload-rx'
@@ -561,6 +572,7 @@ export interface FileRouteTypes {
     | '/$countryCode/account'
     | '/$countryCode/cart'
     | '/$countryCode/checkout'
+    | '/$countryCode/onboarding'
     | '/$countryCode/search'
     | '/$countryCode/store'
     | '/$countryCode/upload-rx'
@@ -735,6 +747,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/$countryCode/search'
       preLoaderRoute: typeof CountryCodeSearchRouteImport
+      parentRoute: typeof CountryCodeRoute
+    }
+    '/$countryCode/onboarding': {
+      id: '/$countryCode/onboarding'
+      path: '/onboarding'
+      fullPath: '/$countryCode/onboarding'
+      preLoaderRoute: typeof CountryCodeOnboardingRouteImport
       parentRoute: typeof CountryCodeRoute
     }
     '/$countryCode/checkout': {
@@ -1008,6 +1027,7 @@ interface CountryCodeRouteChildren {
   CountryCodeAccountRoute: typeof CountryCodeAccountRouteWithChildren
   CountryCodeCartRoute: typeof CountryCodeCartRoute
   CountryCodeCheckoutRoute: typeof CountryCodeCheckoutRoute
+  CountryCodeOnboardingRoute: typeof CountryCodeOnboardingRoute
   CountryCodeSearchRoute: typeof CountryCodeSearchRoute
   CountryCodeStoreRoute: typeof CountryCodeStoreRoute
   CountryCodeUploadRxRoute: typeof CountryCodeUploadRxRoute
@@ -1025,6 +1045,7 @@ const CountryCodeRouteChildren: CountryCodeRouteChildren = {
   CountryCodeAccountRoute: CountryCodeAccountRouteWithChildren,
   CountryCodeCartRoute: CountryCodeCartRoute,
   CountryCodeCheckoutRoute: CountryCodeCheckoutRoute,
+  CountryCodeOnboardingRoute: CountryCodeOnboardingRoute,
   CountryCodeSearchRoute: CountryCodeSearchRoute,
   CountryCodeStoreRoute: CountryCodeStoreRoute,
   CountryCodeUploadRxRoute: CountryCodeUploadRxRoute,

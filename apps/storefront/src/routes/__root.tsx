@@ -1,6 +1,8 @@
+import { useState, useCallback } from "react"
 import NotFound from "@/components/not-found"
 import ErrorFallback from "@/components/error-fallback"
 import Layout from "@/components/layout"
+import { SplashScreen } from "@/components/auth/splash-screen"
 import { listRegions } from "@/lib/data/regions"
 import * as Sentry from "@sentry/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
@@ -154,6 +156,8 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext()
+  const [showSplash, setShowSplash] = useState(true)
+  const hideSplash = useCallback(() => setShowSplash(false), [])
 
   return (
     <html lang="en-IN">
@@ -161,6 +165,7 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
+        {showSplash && <SplashScreen onComplete={hideSplash} />}
         {/* GTM noscript fallback */}
         {import.meta.env.VITE_GTM_ID && (
           <noscript>

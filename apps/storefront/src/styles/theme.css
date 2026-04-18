@@ -47,4 +47,11 @@
   @keyframes leave { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(0.9); opacity: 0; } }
   @keyframes slide-in { 0% { transform: translateY(-100%); } 100% { transform: translateY(0); } }
   @keyframes fade-up { 0% { opacity: 0; transform: translateY(24px); } 100% { opacity: 1; transform: translateY(0); } }
+
+  /* ── AUTH / ONBOARDING ANIMATIONS ── */
+  @keyframes breathe { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.1); opacity: 1; } }
+  @keyframes slide { 0% { left: -40%; } 100% { left: 100%; } }
+  @keyframes rotate { to { transform: rotate(360deg); } }
+  @keyframes blink { to { opacity: 0; } }
+  @keyframes check-draw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
 }
