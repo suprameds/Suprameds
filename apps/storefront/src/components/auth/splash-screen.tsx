@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { BrandLogo } from "./brand-logo"
+import { BrandLogo } from "@/components/auth/brand-logo"
 
 const BRAND_GRADIENT =
   "linear-gradient(135deg, #FFB020 0%, #FF7A3D 20%, #E6276D 45%, #C83AFF 65%, #6C4BFF 80%, #22C9E6 100%)"

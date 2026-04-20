@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, useLocation } from "@tanstack/react-router"
 import { useState, useRef, useCallback, useEffect } from "react"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { BrandLogo } from "@/components/auth/brand-logo"
 import { ArrowRightIcon, ShieldCheckIcon } from "@/components/auth/auth-icons"
 
 export const Route = createFileRoute("/$countryCode/onboarding")({
