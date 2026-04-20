@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
-import { batch1 } from "./blog-articles-batch1"
-import { batch2 } from "./blog-articles-batch2"
-import { batch3 } from "./blog-articles-batch3"
-import { batch4 } from "./blog-articles-batch4"
+import { batch1 } from "@/lib/data/blog-articles-batch1"
+import { batch2 } from "@/lib/data/blog-articles-batch2"
+import { batch3 } from "@/lib/data/blog-articles-batch3"
+import { batch4 } from "@/lib/data/blog-articles-batch4"
 
 export interface BlogPost {
   slug: string

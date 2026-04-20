@@ -45,6 +45,3 @@ export function PasswordStrength({ password }: { password: string }) {
   )
 }
 
-export function allPasswordChecksMet(password: string) {
-  return CHECKS.every((c) => c.test(password))
-}
