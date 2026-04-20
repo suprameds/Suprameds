@@ -28,18 +28,28 @@ interface PaymentStepProps {
 const PaymentStep = ({ cart, onNext, onBack }: PaymentStepProps) => {
   const queryClient = useQueryClient()
   const { showToast } = useToast()
-  const { data: availablePaymentMethods = [] } = useCartPaymentMethods({
+  const { data: allPaymentMethods = [] } = useCartPaymentMethods({
     region_id: cart.region?.id,
   })
+  // Temporarily hide Paytm and Razorpay; surface COD only.
+  const availablePaymentMethods = allPaymentMethods.filter(
+    (m) => !isPaytmProvider(m.id) && !isRazorpayProvider(m.id),
+  )
   const initiatePaymentSessionMutation = useInitiateCartPaymentSession()
 
   const activeSession = getActivePaymentSession(cart)
   const paidByGiftcard = isPaidWithGiftCard(cart)
 
-  // Default to COD, or whatever session is already active
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
-    activeSession?.provider_id ?? "pp_system_default"
-  )
+  // Default to COD. If the cart already has a Paytm/Razorpay session from a
+  // previous visit, fall back to COD rather than pre-selecting a hidden method.
+  const activeProviderId = activeSession?.provider_id
+  const initialMethod =
+    activeProviderId &&
+    !isPaytmProvider(activeProviderId) &&
+    !isRazorpayProvider(activeProviderId)
+      ? activeProviderId
+      : "pp_system_default"
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(initialMethod)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const isStripe = isStripeFunc(selectedPaymentMethod)
