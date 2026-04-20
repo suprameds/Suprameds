@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState } from "react"
+import { SITE_URL } from "@/lib/constants/site"
 
 export const Route = createFileRoute("/grievance")({
   head: () => ({
     links: [
-      { rel: "canonical", href: "https://suprameds.in/grievance" },
+      { rel: "canonical", href: `${SITE_URL}/grievance` },
     ],
     meta: [
       { title: "Grievance Officer — Suprameds" },
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/grievance")({
       { property: "og:title", content: "Grievance Officer — Suprameds" },
       { property: "og:description", content: "Contact Suprameds Grievance Officer. Consumer Protection (E-Commerce) Rules 2020 complaint mechanism. 48-hour resolution SLA." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://suprameds.in/grievance" },
+      { property: "og:url", content: `${SITE_URL}/grievance` },
     ],
   }),
   component: GrievancePage,

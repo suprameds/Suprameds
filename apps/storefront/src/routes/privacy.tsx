@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { SITE_URL } from "@/lib/constants/site"
 
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     links: [
-      { rel: "canonical", href: "https://suprameds.in/privacy" },
+      { rel: "canonical", href: `${SITE_URL}/privacy` },
     ],
     meta: [
       { title: "Privacy Policy — Suprameds" },
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/privacy")({
       { property: "og:title", content: "Privacy Policy — Suprameds" },
       { property: "og:description", content: "Suprameds privacy policy under the Digital Personal Data Protection (DPDP) Act, 2023. Your data rights and how we protect your health information." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://suprameds.in/privacy" },
+      { property: "og:url", content: `${SITE_URL}/privacy` },
     ],
   }),
   component: PrivacyPolicy,

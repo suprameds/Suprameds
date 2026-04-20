@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router"
 import { getRegion } from "@/lib/data/regions"
 import UploadRx from "@/pages/upload-rx"
+import { SITE_URL } from "@/lib/constants/site"
 
 export const Route = createFileRoute("/$countryCode/upload-rx")({
   loader: async ({ params, context }) => {
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/$countryCode/upload-rx")({
       },
     ],
     links: [
-      { rel: "canonical", href: "https://suprameds.in/in/upload-rx" },
+      { rel: "canonical", href: `${SITE_URL}/in/upload-rx` },
     ],
   }),
   component: UploadRx,

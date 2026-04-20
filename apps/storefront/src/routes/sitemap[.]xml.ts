@@ -7,7 +7,7 @@ const BACKEND_URL =
   import.meta.env.VITE_MEDUSA_PRODUCTION_URL ||
   process.env.MEDUSA_BACKEND_URL ||
   "http://localhost:9000"
-const SITE_URL = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+const SITE_URL = import.meta.env.VITE_SITE_URL || "https://store.supracynpharma.com"
 const PUBLISHABLE_KEY = import.meta.env.VITE_MEDUSA_PUBLISHABLE_KEY || ""
 
 const COMPLIANCE_PAGES = [

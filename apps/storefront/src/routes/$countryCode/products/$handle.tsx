@@ -90,7 +90,7 @@ export const Route = createFileRoute("/$countryCode/products/$handle")({
   },
   head: ({ loaderData, params }) => {
     const { product, region } = loaderData || {}
-    const siteUrl = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+    const siteUrl = import.meta.env.VITE_SITE_URL || "https://store.supracynpharma.com"
     const countryCode = params?.countryCode || "in"
 
     if (!product) {
