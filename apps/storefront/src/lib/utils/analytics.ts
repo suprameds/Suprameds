@@ -1,5 +1,5 @@
 /**
- * Analytics — GA4 + Meta Pixel + GTM dataLayer.
+ * Analytics — GA4 + Meta Pixel + GTM dataLayer + Google Ads conversions.
  *
  * All helpers are safe to call during SSR (no-op when `window` is undefined).
  * GA4 loaded via gtag.js, Meta Pixel via fbevents.js, GTM via gtm.js — all in __root.tsx.
@@ -8,7 +8,20 @@
  *   1. GA4 directly (gtag)
  *   2. Meta Pixel directly (fbq)
  *   3. GTM dataLayer (for AdScale, custom tags, etc.)
+ *   4. Google Ads conversions (gtag "event" with send_to) when VITE_GOOGLE_ADS_ID
+ *      and the relevant conversion label are configured.
+ *
+ * Signup/login events also push SHA-256-hashed user_data for Google Ads
+ * Enhanced Conversions and attach stored ad attribution (gclid/utm) so the
+ * conversion closes the loop with the original click.
  */
+
+import { hashUserData, type UserDataInput } from "@/lib/utils/enhanced-conversions"
+import { getAdAttribution } from "@/lib/utils/ad-attribution"
+
+const GOOGLE_ADS_ID = import.meta.env.VITE_GOOGLE_ADS_ID as string | undefined
+const SIGNUP_CONVERSION_LABEL = import.meta.env.VITE_GOOGLE_ADS_SIGNUP_CONVERSION_LABEL as string | undefined
+const LOGIN_CONVERSION_LABEL = import.meta.env.VITE_GOOGLE_ADS_LOGIN_CONVERSION_LABEL as string | undefined
 
 /* ------------------------------------------------------------------ */
 /*  Type shims                                                        */
@@ -202,4 +215,98 @@ export function trackSearch(query: string, resultCount?: number) {
 export function trackEvent(name: string, params?: Record<string, unknown>) {
   gtag("event", name, params)
   pushDataLayer(name, params)
+}
+
+/* ------------------------------------------------------------------ */
+/*  Auth events — signup / login                                      */
+/* ------------------------------------------------------------------ */
+
+export type AuthMethod = "email" | "phone-otp" | "email-otp"
+
+interface AuthEventInput {
+  method: AuthMethod
+  userId?: string | null
+  userData?: UserDataInput
+}
+
+function adAttributionPayload(): Record<string, string> {
+  const attr = getAdAttribution()
+  if (!attr) return {}
+  const out: Record<string, string> = {}
+  for (const [k, v] of Object.entries(attr)) {
+    if (typeof v === "string") out[k] = v
+  }
+  return out
+}
+
+/**
+ * Register the user_data payload for Google Ads Enhanced Conversions on the
+ * current page. gtag stores this globally for subsequent conversion events.
+ * No-op if Google Ads is not configured or user_data is empty.
+ */
+async function setEnhancedConversionsUserData(userData?: UserDataInput): Promise<void> {
+  if (!GOOGLE_ADS_ID || !userData) return
+  const hashed = await hashUserData(userData)
+  if (Object.keys(hashed).length === 0) return
+  gtag("set", "user_data", hashed as unknown as Record<string, unknown>)
+}
+
+function fireGoogleAdsConversion(conversionLabel: string | undefined, params: Record<string, unknown>): void {
+  if (!GOOGLE_ADS_ID || !conversionLabel) return
+  gtag("event", "conversion", {
+    send_to: `${GOOGLE_ADS_ID}/${conversionLabel}`,
+    ...params,
+  })
+}
+
+/** New user registration — fires to GA4, Meta Pixel, dataLayer, and Google Ads. */
+export async function trackSignup(input: AuthEventInput): Promise<void> {
+  const { method, userId, userData } = input
+  const attribution = adAttributionPayload()
+
+  // GA4
+  gtag("event", "sign_up", {
+    method,
+    ...(userId ? { user_id: userId } : {}),
+    ...attribution,
+  })
+
+  // Meta Pixel — CompleteRegistration
+  fbq("track", "CompleteRegistration", {
+    registration_method: method,
+  })
+
+  // GTM dataLayer
+  pushDataLayer("sign_up", {
+    method,
+    ...(userId ? { user_id: userId } : {}),
+    ...attribution,
+  })
+
+  // Google Ads enhanced conversion + conversion event
+  await setEnhancedConversionsUserData(userData)
+  fireGoogleAdsConversion(SIGNUP_CONVERSION_LABEL, {
+    event_callback: undefined,
+  })
+}
+
+/** Returning user sign-in — fires to GA4, dataLayer, and (optionally) Google Ads. */
+export async function trackLogin(input: AuthEventInput): Promise<void> {
+  const { method, userId, userData } = input
+  const attribution = adAttributionPayload()
+
+  gtag("event", "login", {
+    method,
+    ...(userId ? { user_id: userId } : {}),
+    ...attribution,
+  })
+
+  pushDataLayer("login", {
+    method,
+    ...(userId ? { user_id: userId } : {}),
+    ...attribution,
+  })
+
+  await setEnhancedConversionsUserData(userData)
+  fireGoogleAdsConversion(LOGIN_CONVERSION_LABEL, {})
 }
