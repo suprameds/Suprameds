@@ -84,10 +84,12 @@ describe("PaymentStep", () => {
     mockMutateAsync.mockResolvedValue(undefined)
   })
 
-  it("renders available payment methods", () => {
+  it("renders COD only and filters out Paytm and Razorpay", () => {
+    // Backend still returns Paytm + Razorpay, but the UI must hide them for now.
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
     expect(screen.getByTestId("payment-container-pp_system_default")).toBeInTheDocument()
-    expect(screen.getByTestId("payment-container-pp_razorpay_razorpay")).toBeInTheDocument()
+    expect(screen.queryByTestId("payment-container-pp_paytm_paytm")).not.toBeInTheDocument()
+    expect(screen.queryByTestId("payment-container-pp_razorpay_razorpay")).not.toBeInTheDocument()
   })
 
   it("does NOT initiate session on mount (only on Next click)", () => {
@@ -108,37 +110,32 @@ describe("PaymentStep", () => {
     })
   })
 
-  it("shows toast when Razorpay session creation fails", async () => {
-    mockMutateAsync.mockRejectedValueOnce(new Error("Razorpay API error"))
+  it("shows toast when COD session creation fails", async () => {
+    mockMutateAsync.mockRejectedValueOnce(new Error("Payment setup failed"))
 
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
 
-    // Select Razorpay
-    await userEvent.click(screen.getByTestId("payment-container-pp_razorpay_razorpay"))
-
-    // Click Next
     await userEvent.click(screen.getByTestId("submit-payment-button"))
 
     await waitFor(() => {
-      expect(mockShowToast).toHaveBeenCalledWith(
-        "Razorpay payment setup failed. Please try again or use Cash on Delivery."
-      )
+      expect(mockShowToast).toHaveBeenCalledWith("Payment setup failed")
       expect(onNext).not.toHaveBeenCalled()
     })
   })
 
-  it("switches between payment methods without API calls", async () => {
+  it("ignores stale Paytm/Razorpay session on cart and defaults to COD", async () => {
+    (getActivePaymentSession as ReturnType<typeof vi.fn>).mockReturnValue({
+      provider_id: "pp_razorpay_razorpay",
+      status: "pending",
+    })
+
     render(<PaymentStep cart={cart} onNext={onNext} onBack={onBack} />, { wrapper: createWrapper() })
 
-    // Click Razorpay
-    await userEvent.click(screen.getByTestId("payment-container-pp_razorpay_razorpay"))
-    // Click COD
-    await userEvent.click(screen.getByTestId("payment-container-pp_system_default"))
-    // Click Razorpay again
-    await userEvent.click(screen.getByTestId("payment-container-pp_razorpay_razorpay"))
+    await userEvent.click(screen.getByTestId("submit-payment-button"))
 
-    // No API calls during selection switching
-    expect(mockMutateAsync).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(mockMutateAsync).toHaveBeenCalledWith({ provider_id: "pp_system_default" })
+    })
   })
 
   it("prevents double-click on Next", async () => {
