@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useCustomer, useRegister } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { sdk } from "@/lib/utils/sdk"
+import { trackSignup } from "@/lib/utils/analytics"
 
 export const Route = createFileRoute("/$countryCode/account/register")({
   head: () => ({
@@ -113,7 +114,19 @@ function RegisterPage() {
         metadata: activeRefCode && referralData?.valid ? { referred_by: activeRefCode } : undefined,
       },
       {
-        onSuccess: () => {
+        onSuccess: (newCustomer: unknown) => {
+          const id = (newCustomer as { id?: string } | null | undefined)?.id
+          void trackSignup({
+            method: "email",
+            userId: id,
+            userData: {
+              email,
+              phone: cleanPhone,
+              first_name: form.first_name,
+              last_name: form.last_name,
+              country: countryCode,
+            },
+          })
           if (redirectTo && redirectTo.startsWith("/")) {
             navigate({ to: redirectTo as never })
           } else {

@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate, useLocation } from "@tanstack/react
 import { useCallback, useEffect, useRef, useState, forwardRef } from "react"
 import { useCustomer, useLogin, useOtpSend, useOtpVerify } from "@/lib/hooks/use-customer"
 import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { trackLogin, trackSignup } from "@/lib/utils/analytics"
 
 export const Route = createFileRoute("/$countryCode/account/login")({
   head: () => ({
@@ -89,7 +90,14 @@ function LoginPage() {
     login.mutate(
       { email, password },
       {
-        onSuccess: () => navigateAfterLogin(false),
+        onSuccess: (customer) => {
+          void trackLogin({
+            method: "email",
+            userId: customer?.id,
+            userData: { email, country: countryCode },
+          })
+          navigateAfterLogin(false)
+        },
         onError: () => setError("Invalid email or password. Please try again."),
       }
     )
@@ -142,6 +150,12 @@ function LoginPage() {
       {
         onSuccess: (customer) => {
           const isNew = !customer?.first_name
+          const userData = { phone, country: countryCode }
+          if (isNew) {
+            void trackSignup({ method: "phone-otp", userId: customer?.id, userData })
+          } else {
+            void trackLogin({ method: "phone-otp", userId: customer?.id, userData })
+          }
           navigateAfterLogin(isNew)
         },
         onError: (err: any) => {
@@ -196,6 +210,12 @@ function LoginPage() {
       {
         onSuccess: (customer) => {
           const isNew = !customer?.first_name
+          const userData = { email: otpEmail, country: countryCode }
+          if (isNew) {
+            void trackSignup({ method: "email-otp", userId: customer?.id, userData })
+          } else {
+            void trackLogin({ method: "email-otp", userId: customer?.id, userData })
+          }
           navigateAfterLogin(isNew)
         },
         onError: (err: any) => {
@@ -658,13 +678,6 @@ function ResendTimer({ countdown, onResend, isPending }: { countdown: number; on
     </div>
   )
 }
-
-const PillIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
-    <line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/>
-  </svg>
-)
 
 const EyeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

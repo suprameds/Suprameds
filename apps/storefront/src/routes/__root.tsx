@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import NotFound from "@/components/not-found"
 import ErrorFallback from "@/components/error-fallback"
 import Layout from "@/components/layout"
 import { SplashScreen } from "@/components/auth/splash-screen"
 import { listRegions } from "@/lib/data/regions"
+import { captureAdAttribution } from "@/lib/utils/ad-attribution"
 import * as Sentry from "@sentry/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import {
@@ -130,9 +131,13 @@ export const Route = createRootRouteWithContext<{
         src: "https://www.googletagmanager.com/gtag/js?id=G-RDYLD3PM8D",
         async: true,
       },
-      // GA4 inline initialisation
+      // GA4 inline initialisation (also configures Google Ads conversion ID when set)
       {
-        children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-RDYLD3PM8D');`,
+        children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-RDYLD3PM8D');${
+          import.meta.env.VITE_GOOGLE_ADS_ID
+            ? `gtag('config','${import.meta.env.VITE_GOOGLE_ADS_ID}');`
+            : ""
+        }`,
       },
       // Google Tag Manager — enables AdScale, Meta Pixel management, and other tags via GTM dashboard
       ...(import.meta.env.VITE_GTM_ID
@@ -159,6 +164,12 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext()
   const [showSplash, setShowSplash] = useState(true)
   const hideSplash = useCallback(() => setShowSplash(false), [])
+
+  // Capture ad click IDs (gclid/gbraid/wbraid) and UTM params on first load.
+  // Stored 90 days so a conversion later can attribute back to the original ad.
+  useEffect(() => {
+    captureAdAttribution()
+  }, [])
 
   return (
     <html lang="en-IN">
