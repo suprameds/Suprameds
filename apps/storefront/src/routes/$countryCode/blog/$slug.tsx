@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import BlogArticlePage from "@/pages/blog/article"
 import type { BlogPostFull } from "@/lib/hooks/use-blog"
+import { SITE_URL } from "@/lib/constants/site"
 
 const BACKEND_URL = import.meta.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"
 
@@ -16,8 +17,7 @@ export const Route = createFileRoute("/$countryCode/blog/$slug")({
   },
   head: ({ loaderData }) => {
     const post = loaderData?.post
-    const siteUrl =
-      import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+    const siteUrl = SITE_URL
 
     const articleSchema = post
       ? {

@@ -52,7 +52,7 @@ export const Route = createFileRoute("/$countryCode/categories/$handle")({
   },
   head: ({ loaderData, params }) => {
     const { region, category, products } = loaderData || {}
-    const siteUrl = import.meta.env.VITE_SITE_URL || "https://suprameds.in"
+    const siteUrl = import.meta.env.VITE_SITE_URL || "https://store.supracynpharma.com"
     const countryCode = params?.countryCode || "in"
     const regionName = region?.name || countryCode.toUpperCase()
     const categoryName = category?.name || "Category"

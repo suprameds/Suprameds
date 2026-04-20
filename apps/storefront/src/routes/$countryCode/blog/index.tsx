@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import BlogListPage from "@/pages/blog/list"
-
-const siteUrl = "https://suprameds.in"
+import { SITE_URL as siteUrl } from "@/lib/constants/site"
 
 const blogCollectionSchema = {
   "@context": "https://schema.org",

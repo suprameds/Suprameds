@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { SITE_URL } from "@/lib/constants/site"
 
 export const Route = createFileRoute("/pharmacy/licenses")({
   head: () => ({
     links: [
-      { rel: "canonical", href: "https://suprameds.in/pharmacy/licenses" },
+      { rel: "canonical", href: `${SITE_URL}/pharmacy/licenses` },
     ],
     meta: [
       { title: "Pharmacy Licenses — Suprameds" },
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/pharmacy/licenses")({
       { property: "og:title", content: "Pharmacy Licenses — Suprameds" },
       { property: "og:description", content: "Suprameds pharmacy licenses: Drug License TS/HYD/2021-82149, Registered Pharmacist details." },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://suprameds.in/pharmacy/licenses" },
+      { property: "og:url", content: `${SITE_URL}/pharmacy/licenses` },
     ],
   }),
   component: PharmacyLicenses,

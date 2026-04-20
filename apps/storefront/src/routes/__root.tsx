@@ -12,6 +12,7 @@ import {
   createRootRouteWithContext,
   useRouter,
 } from "@tanstack/react-router"
+import { SITE_URL } from "@/lib/constants/site"
 // eslint-disable-next-line no-restricted-imports
 import appCss from "../styles/app.css?url"
 
@@ -115,9 +116,9 @@ export const Route = createRootRouteWithContext<{
       },
       { property: "og:site_name", content: "Suprameds" },
       { property: "og:locale", content: "en_IN" },
-      { property: "og:image", content: "https://suprameds.in/og-default.png" },
+      { property: "og:image", content: `${SITE_URL}/og-default.png` },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://suprameds.in/og-default.png" },
+      { name: "twitter:image", content: `${SITE_URL}/og-default.png` },
       // Google Search Console verification (set VITE_GSC_VERIFICATION in .env)
       ...(import.meta.env.VITE_GSC_VERIFICATION
         ? [{ name: "google-site-verification", content: import.meta.env.VITE_GSC_VERIFICATION }]
