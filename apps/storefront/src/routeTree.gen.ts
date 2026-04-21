@@ -18,7 +18,6 @@ import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrescriptionPolicyRouteImport } from './routes/prescription-policy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as InRouteImport } from './routes/in'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as GrievanceRouteImport } from './routes/grievance'
 import { Route as CheckoutRouteImport } from './routes/checkout'
@@ -26,10 +25,11 @@ import { Route as CartRouteImport } from './routes/cart'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InIndexRouteImport } from './routes/in/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
 import { Route as PharmacyLicensesRouteImport } from './routes/pharmacy/licenses'
-import { Route as InSplatRouteImport } from './routes/in.$'
+import { Route as InSplatRouteImport } from './routes/in/$'
 import { Route as DrugsHandleRouteImport } from './routes/drugs/$handle'
 import { Route as CategoriesHandleRouteImport } from './routes/categories/$handle'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
@@ -98,11 +98,6 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InRoute = InRouteImport.update({
-  id: '/in',
-  path: '/in',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const HealthRoute = HealthRouteImport.update({
   id: '/health',
   path: '/health',
@@ -138,6 +133,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InIndexRoute = InIndexRouteImport.update({
+  id: '/in/',
+  path: '/in/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -154,9 +154,9 @@ const PharmacyLicensesRoute = PharmacyLicensesRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const InSplatRoute = InSplatRouteImport.update({
-  id: '/$',
-  path: '/$',
-  getParentRoute: () => InRoute,
+  id: '/in/$',
+  path: '/in/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DrugsHandleRoute = DrugsHandleRouteImport.update({
   id: '/drugs/$handle',
@@ -282,7 +282,6 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
-  '/in': typeof InRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
@@ -303,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/blog/': typeof BlogIndexRoute
+  '/in/': typeof InIndexRoute
   '/account/addresses': typeof AccountLayoutAddressesRoute
   '/account/change-password': typeof AccountLayoutChangePasswordRoute
   '/account/messages': typeof AccountLayoutMessagesRoute
@@ -326,7 +326,6 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
-  '/in': typeof InRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
@@ -347,6 +346,7 @@ export interface FileRoutesByTo {
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/blog': typeof BlogIndexRoute
+  '/in': typeof InIndexRoute
   '/account/addresses': typeof AccountLayoutAddressesRoute
   '/account/change-password': typeof AccountLayoutChangePasswordRoute
   '/account/messages': typeof AccountLayoutMessagesRoute
@@ -370,7 +370,6 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
-  '/in': typeof InRouteWithChildren
   '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
@@ -392,6 +391,7 @@ export interface FileRoutesById {
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
   '/products/$handle': typeof ProductsHandleRoute
   '/blog/': typeof BlogIndexRoute
+  '/in/': typeof InIndexRoute
   '/account/_layout/addresses': typeof AccountLayoutAddressesRoute
   '/account/_layout/change-password': typeof AccountLayoutChangePasswordRoute
   '/account/_layout/messages': typeof AccountLayoutMessagesRoute
@@ -417,7 +417,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/grievance'
     | '/health'
-    | '/in'
     | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
@@ -438,6 +437,7 @@ export interface FileRouteTypes {
     | '/pharmacy/licenses'
     | '/products/$handle'
     | '/blog/'
+    | '/in/'
     | '/account/addresses'
     | '/account/change-password'
     | '/account/messages'
@@ -461,7 +461,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/grievance'
     | '/health'
-    | '/in'
     | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
@@ -482,6 +481,7 @@ export interface FileRouteTypes {
     | '/pharmacy/licenses'
     | '/products/$handle'
     | '/blog'
+    | '/in'
     | '/account/addresses'
     | '/account/change-password'
     | '/account/messages'
@@ -504,7 +504,6 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/grievance'
     | '/health'
-    | '/in'
     | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
@@ -526,6 +525,7 @@ export interface FileRouteTypes {
     | '/pharmacy/licenses'
     | '/products/$handle'
     | '/blog/'
+    | '/in/'
     | '/account/_layout/addresses'
     | '/account/_layout/change-password'
     | '/account/_layout/messages'
@@ -550,7 +550,6 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   GrievanceRoute: typeof GrievanceRoute
   HealthRoute: typeof HealthRoute
-  InRoute: typeof InRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   PrescriptionPolicyRoute: typeof PrescriptionPolicyRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -563,9 +562,11 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   CategoriesHandleRoute: typeof CategoriesHandleRoute
   DrugsHandleRoute: typeof DrugsHandleRoute
+  InSplatRoute: typeof InSplatRoute
   PharmacyLicensesRoute: typeof PharmacyLicensesRoute
   ProductsHandleRoute: typeof ProductsHandleRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  InIndexRoute: typeof InIndexRoute
   OrderOrderIdConfirmedRoute: typeof OrderOrderIdConfirmedRoute
 }
 
@@ -634,13 +635,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/in': {
-      id: '/in'
-      path: '/in'
-      fullPath: '/in'
-      preLoaderRoute: typeof InRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/health': {
       id: '/health'
       path: '/health'
@@ -690,6 +684,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/in/': {
+      id: '/in/'
+      path: '/in'
+      fullPath: '/in/'
+      preLoaderRoute: typeof InIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -713,10 +714,10 @@ declare module '@tanstack/react-router' {
     }
     '/in/$': {
       id: '/in/$'
-      path: '/$'
+      path: '/in/$'
       fullPath: '/in/$'
       preLoaderRoute: typeof InSplatRouteImport
-      parentRoute: typeof InRoute
+      parentRoute: typeof rootRouteImport
     }
     '/drugs/$handle': {
       id: '/drugs/$handle'
@@ -932,16 +933,6 @@ const AccountRouteChildren: AccountRouteChildren = {
 const AccountRouteWithChildren =
   AccountRoute._addFileChildren(AccountRouteChildren)
 
-interface InRouteChildren {
-  InSplatRoute: typeof InSplatRoute
-}
-
-const InRouteChildren: InRouteChildren = {
-  InSplatRoute: InSplatRoute,
-}
-
-const InRouteWithChildren = InRoute._addFileChildren(InRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
@@ -950,7 +941,6 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   GrievanceRoute: GrievanceRoute,
   HealthRoute: HealthRoute,
-  InRoute: InRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   PrescriptionPolicyRoute: PrescriptionPolicyRoute,
   PrivacyRoute: PrivacyRoute,
@@ -963,9 +953,11 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   CategoriesHandleRoute: CategoriesHandleRoute,
   DrugsHandleRoute: DrugsHandleRoute,
+  InSplatRoute: InSplatRoute,
   PharmacyLicensesRoute: PharmacyLicensesRoute,
   ProductsHandleRoute: ProductsHandleRoute,
   BlogIndexRoute: BlogIndexRoute,
+  InIndexRoute: InIndexRoute,
   OrderOrderIdConfirmedRoute: OrderOrderIdConfirmedRoute,
 }
 export const routeTree = rootRouteImport
