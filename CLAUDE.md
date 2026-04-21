@@ -74,15 +74,19 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 - **scripts/** — `seed.ts`, `run-migrations.ts`, `import-products.ts`, `cloud-start.mjs`
 
 ### Storefront (TanStack Start) — `apps/storefront/src/`
-- **routes/** — File-based routing with `$param` syntax (not `[param]`). Country-prefixed under `$countryCode/` (India = `in`). Compliance pages at root level.
+- **routes/** — File-based routing with `$param` syntax (not `[param]`). Routes live at root; there is NO `$countryCode/` prefix. Legacy `/in/*` URLs are 301-redirected via sibling routes `routes/in/index.tsx` + `routes/in/$.tsx`.
+- **lib/constants/site.ts** — `SITE_URL` (canonical, env-overridable via `VITE_SITE_URL`) and `DEFAULT_COUNTRY_CODE = "in"`. Every `getRegion({ country_code })` call passes the constant; never read the country from the URL.
 - **components/ui/** — Primitive UI components
 - **lib/hooks/** — React Query hooks for data fetching
 - **lib/data/** — Server-side data fetchers
 - **lib/utils/sdk.ts** — Medusa JS SDK instance
+- **lib/utils/analytics.ts** — GA4 + Meta Pixel + GTM dataLayer + Google Ads conversions (`trackSignup`, `trackLogin`, `trackPurchase`, etc.)
+- **lib/utils/ad-attribution.ts** — Captures gclid/gbraid/wbraid + UTMs on first touch, persisted 90 days
+- **lib/utils/enhanced-conversions.ts** — SHA-256 hashing of email/phone/name for Google Ads Enhanced Conversions
 - **styles/theme.css** — Design tokens as CSS custom properties
 
 ### Key Integrations
-- **Payments**: Razorpay (online) + system default (COD)
+- **Payments**: COD (`pp_system_default`) is the ONLY method currently surfaced in the UI. Razorpay (`pp_razorpay_razorpay`) + Paytm (`pp_paytm_paytm`) providers remain configured on the backend and their button components are retained, but `checkout-payment-step.tsx` filters them out. To re-enable, remove the `!isPaytmProvider(m.id) && !isRazorpayProvider(m.id)` filter — backend providers + button components were intentionally left intact.
 - **Email**: Resend (transactional from support@supracynpharma.com)
 - **SMS OTP**: BulkSMSPlans.com (primary) + MSG91 (fallback). DLT entity: SUPRACYN PRIVATE LIMITED (1501684950000036033). Sender IDs: Suprra, Ssupra, suppra.
 - **BulkSMS**: API ID `BULKSMS_API_ID`, password `BULKSMS_API_PASSWORD`, sender `BULKSMS_SENDER_ID`. DLT template IDs as `BULKSMS_DLT_*` env vars.
@@ -142,7 +146,11 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 - **Shipment crash with manage_inventory=false**: Medusa's `createOrderShipmentWorkflow` crashes with "Cannot read properties of undefined (reading 'required_quantity')" when fulfillment items have `inventory_item_id: null` (which happens when `manage_inventory=false`). Fixed via runtime patch `scripts/patch-shipment-workflow.mjs`.
 - **STOREFRONT_URL env var**: Must be set on Railway backend (`https://supracyn.in`). Used by password-reset subscriber to build reset links. Without it, reset emails contain `http://localhost:5173` URLs. Code has a fallback for `NODE_ENV=production` but the env var is more reliable.
 - **Runtime patches in Dockerfile.backend**: Two patches must run after `pnpm install`: (1) `patch-promotion-query.mjs` fixes MikroORM raw() quoting, (2) `patch-shipment-workflow.mjs` fixes null guard for manage_inventory=false. Both must be applied to BOTH `apps/backend/node_modules` (build stage) and `/app/pruned/node_modules` (production stage).
-- **TanStack Router route tree**: Adding new route files (e.g., `$countryCode/$.tsx`) requires the route tree to regenerate. This happens automatically on `pnpm dev` or `pnpm build`, NOT via tsc. Use `@ts-expect-error` for new route path strings until the route tree regenerates.
+- **TanStack Router route tree**: Adding new route files requires the route tree to regenerate. This happens automatically on `pnpm dev` or `pnpm build`, NOT via tsc. Use `@ts-expect-error` for new route path strings until the route tree regenerates.
+- **TanStack flat vs nested route notation**: `foo.tsx` + `foo.$.tsx` makes `/foo` a PARENT layout — its `beforeLoad` fires for `/foo/anything` before the splat runs. For sibling (non-parent) routes use a folder: `foo/index.tsx` + `foo/$.tsx`. This is how the legacy `/in` → `/` 301 redirect works without swallowing `/in/products/foo`.
+- **PDP breadcrumb data source**: Use `product.categories[0]` (filter `is_internal`, `is_active`), NOT `product.collection`. Collections like "Cardiology" have no storefront page; categories like "Cholesterol" do. Loader fields must include `*categories`.
+- **`/drugs/*` thin-content guard**: When `!drug || drug.pharmacist_reviewed === false`, the drug page ships `<meta robots="noindex, follow">` AND is excluded from the sitemap (in `routes/sitemap[.]xml.ts`). Once a pharmacist flips `pharmacist_reviewed=true`, the noindex lifts automatically — but you must also re-add `/drugs/*` to the sitemap entries to regain crawl.
+- **Canonical + OG URLs**: Always template from `SITE_URL` (imported from `@/lib/constants/site`). Never hardcode `https://supracyn.in` in route heads — use `` `${SITE_URL}/store` `` so env overrides (preview, staging) work.
 - **Homepage resilience**: `useBulkPharma()` can fail (503) when the pharma API is down. The homepage must show products even when pharma metadata is unavailable. Check `isError` and fall back to showing all products instead of filtering to OTC-only.
 
 ## Design System
@@ -198,7 +206,7 @@ Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/pla
 
 ## CI/CD
 
-- **Always run tests locally before pushing**: `cd apps/storefront && pnpm test` (Vitest, 92 tests) and `cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"` (Jest, 635 tests)
+- **Always run tests locally before pushing**: `cd apps/storefront && pnpm test` (Vitest, 123 tests) and `cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"` (Jest, 635 tests)
 - **Always run lint before pushing**: `cd apps/storefront && npx eslint src/ --max-warnings 0`
 - **Always type-check before pushing**: `cd apps/backend && npx tsc --noEmit` and `cd apps/storefront && npx tsc --noEmit`
 - CI pipeline runs: TypeScript check, ESLint (zero warnings), Vitest/Jest, Storefront build, Backend build, Docker image build, E2E Playwright, Accessibility audit, Security audit
@@ -213,7 +221,7 @@ cd apps/backend && npx tsc --noEmit
 cd apps/storefront && npx tsc --noEmit
 
 # 2. Run tests
-cd apps/storefront && pnpm test          # 92 Vitest tests
+cd apps/storefront && pnpm test          # 123 Vitest tests
 cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"  # 635 Jest tests
 
 # 3. Lint storefront
@@ -244,15 +252,20 @@ grep "COPY.*scripts" Dockerfile.backend   # must include all patch scripts
 - **GTM**: Container `GTM-5T86ZHZF`, env var `VITE_GTM_ID`
 - **Meta Pixel**: Slot ready via `VITE_META_PIXEL_ID` env var (not yet active)
 - **Google Search Console**: Via `VITE_GSC_VERIFICATION` env var
+- **Google Ads conversions**: Gated on `VITE_GOOGLE_ADS_ID` + conversion-label env vars (`VITE_GOOGLE_ADS_SIGNUP_CONVERSION_LABEL`, `VITE_GOOGLE_ADS_LOGIN_CONVERSION_LABEL`). `trackSignup` fires on email registration + OTP-verify when `!customer?.first_name` (new user); `trackLogin` fires on email/password login + OTP-verify for returning users. Both attach Enhanced Conversions hashed user_data + stored gclid/UTM for cross-device + cross-session attribution.
 - All e-commerce events fire to GA4 + Meta Pixel + GTM dataLayer simultaneously
 - AdScale plugs into GTM as a custom HTML tag (no code changes needed)
+- **Firebase project**: `supracyn-bda35` (migrated from `supracynpharma-c7f6f`). Web SDK config in `lib/firebase.ts` (env-overridable) + hardcoded mirror in `public/firebase-messaging-sw.js` (service worker — can't read Vite env, must hand-edit when config changes). Backend Admin SDK uses `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` (private key stored with literal `\n` escapes; backend code calls `.replace(/\\n/g, "\n")` at init).
 
 ## Payment Flow
+
+> **Current UI state:** only COD is surfaced at checkout. Razorpay + Paytm providers remain configured on the backend and their button components are retained, but `checkout-payment-step.tsx` filters them out of the UI. To re-enable, drop the `!isPaytmProvider(m.id) && !isRazorpayProvider(m.id)` filter.
 
 - **COD (pp_system_default)**: Default selection on payment step. No external API call needed.
 - **Razorpay (pp_razorpay_razorpay)**: Creates Razorpay order via their API during session initiation. If Razorpay API fails (500), frontend auto-falls back to COD with toast notification.
 - Payment sessions are created on the cart's `payment_collection`. Medusa replaces the session when switching providers.
 - `getActivePaymentSession(cart, providerId?)` matches sessions by provider — not just first pending.
+- **Stale session guard**: If a cart still has a Paytm/Razorpay `pending` session from before the UI filter, the payment step falls back to COD on mount rather than selecting a hidden method.
 
 ## Prescription Linking
 
@@ -302,9 +315,9 @@ grep "COPY.*scripts" Dockerfile.backend   # must include all patch scripts
 ## Deploy Configuration (configured by /setup-deploy)
 - Platform: Railway
 - Project: Suprameds_Medusa (production environment)
-- Production URL: https://storefront-production-3f20.up.railway.app
-- Backend URL: https://backend-production-9d3a.up.railway.app
-- Custom domains: supracyn.in (storefront), api.supracynpharma.com (backend)
+- Production URL: https://supracyn.in
+- Backend URL: https://api.supracyn.in
+- Railway fallback URLs (always valid): https://storefront-production-3f20.up.railway.app, https://backend-production-9d3a.up.railway.app
 - Deploy workflow: Auto-deploy on push to main (Railway watches GitHub repo)
 - Deploy status command: HTTP health check
 - Merge method: squash
@@ -323,20 +336,32 @@ grep "COPY.*scripts" Dockerfile.backend   # must include all patch scripts
 | `PAYTM_MERCHANT_ID` | Backend | `TGyHMI87629179310548` |
 | `PAYTM_MERCHANT_KEY` | Backend | (secret — set in Railway) |
 | `PAYTM_WEBSITE_NAME` | Backend | `DEFAULT` |
-| `PAYTM_CALLBACK_URL` | Backend | `https://backend-production-9d3a.up.railway.app/webhooks/paytm` |
+| `PAYTM_CALLBACK_URL` | Backend | `https://api.supracynpharma.com/webhooks/paytm` (still on old domain until Paytm dashboard is updated — see Go-Live Checklist) |
 | `VITE_PAYTM_MERCHANT_ID` | Storefront | `TGyHMI87629179310548` |
+| `VITE_SITE_URL` | Storefront | `https://supracyn.in` |
+| `STOREFRONT_URL` | Backend | `https://supracyn.in` (used by password-reset + email links) |
+| `VITE_FIREBASE_*` | Storefront | 7 vars for project `supracyn-bda35` (api key, auth domain, project id, storage bucket, sender id, app id, measurement id) |
+| `VITE_FIREBASE_VAPID_KEY` | Storefront | Required for web push — regenerate after Firebase project switch |
+| `FIREBASE_PROJECT_ID` / `FIREBASE_CLIENT_EMAIL` / `FIREBASE_PRIVATE_KEY` | Backend | Admin SDK service-account for `supracyn-bda35` |
+| `VITE_GOOGLE_ADS_ID` | Storefront | `AW-XXXXXXXXXX` — enables Google Ads conversion events |
+| `VITE_GOOGLE_ADS_SIGNUP_CONVERSION_LABEL` | Storefront | Conversion label for signup events |
+| `VITE_GOOGLE_ADS_LOGIN_CONVERSION_LABEL` | Storefront | Conversion label for login events |
 
 ### Go-Live Checklist
-- [ ] **Paytm callback URL**: When switching to custom domain (`api.suprameds.in`), update `PAYTM_CALLBACK_URL` on Railway backend to `https://api.suprameds.in/webhooks/paytm` — otherwise Paytm payment callbacks will fail
+- [ ] **Paytm callback URL**: Update `PAYTM_CALLBACK_URL` on Railway backend from `https://api.supracynpharma.com/webhooks/paytm` to `https://api.supracyn.in/webhooks/paytm` AFTER updating the Paytm Business dashboard first
 - [ ] **Paytm webhook in dashboard**: Log into Paytm Business dashboard → Settings → Webhook URL → set to the same callback URL above
-- [ ] **DNS**: Verify `api.suprameds.in` CNAME points to Railway backend before changing callback URL
+- [ ] **DNS**: `api.supracyn.in` already points to Railway backend (confirmed via `RAILWAY_PUBLIC_DOMAIN=api.supracyn.in`)
 - [ ] **Test payment**: Place a test order with Paytm after any callback URL change to confirm end-to-end flow
+- [ ] **Web Push VAPID key**: Regenerate for project `supracyn-bda35` at Firebase Console → Cloud Messaging → Web configuration. Update `VITE_FIREBASE_VAPID_KEY` on Railway storefront.
+- [ ] **CORS grace-period cleanup**: `STORE_CORS`, `AUTH_CORS`, `ADMIN_CORS` still include legacy `store.supracynpharma.com` entries — drop once nothing hits the old host.
+- [ ] **Re-enable Razorpay/Paytm UI**: when ready, remove the provider filter in `checkout-payment-step.tsx`.
+- [ ] **Repopulate `/drugs/*`**: once pharmacist-reviewed, lift the `noindex` guard (automatic via `pharmacist_reviewed=true`) and re-add `/drugs/*` entries to `routes/sitemap[.]xml.ts`.
 
 ### Custom deploy hooks
 - Pre-merge: CI runs TypeScript check, ESLint, tests, and Docker build
 - Deploy trigger: automatic on push to main (Railway auto-deploy)
 - Deploy status: poll health endpoints after push
-- Health check: curl -sf https://backend-production-9d3a.up.railway.app/health && curl -sf https://storefront-production-3f20.up.railway.app
+- Health check: `curl -sf https://api.supracyn.in/health && curl -sf https://supracyn.in/`
 
 ## Skill routing
 

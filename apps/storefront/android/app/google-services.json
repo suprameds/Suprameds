@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "500634840844",
+    "project_id": "supracyn-bda35",
+    "storage_bucket": "supracyn-bda35.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:500634840844:android:fa966321d307f976c2e329",
+        "android_client_info": {
+          "package_name": "in.supracyn.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMiqtL4wLCqAZaTLE-dRQDAJrFMmlIFeM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
