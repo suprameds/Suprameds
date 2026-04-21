@@ -75,6 +75,26 @@ def circle_on_black(mark: Image.Image, canvas_size: int, mark_ratio: float) -> I
     return _place_mark(mark, canvas, mark_ratio)
 
 
+def trim_transparent(img: Image.Image, padding: int = 0, alpha_threshold: int = 4) -> Image.Image:
+    """Crop to the bounding box of pixels whose alpha > alpha_threshold, with optional padding."""
+    import numpy as np
+
+    alpha = np.array(img.convert("RGBA"))[..., 3]
+    mask = alpha > alpha_threshold
+    if not mask.any():
+        return img
+    rows = np.where(mask.any(axis=1))[0]
+    cols = np.where(mask.any(axis=0))[0]
+    top, bottom = rows[0], rows[-1] + 1
+    left, right = cols[0], cols[-1] + 1
+    w, h = img.size
+    left = max(0, left - padding)
+    top = max(0, top - padding)
+    right = min(w, right + padding)
+    bottom = min(h, bottom + padding)
+    return img.crop((left, top, right, bottom))
+
+
 def drop_white_background(img: Image.Image, hard: int = 252, soft: int = 230) -> Image.Image:
     """Turn white pixels transparent with a soft fade.
 
@@ -143,9 +163,14 @@ def main() -> None:
     save_ico(fav_src, PUBLIC / "images" / "favicon.ico")
 
     print("\nGenerating full logo (JPEG on white + transparent PNG)...")
-    save_jpg(raw_logo, PUBLIC / "images" / "suprameds-logo.jpg", quality=92)
     transparent = drop_white_background(raw_logo)
-    save_png(transparent, PUBLIC / "images" / "suprameds-logo-full.png")
+    trimmed = trim_transparent(transparent, padding=16)
+    print(f"  trimmed transparent logo: {trimmed.size}")
+    save_png(trimmed, PUBLIC / "images" / "suprameds-logo-full.png")
+
+    jpg_canvas = Image.new("RGBA", trimmed.size, (255, 255, 255, 255))
+    jpg_canvas.alpha_composite(trimmed)
+    save_jpg(jpg_canvas, PUBLIC / "images" / "suprameds-logo.jpg", quality=92)
 
     print("\nGenerating Android mipmaps...")
     dpi_sizes = {
