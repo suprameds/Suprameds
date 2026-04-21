@@ -67,8 +67,9 @@ export const Route = createRootRouteWithContext<{
   },
   head: () => ({
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/images/suprameds.svg" },
-      { rel: "shortcut icon", href: "/favicon.ico" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icons/icon-192x192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icons/icon-512x512.png" },
+      { rel: "icon", href: "/favicon.ico" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       {
         rel: "apple-touch-icon",
