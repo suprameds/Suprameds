@@ -77,6 +77,11 @@ export const Route = createFileRoute("/sitemap.xml")({
             const { products } = (await productsRes.json()) as {
               products: Array<{ handle: string; updated_at?: string }>
             }
+            // /drugs/* pages are intentionally excluded from the sitemap while
+            // they remain thin placeholders (pharmacist_reviewed === false).
+            // Each such page serves <meta name="robots" content="noindex, follow">
+            // — adding them to the sitemap would only waste crawl budget on
+            // noindex responses. Re-add once clinical content is populated.
             productEntries = products.flatMap((p) => {
               if (!p.handle) return []
               const lastmod = formatDate(p.updated_at)
@@ -84,12 +89,6 @@ export const Route = createFileRoute("/sitemap.xml")({
                 urlEntry(
                   `${SITE_URL}/products/${p.handle}`,
                   "0.8",
-                  "weekly",
-                  lastmod,
-                ),
-                urlEntry(
-                  `${SITE_URL}/drugs/${p.handle}`,
-                  "0.7",
                   "weekly",
                   lastmod,
                 ),
