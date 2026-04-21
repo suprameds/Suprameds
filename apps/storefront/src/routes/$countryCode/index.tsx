@@ -40,7 +40,7 @@ export const Route = createFileRoute("/$countryCode/")({
     }
   },
   head: ({ loaderData }) => {
-    const siteUrl = import.meta.env.VITE_SITE_URL || "https://store.supracynpharma.com"
+    const siteUrl = import.meta.env.VITE_SITE_URL || "https://supracyn.in"
     const countryCode = loaderData?.countryCode || "in"
     const canonical = `${siteUrl}/${countryCode}`
     const title = `Buy Generic Medicines Online at 50-80% Off | Suprameds`

@@ -54,7 +54,7 @@ The storefront is what customers see when they visit our website. The admin dash
 | System | URL | Who Can Access |
 |--------|-----|---------------|
 | **Admin Dashboard** | `https://api.supracynpharma.com/app` | All staff with assigned roles |
-| **Storefront** | `https://store.supracynpharma.com` | Everyone (public) |
+| **Storefront** | `https://supracyn.in` | Everyone (public) |
 | **Backend API** | `https://api.supracynpharma.com` | System only (not for manual use) |
 
 To access the admin dashboard, open your web browser (Chrome recommended) and go to the admin URL. You will see a login screen. Enter your email and password to sign in. If your role requires MFA (Multi-Factor Authentication), you will be asked for a verification code after entering your password.
@@ -148,7 +148,7 @@ This section explains what customers see on the website. Understanding the store
 
 ## 2.1 Home Page
 
-The home page (`store.supracynpharma.com/in`) is the first thing customers see. It displays:
+The home page (`supracyn.in/in`) is the first thing customers see. It displays:
 
 - **Hero section** with our value proposition: generic medicines at 50-80% off MRP
 - **Featured products** -- the 4 most recently added medicines

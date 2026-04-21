@@ -7,4 +7,4 @@ Disallow: /*/account
 Disallow: /*/upload-rx
 Disallow: /*/order/
 
-Sitemap: https://store.supracynpharma.com/sitemap.xml
+Sitemap: https://supracyn.in/sitemap.xml
