@@ -240,7 +240,7 @@ grep "COPY.*scripts" Dockerfile.backend   # must include all patch scripts
 
 ## Analytics & Tracking
 
-- **GA4**: Measurement ID `G-RDYLD3PM8D`, loaded in `__root.tsx`, events in `lib/utils/analytics.ts`
+- **GA4**: Measurement ID `G-JKGJ3D3B86`, loaded in `__root.tsx`, events in `lib/utils/analytics.ts`
 - **GTM**: Container `GTM-5T86ZHZF`, env var `VITE_GTM_ID`
 - **Meta Pixel**: Slot ready via `VITE_META_PIXEL_ID` env var (not yet active)
 - **Google Search Console**: Via `VITE_GSC_VERIFICATION` env var

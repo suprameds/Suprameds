@@ -129,12 +129,12 @@ export const Route = createRootRouteWithContext<{
     scripts: [
       // Google Analytics 4 — async loader
       {
-        src: "https://www.googletagmanager.com/gtag/js?id=G-RDYLD3PM8D",
+        src: "https://www.googletagmanager.com/gtag/js?id=G-JKGJ3D3B86",
         async: true,
       },
       // GA4 inline initialisation (also configures Google Ads conversion ID when set)
       {
-        children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-RDYLD3PM8D');${
+        children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JKGJ3D3B86');${
           import.meta.env.VITE_GOOGLE_ADS_ID
             ? `gtag('config','${import.meta.env.VITE_GOOGLE_ADS_ID}');`
             : ""
