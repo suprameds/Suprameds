@@ -73,7 +73,7 @@ const Footer = () => {
           <div className="lg:col-span-1 flex flex-col gap-5">
             <Link to="/" className="flex items-center hover:opacity-80 transition-opacity w-fit">
               <img
-                src="/images/suprameds-logo.jpg"
+                src="/images/suprameds-logo-full.png"
                 alt="Suprameds — Healthcare at your doorstep"
                 className="h-10 brightness-0 invert"
                 style={{ objectFit: "contain" }}

@@ -274,7 +274,7 @@ function LoginPage() {
 
         <div>
           <Link to="/" className="inline-block mb-12">
-            <img src="/images/suprameds-logo.jpg" alt="Suprameds" className="h-10 brightness-0 invert" style={{ objectFit: "contain" }} />
+            <img src="/images/suprameds-logo-full.png" alt="Suprameds" className="h-10 brightness-0 invert" style={{ objectFit: "contain" }} />
           </Link>
 
           <h2
@@ -312,7 +312,7 @@ function LoginPage() {
         {/* Mobile logo (hidden on desktop) */}
         <div className="lg:hidden text-center mb-6">
           <Link to="/" className="inline-block">
-            <img src="/images/suprameds-logo.jpg" alt="Suprameds" className="h-9" style={{ objectFit: "contain" }} />
+            <img src="/images/suprameds-logo-full.png" alt="Suprameds" className="h-9" style={{ objectFit: "contain" }} />
           </Link>
         </div>
 

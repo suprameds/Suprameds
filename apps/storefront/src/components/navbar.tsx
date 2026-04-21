@@ -180,7 +180,7 @@ export const Navbar = () => {
             className="hidden lg:flex items-center hover:opacity-80 transition-opacity flex-shrink-0"
           >
             <img
-              src="/images/suprameds-logo.jpg"
+              src="/images/suprameds-logo-full.png"
               alt="Suprameds — Healthcare at your doorstep"
               className="h-9"
               style={{ objectFit: "contain" }}
@@ -302,7 +302,7 @@ export const Navbar = () => {
             <DrawerContent side="left">
               <DrawerHeader>
                 <DrawerTitle>
-                  <img src="/images/suprameds-logo.jpg" alt="Suprameds" className="h-8" style={{ objectFit: "contain" }} />
+                  <img src="/images/suprameds-logo-full.png" alt="Suprameds" className="h-8" style={{ objectFit: "contain" }} />
                 </DrawerTitle>
               </DrawerHeader>
               <div className="flex flex-col py-4">
@@ -408,7 +408,7 @@ export const Navbar = () => {
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               <img
-                src="/images/suprameds-logo.jpg"
+                src="/images/suprameds-logo-full.png"
                 alt="Suprameds"
                 className="h-8"
                 style={{ objectFit: "contain" }}
