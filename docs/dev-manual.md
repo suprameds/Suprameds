@@ -1325,7 +1325,7 @@ S3_SECRET_ACCESS_KEY=your-secret-key
 
 ### Google Analytics 4
 
-- **Measurement ID:** `G-RDYLD3PM8D`
+- **Measurement ID:** `G-JKGJ3D3B86`
 - **Loaded in:** `__root.tsx`
 - **Events in:** `lib/utils/analytics.ts`
 - E-commerce events fire to GA4 + Meta Pixel + GTM dataLayer simultaneously

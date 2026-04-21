@@ -3,13 +3,13 @@ importScripts("https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js
 importScripts("https://www.gstatic.com/firebasejs/10.13.2/firebase-messaging-compat.js")
 
 firebase.initializeApp({
-  apiKey: "AIzaSyA-pCRcas8RfwZbSOroUAF6PUgUD6bkxTU",
-  authDomain: "supracynpharma-c7f6f.firebaseapp.com",
-  projectId: "supracynpharma-c7f6f",
-  storageBucket: "supracynpharma-c7f6f.firebasestorage.app",
-  messagingSenderId: "176148661568",
-  appId: "1:176148661568:web:ee73b75a66d8ae775466a5",
-  measurementId: "G-RDYLD3PM8D",
+  apiKey: "AIzaSyDOeGUERI3zuojqi_y906iwywQMIGfp3Tk",
+  authDomain: "supracyn-bda35.firebaseapp.com",
+  projectId: "supracyn-bda35",
+  storageBucket: "supracyn-bda35.firebasestorage.app",
+  messagingSenderId: "500634840844",
+  appId: "1:500634840844:web:213c0717866f2292c2e329",
+  measurementId: "G-JKGJ3D3B86",
 })
 
 const messaging = firebase.messaging()

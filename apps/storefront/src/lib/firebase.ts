@@ -1,15 +1,15 @@
 import { getApp, getApps, initializeApp } from "firebase/app"
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "AIzaSyA-pCRcas8RfwZbSOroUAF6PUgUD6bkxTU",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "AIzaSyDOeGUERI3zuojqi_y906iwywQMIGfp3Tk",
   authDomain:
-    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "supracynpharma-c7f6f.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "supracynpharma-c7f6f",
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "supracyn-bda35.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "supracyn-bda35",
   storageBucket:
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "supracynpharma-c7f6f.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "176148661568",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "1:176148661568:web:ee73b75a66d8ae775466a5",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID ?? "G-RDYLD3PM8D",
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "supracyn-bda35.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "500634840844",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "1:500634840844:web:213c0717866f2292c2e329",
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID ?? "G-JKGJ3D3B86",
 }
 
 export function getFirebaseApp() {
