@@ -1,6 +1,5 @@
 import { useBlogPosts } from "@/lib/hooks/use-blog"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
 import { useState, useEffect } from "react"
 
 const categoryColors: Record<string, string> = {
@@ -28,8 +27,6 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 const BlogListPage = () => {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const [activeCategory, setActiveCategory] = useState<string>("all")
   const [searchInput, setSearchInput] = useState("")
   const debouncedSearch = useDebouncedValue(searchInput, 300)
@@ -173,8 +170,8 @@ const BlogListPage = () => {
             {posts.map((post) => (
               <Link
                 key={post.slug}
-                to={"/$countryCode/blog/$slug" as any}
-                params={{ countryCode, slug: post.slug } as any}
+                to={"/blog/$slug" as any}
+                params={{ slug: post.slug } as any}
                 className="group block rounded-xl border overflow-hidden transition-all hover:shadow-lg"
                 style={{
                   background: "var(--bg-secondary)",

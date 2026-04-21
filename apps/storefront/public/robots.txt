@@ -1,10 +1,10 @@
 User-agent: *
 Allow: /
 
-Disallow: /*/cart
-Disallow: /*/checkout
-Disallow: /*/account
-Disallow: /*/upload-rx
-Disallow: /*/order/
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /upload-rx
+Disallow: /order/
 
 Sitemap: https://supracyn.in/sitemap.xml

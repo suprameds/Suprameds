@@ -41,7 +41,7 @@ const CameraIcon = () => (
 )
 
 const UploadRx = () => {
-  const { countryCode } = useLoaderData({ from: "/$countryCode/upload-rx" })
+  useLoaderData({ from: "/upload-rx" })
   const { data: customer } = useCustomer()
   const uploadMutation = useUploadPrescription()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -234,9 +234,8 @@ const UploadRx = () => {
               Your prescription is linked to your account for traceability and reordering.
             </p>
             <Link
-              to="/$countryCode/account/login"
-              params={{ countryCode }}
-              search={{ redirectTo: `/${countryCode}/upload-rx` }}
+              to="/account/login"
+              search={{ redirectTo: `/upload-rx` }}
               className="inline-flex px-6 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90"
               style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
             >
@@ -268,8 +267,7 @@ const UploadRx = () => {
                 Upload another
               </button>
               <Link
-                to="/$countryCode/store"
-                params={{ countryCode }}
+                to="/store"
                 className="px-5 py-2.5 rounded text-sm font-medium transition-all"
                 style={{ color: "var(--text-primary)", border: "1px solid var(--border-primary)", background: "var(--bg-secondary)" }}
               >

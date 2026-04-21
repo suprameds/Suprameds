@@ -6,10 +6,10 @@ import { WishlistButton } from "@/components/wishlist-button"
 import { useCartDrawer } from "@/lib/context/cart"
 import { useAddToCart } from "@/lib/hooks/use-cart"
 import { getVariantOptionsKeymap, isVariantInStock } from "@/lib/utils/product"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useRequireAuth } from "@/lib/hooks/use-require-auth"
 import { HttpTypes } from "@medusajs/types"
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
+import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 import { isEqual } from "lodash-es"
 import { Minus, Plus } from "@medusajs/icons"
 import { trackAddToCart } from "@/lib/utils/analytics"
@@ -32,8 +32,6 @@ const ProductActions = memo(function ProductActions({
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string | undefined>
   >({})
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   const addToCartMutation = useAddToCart({
     fields: DEFAULT_CART_DROPDOWN_FIELDS,
@@ -133,7 +131,7 @@ const ProductActions = memo(function ProductActions({
       await addToCartMutation.mutateAsync({
         variant_id: selectedVariant.id,
         quantity,
-        country_code: countryCode,
+        country_code: DEFAULT_COUNTRY_CODE,
         product,
         variant: selectedVariant,
         region,
@@ -249,8 +247,7 @@ const ProductActions = memo(function ProductActions({
             </p>
           </div>
           <Link
-            to="/$countryCode/upload-rx"
-            params={{ countryCode }}
+            to="/upload-rx"
             className="w-full"
           >
             <Button

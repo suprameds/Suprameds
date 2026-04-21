@@ -5,8 +5,7 @@ import {
   useCreateOrderForCustomer,
   type SearchProduct,
 } from "@/lib/hooks/use-pharmacist"
-import { Link, useParams, useLocation } from "@tanstack/react-router"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { Link, useParams } from "@tanstack/react-router"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 type OrderItem = {
@@ -28,10 +27,8 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }
 
 export default function PrescriptionDetailPage() {
   const { prescriptionId } = useParams({
-    from: "/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId",
+    from: "/account/_layout/pharmacist/prescription/$prescriptionId",
   })
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   const { data: rx, isLoading, refetch } = usePharmacistPrescription(prescriptionId)
   const reviewMutation = useReviewPrescription()
@@ -184,8 +181,7 @@ export default function PrescriptionDetailPage() {
       <div className="text-center py-20">
         <p className="text-sm mb-4" style={{ color: "var(--brand-red)" }}>Prescription not found.</p>
         <Link
-          to="/$countryCode/account/pharmacist/rx-queue"
-          params={{ countryCode }}
+          to="/account/pharmacist/rx-queue"
           className="text-sm font-medium underline"
           style={{ color: "var(--brand-teal)" }}
         >
@@ -204,8 +200,7 @@ export default function PrescriptionDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
-          to="/$countryCode/account/pharmacist/rx-queue"
-          params={{ countryCode }}
+          to="/account/pharmacist/rx-queue"
           className="p-1.5 rounded-lg transition-colors hover:bg-[var(--bg-tertiary)]"
           style={{ color: "var(--text-secondary)" }}
         >

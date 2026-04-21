@@ -1,6 +1,5 @@
 import { useBlogPost, useBlogPosts } from "@/lib/hooks/use-blog"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { Link, useLocation, useParams } from "@tanstack/react-router"
+import { Link, useParams } from "@tanstack/react-router"
 
 const categoryColors: Record<string, string> = {
   guides: "var(--brand-teal)",
@@ -26,8 +25,6 @@ const ArrowLeftIcon = () => (
 )
 
 const BlogArticlePage = () => {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { slug } = useParams({ strict: false }) as { slug: string }
 
   const { data: post, isLoading } = useBlogPost(slug)
@@ -83,8 +80,7 @@ const BlogArticlePage = () => {
         <div className="content-container py-16 text-center">
           <p style={{ color: "var(--text-tertiary)" }}>Article not found.</p>
           <Link
-            to={"/$countryCode/blog" as any}
-            params={{ countryCode } as any}
+            to={"/blog" as any}
             className="inline-flex items-center gap-2 mt-4 text-sm font-medium"
             style={{ color: "var(--brand-teal)" }}
           >
@@ -101,8 +97,7 @@ const BlogArticlePage = () => {
       <div className="content-container py-8 md:py-12">
         {/* Back link */}
         <Link
-          to={"/$countryCode/blog" as any}
-          params={{ countryCode } as any}
+          to={"/blog" as any}
           className="inline-flex items-center gap-2 text-sm font-medium mb-8 transition-colors hover:opacity-70"
           style={{ color: "var(--brand-teal)" }}
         >
@@ -181,8 +176,7 @@ const BlogArticlePage = () => {
             Browse our catalogue of pharmacist-verified generic medicines at 50-80% off MRP.
           </p>
           <Link
-            to="/$countryCode/store"
-            params={{ countryCode }}
+            to="/store"
             className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 rounded-lg text-sm font-medium transition-all"
             style={{
               background: "var(--brand-teal)",
@@ -209,8 +203,8 @@ const BlogArticlePage = () => {
               {relatedPosts.map((rp) => (
                 <Link
                   key={rp.slug}
-                  to={"/$countryCode/blog/$slug" as any}
-                  params={{ countryCode, slug: rp.slug } as any}
+                  to={"/blog/$slug" as any}
+                  params={{ slug: rp.slug } as any}
                   className="group block p-5 rounded-xl border transition-all hover:shadow-md"
                   style={{
                     background: "var(--bg-secondary)",

@@ -7,9 +7,8 @@ import {
   isRazorpay,
   isStripe,
 } from "@/lib/utils/checkout"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
-import { useLocation, useNavigate } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useRef, useState } from "react"
 import { PaytmPaymentButton } from "@/components/paytm-payment-button"
 import { RazorpayPaymentButton } from "@/components/razorpay-payment-button"
@@ -88,8 +87,6 @@ const ManualPaymentButton = ({
   const lockRef = useRef(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname)
   const completeOrderMutation = useCompleteCartOrder()
 
   const handlePayment = async () => {
@@ -102,7 +99,7 @@ const ManualPaymentButton = ({
       const order = await completeOrderMutation.mutateAsync()
 
       navigate({
-        to: `/${countryCode}/order/${order.id}/confirmed`,
+        to: `/order/${order.id}/confirmed`,
         replace: true,
       })
     } catch (error) {

@@ -33,7 +33,7 @@ export function useAndroidBackButton() {
 
       // 2. Navigate back if not on home
       const segments = location.pathname.split("/").filter(Boolean)
-      const isHome = segments.length <= 1 // e.g. "/in" or "/"
+      const isHome = segments.length === 0 // e.g. "/"
       if (!isHome && window.history.length > 1) {
         window.history.back()
         return

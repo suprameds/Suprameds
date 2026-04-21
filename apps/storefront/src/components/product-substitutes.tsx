@@ -1,6 +1,5 @@
 import { sdk } from "@/lib/utils/sdk"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 
 // ---------- Types ----------
@@ -41,8 +40,6 @@ export const ProductSubstitutes = ({
 }) => {
   const [substitutes, setSubstitutes] = useState<Substitute[]>([])
   const [loading, setLoading] = useState(true)
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   useEffect(() => {
     let cancelled = false
@@ -97,7 +94,6 @@ export const ProductSubstitutes = ({
                 key={sub.id}
                 substitute={sub}
                 currentPrice={currentPrice}
-                countryCode={countryCode}
               />
             ))}
           </div>
@@ -111,11 +107,9 @@ export const ProductSubstitutes = ({
 
 const SubstituteCard = ({
   substitute,
-  countryCode,
 }: {
   substitute: Substitute
   currentPrice: number
-  countryCode: string
 }) => {
   const hasMrp = substitute.mrp > substitute.unit_price
   const savingsDisplay = substitute.savings_pct > 0
@@ -124,8 +118,8 @@ const SubstituteCard = ({
 
   return (
     <Link
-      to="/$countryCode/products/$handle"
-      params={{ countryCode, handle: substitute.handle }}
+      to="/products/$handle"
+      params={{ handle: substitute.handle }}
       className="flex flex-col rounded-lg border p-3.5 hover:shadow-md transition-shadow cursor-pointer group"
       style={{
         borderColor: TEAL,

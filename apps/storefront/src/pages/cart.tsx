@@ -19,7 +19,7 @@ function itemRequiresRx(item: { metadata?: Record<string, unknown> | null }): bo
   return schedule === "H" || schedule === "H1"
 }
 
-const RxBanner = ({ countryCode }: { countryCode: string }) => (
+const RxBanner = () => (
   <div
     className="flex items-start gap-3 rounded-lg p-4 mb-6"
     style={{ background: "rgba(243,156,18,0.08)", border: "1px solid rgba(243,156,18,0.25)" }}
@@ -40,8 +40,7 @@ const RxBanner = ({ countryCode }: { countryCode: string }) => (
         Our pharmacist will review it within 4 hours.
       </p>
       <Link
-        to="/$countryCode/upload-rx"
-        params={{ countryCode }}
+        to="/upload-rx"
         className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold transition-opacity hover:opacity-80"
         style={{ color: "var(--brand-teal)" }}
       >
@@ -56,8 +55,8 @@ const RxBanner = ({ countryCode }: { countryCode: string }) => (
 )
 
 const Cart = () => {
-  const { region, countryCode } = useLoaderData({
-    from: "/$countryCode/cart",
+  const { region } = useLoaderData({
+    from: "/cart",
   })
   const { data: cart, isLoading: cartLoading } = useCart({
     fields: DEFAULT_CART_FIELDS,
@@ -98,8 +97,7 @@ const Cart = () => {
                   Your Cart ({cartItems.reduce((sum, i) => sum + i.quantity, 0)})
                 </h1>
                 <Link
-                  to="/$countryCode/store"
-                  params={{ countryCode }}
+                  to="/store"
                   className="text-xs sm:text-sm font-medium transition-colors hover:opacity-70"
                   style={{ color: "var(--brand-teal)" }}
                 >
@@ -107,7 +105,7 @@ const Cart = () => {
                 </Link>
               </div>
 
-              {hasRxItems && <RxBanner countryCode={countryCode} />}
+              {hasRxItems && <RxBanner />}
 
               <div className="space-y-0">
                 {cartItems.map((item, index) => (
@@ -146,7 +144,7 @@ const Cart = () => {
                   </div>
 
                   <div className="mt-5 hidden md:block">
-                    <Link to="/$countryCode/checkout" params={{ countryCode }} search={{ step: "addresses" }}>
+                    <Link to="/checkout" search={{ step: "addresses" }}>
                       <Button className="w-full">Proceed to Checkout</Button>
                     </Link>
                   </div>
@@ -170,7 +168,7 @@ const Cart = () => {
                 ₹{(cart.total ?? 0).toLocaleString("en-IN")}
               </p>
             </div>
-            <Link to="/$countryCode/checkout" params={{ countryCode }} search={{ step: "addresses" }}>
+            <Link to="/checkout" search={{ step: "addresses" }}>
               <Button>Proceed to Checkout</Button>
             </Link>
           </div>

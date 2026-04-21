@@ -37,13 +37,11 @@ function clearAllRecents() {
 function SuggestionRow({
   product,
   isHighlighted,
-  countryCode,
   onMouseEnter,
   onClick,
 }: {
   product: SearchProduct
   isHighlighted: boolean
-  countryCode: string
   onMouseEnter: () => void
   onClick: () => void
 }) {
@@ -52,8 +50,8 @@ function SuggestionRow({
 
   return (
     <Link
-      to="/$countryCode/products/$handle"
-      params={{ countryCode, handle: product.handle }}
+      to="/products/$handle"
+      params={{ handle: product.handle }}
       onClick={(e) => { e.preventDefault(); onClick() }}
       onMouseEnter={onMouseEnter}
       className="flex items-center gap-3 px-3 py-2.5 transition-colors"
@@ -120,7 +118,6 @@ export interface SearchDropdownProps {
   onSubmitSearch: (query: string) => void
   onSetHighlight: (index: number) => void
   onFillRecent: (query: string) => void
-  countryCode: string
 }
 
 export function SearchDropdown({
@@ -131,7 +128,6 @@ export function SearchDropdown({
   onSubmitSearch,
   onSetHighlight,
   onFillRecent,
-  countryCode,
 }: SearchDropdownProps) {
   const hasQuery = query.trim().length > 0
   const { data, isFetching } = useSearch({ q: query.trim(), limit: 5, offset: 0 })
@@ -238,7 +234,6 @@ export function SearchDropdown({
               key={product.id}
               product={product}
               isHighlighted={highlightIndex === i}
-              countryCode={countryCode}
               onMouseEnter={() => onSetHighlight(i)}
               onClick={() => onSelectProduct(product.handle)}
             />

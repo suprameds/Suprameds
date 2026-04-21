@@ -14,7 +14,7 @@ vi.mock("@/lib/hooks/use-checkout", () => ({
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => mockNavigate,
-  useLocation: () => ({ pathname: "/in/checkout" }),
+  useLocation: () => ({ pathname: "/checkout" }),
 }))
 
 vi.mock("@/lib/utils/checkout", () => ({
@@ -74,7 +74,7 @@ describe("PaymentButton", () => {
         expect(mockMutateAsync).toHaveBeenCalledTimes(1)
         expect(mockNavigate).toHaveBeenCalledWith(
           expect.objectContaining({
-            to: "/in/order/order_123/confirmed",
+            to: "/order/order_123/confirmed",
             replace: true,
           })
         )

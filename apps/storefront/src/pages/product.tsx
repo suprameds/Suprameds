@@ -45,7 +45,7 @@ function scheduleCopy(schedule: DrugProduct["schedule"]) {
 
 const ProductDetails = () => {
   const { product, region } = useLoaderData({
-    from: "/$countryCode/products/$handle",
+    from: "/products/$handle",
   })
 
   const drug = (product as any)?.drug_product as DrugProduct | undefined

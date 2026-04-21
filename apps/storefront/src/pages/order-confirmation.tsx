@@ -4,7 +4,7 @@ import { trackPurchase } from "@/lib/utils/analytics"
 import { sdk } from "@/lib/utils/sdk"
 import { isManual } from "@/lib/utils/checkout"
 import { useLoaderData } from "@tanstack/react-router"
-import { ORDER_FIELDS } from "@/routes/$countryCode/order/$orderId/confirmed"
+import { ORDER_FIELDS } from "@/routes/order/$orderId/confirmed"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ReturnRequestForm, isOrderReturnable, isWithinReturnWindow } from "@/components/return-request-form"
 
@@ -319,7 +319,7 @@ const ReturnSection = ({ order }: { order: any }) => {
 
 const OrderConfirmation = () => {
   const { orderId } = useLoaderData({
-    from: "/$countryCode/order/$orderId/confirmed",
+    from: "/order/$orderId/confirmed",
   })
 
   const { data: order, isLoading } = useOrder({

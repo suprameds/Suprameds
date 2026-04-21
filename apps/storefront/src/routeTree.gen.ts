@@ -9,54 +9,55 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UploadRxRouteImport } from './routes/upload-rx'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StoreRouteImport } from './routes/store'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrescriptionPolicyRouteImport } from './routes/prescription-policy'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as InRouteImport } from './routes/in'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as GrievanceRouteImport } from './routes/grievance'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
-import { Route as CountryCodeRouteImport } from './routes/$countryCode'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CountryCodeIndexRouteImport } from './routes/$countryCode/index'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as ProductsHandleRouteImport } from './routes/products/$handle'
 import { Route as PharmacyLicensesRouteImport } from './routes/pharmacy/licenses'
-import { Route as CountryCodeUploadRxRouteImport } from './routes/$countryCode/upload-rx'
-import { Route as CountryCodeStoreRouteImport } from './routes/$countryCode/store'
-import { Route as CountryCodeSearchRouteImport } from './routes/$countryCode/search'
-import { Route as CountryCodeOnboardingRouteImport } from './routes/$countryCode/onboarding'
-import { Route as CountryCodeCheckoutRouteImport } from './routes/$countryCode/checkout'
-import { Route as CountryCodeCartRouteImport } from './routes/$countryCode/cart'
-import { Route as CountryCodeAccountRouteImport } from './routes/$countryCode/account'
-import { Route as CountryCodeSplatRouteImport } from './routes/$countryCode/$'
-import { Route as CountryCodeBlogIndexRouteImport } from './routes/$countryCode/blog/index'
-import { Route as CountryCodeProductsHandleRouteImport } from './routes/$countryCode/products/$handle'
-import { Route as CountryCodeDrugsHandleRouteImport } from './routes/$countryCode/drugs/$handle'
-import { Route as CountryCodeCategoriesHandleRouteImport } from './routes/$countryCode/categories/$handle'
-import { Route as CountryCodeBlogSlugRouteImport } from './routes/$countryCode/blog/$slug'
-import { Route as CountryCodeAccountResetPasswordRouteImport } from './routes/$countryCode/account/reset-password'
-import { Route as CountryCodeAccountRegisterRouteImport } from './routes/$countryCode/account/register'
-import { Route as CountryCodeAccountLoginRouteImport } from './routes/$countryCode/account/login'
-import { Route as CountryCodeAccountForgotPasswordRouteImport } from './routes/$countryCode/account/forgot-password'
-import { Route as CountryCodeAccountLayoutRouteImport } from './routes/$countryCode/account/_layout'
-import { Route as CountryCodeAccountLayoutIndexRouteImport } from './routes/$countryCode/account/_layout/index'
-import { Route as CountryCodeOrderOrderIdConfirmedRouteImport } from './routes/$countryCode/order/$orderId/confirmed'
-import { Route as CountryCodeAccountLayoutWishlistRouteImport } from './routes/$countryCode/account/_layout/wishlist'
-import { Route as CountryCodeAccountLayoutVerificationRouteImport } from './routes/$countryCode/account/_layout/verification'
-import { Route as CountryCodeAccountLayoutRemindersRouteImport } from './routes/$countryCode/account/_layout/reminders'
-import { Route as CountryCodeAccountLayoutProfileRouteImport } from './routes/$countryCode/account/_layout/profile'
-import { Route as CountryCodeAccountLayoutPrescriptionsRouteImport } from './routes/$countryCode/account/_layout/prescriptions'
-import { Route as CountryCodeAccountLayoutOrdersRouteImport } from './routes/$countryCode/account/_layout/orders'
-import { Route as CountryCodeAccountLayoutMessagesRouteImport } from './routes/$countryCode/account/_layout/messages'
-import { Route as CountryCodeAccountLayoutChangePasswordRouteImport } from './routes/$countryCode/account/_layout/change-password'
-import { Route as CountryCodeAccountLayoutAddressesRouteImport } from './routes/$countryCode/account/_layout/addresses'
-import { Route as CountryCodeAccountLayoutPharmacistRxQueueRouteImport } from './routes/$countryCode/account/_layout/pharmacist/rx-queue'
-import { Route as CountryCodeAccountLayoutPharmacistCreateOrderRouteImport } from './routes/$countryCode/account/_layout/pharmacist/create-order'
-import { Route as CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport } from './routes/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId'
+import { Route as InSplatRouteImport } from './routes/in.$'
+import { Route as DrugsHandleRouteImport } from './routes/drugs/$handle'
+import { Route as CategoriesHandleRouteImport } from './routes/categories/$handle'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as AccountResetPasswordRouteImport } from './routes/account/reset-password'
+import { Route as AccountRegisterRouteImport } from './routes/account/register'
+import { Route as AccountLoginRouteImport } from './routes/account/login'
+import { Route as AccountForgotPasswordRouteImport } from './routes/account/forgot-password'
+import { Route as AccountLayoutRouteImport } from './routes/account/_layout'
+import { Route as AccountLayoutIndexRouteImport } from './routes/account/_layout/index'
+import { Route as OrderOrderIdConfirmedRouteImport } from './routes/order/$orderId/confirmed'
+import { Route as AccountLayoutWishlistRouteImport } from './routes/account/_layout/wishlist'
+import { Route as AccountLayoutVerificationRouteImport } from './routes/account/_layout/verification'
+import { Route as AccountLayoutRemindersRouteImport } from './routes/account/_layout/reminders'
+import { Route as AccountLayoutProfileRouteImport } from './routes/account/_layout/profile'
+import { Route as AccountLayoutPrescriptionsRouteImport } from './routes/account/_layout/prescriptions'
+import { Route as AccountLayoutOrdersRouteImport } from './routes/account/_layout/orders'
+import { Route as AccountLayoutMessagesRouteImport } from './routes/account/_layout/messages'
+import { Route as AccountLayoutChangePasswordRouteImport } from './routes/account/_layout/change-password'
+import { Route as AccountLayoutAddressesRouteImport } from './routes/account/_layout/addresses'
+import { Route as AccountLayoutPharmacistRxQueueRouteImport } from './routes/account/_layout/pharmacist/rx-queue'
+import { Route as AccountLayoutPharmacistCreateOrderRouteImport } from './routes/account/_layout/pharmacist/create-order'
+import { Route as AccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport } from './routes/account/_layout/pharmacist/prescription/$prescriptionId'
 
+const UploadRxRoute = UploadRxRouteImport.update({
+  id: '/upload-rx',
+  path: '/upload-rx',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -72,6 +73,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReturnsRoute = ReturnsRouteImport.update({
   id: '/returns',
   path: '/returns',
@@ -85,6 +91,16 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PrescriptionPolicyRoute = PrescriptionPolicyRouteImport.update({
   id: '/prescription-policy',
   path: '/prescription-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InRoute = InRouteImport.update({
+  id: '/in',
+  path: '/in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthRoute = HealthRouteImport.update({
@@ -107,9 +123,9 @@ const CartRoute = CartRouteImport.update({
   path: '/cart',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CountryCodeRoute = CountryCodeRouteImport.update({
-  id: '/$countryCode',
-  path: '/$countryCode',
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SplatRoute = SplatRouteImport.update({
@@ -122,507 +138,446 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CountryCodeIndexRoute = CountryCodeIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => CountryCodeRoute,
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsHandleRoute = ProductsHandleRouteImport.update({
+  id: '/products/$handle',
+  path: '/products/$handle',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PharmacyLicensesRoute = PharmacyLicensesRouteImport.update({
   id: '/pharmacy/licenses',
   path: '/pharmacy/licenses',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CountryCodeUploadRxRoute = CountryCodeUploadRxRouteImport.update({
-  id: '/upload-rx',
-  path: '/upload-rx',
-  getParentRoute: () => CountryCodeRoute,
-} as any)
-const CountryCodeStoreRoute = CountryCodeStoreRouteImport.update({
-  id: '/store',
-  path: '/store',
-  getParentRoute: () => CountryCodeRoute,
-} as any)
-const CountryCodeSearchRoute = CountryCodeSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => CountryCodeRoute,
-} as any)
-const CountryCodeOnboardingRoute = CountryCodeOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => CountryCodeRoute,
-} as any)
-const CountryCodeCheckoutRoute = CountryCodeCheckoutRouteImport.update({
-  id: '/checkout',
-  path: '/checkout',
-  getParentRoute: () => CountryCodeRoute,
-} as any)
-const CountryCodeCartRoute = CountryCodeCartRouteImport.update({
-  id: '/cart',
-  path: '/cart',
-  getParentRoute: () => CountryCodeRoute,
-} as any)
-const CountryCodeAccountRoute = CountryCodeAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => CountryCodeRoute,
-} as any)
-const CountryCodeSplatRoute = CountryCodeSplatRouteImport.update({
+const InSplatRoute = InSplatRouteImport.update({
   id: '/$',
   path: '/$',
-  getParentRoute: () => CountryCodeRoute,
+  getParentRoute: () => InRoute,
 } as any)
-const CountryCodeBlogIndexRoute = CountryCodeBlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
-  getParentRoute: () => CountryCodeRoute,
-} as any)
-const CountryCodeProductsHandleRoute =
-  CountryCodeProductsHandleRouteImport.update({
-    id: '/products/$handle',
-    path: '/products/$handle',
-    getParentRoute: () => CountryCodeRoute,
-  } as any)
-const CountryCodeDrugsHandleRoute = CountryCodeDrugsHandleRouteImport.update({
+const DrugsHandleRoute = DrugsHandleRouteImport.update({
   id: '/drugs/$handle',
   path: '/drugs/$handle',
-  getParentRoute: () => CountryCodeRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const CountryCodeCategoriesHandleRoute =
-  CountryCodeCategoriesHandleRouteImport.update({
-    id: '/categories/$handle',
-    path: '/categories/$handle',
-    getParentRoute: () => CountryCodeRoute,
-  } as any)
-const CountryCodeBlogSlugRoute = CountryCodeBlogSlugRouteImport.update({
+const CategoriesHandleRoute = CategoriesHandleRouteImport.update({
+  id: '/categories/$handle',
+  path: '/categories/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
-  getParentRoute: () => CountryCodeRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const CountryCodeAccountResetPasswordRoute =
-  CountryCodeAccountResetPasswordRouteImport.update({
-    id: '/reset-password',
-    path: '/reset-password',
-    getParentRoute: () => CountryCodeAccountRoute,
-  } as any)
-const CountryCodeAccountRegisterRoute =
-  CountryCodeAccountRegisterRouteImport.update({
-    id: '/register',
-    path: '/register',
-    getParentRoute: () => CountryCodeAccountRoute,
-  } as any)
-const CountryCodeAccountLoginRoute = CountryCodeAccountLoginRouteImport.update({
+const AccountResetPasswordRoute = AccountResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountRegisterRoute = AccountRegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountLoginRoute = AccountLoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => CountryCodeAccountRoute,
+  getParentRoute: () => AccountRoute,
 } as any)
-const CountryCodeAccountForgotPasswordRoute =
-  CountryCodeAccountForgotPasswordRouteImport.update({
-    id: '/forgot-password',
-    path: '/forgot-password',
-    getParentRoute: () => CountryCodeAccountRoute,
-  } as any)
-const CountryCodeAccountLayoutRoute =
-  CountryCodeAccountLayoutRouteImport.update({
-    id: '/_layout',
-    getParentRoute: () => CountryCodeAccountRoute,
-  } as any)
-const CountryCodeAccountLayoutIndexRoute =
-  CountryCodeAccountLayoutIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
-  } as any)
-const CountryCodeOrderOrderIdConfirmedRoute =
-  CountryCodeOrderOrderIdConfirmedRouteImport.update({
-    id: '/order/$orderId/confirmed',
-    path: '/order/$orderId/confirmed',
-    getParentRoute: () => CountryCodeRoute,
-  } as any)
-const CountryCodeAccountLayoutWishlistRoute =
-  CountryCodeAccountLayoutWishlistRouteImport.update({
-    id: '/wishlist',
-    path: '/wishlist',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
-  } as any)
-const CountryCodeAccountLayoutVerificationRoute =
-  CountryCodeAccountLayoutVerificationRouteImport.update({
+const AccountForgotPasswordRoute = AccountForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountLayoutRoute = AccountLayoutRouteImport.update({
+  id: '/_layout',
+  getParentRoute: () => AccountRoute,
+} as any)
+const AccountLayoutIndexRoute = AccountLayoutIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AccountLayoutRoute,
+} as any)
+const OrderOrderIdConfirmedRoute = OrderOrderIdConfirmedRouteImport.update({
+  id: '/order/$orderId/confirmed',
+  path: '/order/$orderId/confirmed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountLayoutWishlistRoute = AccountLayoutWishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => AccountLayoutRoute,
+} as any)
+const AccountLayoutVerificationRoute =
+  AccountLayoutVerificationRouteImport.update({
     id: '/verification',
     path: '/verification',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
+    getParentRoute: () => AccountLayoutRoute,
   } as any)
-const CountryCodeAccountLayoutRemindersRoute =
-  CountryCodeAccountLayoutRemindersRouteImport.update({
-    id: '/reminders',
-    path: '/reminders',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
-  } as any)
-const CountryCodeAccountLayoutProfileRoute =
-  CountryCodeAccountLayoutProfileRouteImport.update({
-    id: '/profile',
-    path: '/profile',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
-  } as any)
-const CountryCodeAccountLayoutPrescriptionsRoute =
-  CountryCodeAccountLayoutPrescriptionsRouteImport.update({
+const AccountLayoutRemindersRoute = AccountLayoutRemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
+  getParentRoute: () => AccountLayoutRoute,
+} as any)
+const AccountLayoutProfileRoute = AccountLayoutProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AccountLayoutRoute,
+} as any)
+const AccountLayoutPrescriptionsRoute =
+  AccountLayoutPrescriptionsRouteImport.update({
     id: '/prescriptions',
     path: '/prescriptions',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
+    getParentRoute: () => AccountLayoutRoute,
   } as any)
-const CountryCodeAccountLayoutOrdersRoute =
-  CountryCodeAccountLayoutOrdersRouteImport.update({
-    id: '/orders',
-    path: '/orders',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
-  } as any)
-const CountryCodeAccountLayoutMessagesRoute =
-  CountryCodeAccountLayoutMessagesRouteImport.update({
-    id: '/messages',
-    path: '/messages',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
-  } as any)
-const CountryCodeAccountLayoutChangePasswordRoute =
-  CountryCodeAccountLayoutChangePasswordRouteImport.update({
+const AccountLayoutOrdersRoute = AccountLayoutOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AccountLayoutRoute,
+} as any)
+const AccountLayoutMessagesRoute = AccountLayoutMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AccountLayoutRoute,
+} as any)
+const AccountLayoutChangePasswordRoute =
+  AccountLayoutChangePasswordRouteImport.update({
     id: '/change-password',
     path: '/change-password',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
+    getParentRoute: () => AccountLayoutRoute,
   } as any)
-const CountryCodeAccountLayoutAddressesRoute =
-  CountryCodeAccountLayoutAddressesRouteImport.update({
-    id: '/addresses',
-    path: '/addresses',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
-  } as any)
-const CountryCodeAccountLayoutPharmacistRxQueueRoute =
-  CountryCodeAccountLayoutPharmacistRxQueueRouteImport.update({
+const AccountLayoutAddressesRoute = AccountLayoutAddressesRouteImport.update({
+  id: '/addresses',
+  path: '/addresses',
+  getParentRoute: () => AccountLayoutRoute,
+} as any)
+const AccountLayoutPharmacistRxQueueRoute =
+  AccountLayoutPharmacistRxQueueRouteImport.update({
     id: '/pharmacist/rx-queue',
     path: '/pharmacist/rx-queue',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
+    getParentRoute: () => AccountLayoutRoute,
   } as any)
-const CountryCodeAccountLayoutPharmacistCreateOrderRoute =
-  CountryCodeAccountLayoutPharmacistCreateOrderRouteImport.update({
+const AccountLayoutPharmacistCreateOrderRoute =
+  AccountLayoutPharmacistCreateOrderRouteImport.update({
     id: '/pharmacist/create-order',
     path: '/pharmacist/create-order',
-    getParentRoute: () => CountryCodeAccountLayoutRoute,
+    getParentRoute: () => AccountLayoutRoute,
   } as any)
-const CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute =
-  CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport.update(
-    {
-      id: '/pharmacist/prescription/$prescriptionId',
-      path: '/pharmacist/prescription/$prescriptionId',
-      getParentRoute: () => CountryCodeAccountLayoutRoute,
-    } as any,
-  )
+const AccountLayoutPharmacistPrescriptionPrescriptionIdRoute =
+  AccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport.update({
+    id: '/pharmacist/prescription/$prescriptionId',
+    path: '/pharmacist/prescription/$prescriptionId',
+    getParentRoute: () => AccountLayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
-  '/$countryCode': typeof CountryCodeRouteWithChildren
+  '/account': typeof AccountLayoutRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/in': typeof InRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
-  '/$countryCode/$': typeof CountryCodeSplatRoute
-  '/$countryCode/account': typeof CountryCodeAccountLayoutRouteWithChildren
-  '/$countryCode/cart': typeof CountryCodeCartRoute
-  '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
-  '/$countryCode/onboarding': typeof CountryCodeOnboardingRoute
-  '/$countryCode/search': typeof CountryCodeSearchRoute
-  '/$countryCode/store': typeof CountryCodeStoreRoute
-  '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
+  '/upload-rx': typeof UploadRxRoute
+  '/account/forgot-password': typeof AccountForgotPasswordRoute
+  '/account/login': typeof AccountLoginRoute
+  '/account/register': typeof AccountRegisterRoute
+  '/account/reset-password': typeof AccountResetPasswordRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/categories/$handle': typeof CategoriesHandleRoute
+  '/drugs/$handle': typeof DrugsHandleRoute
+  '/in/$': typeof InSplatRoute
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
-  '/$countryCode/': typeof CountryCodeIndexRoute
-  '/$countryCode/account/forgot-password': typeof CountryCodeAccountForgotPasswordRoute
-  '/$countryCode/account/login': typeof CountryCodeAccountLoginRoute
-  '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
-  '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
-  '/$countryCode/blog/$slug': typeof CountryCodeBlogSlugRoute
-  '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
-  '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
-  '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
-  '/$countryCode/blog/': typeof CountryCodeBlogIndexRoute
-  '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
-  '/$countryCode/account/change-password': typeof CountryCodeAccountLayoutChangePasswordRoute
-  '/$countryCode/account/messages': typeof CountryCodeAccountLayoutMessagesRoute
-  '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
-  '/$countryCode/account/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
-  '/$countryCode/account/profile': typeof CountryCodeAccountLayoutProfileRoute
-  '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
-  '/$countryCode/account/verification': typeof CountryCodeAccountLayoutVerificationRoute
-  '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
-  '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
-  '/$countryCode/account/': typeof CountryCodeAccountLayoutIndexRoute
-  '/$countryCode/account/pharmacist/create-order': typeof CountryCodeAccountLayoutPharmacistCreateOrderRoute
-  '/$countryCode/account/pharmacist/rx-queue': typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
-  '/$countryCode/account/pharmacist/prescription/$prescriptionId': typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute
+  '/products/$handle': typeof ProductsHandleRoute
+  '/blog/': typeof BlogIndexRoute
+  '/account/addresses': typeof AccountLayoutAddressesRoute
+  '/account/change-password': typeof AccountLayoutChangePasswordRoute
+  '/account/messages': typeof AccountLayoutMessagesRoute
+  '/account/orders': typeof AccountLayoutOrdersRoute
+  '/account/prescriptions': typeof AccountLayoutPrescriptionsRoute
+  '/account/profile': typeof AccountLayoutProfileRoute
+  '/account/reminders': typeof AccountLayoutRemindersRoute
+  '/account/verification': typeof AccountLayoutVerificationRoute
+  '/account/wishlist': typeof AccountLayoutWishlistRoute
+  '/order/$orderId/confirmed': typeof OrderOrderIdConfirmedRoute
+  '/account/': typeof AccountLayoutIndexRoute
+  '/account/pharmacist/create-order': typeof AccountLayoutPharmacistCreateOrderRoute
+  '/account/pharmacist/rx-queue': typeof AccountLayoutPharmacistRxQueueRoute
+  '/account/pharmacist/prescription/$prescriptionId': typeof AccountLayoutPharmacistPrescriptionPrescriptionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/account': typeof AccountLayoutIndexRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/in': typeof InRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
-  '/$countryCode/$': typeof CountryCodeSplatRoute
-  '/$countryCode/account': typeof CountryCodeAccountLayoutIndexRoute
-  '/$countryCode/cart': typeof CountryCodeCartRoute
-  '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
-  '/$countryCode/onboarding': typeof CountryCodeOnboardingRoute
-  '/$countryCode/search': typeof CountryCodeSearchRoute
-  '/$countryCode/store': typeof CountryCodeStoreRoute
-  '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
+  '/upload-rx': typeof UploadRxRoute
+  '/account/forgot-password': typeof AccountForgotPasswordRoute
+  '/account/login': typeof AccountLoginRoute
+  '/account/register': typeof AccountRegisterRoute
+  '/account/reset-password': typeof AccountResetPasswordRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/categories/$handle': typeof CategoriesHandleRoute
+  '/drugs/$handle': typeof DrugsHandleRoute
+  '/in/$': typeof InSplatRoute
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
-  '/$countryCode': typeof CountryCodeIndexRoute
-  '/$countryCode/account/forgot-password': typeof CountryCodeAccountForgotPasswordRoute
-  '/$countryCode/account/login': typeof CountryCodeAccountLoginRoute
-  '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
-  '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
-  '/$countryCode/blog/$slug': typeof CountryCodeBlogSlugRoute
-  '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
-  '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
-  '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
-  '/$countryCode/blog': typeof CountryCodeBlogIndexRoute
-  '/$countryCode/account/addresses': typeof CountryCodeAccountLayoutAddressesRoute
-  '/$countryCode/account/change-password': typeof CountryCodeAccountLayoutChangePasswordRoute
-  '/$countryCode/account/messages': typeof CountryCodeAccountLayoutMessagesRoute
-  '/$countryCode/account/orders': typeof CountryCodeAccountLayoutOrdersRoute
-  '/$countryCode/account/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
-  '/$countryCode/account/profile': typeof CountryCodeAccountLayoutProfileRoute
-  '/$countryCode/account/reminders': typeof CountryCodeAccountLayoutRemindersRoute
-  '/$countryCode/account/verification': typeof CountryCodeAccountLayoutVerificationRoute
-  '/$countryCode/account/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
-  '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
-  '/$countryCode/account/pharmacist/create-order': typeof CountryCodeAccountLayoutPharmacistCreateOrderRoute
-  '/$countryCode/account/pharmacist/rx-queue': typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
-  '/$countryCode/account/pharmacist/prescription/$prescriptionId': typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute
+  '/products/$handle': typeof ProductsHandleRoute
+  '/blog': typeof BlogIndexRoute
+  '/account/addresses': typeof AccountLayoutAddressesRoute
+  '/account/change-password': typeof AccountLayoutChangePasswordRoute
+  '/account/messages': typeof AccountLayoutMessagesRoute
+  '/account/orders': typeof AccountLayoutOrdersRoute
+  '/account/prescriptions': typeof AccountLayoutPrescriptionsRoute
+  '/account/profile': typeof AccountLayoutProfileRoute
+  '/account/reminders': typeof AccountLayoutRemindersRoute
+  '/account/verification': typeof AccountLayoutVerificationRoute
+  '/account/wishlist': typeof AccountLayoutWishlistRoute
+  '/order/$orderId/confirmed': typeof OrderOrderIdConfirmedRoute
+  '/account/pharmacist/create-order': typeof AccountLayoutPharmacistCreateOrderRoute
+  '/account/pharmacist/rx-queue': typeof AccountLayoutPharmacistRxQueueRoute
+  '/account/pharmacist/prescription/$prescriptionId': typeof AccountLayoutPharmacistPrescriptionPrescriptionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
-  '/$countryCode': typeof CountryCodeRouteWithChildren
+  '/account': typeof AccountRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/in': typeof InRouteWithChildren
+  '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
   '/returns': typeof ReturnsRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
-  '/$countryCode/$': typeof CountryCodeSplatRoute
-  '/$countryCode/account': typeof CountryCodeAccountRouteWithChildren
-  '/$countryCode/cart': typeof CountryCodeCartRoute
-  '/$countryCode/checkout': typeof CountryCodeCheckoutRoute
-  '/$countryCode/onboarding': typeof CountryCodeOnboardingRoute
-  '/$countryCode/search': typeof CountryCodeSearchRoute
-  '/$countryCode/store': typeof CountryCodeStoreRoute
-  '/$countryCode/upload-rx': typeof CountryCodeUploadRxRoute
+  '/upload-rx': typeof UploadRxRoute
+  '/account/_layout': typeof AccountLayoutRouteWithChildren
+  '/account/forgot-password': typeof AccountForgotPasswordRoute
+  '/account/login': typeof AccountLoginRoute
+  '/account/register': typeof AccountRegisterRoute
+  '/account/reset-password': typeof AccountResetPasswordRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/categories/$handle': typeof CategoriesHandleRoute
+  '/drugs/$handle': typeof DrugsHandleRoute
+  '/in/$': typeof InSplatRoute
   '/pharmacy/licenses': typeof PharmacyLicensesRoute
-  '/$countryCode/': typeof CountryCodeIndexRoute
-  '/$countryCode/account/_layout': typeof CountryCodeAccountLayoutRouteWithChildren
-  '/$countryCode/account/forgot-password': typeof CountryCodeAccountForgotPasswordRoute
-  '/$countryCode/account/login': typeof CountryCodeAccountLoginRoute
-  '/$countryCode/account/register': typeof CountryCodeAccountRegisterRoute
-  '/$countryCode/account/reset-password': typeof CountryCodeAccountResetPasswordRoute
-  '/$countryCode/blog/$slug': typeof CountryCodeBlogSlugRoute
-  '/$countryCode/categories/$handle': typeof CountryCodeCategoriesHandleRoute
-  '/$countryCode/drugs/$handle': typeof CountryCodeDrugsHandleRoute
-  '/$countryCode/products/$handle': typeof CountryCodeProductsHandleRoute
-  '/$countryCode/blog/': typeof CountryCodeBlogIndexRoute
-  '/$countryCode/account/_layout/addresses': typeof CountryCodeAccountLayoutAddressesRoute
-  '/$countryCode/account/_layout/change-password': typeof CountryCodeAccountLayoutChangePasswordRoute
-  '/$countryCode/account/_layout/messages': typeof CountryCodeAccountLayoutMessagesRoute
-  '/$countryCode/account/_layout/orders': typeof CountryCodeAccountLayoutOrdersRoute
-  '/$countryCode/account/_layout/prescriptions': typeof CountryCodeAccountLayoutPrescriptionsRoute
-  '/$countryCode/account/_layout/profile': typeof CountryCodeAccountLayoutProfileRoute
-  '/$countryCode/account/_layout/reminders': typeof CountryCodeAccountLayoutRemindersRoute
-  '/$countryCode/account/_layout/verification': typeof CountryCodeAccountLayoutVerificationRoute
-  '/$countryCode/account/_layout/wishlist': typeof CountryCodeAccountLayoutWishlistRoute
-  '/$countryCode/order/$orderId/confirmed': typeof CountryCodeOrderOrderIdConfirmedRoute
-  '/$countryCode/account/_layout/': typeof CountryCodeAccountLayoutIndexRoute
-  '/$countryCode/account/_layout/pharmacist/create-order': typeof CountryCodeAccountLayoutPharmacistCreateOrderRoute
-  '/$countryCode/account/_layout/pharmacist/rx-queue': typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
-  '/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId': typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute
+  '/products/$handle': typeof ProductsHandleRoute
+  '/blog/': typeof BlogIndexRoute
+  '/account/_layout/addresses': typeof AccountLayoutAddressesRoute
+  '/account/_layout/change-password': typeof AccountLayoutChangePasswordRoute
+  '/account/_layout/messages': typeof AccountLayoutMessagesRoute
+  '/account/_layout/orders': typeof AccountLayoutOrdersRoute
+  '/account/_layout/prescriptions': typeof AccountLayoutPrescriptionsRoute
+  '/account/_layout/profile': typeof AccountLayoutProfileRoute
+  '/account/_layout/reminders': typeof AccountLayoutRemindersRoute
+  '/account/_layout/verification': typeof AccountLayoutVerificationRoute
+  '/account/_layout/wishlist': typeof AccountLayoutWishlistRoute
+  '/order/$orderId/confirmed': typeof OrderOrderIdConfirmedRoute
+  '/account/_layout/': typeof AccountLayoutIndexRoute
+  '/account/_layout/pharmacist/create-order': typeof AccountLayoutPharmacistCreateOrderRoute
+  '/account/_layout/pharmacist/rx-queue': typeof AccountLayoutPharmacistRxQueueRoute
+  '/account/_layout/pharmacist/prescription/$prescriptionId': typeof AccountLayoutPharmacistPrescriptionPrescriptionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/$'
-    | '/$countryCode'
+    | '/account'
     | '/cart'
     | '/checkout'
     | '/grievance'
     | '/health'
+    | '/in'
+    | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
     | '/returns'
+    | '/search'
     | '/sitemap.xml'
     | '/store'
     | '/terms'
-    | '/$countryCode/$'
-    | '/$countryCode/account'
-    | '/$countryCode/cart'
-    | '/$countryCode/checkout'
-    | '/$countryCode/onboarding'
-    | '/$countryCode/search'
-    | '/$countryCode/store'
-    | '/$countryCode/upload-rx'
+    | '/upload-rx'
+    | '/account/forgot-password'
+    | '/account/login'
+    | '/account/register'
+    | '/account/reset-password'
+    | '/blog/$slug'
+    | '/categories/$handle'
+    | '/drugs/$handle'
+    | '/in/$'
     | '/pharmacy/licenses'
-    | '/$countryCode/'
-    | '/$countryCode/account/forgot-password'
-    | '/$countryCode/account/login'
-    | '/$countryCode/account/register'
-    | '/$countryCode/account/reset-password'
-    | '/$countryCode/blog/$slug'
-    | '/$countryCode/categories/$handle'
-    | '/$countryCode/drugs/$handle'
-    | '/$countryCode/products/$handle'
-    | '/$countryCode/blog/'
-    | '/$countryCode/account/addresses'
-    | '/$countryCode/account/change-password'
-    | '/$countryCode/account/messages'
-    | '/$countryCode/account/orders'
-    | '/$countryCode/account/prescriptions'
-    | '/$countryCode/account/profile'
-    | '/$countryCode/account/reminders'
-    | '/$countryCode/account/verification'
-    | '/$countryCode/account/wishlist'
-    | '/$countryCode/order/$orderId/confirmed'
-    | '/$countryCode/account/'
-    | '/$countryCode/account/pharmacist/create-order'
-    | '/$countryCode/account/pharmacist/rx-queue'
-    | '/$countryCode/account/pharmacist/prescription/$prescriptionId'
+    | '/products/$handle'
+    | '/blog/'
+    | '/account/addresses'
+    | '/account/change-password'
+    | '/account/messages'
+    | '/account/orders'
+    | '/account/prescriptions'
+    | '/account/profile'
+    | '/account/reminders'
+    | '/account/verification'
+    | '/account/wishlist'
+    | '/order/$orderId/confirmed'
+    | '/account/'
+    | '/account/pharmacist/create-order'
+    | '/account/pharmacist/rx-queue'
+    | '/account/pharmacist/prescription/$prescriptionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$'
+    | '/account'
     | '/cart'
     | '/checkout'
     | '/grievance'
     | '/health'
+    | '/in'
+    | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
     | '/returns'
+    | '/search'
     | '/sitemap.xml'
     | '/store'
     | '/terms'
-    | '/$countryCode/$'
-    | '/$countryCode/account'
-    | '/$countryCode/cart'
-    | '/$countryCode/checkout'
-    | '/$countryCode/onboarding'
-    | '/$countryCode/search'
-    | '/$countryCode/store'
-    | '/$countryCode/upload-rx'
+    | '/upload-rx'
+    | '/account/forgot-password'
+    | '/account/login'
+    | '/account/register'
+    | '/account/reset-password'
+    | '/blog/$slug'
+    | '/categories/$handle'
+    | '/drugs/$handle'
+    | '/in/$'
     | '/pharmacy/licenses'
-    | '/$countryCode'
-    | '/$countryCode/account/forgot-password'
-    | '/$countryCode/account/login'
-    | '/$countryCode/account/register'
-    | '/$countryCode/account/reset-password'
-    | '/$countryCode/blog/$slug'
-    | '/$countryCode/categories/$handle'
-    | '/$countryCode/drugs/$handle'
-    | '/$countryCode/products/$handle'
-    | '/$countryCode/blog'
-    | '/$countryCode/account/addresses'
-    | '/$countryCode/account/change-password'
-    | '/$countryCode/account/messages'
-    | '/$countryCode/account/orders'
-    | '/$countryCode/account/prescriptions'
-    | '/$countryCode/account/profile'
-    | '/$countryCode/account/reminders'
-    | '/$countryCode/account/verification'
-    | '/$countryCode/account/wishlist'
-    | '/$countryCode/order/$orderId/confirmed'
-    | '/$countryCode/account/pharmacist/create-order'
-    | '/$countryCode/account/pharmacist/rx-queue'
-    | '/$countryCode/account/pharmacist/prescription/$prescriptionId'
+    | '/products/$handle'
+    | '/blog'
+    | '/account/addresses'
+    | '/account/change-password'
+    | '/account/messages'
+    | '/account/orders'
+    | '/account/prescriptions'
+    | '/account/profile'
+    | '/account/reminders'
+    | '/account/verification'
+    | '/account/wishlist'
+    | '/order/$orderId/confirmed'
+    | '/account/pharmacist/create-order'
+    | '/account/pharmacist/rx-queue'
+    | '/account/pharmacist/prescription/$prescriptionId'
   id:
     | '__root__'
     | '/'
     | '/$'
-    | '/$countryCode'
+    | '/account'
     | '/cart'
     | '/checkout'
     | '/grievance'
     | '/health'
+    | '/in'
+    | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
     | '/returns'
+    | '/search'
     | '/sitemap.xml'
     | '/store'
     | '/terms'
-    | '/$countryCode/$'
-    | '/$countryCode/account'
-    | '/$countryCode/cart'
-    | '/$countryCode/checkout'
-    | '/$countryCode/onboarding'
-    | '/$countryCode/search'
-    | '/$countryCode/store'
-    | '/$countryCode/upload-rx'
+    | '/upload-rx'
+    | '/account/_layout'
+    | '/account/forgot-password'
+    | '/account/login'
+    | '/account/register'
+    | '/account/reset-password'
+    | '/blog/$slug'
+    | '/categories/$handle'
+    | '/drugs/$handle'
+    | '/in/$'
     | '/pharmacy/licenses'
-    | '/$countryCode/'
-    | '/$countryCode/account/_layout'
-    | '/$countryCode/account/forgot-password'
-    | '/$countryCode/account/login'
-    | '/$countryCode/account/register'
-    | '/$countryCode/account/reset-password'
-    | '/$countryCode/blog/$slug'
-    | '/$countryCode/categories/$handle'
-    | '/$countryCode/drugs/$handle'
-    | '/$countryCode/products/$handle'
-    | '/$countryCode/blog/'
-    | '/$countryCode/account/_layout/addresses'
-    | '/$countryCode/account/_layout/change-password'
-    | '/$countryCode/account/_layout/messages'
-    | '/$countryCode/account/_layout/orders'
-    | '/$countryCode/account/_layout/prescriptions'
-    | '/$countryCode/account/_layout/profile'
-    | '/$countryCode/account/_layout/reminders'
-    | '/$countryCode/account/_layout/verification'
-    | '/$countryCode/account/_layout/wishlist'
-    | '/$countryCode/order/$orderId/confirmed'
-    | '/$countryCode/account/_layout/'
-    | '/$countryCode/account/_layout/pharmacist/create-order'
-    | '/$countryCode/account/_layout/pharmacist/rx-queue'
-    | '/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId'
+    | '/products/$handle'
+    | '/blog/'
+    | '/account/_layout/addresses'
+    | '/account/_layout/change-password'
+    | '/account/_layout/messages'
+    | '/account/_layout/orders'
+    | '/account/_layout/prescriptions'
+    | '/account/_layout/profile'
+    | '/account/_layout/reminders'
+    | '/account/_layout/verification'
+    | '/account/_layout/wishlist'
+    | '/order/$orderId/confirmed'
+    | '/account/_layout/'
+    | '/account/_layout/pharmacist/create-order'
+    | '/account/_layout/pharmacist/rx-queue'
+    | '/account/_layout/pharmacist/prescription/$prescriptionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
-  CountryCodeRoute: typeof CountryCodeRouteWithChildren
+  AccountRoute: typeof AccountRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   GrievanceRoute: typeof GrievanceRoute
   HealthRoute: typeof HealthRoute
+  InRoute: typeof InRouteWithChildren
+  OnboardingRoute: typeof OnboardingRoute
   PrescriptionPolicyRoute: typeof PrescriptionPolicyRoute
   PrivacyRoute: typeof PrivacyRoute
   ReturnsRoute: typeof ReturnsRoute
+  SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StoreRoute: typeof StoreRoute
   TermsRoute: typeof TermsRoute
+  UploadRxRoute: typeof UploadRxRoute
+  BlogSlugRoute: typeof BlogSlugRoute
+  CategoriesHandleRoute: typeof CategoriesHandleRoute
+  DrugsHandleRoute: typeof DrugsHandleRoute
   PharmacyLicensesRoute: typeof PharmacyLicensesRoute
+  ProductsHandleRoute: typeof ProductsHandleRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  OrderOrderIdConfirmedRoute: typeof OrderOrderIdConfirmedRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/upload-rx': {
+      id: '/upload-rx'
+      path: '/upload-rx'
+      fullPath: '/upload-rx'
+      preLoaderRoute: typeof UploadRxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -644,6 +599,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/returns': {
       id: '/returns'
       path: '/returns'
@@ -663,6 +625,20 @@ declare module '@tanstack/react-router' {
       path: '/prescription-policy'
       fullPath: '/prescription-policy'
       preLoaderRoute: typeof PrescriptionPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/in': {
+      id: '/in'
+      path: '/in'
+      fullPath: '/in'
+      preLoaderRoute: typeof InRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/health': {
@@ -693,11 +669,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CartRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$countryCode': {
-      id: '/$countryCode'
-      path: '/$countryCode'
-      fullPath: '/$countryCode'
-      preLoaderRoute: typeof CountryCodeRouteImport
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$': {
@@ -714,12 +690,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$countryCode/': {
-      id: '/$countryCode/'
-      path: '/'
-      fullPath: '/$countryCode/'
-      preLoaderRoute: typeof CountryCodeIndexRouteImport
-      parentRoute: typeof CountryCodeRoute
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$handle': {
+      id: '/products/$handle'
+      path: '/products/$handle'
+      fullPath: '/products/$handle'
+      preLoaderRoute: typeof ProductsHandleRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/pharmacy/licenses': {
       id: '/pharmacy/licenses'
@@ -728,355 +711,262 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PharmacyLicensesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$countryCode/upload-rx': {
-      id: '/$countryCode/upload-rx'
-      path: '/upload-rx'
-      fullPath: '/$countryCode/upload-rx'
-      preLoaderRoute: typeof CountryCodeUploadRxRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/store': {
-      id: '/$countryCode/store'
-      path: '/store'
-      fullPath: '/$countryCode/store'
-      preLoaderRoute: typeof CountryCodeStoreRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/search': {
-      id: '/$countryCode/search'
-      path: '/search'
-      fullPath: '/$countryCode/search'
-      preLoaderRoute: typeof CountryCodeSearchRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/onboarding': {
-      id: '/$countryCode/onboarding'
-      path: '/onboarding'
-      fullPath: '/$countryCode/onboarding'
-      preLoaderRoute: typeof CountryCodeOnboardingRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/checkout': {
-      id: '/$countryCode/checkout'
-      path: '/checkout'
-      fullPath: '/$countryCode/checkout'
-      preLoaderRoute: typeof CountryCodeCheckoutRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/cart': {
-      id: '/$countryCode/cart'
-      path: '/cart'
-      fullPath: '/$countryCode/cart'
-      preLoaderRoute: typeof CountryCodeCartRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/account': {
-      id: '/$countryCode/account'
-      path: '/account'
-      fullPath: '/$countryCode/account'
-      preLoaderRoute: typeof CountryCodeAccountRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/$': {
-      id: '/$countryCode/$'
+    '/in/$': {
+      id: '/in/$'
       path: '/$'
-      fullPath: '/$countryCode/$'
-      preLoaderRoute: typeof CountryCodeSplatRouteImport
-      parentRoute: typeof CountryCodeRoute
+      fullPath: '/in/$'
+      preLoaderRoute: typeof InSplatRouteImport
+      parentRoute: typeof InRoute
     }
-    '/$countryCode/blog/': {
-      id: '/$countryCode/blog/'
-      path: '/blog'
-      fullPath: '/$countryCode/blog/'
-      preLoaderRoute: typeof CountryCodeBlogIndexRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/products/$handle': {
-      id: '/$countryCode/products/$handle'
-      path: '/products/$handle'
-      fullPath: '/$countryCode/products/$handle'
-      preLoaderRoute: typeof CountryCodeProductsHandleRouteImport
-      parentRoute: typeof CountryCodeRoute
-    }
-    '/$countryCode/drugs/$handle': {
-      id: '/$countryCode/drugs/$handle'
+    '/drugs/$handle': {
+      id: '/drugs/$handle'
       path: '/drugs/$handle'
-      fullPath: '/$countryCode/drugs/$handle'
-      preLoaderRoute: typeof CountryCodeDrugsHandleRouteImport
-      parentRoute: typeof CountryCodeRoute
+      fullPath: '/drugs/$handle'
+      preLoaderRoute: typeof DrugsHandleRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/$countryCode/categories/$handle': {
-      id: '/$countryCode/categories/$handle'
+    '/categories/$handle': {
+      id: '/categories/$handle'
       path: '/categories/$handle'
-      fullPath: '/$countryCode/categories/$handle'
-      preLoaderRoute: typeof CountryCodeCategoriesHandleRouteImport
-      parentRoute: typeof CountryCodeRoute
+      fullPath: '/categories/$handle'
+      preLoaderRoute: typeof CategoriesHandleRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/$countryCode/blog/$slug': {
-      id: '/$countryCode/blog/$slug'
+    '/blog/$slug': {
+      id: '/blog/$slug'
       path: '/blog/$slug'
-      fullPath: '/$countryCode/blog/$slug'
-      preLoaderRoute: typeof CountryCodeBlogSlugRouteImport
-      parentRoute: typeof CountryCodeRoute
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/$countryCode/account/reset-password': {
-      id: '/$countryCode/account/reset-password'
+    '/account/reset-password': {
+      id: '/account/reset-password'
       path: '/reset-password'
-      fullPath: '/$countryCode/account/reset-password'
-      preLoaderRoute: typeof CountryCodeAccountResetPasswordRouteImport
-      parentRoute: typeof CountryCodeAccountRoute
+      fullPath: '/account/reset-password'
+      preLoaderRoute: typeof AccountResetPasswordRouteImport
+      parentRoute: typeof AccountRoute
     }
-    '/$countryCode/account/register': {
-      id: '/$countryCode/account/register'
+    '/account/register': {
+      id: '/account/register'
       path: '/register'
-      fullPath: '/$countryCode/account/register'
-      preLoaderRoute: typeof CountryCodeAccountRegisterRouteImport
-      parentRoute: typeof CountryCodeAccountRoute
+      fullPath: '/account/register'
+      preLoaderRoute: typeof AccountRegisterRouteImport
+      parentRoute: typeof AccountRoute
     }
-    '/$countryCode/account/login': {
-      id: '/$countryCode/account/login'
+    '/account/login': {
+      id: '/account/login'
       path: '/login'
-      fullPath: '/$countryCode/account/login'
-      preLoaderRoute: typeof CountryCodeAccountLoginRouteImport
-      parentRoute: typeof CountryCodeAccountRoute
+      fullPath: '/account/login'
+      preLoaderRoute: typeof AccountLoginRouteImport
+      parentRoute: typeof AccountRoute
     }
-    '/$countryCode/account/forgot-password': {
-      id: '/$countryCode/account/forgot-password'
+    '/account/forgot-password': {
+      id: '/account/forgot-password'
       path: '/forgot-password'
-      fullPath: '/$countryCode/account/forgot-password'
-      preLoaderRoute: typeof CountryCodeAccountForgotPasswordRouteImport
-      parentRoute: typeof CountryCodeAccountRoute
+      fullPath: '/account/forgot-password'
+      preLoaderRoute: typeof AccountForgotPasswordRouteImport
+      parentRoute: typeof AccountRoute
     }
-    '/$countryCode/account/_layout': {
-      id: '/$countryCode/account/_layout'
+    '/account/_layout': {
+      id: '/account/_layout'
       path: ''
-      fullPath: '/$countryCode/account'
-      preLoaderRoute: typeof CountryCodeAccountLayoutRouteImport
-      parentRoute: typeof CountryCodeAccountRoute
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountLayoutRouteImport
+      parentRoute: typeof AccountRoute
     }
-    '/$countryCode/account/_layout/': {
-      id: '/$countryCode/account/_layout/'
+    '/account/_layout/': {
+      id: '/account/_layout/'
       path: '/'
-      fullPath: '/$countryCode/account/'
-      preLoaderRoute: typeof CountryCodeAccountLayoutIndexRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/'
+      preLoaderRoute: typeof AccountLayoutIndexRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/order/$orderId/confirmed': {
-      id: '/$countryCode/order/$orderId/confirmed'
+    '/order/$orderId/confirmed': {
+      id: '/order/$orderId/confirmed'
       path: '/order/$orderId/confirmed'
-      fullPath: '/$countryCode/order/$orderId/confirmed'
-      preLoaderRoute: typeof CountryCodeOrderOrderIdConfirmedRouteImport
-      parentRoute: typeof CountryCodeRoute
+      fullPath: '/order/$orderId/confirmed'
+      preLoaderRoute: typeof OrderOrderIdConfirmedRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/$countryCode/account/_layout/wishlist': {
-      id: '/$countryCode/account/_layout/wishlist'
+    '/account/_layout/wishlist': {
+      id: '/account/_layout/wishlist'
       path: '/wishlist'
-      fullPath: '/$countryCode/account/wishlist'
-      preLoaderRoute: typeof CountryCodeAccountLayoutWishlistRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/wishlist'
+      preLoaderRoute: typeof AccountLayoutWishlistRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/verification': {
-      id: '/$countryCode/account/_layout/verification'
+    '/account/_layout/verification': {
+      id: '/account/_layout/verification'
       path: '/verification'
-      fullPath: '/$countryCode/account/verification'
-      preLoaderRoute: typeof CountryCodeAccountLayoutVerificationRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/verification'
+      preLoaderRoute: typeof AccountLayoutVerificationRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/reminders': {
-      id: '/$countryCode/account/_layout/reminders'
+    '/account/_layout/reminders': {
+      id: '/account/_layout/reminders'
       path: '/reminders'
-      fullPath: '/$countryCode/account/reminders'
-      preLoaderRoute: typeof CountryCodeAccountLayoutRemindersRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/reminders'
+      preLoaderRoute: typeof AccountLayoutRemindersRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/profile': {
-      id: '/$countryCode/account/_layout/profile'
+    '/account/_layout/profile': {
+      id: '/account/_layout/profile'
       path: '/profile'
-      fullPath: '/$countryCode/account/profile'
-      preLoaderRoute: typeof CountryCodeAccountLayoutProfileRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AccountLayoutProfileRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/prescriptions': {
-      id: '/$countryCode/account/_layout/prescriptions'
+    '/account/_layout/prescriptions': {
+      id: '/account/_layout/prescriptions'
       path: '/prescriptions'
-      fullPath: '/$countryCode/account/prescriptions'
-      preLoaderRoute: typeof CountryCodeAccountLayoutPrescriptionsRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/prescriptions'
+      preLoaderRoute: typeof AccountLayoutPrescriptionsRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/orders': {
-      id: '/$countryCode/account/_layout/orders'
+    '/account/_layout/orders': {
+      id: '/account/_layout/orders'
       path: '/orders'
-      fullPath: '/$countryCode/account/orders'
-      preLoaderRoute: typeof CountryCodeAccountLayoutOrdersRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/orders'
+      preLoaderRoute: typeof AccountLayoutOrdersRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/messages': {
-      id: '/$countryCode/account/_layout/messages'
+    '/account/_layout/messages': {
+      id: '/account/_layout/messages'
       path: '/messages'
-      fullPath: '/$countryCode/account/messages'
-      preLoaderRoute: typeof CountryCodeAccountLayoutMessagesRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/messages'
+      preLoaderRoute: typeof AccountLayoutMessagesRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/change-password': {
-      id: '/$countryCode/account/_layout/change-password'
+    '/account/_layout/change-password': {
+      id: '/account/_layout/change-password'
       path: '/change-password'
-      fullPath: '/$countryCode/account/change-password'
-      preLoaderRoute: typeof CountryCodeAccountLayoutChangePasswordRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/change-password'
+      preLoaderRoute: typeof AccountLayoutChangePasswordRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/addresses': {
-      id: '/$countryCode/account/_layout/addresses'
+    '/account/_layout/addresses': {
+      id: '/account/_layout/addresses'
       path: '/addresses'
-      fullPath: '/$countryCode/account/addresses'
-      preLoaderRoute: typeof CountryCodeAccountLayoutAddressesRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/addresses'
+      preLoaderRoute: typeof AccountLayoutAddressesRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/pharmacist/rx-queue': {
-      id: '/$countryCode/account/_layout/pharmacist/rx-queue'
+    '/account/_layout/pharmacist/rx-queue': {
+      id: '/account/_layout/pharmacist/rx-queue'
       path: '/pharmacist/rx-queue'
-      fullPath: '/$countryCode/account/pharmacist/rx-queue'
-      preLoaderRoute: typeof CountryCodeAccountLayoutPharmacistRxQueueRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/pharmacist/rx-queue'
+      preLoaderRoute: typeof AccountLayoutPharmacistRxQueueRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/pharmacist/create-order': {
-      id: '/$countryCode/account/_layout/pharmacist/create-order'
+    '/account/_layout/pharmacist/create-order': {
+      id: '/account/_layout/pharmacist/create-order'
       path: '/pharmacist/create-order'
-      fullPath: '/$countryCode/account/pharmacist/create-order'
-      preLoaderRoute: typeof CountryCodeAccountLayoutPharmacistCreateOrderRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/pharmacist/create-order'
+      preLoaderRoute: typeof AccountLayoutPharmacistCreateOrderRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
-    '/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId': {
-      id: '/$countryCode/account/_layout/pharmacist/prescription/$prescriptionId'
+    '/account/_layout/pharmacist/prescription/$prescriptionId': {
+      id: '/account/_layout/pharmacist/prescription/$prescriptionId'
       path: '/pharmacist/prescription/$prescriptionId'
-      fullPath: '/$countryCode/account/pharmacist/prescription/$prescriptionId'
-      preLoaderRoute: typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport
-      parentRoute: typeof CountryCodeAccountLayoutRoute
+      fullPath: '/account/pharmacist/prescription/$prescriptionId'
+      preLoaderRoute: typeof AccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport
+      parentRoute: typeof AccountLayoutRoute
     }
   }
 }
 
-interface CountryCodeAccountLayoutRouteChildren {
-  CountryCodeAccountLayoutAddressesRoute: typeof CountryCodeAccountLayoutAddressesRoute
-  CountryCodeAccountLayoutChangePasswordRoute: typeof CountryCodeAccountLayoutChangePasswordRoute
-  CountryCodeAccountLayoutMessagesRoute: typeof CountryCodeAccountLayoutMessagesRoute
-  CountryCodeAccountLayoutOrdersRoute: typeof CountryCodeAccountLayoutOrdersRoute
-  CountryCodeAccountLayoutPrescriptionsRoute: typeof CountryCodeAccountLayoutPrescriptionsRoute
-  CountryCodeAccountLayoutProfileRoute: typeof CountryCodeAccountLayoutProfileRoute
-  CountryCodeAccountLayoutRemindersRoute: typeof CountryCodeAccountLayoutRemindersRoute
-  CountryCodeAccountLayoutVerificationRoute: typeof CountryCodeAccountLayoutVerificationRoute
-  CountryCodeAccountLayoutWishlistRoute: typeof CountryCodeAccountLayoutWishlistRoute
-  CountryCodeAccountLayoutIndexRoute: typeof CountryCodeAccountLayoutIndexRoute
-  CountryCodeAccountLayoutPharmacistCreateOrderRoute: typeof CountryCodeAccountLayoutPharmacistCreateOrderRoute
-  CountryCodeAccountLayoutPharmacistRxQueueRoute: typeof CountryCodeAccountLayoutPharmacistRxQueueRoute
-  CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute: typeof CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute
+interface AccountLayoutRouteChildren {
+  AccountLayoutAddressesRoute: typeof AccountLayoutAddressesRoute
+  AccountLayoutChangePasswordRoute: typeof AccountLayoutChangePasswordRoute
+  AccountLayoutMessagesRoute: typeof AccountLayoutMessagesRoute
+  AccountLayoutOrdersRoute: typeof AccountLayoutOrdersRoute
+  AccountLayoutPrescriptionsRoute: typeof AccountLayoutPrescriptionsRoute
+  AccountLayoutProfileRoute: typeof AccountLayoutProfileRoute
+  AccountLayoutRemindersRoute: typeof AccountLayoutRemindersRoute
+  AccountLayoutVerificationRoute: typeof AccountLayoutVerificationRoute
+  AccountLayoutWishlistRoute: typeof AccountLayoutWishlistRoute
+  AccountLayoutIndexRoute: typeof AccountLayoutIndexRoute
+  AccountLayoutPharmacistCreateOrderRoute: typeof AccountLayoutPharmacistCreateOrderRoute
+  AccountLayoutPharmacistRxQueueRoute: typeof AccountLayoutPharmacistRxQueueRoute
+  AccountLayoutPharmacistPrescriptionPrescriptionIdRoute: typeof AccountLayoutPharmacistPrescriptionPrescriptionIdRoute
 }
 
-const CountryCodeAccountLayoutRouteChildren: CountryCodeAccountLayoutRouteChildren =
-  {
-    CountryCodeAccountLayoutAddressesRoute:
-      CountryCodeAccountLayoutAddressesRoute,
-    CountryCodeAccountLayoutChangePasswordRoute:
-      CountryCodeAccountLayoutChangePasswordRoute,
-    CountryCodeAccountLayoutMessagesRoute:
-      CountryCodeAccountLayoutMessagesRoute,
-    CountryCodeAccountLayoutOrdersRoute: CountryCodeAccountLayoutOrdersRoute,
-    CountryCodeAccountLayoutPrescriptionsRoute:
-      CountryCodeAccountLayoutPrescriptionsRoute,
-    CountryCodeAccountLayoutProfileRoute: CountryCodeAccountLayoutProfileRoute,
-    CountryCodeAccountLayoutRemindersRoute:
-      CountryCodeAccountLayoutRemindersRoute,
-    CountryCodeAccountLayoutVerificationRoute:
-      CountryCodeAccountLayoutVerificationRoute,
-    CountryCodeAccountLayoutWishlistRoute:
-      CountryCodeAccountLayoutWishlistRoute,
-    CountryCodeAccountLayoutIndexRoute: CountryCodeAccountLayoutIndexRoute,
-    CountryCodeAccountLayoutPharmacistCreateOrderRoute:
-      CountryCodeAccountLayoutPharmacistCreateOrderRoute,
-    CountryCodeAccountLayoutPharmacistRxQueueRoute:
-      CountryCodeAccountLayoutPharmacistRxQueueRoute,
-    CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute:
-      CountryCodeAccountLayoutPharmacistPrescriptionPrescriptionIdRoute,
-  }
-
-const CountryCodeAccountLayoutRouteWithChildren =
-  CountryCodeAccountLayoutRoute._addFileChildren(
-    CountryCodeAccountLayoutRouteChildren,
-  )
-
-interface CountryCodeAccountRouteChildren {
-  CountryCodeAccountLayoutRoute: typeof CountryCodeAccountLayoutRouteWithChildren
-  CountryCodeAccountForgotPasswordRoute: typeof CountryCodeAccountForgotPasswordRoute
-  CountryCodeAccountLoginRoute: typeof CountryCodeAccountLoginRoute
-  CountryCodeAccountRegisterRoute: typeof CountryCodeAccountRegisterRoute
-  CountryCodeAccountResetPasswordRoute: typeof CountryCodeAccountResetPasswordRoute
+const AccountLayoutRouteChildren: AccountLayoutRouteChildren = {
+  AccountLayoutAddressesRoute: AccountLayoutAddressesRoute,
+  AccountLayoutChangePasswordRoute: AccountLayoutChangePasswordRoute,
+  AccountLayoutMessagesRoute: AccountLayoutMessagesRoute,
+  AccountLayoutOrdersRoute: AccountLayoutOrdersRoute,
+  AccountLayoutPrescriptionsRoute: AccountLayoutPrescriptionsRoute,
+  AccountLayoutProfileRoute: AccountLayoutProfileRoute,
+  AccountLayoutRemindersRoute: AccountLayoutRemindersRoute,
+  AccountLayoutVerificationRoute: AccountLayoutVerificationRoute,
+  AccountLayoutWishlistRoute: AccountLayoutWishlistRoute,
+  AccountLayoutIndexRoute: AccountLayoutIndexRoute,
+  AccountLayoutPharmacistCreateOrderRoute:
+    AccountLayoutPharmacistCreateOrderRoute,
+  AccountLayoutPharmacistRxQueueRoute: AccountLayoutPharmacistRxQueueRoute,
+  AccountLayoutPharmacistPrescriptionPrescriptionIdRoute:
+    AccountLayoutPharmacistPrescriptionPrescriptionIdRoute,
 }
 
-const CountryCodeAccountRouteChildren: CountryCodeAccountRouteChildren = {
-  CountryCodeAccountLayoutRoute: CountryCodeAccountLayoutRouteWithChildren,
-  CountryCodeAccountForgotPasswordRoute: CountryCodeAccountForgotPasswordRoute,
-  CountryCodeAccountLoginRoute: CountryCodeAccountLoginRoute,
-  CountryCodeAccountRegisterRoute: CountryCodeAccountRegisterRoute,
-  CountryCodeAccountResetPasswordRoute: CountryCodeAccountResetPasswordRoute,
-}
-
-const CountryCodeAccountRouteWithChildren =
-  CountryCodeAccountRoute._addFileChildren(CountryCodeAccountRouteChildren)
-
-interface CountryCodeRouteChildren {
-  CountryCodeSplatRoute: typeof CountryCodeSplatRoute
-  CountryCodeAccountRoute: typeof CountryCodeAccountRouteWithChildren
-  CountryCodeCartRoute: typeof CountryCodeCartRoute
-  CountryCodeCheckoutRoute: typeof CountryCodeCheckoutRoute
-  CountryCodeOnboardingRoute: typeof CountryCodeOnboardingRoute
-  CountryCodeSearchRoute: typeof CountryCodeSearchRoute
-  CountryCodeStoreRoute: typeof CountryCodeStoreRoute
-  CountryCodeUploadRxRoute: typeof CountryCodeUploadRxRoute
-  CountryCodeIndexRoute: typeof CountryCodeIndexRoute
-  CountryCodeBlogSlugRoute: typeof CountryCodeBlogSlugRoute
-  CountryCodeCategoriesHandleRoute: typeof CountryCodeCategoriesHandleRoute
-  CountryCodeDrugsHandleRoute: typeof CountryCodeDrugsHandleRoute
-  CountryCodeProductsHandleRoute: typeof CountryCodeProductsHandleRoute
-  CountryCodeBlogIndexRoute: typeof CountryCodeBlogIndexRoute
-  CountryCodeOrderOrderIdConfirmedRoute: typeof CountryCodeOrderOrderIdConfirmedRoute
-}
-
-const CountryCodeRouteChildren: CountryCodeRouteChildren = {
-  CountryCodeSplatRoute: CountryCodeSplatRoute,
-  CountryCodeAccountRoute: CountryCodeAccountRouteWithChildren,
-  CountryCodeCartRoute: CountryCodeCartRoute,
-  CountryCodeCheckoutRoute: CountryCodeCheckoutRoute,
-  CountryCodeOnboardingRoute: CountryCodeOnboardingRoute,
-  CountryCodeSearchRoute: CountryCodeSearchRoute,
-  CountryCodeStoreRoute: CountryCodeStoreRoute,
-  CountryCodeUploadRxRoute: CountryCodeUploadRxRoute,
-  CountryCodeIndexRoute: CountryCodeIndexRoute,
-  CountryCodeBlogSlugRoute: CountryCodeBlogSlugRoute,
-  CountryCodeCategoriesHandleRoute: CountryCodeCategoriesHandleRoute,
-  CountryCodeDrugsHandleRoute: CountryCodeDrugsHandleRoute,
-  CountryCodeProductsHandleRoute: CountryCodeProductsHandleRoute,
-  CountryCodeBlogIndexRoute: CountryCodeBlogIndexRoute,
-  CountryCodeOrderOrderIdConfirmedRoute: CountryCodeOrderOrderIdConfirmedRoute,
-}
-
-const CountryCodeRouteWithChildren = CountryCodeRoute._addFileChildren(
-  CountryCodeRouteChildren,
+const AccountLayoutRouteWithChildren = AccountLayoutRoute._addFileChildren(
+  AccountLayoutRouteChildren,
 )
+
+interface AccountRouteChildren {
+  AccountLayoutRoute: typeof AccountLayoutRouteWithChildren
+  AccountForgotPasswordRoute: typeof AccountForgotPasswordRoute
+  AccountLoginRoute: typeof AccountLoginRoute
+  AccountRegisterRoute: typeof AccountRegisterRoute
+  AccountResetPasswordRoute: typeof AccountResetPasswordRoute
+}
+
+const AccountRouteChildren: AccountRouteChildren = {
+  AccountLayoutRoute: AccountLayoutRouteWithChildren,
+  AccountForgotPasswordRoute: AccountForgotPasswordRoute,
+  AccountLoginRoute: AccountLoginRoute,
+  AccountRegisterRoute: AccountRegisterRoute,
+  AccountResetPasswordRoute: AccountResetPasswordRoute,
+}
+
+const AccountRouteWithChildren =
+  AccountRoute._addFileChildren(AccountRouteChildren)
+
+interface InRouteChildren {
+  InSplatRoute: typeof InSplatRoute
+}
+
+const InRouteChildren: InRouteChildren = {
+  InSplatRoute: InSplatRoute,
+}
+
+const InRouteWithChildren = InRoute._addFileChildren(InRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
-  CountryCodeRoute: CountryCodeRouteWithChildren,
+  AccountRoute: AccountRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   GrievanceRoute: GrievanceRoute,
   HealthRoute: HealthRoute,
+  InRoute: InRouteWithChildren,
+  OnboardingRoute: OnboardingRoute,
   PrescriptionPolicyRoute: PrescriptionPolicyRoute,
   PrivacyRoute: PrivacyRoute,
   ReturnsRoute: ReturnsRoute,
+  SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StoreRoute: StoreRoute,
   TermsRoute: TermsRoute,
+  UploadRxRoute: UploadRxRoute,
+  BlogSlugRoute: BlogSlugRoute,
+  CategoriesHandleRoute: CategoriesHandleRoute,
+  DrugsHandleRoute: DrugsHandleRoute,
   PharmacyLicensesRoute: PharmacyLicensesRoute,
+  ProductsHandleRoute: ProductsHandleRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  OrderOrderIdConfirmedRoute: OrderOrderIdConfirmedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

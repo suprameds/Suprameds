@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { Link } from "@tanstack/react-router"
 import { getRecentlyViewed, type RecentlyViewedItem } from "@/lib/utils/recently-viewed"
 
-export function RecentlyViewed({ countryCode }: { countryCode: string }) {
+export function RecentlyViewed() {
   const [items, setItems] = useState<RecentlyViewedItem[]>([])
 
   useEffect(() => {
@@ -34,8 +34,8 @@ export function RecentlyViewed({ countryCode }: { countryCode: string }) {
         {items.map((item) => (
           <Link
             key={item.id}
-            to="/$countryCode/products/$handle"
-            params={{ countryCode, handle: item.handle }}
+            to="/products/$handle"
+            params={{ handle: item.handle }}
             className="flex-shrink-0 w-36 sm:w-44 group"
           >
             <div

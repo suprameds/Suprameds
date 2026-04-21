@@ -153,10 +153,8 @@ const DownloadIcon = () => (
 
 export const ReorderButton = ({
   order,
-  countryCode,
 }: {
   order: HttpTypes.StoreOrder
-  countryCode: string
 }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -171,10 +169,11 @@ export const ReorderButton = ({
     try {
       const { sdk } = await import("@/lib/utils/sdk")
       const { getStoredCart, setStoredCart } = await import("@/lib/utils/cart")
+      const { DEFAULT_COUNTRY_CODE } = await import("@/lib/constants/site")
 
       const { regions } = await sdk.store.region.list({})
       const region = regions.find((r) =>
-        r.countries?.some((c) => c.iso_2 === countryCode.toLowerCase())
+        r.countries?.some((c) => c.iso_2 === DEFAULT_COUNTRY_CODE.toLowerCase())
       )
       if (!region) throw new Error("Region not found")
 
@@ -215,13 +214,13 @@ export const ReorderButton = ({
         }
       }
 
-      navigate({ to: "/$countryCode/cart", params: { countryCode } })
+      navigate({ to: "/cart" })
     } catch (err: any) {
       setError(err.message || "Failed to re-order")
     } finally {
       setLoading(false)
     }
-  }, [order.items, countryCode, navigate])
+  }, [order.items, navigate])
 
   return (
     <div className="inline-flex flex-col">
@@ -595,7 +594,7 @@ export const OrderInfo = ({ order }: OrderInfoProps) => {
         <div className="flex gap-2 flex-wrap">
           {/* {!isCancelled && <InvoiceDownloadButton orderId={order.id} />} */}
           {/* {!isCancelled && <InvoiceEmailButton orderId={order.id} />} */}
-          {!isCancelled && <ReorderButton order={order} countryCode="in" />}
+          {!isCancelled && <ReorderButton order={order} />}
         </div>
       </div>
 

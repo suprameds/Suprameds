@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { useSetCartAddresses } from "@/lib/hooks/use-checkout"
 import { useCustomer, useCustomerAddresses } from "@/lib/hooks/use-customer"
 import { useLocation } from "@/lib/hooks/use-location"
-import { getStoredCountryCode } from "@/lib/utils/region"
+import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 import { AddressFormData } from "@/lib/types/global"
 import { HttpTypes } from "@medusajs/types"
 import { useEffect, useRef, useState } from "react"
@@ -58,7 +58,7 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
   const [email, setEmail] = useState(cart.email || customer?.email || "")
   const { data: customerAddresses = [] } = useCustomerAddresses()
   const didAutofillFromSavedAddress = useRef(false)
-  const storedCountryCode = getStoredCountryCode()
+  const storedCountryCode = DEFAULT_COUNTRY_CODE
 
   // GPS-detected location for auto-filling pincode/state on new addresses
   const { pincode: detectedPincode, state: detectedState } = useLocation()

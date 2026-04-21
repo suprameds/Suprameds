@@ -1,8 +1,7 @@
 import { AccountListSkeleton } from "@/components/ui/skeletons"
 import { useCustomerPrescriptions, type PrescriptionSummary } from "@/lib/hooks/use-prescriptions"
 import { useCustomer } from "@/lib/hooks/use-customer"
-import { Link, useLocation } from "@tanstack/react-router"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { Link } from "@tanstack/react-router"
 import { useState } from "react"
 
 type StatusFilter = "all" | "pending_review" | "approved" | "rejected" | "expired"
@@ -24,8 +23,6 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }
 }
 
 export default function PrescriptionsPage() {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data: customer } = useCustomer()
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
 
@@ -52,8 +49,7 @@ export default function PrescriptionsPage() {
           </p>
         </div>
         <Link
-          to="/$countryCode/upload-rx"
-          params={{ countryCode }}
+          to="/upload-rx"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
           style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
         >
@@ -93,11 +89,11 @@ export default function PrescriptionsPage() {
           </p>
         </div>
       ) : filtered.length === 0 ? (
-        <EmptyState statusFilter={statusFilter} countryCode={countryCode} />
+        <EmptyState statusFilter={statusFilter} />
       ) : (
         <div className="flex flex-col gap-4">
           {filtered.map((rx) => (
-            <PrescriptionCard key={rx.id} rx={rx} countryCode={countryCode} />
+            <PrescriptionCard key={rx.id} rx={rx} />
           ))}
         </div>
       )}
@@ -105,7 +101,7 @@ export default function PrescriptionsPage() {
   )
 }
 
-function PrescriptionCard({ rx, countryCode }: { rx: PrescriptionSummary; countryCode: string }) {
+function PrescriptionCard({ rx }: { rx: PrescriptionSummary }) {
   const style = STATUS_STYLES[rx.status] ?? STATUS_STYLES.pending_review
   const uploadDate = new Date(rx.created_at).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -196,8 +192,7 @@ function PrescriptionCard({ rx, countryCode }: { rx: PrescriptionSummary; countr
           )}
           {(rx.status === "rejected" || rx.status === "expired") && (
             <Link
-              to="/$countryCode/upload-rx"
-              params={{ countryCode }}
+              to="/upload-rx"
               className="text-xs font-medium px-2.5 py-1 rounded-lg transition-colors"
               style={{ color: "var(--brand-amber)", background: "rgba(245,158,11,0.06)" }}
             >
@@ -221,7 +216,7 @@ function PrescriptionCard({ rx, countryCode }: { rx: PrescriptionSummary; countr
   )
 }
 
-function EmptyState({ statusFilter, countryCode }: { statusFilter: StatusFilter; countryCode: string }) {
+function EmptyState({ statusFilter }: { statusFilter: StatusFilter }) {
   const messages: Record<StatusFilter, string> = {
     all: "You haven't uploaded any prescriptions yet.",
     pending_review: "No prescriptions are currently under review.",
@@ -250,8 +245,7 @@ function EmptyState({ statusFilter, countryCode }: { statusFilter: StatusFilter;
             Upload a prescription to order Schedule H/H1 medicines.
           </p>
           <Link
-            to="/$countryCode/upload-rx"
-            params={{ countryCode }}
+            to="/upload-rx"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
             style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
           >

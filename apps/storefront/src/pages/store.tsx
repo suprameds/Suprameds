@@ -26,7 +26,7 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 const Store = () => {
-  const { region } = useLoaderData({ from: "/$countryCode/store" })
+  const { region } = useLoaderData({ from: "/store" })
   const searchParams = useRouterSearch({ strict: false }) as Record<string, string>
   const initialSchedule = (searchParams?.schedule as ScheduleFilter) || "all"
   const initialQuery = searchParams?.q || ""

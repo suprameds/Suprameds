@@ -7,7 +7,6 @@ import {
   useUploadPrescription,
   type PrescriptionSummary,
 } from "@/lib/hooks/use-prescriptions"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { sdk } from "@/lib/utils/sdk"
 import { HttpTypes } from "@medusajs/types"
 import { Link, useLocation } from "@tanstack/react-router"
@@ -96,7 +95,6 @@ interface PrescriptionStepProps {
 
 const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
   const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data: customer } = useCustomer()
   const isAuthenticated = !!customer
 
@@ -284,8 +282,7 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
             Prescriptions are linked to your account for traceability, pharmacist review, and reordering.
           </p>
           <Link
-            to="/$countryCode/account/login"
-            params={{ countryCode }}
+            to="/account/login"
             search={{ redirectTo: location.href }}
             className="inline-flex px-5 py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}

@@ -43,7 +43,7 @@ vi.mock("@/lib/context/toast-context", () => ({
 
 vi.mock("@tanstack/react-router", () => ({
   Outlet: () => <div data-testid="outlet">Page</div>,
-  useLocation: () => ({ pathname: "/in" }),
+  useLocation: () => ({ pathname: "/" }),
   useRouterState: () => ({ isTransitioning: false }),
 }))
 

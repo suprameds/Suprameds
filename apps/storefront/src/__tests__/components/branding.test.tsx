@@ -10,8 +10,8 @@ function readSource(relativePath: string): string {
 
 describe("Branding – No 'Medusa Store' references", () => {
   const filesToCheck = [
-    "routes/$countryCode/products/$handle.tsx",
-    "routes/$countryCode/categories/$handle.tsx",
+    "routes/products/$handle.tsx",
+    "routes/categories/$handle.tsx",
   ]
 
   filesToCheck.forEach((file) => {
@@ -28,10 +28,16 @@ describe("Branding – No 'Medusa Store' references", () => {
 })
 
 describe("Default country code", () => {
-  it("product-actions.tsx uses 'in' as fallback, not 'dk'", () => {
+  it("DEFAULT_COUNTRY_CODE constant is 'in', not 'dk'", () => {
+    const content = readSource("lib/constants/site.ts")
+    expect(content).not.toContain('"dk"')
+    expect(content).toContain('DEFAULT_COUNTRY_CODE = "in"')
+  })
+
+  it("product-actions.tsx uses DEFAULT_COUNTRY_CODE (not a literal 'dk')", () => {
     const content = readSource("components/product-actions.tsx")
     expect(content).not.toContain('"dk"')
-    expect(content).toContain('"in"')
+    expect(content).toContain("DEFAULT_COUNTRY_CODE")
   })
 })
 

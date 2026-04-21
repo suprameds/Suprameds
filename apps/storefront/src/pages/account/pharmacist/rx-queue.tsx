@@ -1,6 +1,5 @@
 import { usePharmacistPrescriptions, type PharmacistPrescription } from "@/lib/hooks/use-pharmacist"
-import { Link, useLocation } from "@tanstack/react-router"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { Link } from "@tanstack/react-router"
 import { useState } from "react"
 
 type StatusFilter = "pending_review" | "approved" | "all"
@@ -20,8 +19,6 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }
 }
 
 export default function RxQueuePage() {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending_review")
 
   const queryStatus = statusFilter === "all" ? undefined : statusFilter
@@ -53,8 +50,7 @@ export default function RxQueuePage() {
           </p>
         </div>
         <Link
-          to={"/$countryCode/account/pharmacist/create-order" as any}
-          params={{ countryCode } as any}
+          to={"/account/pharmacist/create-order" as any}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
           style={{ background: "var(--brand-teal)" }}
         >
@@ -121,7 +117,7 @@ export default function RxQueuePage() {
       ) : (
         <div className="flex flex-col gap-3">
           {prescriptions!.map((rx) => (
-            <RxCard key={rx.id} rx={rx} countryCode={countryCode} />
+            <RxCard key={rx.id} rx={rx} />
           ))}
         </div>
       )}
@@ -129,7 +125,7 @@ export default function RxQueuePage() {
   )
 }
 
-function RxCard({ rx, countryCode }: { rx: PharmacistPrescription; countryCode: string }) {
+function RxCard({ rx }: { rx: PharmacistPrescription }) {
   const style = STATUS_STYLES[rx.status] ?? STATUS_STYLES.pending_review
   const uploadDate = new Date(rx.created_at).toLocaleDateString("en-IN", {
     day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
@@ -137,8 +133,8 @@ function RxCard({ rx, countryCode }: { rx: PharmacistPrescription; countryCode: 
 
   return (
     <Link
-      to="/$countryCode/account/pharmacist/prescription/$prescriptionId"
-      params={{ countryCode, prescriptionId: rx.id }}
+      to="/account/pharmacist/prescription/$prescriptionId"
+      params={{ prescriptionId: rx.id }}
       className="rounded-xl border p-5 transition-all hover:shadow-sm block"
       style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
     >

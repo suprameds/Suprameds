@@ -1,6 +1,5 @@
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useLocation, useNavigate } from "@tanstack/react-router"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { useToast } from "@/lib/context/toast-context"
 import { useCallback } from "react"
 
@@ -20,17 +19,15 @@ export function useRequireAuth() {
   const navigate = useNavigate()
   const location = useLocation()
   const { showToast } = useToast()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   return useCallback((): boolean => {
     if (customer) return true
 
     showToast("Please sign in to continue")
     navigate({
-      to: "/$countryCode/account/login",
-      params: { countryCode },
+      to: "/account/login",
       search: { redirectTo: location.pathname } as any,
     })
     return false
-  }, [customer, navigate, countryCode, location.pathname, showToast])
+  }, [customer, navigate, location.pathname, showToast])
 }

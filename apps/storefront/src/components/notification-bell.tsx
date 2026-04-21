@@ -1,13 +1,10 @@
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
 import { useUnreadCount } from "@/lib/hooks/use-notifications"
 import { useCustomer } from "@/lib/hooks/use-customer"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 
 export function NotificationBell() {
   const { data: customer } = useCustomer()
   const { data: unreadCount } = useUnreadCount()
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   // Only show for logged-in customers
   if (!customer) return null
@@ -16,8 +13,7 @@ export function NotificationBell() {
 
   return (
     <Link
-      to="/$countryCode/account/messages"
-      params={{ countryCode }}
+      to="/account/messages"
       className="relative inline-flex items-center justify-center w-9 h-9 rounded-full transition-all hover:bg-[var(--bg-tertiary)]"
       aria-label={count > 0 ? `${count} unread notifications` : "Notifications"}
     >

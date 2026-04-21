@@ -2,14 +2,14 @@ import { memo } from "react"
 import { hapticImpact, hapticNotification } from "@/lib/utils/haptics"
 import { getProductPrice } from "@/lib/utils/price"
 import { Thumbnail } from "@/components/ui/thumbnail"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
 import { useAddToCart } from "@/lib/hooks/use-cart"
 import { useCartDrawer } from "@/lib/context/cart"
 import { HttpTypes } from "@medusajs/types"
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
 import { WishlistButton } from "@/components/wishlist-button"
 import { useRequireAuth } from "@/lib/hooks/use-require-auth"
+import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 
 interface ProductCardProps {
   product: HttpTypes.StoreProduct;
@@ -53,8 +53,6 @@ function getDiscountPercent(product: HttpTypes.StoreProduct, drug?: DrugProduct)
 }
 
 const ProductCard = ({ product, pharmaLoading, index }: ProductCardProps) => {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const drug = (product as any)?.drug_product as DrugProduct | undefined
   const sched = drug?.schedule
   const strength = drug?.strength ?? null
@@ -89,7 +87,7 @@ const ProductCard = ({ product, pharmaLoading, index }: ProductCardProps) => {
       {
         variant_id: variant.id,
         quantity: 1,
-        country_code: countryCode,
+        country_code: DEFAULT_COUNTRY_CODE,
         product,
         variant,
       },
@@ -99,8 +97,8 @@ const ProductCard = ({ product, pharmaLoading, index }: ProductCardProps) => {
 
   return (
     <Link
-      to="/$countryCode/products/$handle"
-      params={{ countryCode, handle: product.handle }}
+      to="/products/$handle"
+      params={{ handle: product.handle }}
       className="group relative flex flex-col w-full rounded-xl overflow-hidden transition-all duration-200 hover:shadow-lg animate-[fade-up_0.4s_ease-out_both]"
       style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
     >

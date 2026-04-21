@@ -33,7 +33,7 @@ vi.mock("@/lib/context/cart", () => ({
 }))
 
 vi.mock("@tanstack/react-router", () => ({
-  useLocation: () => ({ pathname: "/in/cart" }),
+  useLocation: () => ({ pathname: "/cart" }),
   Link: ({ children, ...props }: any) => <a {...props}>{children}</a>,
 }))
 

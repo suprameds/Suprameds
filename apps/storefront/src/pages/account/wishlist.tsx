@@ -1,7 +1,6 @@
 import { AccountListSkeleton } from "@/components/ui/skeletons"
 import { useState } from "react"
-import { Link, useLocation } from "@tanstack/react-router"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { Link } from "@tanstack/react-router"
 import {
   useWishlist,
   useRemoveFromWishlist,
@@ -13,8 +12,6 @@ const TEAL = "var(--brand-teal)"
 const NAVY = "var(--text-primary)"
 
 export default function WishlistPage() {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data, isLoading, isError, refetch } = useWishlist()
   const removeMutation = useRemoveFromWishlist()
   const toggleAlert = useToggleWishlistAlert()
@@ -119,8 +116,7 @@ export default function WishlistPage() {
             Save products you like and we'll notify you when the price drops.
           </p>
           <Link
-            to="/$countryCode/store"
-            params={{ countryCode }}
+            to="/store"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
             style={{ background: TEAL }}
           >
@@ -140,7 +136,6 @@ export default function WishlistPage() {
               <WishlistCard
                 key={item.id}
                 item={item}
-                countryCode={countryCode}
                 dropPct={dropPct}
                 threshold={threshold}
                 formatRupees={formatRupees}
@@ -196,7 +191,6 @@ export default function WishlistPage() {
 
 function WishlistCard({
   item,
-  countryCode,
   dropPct,
   threshold,
   formatRupees,
@@ -208,7 +202,6 @@ function WishlistCard({
   isAlertPending,
 }: {
   item: WishlistItem
-  countryCode: string
   dropPct: number | null
   threshold: number
   formatRupees: (amount: number) => string
@@ -266,8 +259,8 @@ function WishlistCard({
         {/* Product title */}
         {item.product_handle ? (
           <Link
-            to="/$countryCode/products/$handle"
-            params={{ countryCode, handle: item.product_handle }}
+            to="/products/$handle"
+            params={{ handle: item.product_handle }}
             className="text-sm font-semibold leading-snug line-clamp-2 hover:underline"
             style={{ color: NAVY }}
           >

@@ -73,7 +73,7 @@ export function makeMutation(overrides: Partial<MutationState> = {}): MutationSt
 // ---- Router mock ----
 
 export const mockNavigate = vi.fn()
-export const mockLocation = { pathname: "/in/checkout", search: "", hash: "" }
+export const mockLocation = { pathname: "/checkout", search: "", hash: "" }
 
 export function mockRouter() {
   return {
