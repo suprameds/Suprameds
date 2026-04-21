@@ -87,6 +87,12 @@ export const Route = createFileRoute("/drugs/$handle")({
     const schedule = drug?.schedule || "OTC"
     const faqs = drug?.metadata?.faqs as { q: string; a: string }[] | undefined
 
+    // Thin-content guard: drug pages have no unique body content until a
+    // pharmacist has reviewed the drug data. Serve noindex so Google doesn't
+    // index placeholder "coming soon" pages as doorway pages. Keep follow so
+    // the category/product links still accumulate crawl value.
+    const isThinDrugPage = !drug || drug.pharmacist_reviewed === false
+
     const canonical = `${siteUrl}/drugs/${product.handle}`
     const productUrl = `${siteUrl}/products/${product.handle}`
 
@@ -208,10 +214,14 @@ export const Route = createFileRoute("/drugs/$handle")({
         { property: "twitter:title", content: titleParts },
         { property: "twitter:description", content: description },
         { name: "twitter:image", content: thumbnailUrl },
-        // Medical SEO meta
-        ...(schedule === "H" || schedule === "H1"
-          ? [{ name: "robots", content: "index, follow, noarchive" }]
-          : []),
+        // robots: noindex thin placeholders; noarchive on Rx (Schedule H/H1) to
+        // discourage third-party scraping of prescription-drug copy; default index
+        // for reviewed OTC drugs.
+        ...(isThinDrugPage
+          ? [{ name: "robots", content: "noindex, follow" }]
+          : schedule === "H" || schedule === "H1"
+            ? [{ name: "robots", content: "index, follow, noarchive" }]
+            : []),
       ],
       links: [{ rel: "canonical", href: canonical }],
       scripts: [

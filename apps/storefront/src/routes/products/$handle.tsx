@@ -32,7 +32,7 @@ export const Route = createFileRoute("/products/$handle")({
               handle,
               region_id: region.id,
               fields:
-                "*variants, +variants.inventory_quantity, +variants.manage_inventory, +variants.allow_backorder, +variants.calculated_price, *images, *options, *options.values, *collection, *tags",
+                "*variants, +variants.inventory_quantity, +variants.manage_inventory, +variants.allow_backorder, +variants.calculated_price, *images, *options, *options.values, *collection, *categories, *tags",
             })
           } catch {
             throw notFound()
@@ -137,6 +137,20 @@ export const Route = createFileRoute("/products/$handle")({
       },
     }
 
+    // Prefer product.categories (has real /categories/{handle} pages) over
+    // product.collection (e.g. "Cardiology" collection has no storefront page,
+    // so linking to /categories/cardiology 404s). Filter internal/inactive.
+    const breadcrumbCategory = (product as unknown as {
+      categories?: Array<{
+        handle?: string
+        name?: string
+        is_internal?: boolean
+        is_active?: boolean
+      }>
+    }).categories?.find(
+      (c) => c?.handle && c.is_internal !== true && c.is_active !== false,
+    )
+
     const breadcrumbSchema = {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
@@ -153,12 +167,12 @@ export const Route = createFileRoute("/products/$handle")({
           name: "Store",
           item: `${siteUrl}/store`,
         },
-        ...(product.collection
+        ...(breadcrumbCategory
           ? [{
               "@type": "ListItem",
               position: 3,
-              name: product.collection.title,
-              item: `${siteUrl}/categories/${product.collection.handle}`,
+              name: breadcrumbCategory.name,
+              item: `${siteUrl}/categories/${breadcrumbCategory.handle}`,
             },
             {
               "@type": "ListItem",
