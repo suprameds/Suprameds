@@ -182,7 +182,7 @@ export const Navbar = () => {
             <img
               src="/images/suprameds-logo-full.png"
               alt="Suprameds — Healthcare at your doorstep"
-              className="h-9"
+              className="h-11"
               style={{ objectFit: "contain" }}
             />
           </Link>
@@ -302,7 +302,7 @@ export const Navbar = () => {
             <DrawerContent side="left">
               <DrawerHeader>
                 <DrawerTitle>
-                  <img src="/images/suprameds-logo-full.png" alt="Suprameds" className="h-8" style={{ objectFit: "contain" }} />
+                  <img src="/images/suprameds-logo-full.png" alt="Suprameds" className="h-10" style={{ objectFit: "contain" }} />
                 </DrawerTitle>
               </DrawerHeader>
               <div className="flex flex-col py-4">
@@ -410,7 +410,7 @@ export const Navbar = () => {
               <img
                 src="/images/suprameds-logo-full.png"
                 alt="Suprameds"
-                className="h-8"
+                className="h-10"
                 style={{ objectFit: "contain" }}
               />
             </Link>
