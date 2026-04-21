@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button"
 import { useCompleteCartOrder } from "@/lib/hooks/use-checkout"
 import { getStoredCart } from "@/lib/utils/cart"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { sdk } from "@/lib/utils/sdk"
 import { HttpTypes } from "@medusajs/types"
-import { useLocation, useNavigate } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useCallback, useRef, useState } from "react"
 import { useRazorpay } from "react-razorpay"
 
@@ -50,8 +49,6 @@ export function RazorpayPaymentButton({
   const lockRef = useRef(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname)
   const completeOrderMutation = useCompleteCartOrder()
   const { Razorpay: RazorpayClass, isLoading: razorpayLoading, error: razorpayError } = useRazorpay()
 
@@ -88,7 +85,7 @@ export function RazorpayPaymentButton({
 
       const order = await completeOrderMutation.mutateAsync()
       navigate({
-        to: `/${countryCode}/order/${order.id}/confirmed`,
+        to: `/order/${order.id}/confirmed`,
         replace: true,
       })
     } catch (err) {
@@ -97,7 +94,7 @@ export function RazorpayPaymentButton({
     } finally {
       setSubmitting(false)
     }
-  }, [completeOrderMutation, navigate, countryCode])
+  }, [completeOrderMutation, navigate])
 
   const handlePayment = useCallback(() => {
     if (!RazorpayClass || !keyId || !razorpayOrderId) return

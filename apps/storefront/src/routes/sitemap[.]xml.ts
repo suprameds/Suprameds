@@ -46,8 +46,8 @@ export const Route = createFileRoute("/sitemap.xml")({
 
         // Static pages always included
         const staticEntries = [
-          urlEntry(`${SITE_URL}/in`, `1.0`, `daily`, today),
-          urlEntry(`${SITE_URL}/in/store`, `0.9`, `daily`, today),
+          urlEntry(`${SITE_URL}`, `1.0`, `daily`, today),
+          urlEntry(`${SITE_URL}/store`, `0.9`, `daily`, today),
           ...COMPLIANCE_PAGES.map((slug) =>
             urlEntry(`${SITE_URL}/${slug}`, `0.3`, `monthly`),
           ),
@@ -82,13 +82,13 @@ export const Route = createFileRoute("/sitemap.xml")({
               const lastmod = formatDate(p.updated_at)
               return [
                 urlEntry(
-                  `${SITE_URL}/in/products/${p.handle}`,
+                  `${SITE_URL}/products/${p.handle}`,
                   "0.8",
                   "weekly",
                   lastmod,
                 ),
                 urlEntry(
-                  `${SITE_URL}/in/drugs/${p.handle}`,
+                  `${SITE_URL}/drugs/${p.handle}`,
                   "0.7",
                   "weekly",
                   lastmod,
@@ -105,7 +105,7 @@ export const Route = createFileRoute("/sitemap.xml")({
               if (!c.handle) return []
               return [
                 urlEntry(
-                  `${SITE_URL}/in/categories/${c.handle}`,
+                  `${SITE_URL}/categories/${c.handle}`,
                   "0.6",
                   "weekly",
                   formatDate(c.updated_at),

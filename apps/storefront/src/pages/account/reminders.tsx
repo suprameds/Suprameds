@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Link, useLocation } from "@tanstack/react-router"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { Link } from "@tanstack/react-router"
 import {
   useReminders,
   useCreateReminder,
@@ -30,8 +29,6 @@ type SearchResult = {
 }
 
 export default function RemindersPage() {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data, isLoading, isError, refetch } = useReminders()
   const createReminder = useCreateReminder()
   const updateReminder = useUpdateReminder()
@@ -468,7 +465,6 @@ export default function RemindersPage() {
                   <ReminderCard
                     key={r.id}
                     reminder={r}
-                    countryCode={countryCode}
                     dueStatus={getDueStatus(r.next_expected_at, r.is_active)}
                     onToggle={handleToggle}
                     onDelete={() => setDeleteConfirmId(r.id)}
@@ -491,7 +487,6 @@ export default function RemindersPage() {
                   <ReminderCard
                     key={r.id}
                     reminder={r}
-                    countryCode={countryCode}
                     dueStatus={getDueStatus(r.next_expected_at, r.is_active)}
                     onToggle={handleToggle}
                     onDelete={() => setDeleteConfirmId(r.id)}
@@ -544,7 +539,6 @@ export default function RemindersPage() {
 
 function ReminderCard({
   reminder,
-  countryCode,
   dueStatus,
   onToggle,
   onDelete,
@@ -552,7 +546,6 @@ function ReminderCard({
   isDeleting,
 }: {
   reminder: Reminder
-  countryCode: string
   dueStatus: { label: string; color: string; bg: string }
   onToggle: (r: Reminder) => void
   onDelete: () => void
@@ -591,8 +584,8 @@ function ReminderCard({
           <div className="min-w-0">
             {reminder.product_handle ? (
               <Link
-                to="/$countryCode/products/$handle"
-                params={{ countryCode, handle: reminder.product_handle }}
+                to="/products/$handle"
+                params={{ handle: reminder.product_handle }}
                 className="text-sm font-semibold hover:underline truncate block"
                 style={{ color: NAVY }}
               >
@@ -656,8 +649,8 @@ function ReminderCard({
           </button>
           {reminder.product_handle && (
             <Link
-              to="/$countryCode/products/$handle"
-              params={{ countryCode, handle: reminder.product_handle }}
+              to="/products/$handle"
+              params={{ handle: reminder.product_handle }}
               className="text-xs font-medium hover:underline"
               style={{ color: TEAL }}
             >

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Link, useLocation } from "@tanstack/react-router"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
+import { Link } from "@tanstack/react-router"
 import {
   usePharmacistCustomerLookup,
   usePharmacistCreateOrder,
@@ -111,9 +110,6 @@ function saveDrafts(drafts: Draft[]) {
 // ── Component ──────────────────────────────────────────────────────
 
 export default function CreateOrderPage() {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
-
   // State
   const [phone, setPhone] = useState("")
   const [newFirstName, setNewFirstName] = useState("")
@@ -385,8 +381,7 @@ export default function CreateOrderPage() {
           </p>
         </div>
         <Link
-          to={"/$countryCode/account/pharmacist/rx-queue" as any}
-          params={{ countryCode } as any}
+          to={"/account/pharmacist/rx-queue" as any}
           className="text-sm font-medium hover:underline"
           style={{ color: "var(--brand-teal)" }}
         >

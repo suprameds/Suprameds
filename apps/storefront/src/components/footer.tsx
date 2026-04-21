@@ -1,20 +1,11 @@
-import CountrySelect from "@/components/country-select"
 import { useCategories } from "@/lib/hooks/use-categories"
-import { useRegions } from "@/lib/hooks/use-regions"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
 
 const Footer = () => {
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   const { data: categories } = useCategories({
     fields: "name,handle",
     queryParams: { parent_category_id: "null", limit: 6 },
-  })
-
-  const { data: regions } = useRegions({
-    fields: "id, currency_code, *countries",
   })
 
   return (
@@ -80,7 +71,7 @@ const Footer = () => {
 
           {/* Brand + Address */}
           <div className="lg:col-span-1 flex flex-col gap-5">
-            <Link to="/$countryCode" params={{ countryCode }} className="flex items-center hover:opacity-80 transition-opacity w-fit">
+            <Link to="/" className="flex items-center hover:opacity-80 transition-opacity w-fit">
               <img
                 src="/images/suprameds-logo.jpg"
                 alt="Suprameds — Healthcare at your doorstep"
@@ -101,7 +92,6 @@ const Footer = () => {
                 Telangana · GSTIN: 36ABGCS8302R1ZP
               </address>
             </div>
-            <CountrySelect regions={regions ?? []} />
           </div>
 
           {/* Medicines */}
@@ -111,8 +101,8 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2.5">
               {[
-                { label: "All Medicines", href: `/${countryCode}/store` },
-                ...(categories?.map(c => ({ label: c.name, href: `/${countryCode}/categories/${c.handle}` })) ?? []),
+                { label: "All Medicines", href: `/store` },
+                ...(categories?.map(c => ({ label: c.name, href: `/categories/${c.handle}` })) ?? []),
               ].map((item) => (
                 <li key={item.label}>
                   <Link to={item.href} className="text-sm transition-colors hover:text-[var(--brand-teal-light)]" style={{ color: "rgba(255,255,255,0.6)" }}>
@@ -130,10 +120,10 @@ const Footer = () => {
             </h3>
             <ul className="space-y-2.5">
               {[
-                { label: "Upload Prescription", href: `/${countryCode}/upload-rx` },
-                { label: "Health Blog", href: `/${countryCode}/blog` },
-                { label: "My Account", href: `/${countryCode}/account` },
-                { label: "My Orders", href: `/${countryCode}/account/orders` },
+                { label: "Upload Prescription", href: `/upload-rx` },
+                { label: "Health Blog", href: `/blog` },
+                { label: "My Account", href: `/account` },
+                { label: "My Orders", href: `/account/orders` },
               ].map((item) => (
                 <li key={item.label}>
                   <Link to={item.href} className="text-sm transition-colors hover:text-[var(--brand-teal-light)]" style={{ color: "rgba(255,255,255,0.6)" }}>

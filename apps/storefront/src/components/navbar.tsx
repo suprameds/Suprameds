@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/drawer"
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCategories } from "@/lib/hooks/use-categories"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import { Link, useLocation, useNavigate } from "@tanstack/react-router"
 import { useState, useRef, useEffect } from "react"
@@ -39,7 +38,6 @@ const SearchIcon = () => (
 export const Navbar = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const { data: customer } = useCustomer()
   const [searchQuery, setSearchQuery] = useState("")
   const [scrolled, setScrolled] = useState(false)
@@ -62,8 +60,7 @@ export const Navbar = () => {
     if (trimmed) {
       saveRecentSearch(trimmed)
       navigate({
-        to: "/$countryCode/store",
-        params: { countryCode },
+        to: "/store",
         search: { q: trimmed },
       })
       setSearchQuery("")
@@ -84,8 +81,8 @@ export const Navbar = () => {
   const handleSelectProduct = (handle: string) => {
     saveRecentSearch(searchQuery.trim())
     navigate({
-      to: "/$countryCode/products/$handle",
-      params: { countryCode, handle },
+      to: "/products/$handle",
+      params: { handle },
     })
     setSearchQuery("")
     setSearchFocused(false)
@@ -94,8 +91,7 @@ export const Navbar = () => {
   const handleSubmitFromDropdown = (q: string) => {
     saveRecentSearch(q)
     navigate({
-      to: "/$countryCode/store",
-      params: { countryCode },
+      to: "/store",
       search: { q },
     })
     setSearchQuery("")
@@ -180,8 +176,7 @@ export const Navbar = () => {
 
           {/* ── Logo (left-aligned on desktop) ── */}
           <Link
-            to="/$countryCode"
-            params={{ countryCode }}
+            to="/"
             className="hidden lg:flex items-center hover:opacity-80 transition-opacity flex-shrink-0"
           >
             <img
@@ -210,8 +205,7 @@ export const Navbar = () => {
                 style={{ background: "var(--bg-secondary)", borderColor: "var(--border-primary)" }}
               >
                 <Link
-                  to="/$countryCode/store"
-                  params={{ countryCode }}
+                  to="/store"
                   onClick={closeDropdown}
                   className="block px-3 py-2 text-sm font-medium hover:bg-[var(--bg-tertiary)] rounded-lg"
                   style={{ color: "var(--text-primary)" }}
@@ -221,8 +215,8 @@ export const Navbar = () => {
                 {categoryLinks.map((link) => (
                   <Link
                     key={link.id}
-                    to="/$countryCode/categories/$handle"
-                    params={{ countryCode, handle: link.handle }}
+                    to="/categories/$handle"
+                    params={{ handle: link.handle }}
                     onClick={closeDropdown}
                     className="block px-3 py-2 text-sm font-medium hover:bg-[var(--bg-tertiary)] rounded-lg"
                     style={{ color: "var(--text-primary)" }}
@@ -234,8 +228,7 @@ export const Navbar = () => {
             </details>
 
             <Link
-              to="/$countryCode/store"
-              params={{ countryCode }}
+              to="/store"
               search={{ schedule: "otc" } as any}
               className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[var(--bg-tertiary)]"
               style={{ color: "var(--text-primary)" }}
@@ -252,8 +245,7 @@ export const Navbar = () => {
             </Link>
 
             <Link
-              to={"/$countryCode/blog" as any}
-              params={{ countryCode } as any}
+              to={"/blog" as any}
               className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors hover:bg-[var(--bg-tertiary)]"
               style={{ color: "var(--text-primary)" }}
             >
@@ -299,7 +291,6 @@ export const Navbar = () => {
               onSubmitSearch={handleSubmitFromDropdown}
               onSetHighlight={setHighlightIndex}
               onFillRecent={handleFillRecent}
-              countryCode={countryCode}
             />
           </form>
 
@@ -345,8 +336,7 @@ export const Navbar = () => {
                 <div className="flex flex-col">
                   <DrawerClose asChild>
                     <Link
-                      to="/$countryCode/store"
-                      params={{ countryCode }}
+                      to="/store"
                       className="px-8 py-3 text-sm font-medium hover:bg-[var(--bg-tertiary)] transition-colors"
                       style={{ color: "var(--text-primary)" }}
                     >
@@ -356,8 +346,8 @@ export const Navbar = () => {
                   {categoryLinks.map((link) => (
                     <DrawerClose key={link.id} asChild>
                       <Link
-                        to="/$countryCode/categories/$handle"
-                        params={{ countryCode, handle: link.handle }}
+                        to="/categories/$handle"
+                        params={{ handle: link.handle }}
                         className="px-8 py-3 text-sm font-medium hover:bg-[var(--bg-tertiary)] transition-colors"
                         style={{ color: "var(--text-primary)" }}
                       >
@@ -371,7 +361,7 @@ export const Navbar = () => {
                 </div>
                 {[
                   { label: "Prescription Policy", href: "/prescription-policy" },
-                  { label: "Blog", href: `/${countryCode}/blog` },
+                  { label: "Blog", href: `/blog` },
                   { label: "Our Licenses", href: "/pharmacy/licenses" },
                   { label: "Grievance Officer", href: "/grievance" },
                 ].map((item) => (
@@ -390,8 +380,7 @@ export const Navbar = () => {
                 </div>
                 <DrawerClose asChild>
                   <Link
-                    to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
-                    params={{ countryCode }}
+                    to={customer ? "/account/profile" : "/account/login"}
                     search={customer ? {} as any : { redirectTo: location.pathname } as any}
                     className="px-8 py-3 text-sm font-medium hover:bg-[var(--bg-tertiary)] transition-colors flex items-center gap-2"
                     style={{ color: "var(--text-primary)" }}
@@ -415,8 +404,7 @@ export const Navbar = () => {
           {/* Logo — mobile only (centered) */}
           <div className="lg:hidden flex-1 flex justify-center">
             <Link
-              to="/$countryCode"
-              params={{ countryCode }}
+              to="/"
               className="flex items-center hover:opacity-80 transition-opacity"
             >
               <img
@@ -431,8 +419,7 @@ export const Navbar = () => {
           {/* Right actions */}
           <div className="flex items-center gap-x-2 lg:gap-x-3 flex-shrink-0">
             <Link
-              to="/$countryCode/upload-rx"
-              params={{ countryCode }}
+              to="/upload-rx"
               className="hidden lg:flex items-center gap-1.5 text-xs font-medium px-3 py-2.5 rounded min-h-[44px] transition-all"
               style={{ color: "#0a6570", background: "#e8f5ee" }}
             >
@@ -445,8 +432,7 @@ export const Navbar = () => {
 
             {/* Account / Sign in */}
             <Link
-              to={customer ? "/$countryCode/account/profile" : "/$countryCode/account/login"}
-              params={{ countryCode }}
+              to={customer ? "/account/profile" : "/account/login"}
               search={customer ? {} as any : { redirectTo: location.pathname } as any}
               className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:bg-[var(--bg-tertiary)]"
               style={{ color: "var(--text-primary)" }}

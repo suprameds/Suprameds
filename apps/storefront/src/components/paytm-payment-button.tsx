@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { useCompleteCartOrder } from "@/lib/hooks/use-checkout"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { HttpTypes } from "@medusajs/types"
-import { useLocation, useNavigate } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { useCallback, useEffect, useRef, useState } from "react"
 
 interface PaytmSessionData {
@@ -98,8 +97,6 @@ export function PaytmPaymentButton({
   const [submitting, setSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const navigate = useNavigate()
-  const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname)
   const completeOrderMutation = useCompleteCartOrder()
 
   // cart used for prefill data in future enhancements
@@ -120,7 +117,7 @@ export function PaytmPaymentButton({
     try {
       const order = await completeOrderMutation.mutateAsync()
       navigate({
-        to: `/${countryCode}/order/${order.id}/confirmed`,
+        to: `/order/${order.id}/confirmed`,
         replace: true,
       })
     } catch (err) {
@@ -131,7 +128,7 @@ export function PaytmPaymentButton({
     } finally {
       setSubmitting(false)
     }
-  }, [completeOrderMutation, navigate, countryCode])
+  }, [completeOrderMutation, navigate])
 
   const handlePayment = useCallback(async () => {
     if (!window.Paytm?.CheckoutJS || !txnToken || !paytmOrderId || !mid) return

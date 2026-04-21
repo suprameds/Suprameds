@@ -1,7 +1,6 @@
 import { isNativeApp } from "@/lib/utils/capacitor"
 import { hapticSelection } from "@/lib/utils/haptics"
 import { useKeyboardVisible } from "@/lib/hooks/use-keyboard-visible"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { Link, useLocation } from "@tanstack/react-router"
 
 const HomeIcon = ({ active }: { active: boolean }) => (
@@ -45,7 +44,7 @@ const AccountIcon = ({ active }: { active: boolean }) => (
 )
 
 const SIDE_TABS = [
-  { key: "home", label: "Home", Icon: HomeIcon, path: "" },
+  { key: "home", label: "Home", Icon: HomeIcon, path: "/" },
   { key: "store", label: "Store", Icon: StoreIcon, path: "/store" },
   // Upload Rx is the center FAB — handled separately
   { key: "orders", label: "Orders", Icon: OrdersIcon, path: "/account/orders" },
@@ -64,7 +63,6 @@ function getActiveTab(pathname: string): string {
 
 export function BottomTabBar() {
   const location = useLocation()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
   const activeTab = getActiveTab(location.pathname)
   const keyboardVisible = useKeyboardVisible()
 
@@ -101,8 +99,7 @@ export function BottomTabBar() {
           return (
             <TabLink
               key={key}
-              to={key === "home" ? "/$countryCode" : `/$countryCode${path}`}
-              countryCode={countryCode}
+              to={path}
               isActive={isActive}
               label={label}
             >
@@ -114,8 +111,7 @@ export function BottomTabBar() {
         {/* Center FAB: Upload Rx */}
         <div className="flex flex-col items-center justify-end flex-1 pb-1.5 -mt-5">
           <Link
-            to={"/$countryCode/upload-rx" as any}
-            params={{ countryCode } as any}
+            to={"/upload-rx" as any}
             onClick={() => hapticSelection()}
             className="flex items-center justify-center w-14 h-14 rounded-2xl shadow-lg active:scale-95 transition-transform"
             style={{
@@ -143,8 +139,7 @@ export function BottomTabBar() {
           return (
             <TabLink
               key={key}
-              to={`/$countryCode${path}`}
-              countryCode={countryCode}
+              to={path}
               isActive={isActive}
               label={label}
             >
@@ -158,14 +153,13 @@ export function BottomTabBar() {
 }
 
 function TabLink({
-  to, countryCode, isActive, label, children,
+  to, isActive, label, children,
 }: {
-  to: string; countryCode: string; isActive: boolean; label: string; children: React.ReactNode
+  to: string; isActive: boolean; label: string; children: React.ReactNode
 }) {
   return (
     <Link
       to={to as any}
-      params={{ countryCode } as any}
       onClick={() => hapticSelection()}
       className="flex flex-col items-center justify-center gap-1 flex-1 h-full pt-2 pb-1.5 min-w-[56px] transition-colors relative"
       style={{

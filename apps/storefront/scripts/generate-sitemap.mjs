@@ -44,19 +44,19 @@ async function main() {
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${SITE_URL}/in</loc><changefreq>daily</changefreq><priority>1.0</priority><lastmod>${today}</lastmod></url>
-  <url><loc>${SITE_URL}/in/store</loc><changefreq>daily</changefreq><priority>0.9</priority><lastmod>${today}</lastmod></url>
-  <url><loc>${SITE_URL}/in/search</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>`
+  <url><loc>${SITE_URL}</loc><changefreq>daily</changefreq><priority>1.0</priority><lastmod>${today}</lastmod></url>
+  <url><loc>${SITE_URL}/store</loc><changefreq>daily</changefreq><priority>0.9</priority><lastmod>${today}</lastmod></url>
+  <url><loc>${SITE_URL}/search</loc><changefreq>weekly</changefreq><priority>0.5</priority></url>`
 
   for (const cat of categories) {
     if (!cat.handle) continue
-    xml += `\n  <url><loc>${SITE_URL}/in/categories/${escapeXml(cat.handle)}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`
+    xml += `\n  <url><loc>${SITE_URL}/categories/${escapeXml(cat.handle)}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>`
   }
 
   for (const p of products) {
     if (!p.handle) continue
     const lastmod = p.updated_at ? p.updated_at.split("T")[0] : today
-    xml += `\n  <url><loc>${SITE_URL}/in/products/${escapeXml(p.handle)}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>${lastmod}</lastmod></url>`
+    xml += `\n  <url><loc>${SITE_URL}/products/${escapeXml(p.handle)}</loc><changefreq>weekly</changefreq><priority>0.7</priority><lastmod>${lastmod}</lastmod></url>`
   }
 
   xml += `\n</urlset>`

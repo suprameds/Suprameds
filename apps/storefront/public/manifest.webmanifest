@@ -6,7 +6,7 @@
   "background_color": "#FAFAF8",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "start_url": "/in",
+  "start_url": "/",
   "scope": "/",
   "categories": ["health", "medical", "shopping"],
   "icons": [

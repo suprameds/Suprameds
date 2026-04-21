@@ -1,6 +1,0 @@
-import NotFound from "@/components/not-found"
-import { createFileRoute } from "@tanstack/react-router"
-
-export const Route = createFileRoute("/$countryCode/$")({
-  component: NotFound,
-})

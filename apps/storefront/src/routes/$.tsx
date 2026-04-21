@@ -1,6 +1,6 @@
-import RegionRedirect from "@/components/region-redirect"
+import NotFound from "@/components/not-found"
 import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/$")({
-  component: () => <RegionRedirect isChecking404={true} />,
+  component: NotFound,
 })

@@ -15,7 +15,7 @@ import { useEffect } from "react"
  */
 const Category = () => {
   const { category, region } = useLoaderData({
-    from: "/$countryCode/categories/$handle",
+    from: "/categories/$handle",
   })
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching, isError, refetch } = useProducts({

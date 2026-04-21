@@ -5,11 +5,9 @@ import { useCart } from "@/lib/hooks/use-cart"
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCartRxStatus } from "@/lib/hooks/use-prescriptions"
 import { trackBeginCheckout } from "@/lib/utils/analytics"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import { type CheckoutStep, CheckoutStepKey } from "@/lib/types/global"
 import {
   useLoaderData,
-  useLocation,
   useNavigate,
 } from "@tanstack/react-router"
 import { formatPrice } from "@/lib/utils/price"
@@ -24,13 +22,11 @@ const CheckoutSummary = lazy(() => import("@/components/checkout-summary"))
 
 const Checkout = () => {
   const { step } = useLoaderData({
-    from: "/$countryCode/checkout",
+    from: "/checkout",
   })
   const { data: cart, isLoading: cartLoading } = useCart()
   const { data: customer, isLoading: customerLoading } = useCustomer()
-  const location = useLocation()
   const navigate = useNavigate()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
 
   const [mobileSummaryOpen, setMobileSummaryOpen] = useState(false)
 
@@ -110,13 +106,12 @@ const Checkout = () => {
   const goToStep = useCallback(
     (nextStep: CheckoutStepKey) => {
       navigate({
-        to: "/$countryCode/checkout",
-        params: { countryCode },
+        to: "/checkout",
         search: { step: nextStep },
         replace: true,
       })
     },
-    [navigate, countryCode]
+    [navigate]
   )
 
   // Redirect to cart page if cart is empty or missing.
@@ -126,10 +121,10 @@ const Checkout = () => {
     if (cartLoading) return
     if (step === "review") return
     if (!cart || !cart.items?.length) {
-      navigate({ to: "/$countryCode/cart", params: { countryCode } })
+      navigate({ to: "/cart" })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cart, cartLoading, navigate, countryCode])
+  }, [cart, cartLoading, navigate])
 
   useEffect(() => {
     if (!cart) return
@@ -174,7 +169,7 @@ const Checkout = () => {
             As a licensed pharmacy, we need your account details for prescription verification and order traceability.
           </p>
           <a
-            href={`/${countryCode}/account/login?redirectTo=/${countryCode}/checkout`}
+            href={`/account/login?redirectTo=/checkout`}
             className="inline-flex px-6 py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
           >

@@ -2,13 +2,12 @@ import React, { useCallback, useMemo, useRef, useState } from "react"
 import { useLatestProducts } from "@/lib/hooks/use-products"
 import { useBulkPharma } from "@/lib/hooks/use-pharma"
 import { useCategories } from "@/lib/hooks/use-categories"
-import { getCountryCodeFromPath } from "@/lib/utils/region"
 import ProductCard from "@/components/product-card"
 import { ProductGridSkeleton } from "@/components/ui/skeletons"
 import { RecentlyViewed } from "@/components/recently-viewed"
 import { Reveal } from "@/components/ui/reveal"
 import { Counter } from "@/components/ui/counter"
-import { Link, useLocation, useLoaderData, useNavigate } from "@tanstack/react-router"
+import { Link, useLoaderData, useNavigate } from "@tanstack/react-router"
 import { useBlogPosts } from "@/lib/hooks/use-blog"
 
 /* ── Inline SVG icons (tree-shakeable, no icon lib) ── */
@@ -246,10 +245,8 @@ const FAQ_ITEMS = [
 /* ── Main component ── */
 
 const Home = () => {
-  const location = useLocation()
   const navigate = useNavigate()
-  const countryCode = getCountryCodeFromPath(location.pathname) || "in"
-  const { region } = useLoaderData({ from: "/$countryCode/" })
+  const { region } = useLoaderData({ from: "/" })
 
   const { data: latestProductsData, isFetching: productsLoading } = useLatestProducts({ limit: 24, region_id: region?.id })
   const allProducts = latestProductsData?.products ?? []
@@ -290,7 +287,7 @@ const Home = () => {
   const handleRxFile = useCallback((file: File) => {
     const acceptedTypes = ["image/jpeg", "image/png", "image/webp", "application/pdf"]
     if (!acceptedTypes.includes(file.type) || file.size > 10 * 1024 * 1024) {
-      navigate({ to: "/$countryCode/upload-rx", params: { countryCode } })
+      navigate({ to: "/upload-rx" })
       return
     }
     // Store file info in sessionStorage so the upload page can pre-populate
@@ -306,21 +303,20 @@ const Home = () => {
       } catch {
         // sessionStorage full or unavailable — just navigate
       }
-      navigate({ to: "/$countryCode/upload-rx", params: { countryCode } })
+      navigate({ to: "/upload-rx" })
     }
     reader.onerror = () => {
-      navigate({ to: "/$countryCode/upload-rx", params: { countryCode } })
+      navigate({ to: "/upload-rx" })
     }
     reader.readAsDataURL(file)
-  }, [countryCode, navigate])
+  }, [navigate])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = searchQuery.trim()
     if (trimmed) {
       navigate({
-        to: "/$countryCode/store",
-        params: { countryCode },
+        to: "/store",
         search: { q: trimmed },
       })
     }
@@ -404,16 +400,14 @@ const Home = () => {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
-                to="/$countryCode/store"
-                params={{ countryCode }}
+                to="/store"
                 className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:opacity-90"
                 style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
               >
                 Browse All Medicines <ArrowRight />
               </Link>
               <Link
-                to="/$countryCode/upload-rx"
-                params={{ countryCode }}
+                to="/upload-rx"
                 className="flex items-center justify-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-all hover:border-[#0E7C86]"
                 style={{ background: "rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.85)", border: "1.5px solid rgba(255,255,255,0.15)" }}
               >
@@ -504,8 +498,7 @@ const Home = () => {
                 <h2 className="text-2xl lg:text-3xl font-semibold" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>Shop by Category</h2>
               </div>
               <Link
-                to="/$countryCode/store"
-                params={{ countryCode }}
+                to="/store"
                 className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity min-h-[44px] px-2"
                 style={{ color: "var(--brand-teal)" }}
               >
@@ -519,8 +512,8 @@ const Home = () => {
                 return (
                   <Link
                     key={cat.id}
-                    to="/$countryCode/categories/$handle"
-                    params={{ countryCode, handle: cat.handle }}
+                    to="/categories/$handle"
+                    params={{ handle: cat.handle }}
                     className="group flex flex-col items-center gap-3 p-5 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px]"
                     style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-primary)" }}
                   >
@@ -537,8 +530,7 @@ const Home = () => {
 
               {/* Always-visible "All Medicines" card */}
               <Link
-                to="/$countryCode/store"
-                params={{ countryCode }}
+                to="/store"
                 className="group flex flex-col items-center gap-3 p-5 rounded-2xl text-center transition-all hover:shadow-lg hover:-translate-y-1 snap-start shrink-0 w-[120px]"
                 style={{ background: "var(--bg-inverse)" }}
               >
@@ -571,8 +563,7 @@ const Home = () => {
               </h2>
             </div>
             <Link
-              to="/$countryCode/store"
-              params={{ countryCode }}
+              to="/store"
               className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity min-h-[44px] px-2"
               style={{ color: "var(--brand-teal)" }}
             >
@@ -593,8 +584,7 @@ const Home = () => {
           {products.length > 0 && (
           <div className="mt-6 md:hidden text-center">
             <Link
-              to="/$countryCode/store"
-              params={{ countryCode }}
+              to="/store"
               className="inline-flex items-center gap-1.5 text-sm font-medium"
               style={{ color: "var(--brand-teal)" }}
             >
@@ -608,7 +598,7 @@ const Home = () => {
       {/* ════════════════════════════════════════════
           RECENTLY VIEWED
          ════════════════════════════════════════════ */}
-      <RecentlyViewed countryCode={countryCode} />
+      <RecentlyViewed />
 
       {/* ════════════════════════════════════════════
           PRESCRIPTION CTA — mid-page conversion
@@ -649,8 +639,7 @@ const Home = () => {
               </div>
 
               <Link
-                to="/$countryCode/upload-rx"
-                params={{ countryCode }}
+                to="/upload-rx"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:opacity-90 self-start"
                 style={{ background: "var(--brand-green)", color: "var(--text-inverse)" }}
               >
@@ -791,8 +780,7 @@ const Home = () => {
               </h2>
             </div>
             <Link
-              to={"/$countryCode/blog" as any}
-              params={{ countryCode } as any}
+              to={"/blog" as any}
               className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90"
               style={{ background: "var(--brand-teal)" }}
             >
@@ -822,8 +810,8 @@ const Home = () => {
             {blogPosts.slice(0, 4).map((post) => (
               <Link
                 key={post.slug}
-                to={"/$countryCode/blog/$slug" as any}
-                params={{ countryCode, slug: post.slug } as any}
+                to={"/blog/$slug" as any}
+                params={{ slug: post.slug } as any}
                 className="group rounded-xl overflow-hidden border transition-all hover:shadow-lg"
                 style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
               >
@@ -867,8 +855,7 @@ const Home = () => {
 
           <div className="mt-6 md:hidden text-center">
             <Link
-              to={"/$countryCode/blog" as any}
-              params={{ countryCode } as any}
+              to={"/blog" as any}
               className="inline-flex items-center gap-1.5 text-sm font-semibold px-5 py-2.5 rounded-lg text-white"
               style={{ background: "var(--brand-teal)" }}
             >
@@ -972,8 +959,7 @@ const Home = () => {
               </p>
             </div>
             <Link
-              to="/$countryCode/account/reminders"
-              params={{ countryCode }}
+              to="/account/reminders"
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 flex-shrink-0"
               style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
             >

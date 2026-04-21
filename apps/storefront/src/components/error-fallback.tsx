@@ -132,7 +132,7 @@ const ErrorFallback = ({ error, reset }: ErrorFallbackProps) => {
               </Button>
             )}
             {authIssue && !connectionDown ? (
-              <Link to="/$countryCode/account/login" params={{ countryCode: "in" }} search={{ redirectTo: undefined } as any}>
+              <Link to="/account/login" search={{ redirectTo: undefined } as any}>
                 <Button className="w-full sm:w-auto">Sign in</Button>
               </Link>
             ) : (

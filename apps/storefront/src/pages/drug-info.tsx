@@ -74,10 +74,8 @@ function scheduleBadge(schedule: DrugProduct["schedule"]) {
 
 /* ───────────────────────── Breadcrumbs ───────────────────────── */
 function Breadcrumbs({
-  countryCode,
   drugName,
 }: {
-  countryCode: string
   drugName: string
 }) {
   return (
@@ -87,8 +85,7 @@ function Breadcrumbs({
       style={{ color: "var(--text-tertiary)" }}
     >
       <Link
-        to="/$countryCode"
-        params={{ countryCode }}
+        to="/"
         className="hover:underline"
         style={{ color: "var(--text-tertiary)" }}
       >
@@ -96,8 +93,7 @@ function Breadcrumbs({
       </Link>
       <span aria-hidden>/</span>
       <Link
-        to="/$countryCode/store"
-        params={{ countryCode }}
+        to="/store"
         className="hover:underline"
         style={{ color: "var(--text-tertiary)" }}
       >
@@ -304,11 +300,9 @@ function TextBlockSection({
 /* ─────────────────────── Substitutes Grid ────────────────────── */
 function SubstitutesGrid({
   substitutes,
-  countryCode,
   currentPrice,
 }: {
   substitutes: Substitute[]
-  countryCode: string
   currentPrice: number
 }) {
   if (!substitutes || substitutes.length === 0) return null
@@ -354,8 +348,8 @@ function SubstitutesGrid({
           return (
             <Link
               key={sub.id}
-              to="/$countryCode/drugs/$handle"
-              params={{ countryCode, handle: sub.handle }}
+              to="/drugs/$handle"
+              params={{ handle: sub.handle }}
               className="block rounded-lg p-4 transition-all hover:shadow-md"
               style={{
                 border: "1px solid var(--border-primary)",
@@ -485,17 +479,14 @@ function Disclaimer({ isRx }: { isRx: boolean }) {
 function PendingReviewPage({
   drug,
   product,
-  countryCode,
 }: {
   drug: DrugProduct
   product: any
-  countryCode: string
 }) {
   return (
     <div style={{ background: "var(--bg-primary)" }}>
       <div className="content-container py-8 lg:py-12">
         <Breadcrumbs
-          countryCode={countryCode}
           drugName={drug.generic_name || product.title}
         />
 
@@ -544,8 +535,8 @@ function PendingReviewPage({
           </p>
 
           <Link
-            to="/$countryCode/products/$handle"
-            params={{ countryCode, handle: product.handle }}
+            to="/products/$handle"
+            params={{ handle: product.handle }}
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-colors"
             style={{
               background: "var(--brand-teal)",
@@ -574,8 +565,8 @@ function PendingReviewPage({
 
 /* ═══════════════════════ MAIN PAGE COMPONENT ═════════════════════ */
 const DrugInfoPage = () => {
-  const { product, countryCode, substitutes } = useLoaderData({
-    from: "/$countryCode/drugs/$handle",
+  const { product, substitutes } = useLoaderData({
+    from: "/drugs/$handle",
   })
 
   const drug = (product as any)?.drug_product as DrugProduct | undefined
@@ -600,8 +591,8 @@ const DrugInfoPage = () => {
               Drug information is not yet available for this product.
             </p>
             <Link
-              to="/$countryCode/products/$handle"
-              params={{ countryCode, handle: product.handle }}
+              to="/products/$handle"
+              params={{ handle: product.handle }}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold"
               style={{
                 background: "var(--brand-teal)",
@@ -622,7 +613,6 @@ const DrugInfoPage = () => {
       <PendingReviewPage
         drug={drug}
         product={product}
-        countryCode={countryCode}
       />
     )
   }
@@ -636,7 +626,6 @@ const DrugInfoPage = () => {
     <div style={{ background: "var(--bg-primary)" }}>
       <div className="content-container py-8 lg:py-12">
         <Breadcrumbs
-          countryCode={countryCode}
           drugName={drug.generic_name || product.title}
         />
 
@@ -836,7 +825,6 @@ const DrugInfoPage = () => {
             {/* Substitutes */}
             <SubstitutesGrid
               substitutes={substitutes as Substitute[]}
-              countryCode={countryCode}
               currentPrice={currentPrice}
             />
 
@@ -897,8 +885,8 @@ const DrugInfoPage = () => {
                   : "Genuine medicines at best prices"}
               </p>
               <Link
-                to="/$countryCode/products/$handle"
-                params={{ countryCode, handle: product.handle }}
+                to="/products/$handle"
+                params={{ handle: product.handle }}
                 className="inline-block w-full py-2.5 rounded-lg text-sm font-semibold transition-colors"
                 style={{
                   background: "var(--text-inverse)",
