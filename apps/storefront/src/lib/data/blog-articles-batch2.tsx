@@ -441,7 +441,7 @@ export const batch2: BlogPost[] = [
         <p>Ordering medicines online for the first time can feel unfamiliar. Suprameds is designed to make the process as simple as possible while ensuring full compliance with Indian pharmacy regulations. Here is a complete walkthrough from account creation to delivery at your door.</p>
 
         <h2>Step 1: Create Your Account</h2>
-        <p>Visit store.supracynpharma.com and click "Sign In / Register." Enter your mobile number and verify with the OTP sent to your phone. You do not need an email address to create an account, though adding one is recommended for order confirmation emails. Your account securely stores your delivery addresses and order history.</p>
+        <p>Visit supracyn.in and click "Sign In / Register." Enter your mobile number and verify with the OTP sent to your phone. You do not need an email address to create an account, though adding one is recommended for order confirmation emails. Your account securely stores your delivery addresses and order history.</p>
 
         <h2>Step 2: Search for Your Medicine</h2>
         <p>Use the search bar at the top of the page. You can search by the medicine's brand name (e.g., "Lipitor"), the generic salt name (e.g., "Atorvastatin"), or the condition (e.g., "cholesterol"). Results show the generic name, strength, pack size, and price per strip. Click on a product to see the full description, composition, and manufacturer details.</p>
@@ -738,7 +738,7 @@ export const batch2: BlogPost[] = [
 
         <h2>How to Download Your Invoice</h2>
         <ul>
-          <li>Log in to your Suprameds account at store.supracynpharma.com</li>
+          <li>Log in to your Suprameds account at supracyn.in</li>
           <li>Navigate to "My Orders" from the account menu</li>
           <li>Click on the relevant order</li>
           <li>Click "Download Invoice" — a PDF invoice opens in your browser or downloads automatically</li>

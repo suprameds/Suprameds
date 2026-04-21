@@ -10,7 +10,7 @@ import { fileURLToPath } from "url"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const SITE_URL = process.env.SITE_URL || "https://store.supracynpharma.com"
+const SITE_URL = process.env.SITE_URL || "https://supracyn.in"
 const BACKEND_URL = process.env.VITE_MEDUSA_BACKEND_URL || "http://localhost:9000"
 const PUBLISHABLE_KEY = process.env.VITE_MEDUSA_PUBLISHABLE_KEY || ""
 

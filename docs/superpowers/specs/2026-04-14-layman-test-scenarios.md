@@ -5,7 +5,7 @@
 **Format:** Full test case — Precondition → Steps → Expected Result
 **Scope:** Working features only, mix of happy paths + realistic error cases
 **Device:** Mobile phone (primary), desktop browser (secondary)
-**URL:** https://store.supracynpharma.com (production) or http://localhost:5173 (local dev)
+**URL:** https://supracyn.in (production) or http://localhost:5173 (local dev)
 
 ---
 
@@ -562,7 +562,7 @@
 
 ## Test Environment Notes
 
-- **Production:** https://store.supracynpharma.com
+- **Production:** https://supracyn.in
 - **Test payments:** Use Razorpay test mode cards (4111 1111 1111 1111, expiry: any future date, CVV: any 3 digits)
 - **Test OTP:** In development, OTP is logged to console. In production, real SMS is sent
 - **Prescription uploads:** Use any clear photo of a doctor's prescription for testing

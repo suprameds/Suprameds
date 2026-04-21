@@ -1,2 +1,2 @@
 export const SITE_URL =
-  import.meta.env.VITE_SITE_URL || "https://store.supracynpharma.com"
+  import.meta.env.VITE_SITE_URL || "https://supracyn.in"

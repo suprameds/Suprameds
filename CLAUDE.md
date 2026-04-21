@@ -140,7 +140,7 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 - **medusa-config.ts Redis modules**: When `REDIS_URL` is set, register BOTH `Modules.CACHE` (cache-redis) AND `Modules.EVENT_BUS` (event-bus-redis). Without event-bus-redis, subscribers (like password-reset) silently fail because events don't reach them. The log will show "Local Event Bus installed" as a warning.
 - **Modules.LOCKING has no Redis variant in Medusa v2.13**: Do NOT register `@medusajs/medusa/locking-redis` — it doesn't exist and crashes the server on startup with "No service found in module Locking". The in-memory locking provider is the only option.
 - **Shipment crash with manage_inventory=false**: Medusa's `createOrderShipmentWorkflow` crashes with "Cannot read properties of undefined (reading 'required_quantity')" when fulfillment items have `inventory_item_id: null` (which happens when `manage_inventory=false`). Fixed via runtime patch `scripts/patch-shipment-workflow.mjs`.
-- **STOREFRONT_URL env var**: Must be set on Railway backend (`https://store.supracynpharma.com`). Used by password-reset subscriber to build reset links. Without it, reset emails contain `http://localhost:5173` URLs. Code has a fallback for `NODE_ENV=production` but the env var is more reliable.
+- **STOREFRONT_URL env var**: Must be set on Railway backend (`https://supracyn.in`). Used by password-reset subscriber to build reset links. Without it, reset emails contain `http://localhost:5173` URLs. Code has a fallback for `NODE_ENV=production` but the env var is more reliable.
 - **Runtime patches in Dockerfile.backend**: Two patches must run after `pnpm install`: (1) `patch-promotion-query.mjs` fixes MikroORM raw() quoting, (2) `patch-shipment-workflow.mjs` fixes null guard for manage_inventory=false. Both must be applied to BOTH `apps/backend/node_modules` (build stage) and `/app/pruned/node_modules` (production stage).
 - **TanStack Router route tree**: Adding new route files (e.g., `$countryCode/$.tsx`) requires the route tree to regenerate. This happens automatically on `pnpm dev` or `pnpm build`, NOT via tsc. Use `@ts-expect-error` for new route path strings until the route tree regenerates.
 - **Homepage resilience**: `useBulkPharma()` can fail (503) when the pharma API is down. The homepage must show products even when pharma metadata is unavailable. Check `isError` and fall back to showing all products instead of filtering to OTC-only.
@@ -304,7 +304,7 @@ grep "COPY.*scripts" Dockerfile.backend   # must include all patch scripts
 - Project: Suprameds_Medusa (production environment)
 - Production URL: https://storefront-production-3f20.up.railway.app
 - Backend URL: https://backend-production-9d3a.up.railway.app
-- Custom domains: store.supracynpharma.com (storefront), api.supracynpharma.com (backend)
+- Custom domains: supracyn.in (storefront), api.supracynpharma.com (backend)
 - Deploy workflow: Auto-deploy on push to main (Railway watches GitHub repo)
 - Deploy status command: HTTP health check
 - Merge method: squash

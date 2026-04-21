@@ -826,4 +826,4 @@ Watch Railway dashboard or run:
 gh run list --limit 1
 ```
 
-Check both services deploy successfully. Navigate to `https://store.supracynpharma.com/in/account/pharmacist/create-order` to verify the page loads.
+Check both services deploy successfully. Navigate to `https://supracyn.in/in/account/pharmacist/create-order` to verify the page loads.

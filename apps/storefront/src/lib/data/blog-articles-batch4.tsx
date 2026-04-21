@@ -53,7 +53,7 @@ export const batch4: BlogPost[] = [
         <h2>How to Save on Health Tests</h2>
         <p>Many diagnostic chains in India such as Dr. Lal PathLabs, Metropolis, and Thyrocare offer bundled full-body checkup packages for Rs 1,500-3,000 that include 30-50 tests. These packages are significantly cheaper than ordering tests individually.</p>
 
-        <p>Suprameds stocks the medicines commonly prescribed after health checkup findings, including thyroid medications, diabetes drugs, and cholesterol-lowering statins at 50-80% off MRP. Order your prescription medicines at <strong>store.supracynpharma.com</strong> after your next checkup.</p>
+        <p>Suprameds stocks the medicines commonly prescribed after health checkup findings, including thyroid medications, diabetes drugs, and cholesterol-lowering statins at 50-80% off MRP. Order your prescription medicines at <strong>supracyn.in</strong> after your next checkup.</p>
       </div>
     ),
   },
@@ -100,7 +100,7 @@ export const batch4: BlogPost[] = [
         <h2>10. Vitamin D Deficiency</h2>
         <p>Despite abundant sunshine, over 70% of Indians are vitamin D deficient due to indoor lifestyles, dark skin tone, and covered clothing. Supplementation is often needed.</p>
 
-        <p>Many of these conditions require long-term medicines once diagnosed. Suprameds carries the full range of India's most-prescribed chronic disease medicines at 50-80% off MRP. Visit <strong>store.supracynpharma.com</strong> to check availability.</p>
+        <p>Many of these conditions require long-term medicines once diagnosed. Suprameds carries the full range of India's most-prescribed chronic disease medicines at 50-80% off MRP. Visit <strong>supracyn.in</strong> to check availability.</p>
       </div>
     ),
   },
@@ -152,7 +152,7 @@ export const batch4: BlogPost[] = [
         <h2>Storage Rules</h2>
         <p>Store medicines in a cool, dry place away from direct sunlight and humidity. Do not keep medicines in the bathroom. Check expiry dates every six months and replace expired items promptly.</p>
 
-        <p>Suprameds makes it easy to stock your home medicine kit without overpaying. All listed OTC medicines are available at 50-80% off MRP at <strong>store.supracynpharma.com</strong> with fast delivery across India.</p>
+        <p>Suprameds makes it easy to stock your home medicine kit without overpaying. All listed OTC medicines are available at 50-80% off MRP at <strong>supracyn.in</strong> with fast delivery across India.</p>
       </div>
     ),
   },
@@ -197,7 +197,7 @@ export const batch4: BlogPost[] = [
         <h2>Never Self-Prescribe Antibiotics</h2>
         <p>In India, antibiotics are technically prescription-only (Schedule H) but are still sold without prescriptions at many pharmacies. This practice is illegal and contributes directly to antibiotic resistance. Always get a doctor's prescription before taking any antibiotic.</p>
 
-        <p>Suprameds dispenses antibiotics only with valid prescriptions as required by Indian law. Shop for your prescription medicines at <strong>store.supracynpharma.com</strong> with guaranteed quality and proper pharmacist review.</p>
+        <p>Suprameds dispenses antibiotics only with valid prescriptions as required by Indian law. Shop for your prescription medicines at <strong>supracyn.in</strong> with guaranteed quality and proper pharmacist review.</p>
       </div>
     ),
   },
@@ -238,7 +238,7 @@ export const batch4: BlogPost[] = [
           <li>Dispose of unused antibiotics properly; do not flush them down the drain</li>
         </ul>
 
-        <p>At Suprameds, we dispense antibiotics only with valid doctor prescriptions as mandated by the Drugs and Cosmetics Act. Every order is reviewed by our licensed pharmacist before dispatch. Shop responsibly at <strong>store.supracynpharma.com</strong>.</p>
+        <p>At Suprameds, we dispense antibiotics only with valid doctor prescriptions as mandated by the Drugs and Cosmetics Act. Every order is reviewed by our licensed pharmacist before dispatch. Shop responsibly at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -274,7 +274,7 @@ export const batch4: BlogPost[] = [
         <p>Both remove water and electrolytes from the body. Using them together risks severe dehydration and dangerous drops in potassium, which can affect heart rhythm.</p>
 
         <h2>The Safe Rule</h2>
-        <p>When in doubt, ask a pharmacist before combining any two medicines. At Suprameds, our licensed pharmacists review every order and are available to answer medicine-related questions. Order safely at <strong>store.supracynpharma.com</strong>.</p>
+        <p>When in doubt, ask a pharmacist before combining any two medicines. At Suprameds, our licensed pharmacists review every order and are available to answer medicine-related questions. Order safely at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -316,7 +316,7 @@ export const batch4: BlogPost[] = [
         <h2>Child and Pet Safety</h2>
         <p>Always store medicines in locked cabinets if children are present. Child-resistant packaging is standard in India but not foolproof. Accidental ingestion by children is a medical emergency.</p>
 
-        <p>Suprameds ships medicines in temperature-appropriate packaging, including cold-chain delivery for insulin and biologics. Order your medicines at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Suprameds ships medicines in temperature-appropriate packaging, including cold-chain delivery for insulin and biologics. Order your medicines at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -358,7 +358,7 @@ export const batch4: BlogPost[] = [
         <h2>The Right Thing to Do</h2>
         <p>Replace expired medicines promptly and dispose of them safely by taking them to a pharmacy or municipal disposal point. Never flush medicines down the drain as this contaminates water supplies.</p>
 
-        <p>Suprameds ships only medicines with a minimum of 6 months shelf life remaining, clearly labeled and FEFO-allocated from our warehouse. Order at <strong>store.supracynpharma.com</strong> for guaranteed fresh stock.</p>
+        <p>Suprameds ships only medicines with a minimum of 6 months shelf life remaining, clearly labeled and FEFO-allocated from our warehouse. Order at <strong>supracyn.in</strong> for guaranteed fresh stock.</p>
       </div>
     ),
   },
@@ -408,7 +408,7 @@ export const batch4: BlogPost[] = [
         <h2>Reporting ADRs in India</h2>
         <p>India's Pharmacovigilance Programme of India (PvPI) allows patients and doctors to report adverse drug reactions. Reports can be submitted via the ADR reporting portal at pvpindia.in or through the toll-free number 1800-180-3024.</p>
 
-        <p>If you have questions about side effects of medicines you are taking, Suprameds pharmacists are available to help. Order your medicines at <strong>store.supracynpharma.com</strong> with confidence.</p>
+        <p>If you have questions about side effects of medicines you are taking, Suprameds pharmacists are available to help. Order your medicines at <strong>supracyn.in</strong> with confidence.</p>
       </div>
     ),
   },
@@ -452,7 +452,7 @@ export const batch4: BlogPost[] = [
         <h2>The Simple Rule</h2>
         <p>Take exactly the dose prescribed, at the times prescribed, for the full number of days prescribed. Not more. Not less.</p>
 
-        <p>Suprameds ensures you can complete your full antibiotic course by delivering your full prescription to your door. Order at <strong>store.supracynpharma.com</strong> with prescription upload.</p>
+        <p>Suprameds ensures you can complete your full antibiotic course by delivering your full prescription to your door. Order at <strong>supracyn.in</strong> with prescription upload.</p>
       </div>
     ),
   },
@@ -497,7 +497,7 @@ export const batch4: BlogPost[] = [
         <h2>When Paracetamol May Not Be Enough</h2>
         <p>For severe pain, anti-inflammatory pain relievers (NSAIDs like ibuprofen) may be more effective. For high fever in adults that does not respond to paracetamol alone, alternating with ibuprofen every 4 hours can be more effective - but discuss this with your doctor first.</p>
 
-        <p>Suprameds stocks Crocin, Dolo, and generic paracetamol at the lowest prices. Order at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Suprameds stocks Crocin, Dolo, and generic paracetamol at the lowest prices. Order at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -534,7 +534,7 @@ export const batch4: BlogPost[] = [
         <h2>When to Choose a Medicine Over a Supplement</h2>
         <p>If you have a diagnosed deficiency (vitamin D deficiency confirmed by blood test, iron-deficiency anaemia), choose the licensed pharmaceutical product. Your doctor can prescribe the appropriate dose and formulation. Do not rely on supplements at nutritional doses to correct clinical deficiencies.</p>
 
-        <p>Suprameds stocks both licensed pharmaceutical vitamins and minerals as well as FSSAI-registered supplements. Our pharmacists can help you choose the right product for your needs at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Suprameds stocks both licensed pharmaceutical vitamins and minerals as well as FSSAI-registered supplements. Our pharmacists can help you choose the right product for your needs at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -582,7 +582,7 @@ export const batch4: BlogPost[] = [
           <li>Eat iron-rich foods (ragi, horse gram, dates, jaggery) with vitamin C-rich foods (amla, guava, lemon)</li>
         </ul>
 
-        <p>Suprameds stocks Vitamin D3 sachets, iron-folic acid tablets, and other women's health supplements at below-MRP prices. Order at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Suprameds stocks Vitamin D3 sachets, iron-folic acid tablets, and other women's health supplements at below-MRP prices. Order at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -623,7 +623,7 @@ export const batch4: BlogPost[] = [
         <p><strong>Self-care</strong>: Rise slowly from sitting or lying positions. Hold onto something when standing. Avoid driving during the first week on a new blood pressure medication. Stay hydrated.</p>
         <p><strong>Call doctor if</strong>: You faint, fall, or dizziness is so severe you cannot function safely.</p>
 
-        <p>Suprameds pharmacists can answer questions about side effects before you call your doctor. Order your medicines at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Suprameds pharmacists can answer questions about side effects before you call your doctor. Order your medicines at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -661,7 +661,7 @@ export const batch4: BlogPost[] = [
         <h2>Anti-TB Medicines (DOTS)</h2>
         <p>Under India's national TB programme (NIKSHAY), missing doses can cause treatment failure and drug resistance. If you miss a DOTS dose, contact your TB treatment supporter or ASHA worker immediately. Do not try to make up doses on your own schedule.</p>
 
-        <p>Suprameds offers easy refill ordering so you never run out of chronic medications. Set up your recurring prescription at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Suprameds offers easy refill ordering so you never run out of chronic medications. Set up your recurring prescription at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -696,7 +696,7 @@ export const batch4: BlogPost[] = [
         <h2>What This Means for You</h2>
         <p>When you buy medicines from SupraMeds, you are buying from a pharmacy that is operating within the full framework of Indian pharmaceutical law. Your prescription is verified. Your medicines are tracked from manufacturer to your door. You receive a proper cash memo or invoice with every purchase.</p>
 
-        <p>Shop with confidence at <strong>store.supracynpharma.com</strong>, India's licensed online pharmacy for quality generic medicines.</p>
+        <p>Shop with confidence at <strong>supracyn.in</strong>, India's licensed online pharmacy for quality generic medicines.</p>
       </div>
     ),
   },
@@ -731,7 +731,7 @@ export const batch4: BlogPost[] = [
           <li>If you receive a suspicious message claiming to be from SupraMeds that does not match our registered sender IDs, it is a fraud attempt - report it to TRAI at 1909</li>
         </ul>
 
-        <p>Your security is our priority. Shop safely at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Your security is our priority. Shop safely at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -771,7 +771,7 @@ export const batch4: BlogPost[] = [
           <li>Look for GST registration (GSTIN) on their invoices</li>
         </ul>
 
-        <p>SupraMeds operates transparently within Indian pharmaceutical law. View our licences and compliance information at <strong>store.supracynpharma.com</strong>.</p>
+        <p>SupraMeds operates transparently within Indian pharmaceutical law. View our licences and compliance information at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -812,7 +812,7 @@ export const batch4: BlogPost[] = [
         <h2>8. Secure Payment Options</h2>
         <p>Only pay via recognised payment gateways (Razorpay, PayU, PhonePe, UPI to verified VPA). Avoid websites that ask for direct bank transfers or cryptocurrency payments.</p>
 
-        <p>SupraMeds meets all of these criteria. Verify our credentials and shop safely at <strong>store.supracynpharma.com</strong>.</p>
+        <p>SupraMeds meets all of these criteria. Verify our credentials and shop safely at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -858,7 +858,7 @@ export const batch4: BlogPost[] = [
         <h2>Quality Guarantee</h2>
         <p>If any temperature-sensitive medicine you receive from SupraMeds appears compromised, we will replace it or refund it. Our goal is that every medicine you receive is in perfect condition, exactly as the manufacturer intended.</p>
 
-        <p>Order your temperature-sensitive medicines with confidence at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Order your temperature-sensitive medicines with confidence at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -901,7 +901,7 @@ export const batch4: BlogPost[] = [
         <h2>What Happens When There Is a Problem</h2>
         <p>If the pharmacist cannot verify a prescription or identifies a concern, the order is held and the customer is contacted with a clear explanation. We would rather delay an order by a few hours to confirm it is safe than dispatch a potentially harmful medicine quickly.</p>
 
-        <p>This commitment to pharmacist oversight is what makes SupraMeds different from grey-market online medicine sellers. Order with confidence at <strong>store.supracynpharma.com</strong>.</p>
+        <p>This commitment to pharmacist oversight is what makes SupraMeds different from grey-market online medicine sellers. Order with confidence at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -947,7 +947,7 @@ export const batch4: BlogPost[] = [
           <li><strong>Right to erasure</strong>: You can ask us to delete your data, subject to our legal obligation to retain pharmacy records for the period required by the Drugs and Cosmetics Rules</li>
         </ul>
 
-        <p>To exercise your data rights or with any privacy concern, contact us at support@supracynpharma.com. Shop securely at <strong>store.supracynpharma.com</strong>.</p>
+        <p>To exercise your data rights or with any privacy concern, contact us at support@supracynpharma.com. Shop securely at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -1003,7 +1003,7 @@ export const batch4: BlogPost[] = [
           <li>Contact the brand manufacturer directly</li>
         </ul>
 
-        <p>SupraMeds sources all medicines only from licensed Indian manufacturers and authorised distributors. We maintain batch traceability for every product. Shop with verified quality at <strong>store.supracynpharma.com</strong>.</p>
+        <p>SupraMeds sources all medicines only from licensed Indian manufacturers and authorised distributors. We maintain batch traceability for every product. Shop with verified quality at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -1039,7 +1039,7 @@ export const batch4: BlogPost[] = [
         <h2>Unlicensed Sellers Are Common and Dangerous</h2>
         <p>Many online platforms operating in India sell medicines without proper licences, without pharmacist oversight, and without prescription verification. Buying from these platforms means no quality assurance, no legal recourse if something goes wrong, and a direct contribution to antibiotic resistance through inappropriate dispensing.</p>
 
-        <p>SupraMeds holds all required licences and maintains full-time pharmacists. View our regulatory credentials and order medicines that are dispensed legally and safely at <strong>store.supracynpharma.com</strong>.</p>
+        <p>SupraMeds holds all required licences and maintains full-time pharmacists. View our regulatory credentials and order medicines that are dispensed legally and safely at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },
@@ -1092,7 +1092,7 @@ export const batch4: BlogPost[] = [
         <h2>Our Accountability</h2>
         <p>If we fall short of any of these commitments, contact us at support@supracynpharma.com. We respond within 24 hours and resolve within 72 hours. Customer complaints are reviewed by our management team weekly.</p>
 
-        <p>Thank you for trusting SupraMeds with your health. Order today at <strong>store.supracynpharma.com</strong>.</p>
+        <p>Thank you for trusting SupraMeds with your health. Order today at <strong>supracyn.in</strong>.</p>
       </div>
     ),
   },

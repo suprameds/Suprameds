@@ -47,7 +47,7 @@ export const Route = createFileRoute("/$countryCode/store")({
   },
   head: ({ loaderData, params }) => {
     const { region } = loaderData || {}
-    const siteUrl = import.meta.env.VITE_SITE_URL || "https://store.supracynpharma.com"
+    const siteUrl = import.meta.env.VITE_SITE_URL || "https://supracyn.in"
     const countryCode = params?.countryCode || "in"
     const regionName = region?.name || countryCode.toUpperCase()
     const canonical = `${siteUrl}/${countryCode}/store`

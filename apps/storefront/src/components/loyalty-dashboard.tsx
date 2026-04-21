@@ -3,6 +3,7 @@ import { useState } from "react"
 import { sdk } from "@/lib/utils/sdk"
 import { queryKeys } from "@/lib/utils/query-keys"
 import { getStoredOtpToken } from "@/lib/hooks/use-customer"
+import { SITE_URL } from "@/lib/constants/site"
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -221,7 +222,7 @@ export function LoyaltyPointsBadge({ points }: { points: number }) {
 function ReferralCard({ code }: { code: string }) {
   const [copied, setCopied] = useState(false)
 
-  const referralLink = `https://store.supracynpharma.com/in/account/register?ref=${code}`
+  const referralLink = `${SITE_URL}/in/account/register?ref=${code}`
   const whatsappText = encodeURIComponent(
     `Hey! I use Suprameds for affordable generic medicines. Use my referral code ${code} to get 50 bonus loyalty points on signup!\n\n${referralLink}`
   )

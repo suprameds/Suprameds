@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   server: {
     // Load the live hosted site — SSR works, always up-to-date content.
     // Native Capacitor plugins (camera, status bar, push) still work on top.
-    url: "https://store.supracynpharma.com",
+    url: "https://supracyn.in",
     androidScheme: "https",
   },
   plugins: {
