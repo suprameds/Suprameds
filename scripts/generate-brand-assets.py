@@ -157,10 +157,11 @@ def main() -> None:
         img = square_on_black(mark, size, ratio)
         save_png(img, PUBLIC / "icons" / name)
 
-    print("\nGenerating favicons...")
-    fav_src = square_on_black(mark, 256, 0.82)
+    print("\nGenerating favicons (transparent bg)...")
+    fav_src = square_transparent(mark, 256, 0.96)
     save_ico(fav_src, PUBLIC / "favicon.ico")
     save_ico(fav_src, PUBLIC / "images" / "favicon.ico")
+    save_png(fav_src, PUBLIC / "icons" / "favicon-mark.png")
 
     print("\nGenerating full logo (JPEG on white + transparent PNG)...")
     transparent = drop_white_background(raw_logo)
