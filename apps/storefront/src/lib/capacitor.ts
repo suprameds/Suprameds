@@ -50,6 +50,31 @@ export async function initCapacitorPlugins() {
   } catch {
     /* web fallback — SplashScreen not available */
   }
+
+  // Fire-and-forget: check for Play Store updates once the app is interactive.
+  checkForAppUpdate().catch(() => { /* already logged */ })
+}
+
+/**
+ * Check Play Store for an available app update. Prompts the user if one is
+ * available. Silently no-ops on web, on debug builds, or when no update.
+ */
+export async function checkForAppUpdate() {
+  if (!isNative()) return
+  try {
+    const { AppUpdate } = await import("@capawesome/capacitor-app-update")
+    const info = await AppUpdate.getAppUpdateInfo()
+    if (info.updateAvailability !== 2 /* UPDATE_AVAILABLE */) return
+    if (info.immediateUpdateAllowed) {
+      await AppUpdate.performImmediateUpdate()
+    } else if (info.flexibleUpdateAllowed) {
+      await AppUpdate.startFlexibleUpdate()
+    } else {
+      await AppUpdate.openAppStore()
+    }
+  } catch (err) {
+    if (import.meta.env.DEV) console.warn("[app-update] check failed", err)
+  }
 }
 
 /**

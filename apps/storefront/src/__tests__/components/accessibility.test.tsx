@@ -44,6 +44,7 @@ vi.mock("@/lib/context/toast-context", () => ({
 vi.mock("@tanstack/react-router", () => ({
   Outlet: () => <div data-testid="outlet">Page</div>,
   useLocation: () => ({ pathname: "/" }),
+  useNavigate: () => vi.fn(),
   useRouterState: () => ({ isTransitioning: false }),
 }))
 
@@ -73,6 +74,10 @@ vi.mock("@/lib/utils/capacitor", () => ({
 
 vi.mock("@/lib/hooks/use-android-back-button", () => ({
   useAndroidBackButton: () => {},
+}))
+
+vi.mock("@/lib/hooks/use-app-lifecycle", () => ({
+  useAppLifecycle: () => {},
 }))
 
 import Layout from "@/components/layout"

@@ -106,6 +106,30 @@ const UploadRx = () => {
     if (file) handleFileSelect(file)
   }
 
+  /** Native file picker (better PDF/image UX than HTML input on Android) */
+  const handleNativeFilePicker = async () => {
+    try {
+      const { FilePicker } = await import("@capawesome/capacitor-file-picker")
+      const result = await FilePicker.pickFiles({
+        types: ACCEPTED_TYPES,
+        limit: 1,
+        readData: true,
+      })
+      const picked = result.files?.[0]
+      if (!picked) return
+      if (!picked.data) return
+      const binary = atob(picked.data)
+      const ab = new ArrayBuffer(binary.length)
+      const ia = new Uint8Array(ab)
+      for (let i = 0; i < binary.length; i++) ia[i] = binary.charCodeAt(i)
+      const file = new File([ab], picked.name, { type: picked.mimeType || "application/octet-stream" })
+      handleFileSelect(file)
+    } catch {
+      /* user cancelled or picker unavailable — fall back to HTML input */
+      fileInputRef.current?.click()
+    }
+  }
+
   /** Use native camera via Capacitor Camera plugin */
   const handleNativeCamera = async () => {
     try {
@@ -288,7 +312,13 @@ const UploadRx = () => {
                 background: dragOver ? "rgba(14,124,134,0.05)" : "transparent",
                 borderBottom: selectedFile ? "1px solid var(--border-primary)" : "none",
               }}
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => {
+                if (isNativeApp()) {
+                  handleNativeFilePicker()
+                } else {
+                  fileInputRef.current?.click()
+                }
+              }}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
               onDragLeave={() => setDragOver(false)}
               onDrop={handleDrop}

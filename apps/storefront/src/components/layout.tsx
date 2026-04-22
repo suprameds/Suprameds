@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/lib/context/theme"
 import { ToastProvider } from "@/lib/context/toast-context"
 import { AnimatedOutlet } from "@/components/animated-outlet"
 import { useAndroidBackButton } from "@/lib/hooks/use-android-back-button"
+import { useAppLifecycle } from "@/lib/hooks/use-app-lifecycle"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import { useQueryClient } from "@tanstack/react-query"
 import { useRouterState, useNavigate, useLocation } from "@tanstack/react-router"
@@ -31,9 +32,10 @@ function NavigationProgress() {
   )
 }
 
-/** Runs native-only hooks that require provider context (toast, router) */
+/** Runs native-only hooks that require provider context (toast, router, query) */
 function NativeHooks() {
   useAndroidBackButton()
+  useAppLifecycle()
   return null
 }
 

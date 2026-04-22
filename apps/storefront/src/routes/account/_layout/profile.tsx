@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useCustomer, useUpdateCustomer } from "@/lib/hooks/use-customer"
+import { isNativeApp } from "@/lib/utils/capacitor"
+import {
+  authenticateBiometric,
+  isBiometricAvailable,
+  isBiometricEnabled,
+  setBiometricEnabled,
+} from "@/lib/utils/biometric"
 
 export const Route = createFileRoute("/account/_layout/profile")({
   head: () => ({
@@ -202,6 +209,72 @@ function ProfilePage() {
           </p>
         </div>
       </div>
+
+      <BiometricToggle />
+    </div>
+  )
+}
+
+function BiometricToggle() {
+  const [available, setAvailable] = useState(false)
+  const [enabled, setEnabled] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    if (!isNativeApp()) return
+    isBiometricAvailable().then(setAvailable)
+    setEnabled(isBiometricEnabled())
+  }, [])
+
+  if (!isNativeApp() || !available) return null
+
+  const handleToggle = async () => {
+    setBusy(true)
+    try {
+      if (enabled) {
+        setBiometricEnabled(false)
+        setEnabled(false)
+      } else {
+        const ok = await authenticateBiometric("Enable biometric unlock for Suprameds")
+        if (ok) {
+          setBiometricEnabled(true)
+          setEnabled(true)
+        }
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}>
+        Security
+      </h2>
+      <button
+        onClick={handleToggle}
+        disabled={busy}
+        className="w-full flex items-center justify-between gap-4 bg-[var(--bg-secondary)] border rounded-xl p-4 text-left disabled:opacity-60"
+        style={{ borderColor: "var(--border-primary)" }}
+      >
+        <div className="min-w-0">
+          <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+            Biometric unlock
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+            Require fingerprint or face ID to open your account.
+          </p>
+        </div>
+        <span
+          className="shrink-0 inline-flex h-6 w-11 items-center rounded-full transition-colors"
+          style={{ background: enabled ? "var(--brand-teal)" : "var(--bg-tertiary)" }}
+        >
+          <span
+            className="h-5 w-5 rounded-full bg-white transition-transform"
+            style={{ transform: enabled ? "translateX(22px)" : "translateX(2px)" }}
+          />
+        </span>
+      </button>
     </div>
   )
 }

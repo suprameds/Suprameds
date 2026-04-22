@@ -30,6 +30,11 @@
                 <data android:scheme="https" android:host="supracyn.in" />
             </intent-filter>
 
+            <!-- Long-press launcher shortcuts -->
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+
         </activity>
 
         <provider

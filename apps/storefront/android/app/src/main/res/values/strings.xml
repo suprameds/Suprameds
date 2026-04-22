@@ -4,4 +4,10 @@
     <string name="title_activity_main">Supracyn</string>
     <string name="package_name">in.supracyn.app</string>
     <string name="custom_url_scheme">in.supracyn.app</string>
+    <string name="shortcut_upload_rx_short">Upload Rx</string>
+    <string name="shortcut_upload_rx_long">Upload a prescription</string>
+    <string name="shortcut_orders_short">My Orders</string>
+    <string name="shortcut_orders_long">View my orders</string>
+    <string name="shortcut_search_short">Search</string>
+    <string name="shortcut_search_long">Search medicines</string>
 </resources>
