@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="upload_rx"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_upload"
+        android:shortcutShortLabel="@string/shortcut_upload_rx_short"
+        android:shortcutLongLabel="@string/shortcut_upload_rx_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://supracyn.in/upload-rx"
+            android:targetPackage="in.supracyn.app"
+            android:targetClass="in.supracyn.app.MainActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="orders"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_orders"
+        android:shortcutShortLabel="@string/shortcut_orders_short"
+        android:shortcutLongLabel="@string/shortcut_orders_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://supracyn.in/account/orders"
+            android:targetPackage="in.supracyn.app"
+            android:targetClass="in.supracyn.app.MainActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="search"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_search"
+        android:shortcutShortLabel="@string/shortcut_search_short"
+        android:shortcutLongLabel="@string/shortcut_search_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="https://supracyn.in/search"
+            android:targetPackage="in.supracyn.app"
+            android:targetClass="in.supracyn.app.MainActivity" />
+    </shortcut>
+
+</shortcuts>

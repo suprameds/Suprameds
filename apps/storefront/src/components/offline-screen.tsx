@@ -31,31 +31,56 @@ export function OfflineScreen() {
   useEffect(() => {
     if (!isNativeApp()) return
 
-    const goOffline = () => setIsOffline(true)
-    const goOnline = () => setIsOffline(false)
+    let listenerHandle: { remove: () => void } | null = null
+    let cancelled = false
 
-    // Check initial state
-    if (!navigator.onLine) setIsOffline(true)
-
-    window.addEventListener("offline", goOffline)
-    window.addEventListener("online", goOnline)
+    ;(async () => {
+      try {
+        const { Network } = await import("@capacitor/network")
+        const status = await Network.getStatus()
+        if (cancelled) return
+        setIsOffline(!status.connected)
+        listenerHandle = await Network.addListener("networkStatusChange", (s) => {
+          setIsOffline(!s.connected)
+        })
+      } catch {
+        // Fallback to browser events if Network plugin unavailable
+        if (!navigator.onLine) setIsOffline(true)
+        const goOffline = () => setIsOffline(true)
+        const goOnline = () => setIsOffline(false)
+        window.addEventListener("offline", goOffline)
+        window.addEventListener("online", goOnline)
+        listenerHandle = {
+          remove: () => {
+            window.removeEventListener("offline", goOffline)
+            window.removeEventListener("online", goOnline)
+          },
+        }
+      }
+    })()
 
     return () => {
-      window.removeEventListener("offline", goOffline)
-      window.removeEventListener("online", goOnline)
+      cancelled = true
+      listenerHandle?.remove()
     }
   }, [])
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     setRetrying(true)
-    // Short delay to show loading state, then reload
-    setTimeout(() => {
+    try {
+      const { Network } = await import("@capacitor/network")
+      const status = await Network.getStatus()
+      if (status.connected) {
+        window.location.reload()
+        return
+      }
+    } catch {
       if (navigator.onLine) {
         window.location.reload()
-      } else {
-        setRetrying(false)
+        return
       }
-    }, 1500)
+    }
+    setTimeout(() => setRetrying(false), 800)
   }
 
   if (!isOffline) return null

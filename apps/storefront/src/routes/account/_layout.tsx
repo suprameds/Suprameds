@@ -1,7 +1,13 @@
 import { createFileRoute, Link, Outlet, useNavigate, useLocation } from "@tanstack/react-router"
 import { useCustomer, useLogout } from "@/lib/hooks/use-customer"
 import { useIsPharmacist } from "@/lib/hooks/use-pharmacist"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { isNativeApp } from "@/lib/utils/capacitor"
+import {
+  isBiometricEnabled,
+  isUnlockedThisSession,
+  authenticateBiometric,
+} from "@/lib/utils/biometric"
 
 export const Route = createFileRoute("/account/_layout")({
   component: AccountLayout,
@@ -33,6 +39,21 @@ function AccountLayout() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, customer, navigate])
 
+  const [biometricLocked, setBiometricLocked] = useState(
+    () => isNativeApp() && isBiometricEnabled() && !isUnlockedThisSession(),
+  )
+
+  useEffect(() => {
+    if (!biometricLocked || !customer) return
+    authenticateBiometric("Unlock your Suprameds account").then((ok) => {
+      if (ok) {
+        setBiometricLocked(false)
+      } else {
+        navigate({ to: "/", replace: true })
+      }
+    })
+  }, [biometricLocked, customer, navigate])
+
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "var(--bg-primary)" }}>
@@ -43,6 +64,14 @@ function AccountLayout() {
 
   if (!customer) {
     return null
+  }
+
+  if (biometricLocked) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center" style={{ background: "var(--bg-primary)" }}>
+        <div className="text-sm" style={{ color: "var(--text-tertiary)" }}>Awaiting biometric unlock...</div>
+      </div>
+    )
   }
 
   const navItems = [
