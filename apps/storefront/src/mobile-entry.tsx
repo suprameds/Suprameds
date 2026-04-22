@@ -12,6 +12,8 @@ import { QueryClientProvider } from "@tanstack/react-query"
 import { getRouter } from "./router"
 // eslint-disable-next-line no-restricted-imports
 import { initCapacitorPlugins } from "./lib/capacitor"
+// eslint-disable-next-line no-restricted-imports
+import { isExtensionNoise } from "./lib/utils/sentry-filters"
 import * as Sentry from "@sentry/react"
 // eslint-disable-next-line no-restricted-imports
 import "./styles/app.css"
@@ -28,6 +30,9 @@ try {
     beforeSend(event) {
       const message = event.exception?.values?.[0]?.value || ""
       if (message.includes("ResizeObserver") || message.includes("ChunkLoadError")) {
+        return null
+      }
+      if (isExtensionNoise(event)) {
         return null
       }
       return event

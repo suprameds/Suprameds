@@ -3,8 +3,20 @@ import { getMessaging, getToken, isSupported } from "firebase/messaging"
 import { sdk } from "@/lib/utils/sdk"
 import { getFirebaseApp } from "@/lib/firebase"
 import { useCustomer } from "@/lib/hooks/use-customer"
+import { isNativeApp } from "@/lib/utils/capacitor"
+import { requestNotificationPermission } from "@/lib/capacitor"
 
 const TOKEN_CACHE_KEY = "suprameds_fcm_token"
+
+async function registerToken(token: string) {
+  const previous = window.localStorage.getItem(TOKEN_CACHE_KEY)
+  if (previous === token) return
+  await sdk.client.fetch("/store/push/register", {
+    method: "POST",
+    body: { token },
+  })
+  window.localStorage.setItem(TOKEN_CACHE_KEY, token)
+}
 
 export function PushNotificationManager() {
   const { data: customer } = useCustomer()
@@ -14,7 +26,18 @@ export function PushNotificationManager() {
 
     let active = true
 
-    async function registerPush() {
+    async function registerNative() {
+      await requestNotificationPermission(async (token) => {
+        if (!active) return
+        try {
+          await registerToken(token)
+        } catch (err) {
+          if (import.meta.env.DEV) console.warn("[push] backend register failed", err)
+        }
+      })
+    }
+
+    async function registerWeb() {
       try {
         if (typeof window === "undefined") return
         if (!("serviceWorker" in navigator)) return
@@ -40,16 +63,7 @@ export function PushNotificationManager() {
         })
 
         if (!token || !active) return
-
-        const previous = window.localStorage.getItem(TOKEN_CACHE_KEY)
-        if (previous === token) return
-
-        await sdk.client.fetch("/store/push/register", {
-          method: "POST",
-          body: { token },
-        })
-
-        window.localStorage.setItem(TOKEN_CACHE_KEY, token)
+        await registerToken(token)
       } catch (err) {
         if (import.meta.env.DEV) {
           console.warn("[push] registration failed", err)
@@ -57,7 +71,11 @@ export function PushNotificationManager() {
       }
     }
 
-    registerPush()
+    if (isNativeApp()) {
+      registerNative()
+    } else {
+      registerWeb()
+    }
 
     return () => {
       active = false

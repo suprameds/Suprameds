@@ -14,7 +14,8 @@ import { AnimatedOutlet } from "@/components/animated-outlet"
 import { useAndroidBackButton } from "@/lib/hooks/use-android-back-button"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import { useQueryClient } from "@tanstack/react-query"
-import { useRouterState } from "@tanstack/react-router"
+import { useRouterState, useNavigate, useLocation } from "@tanstack/react-router"
+import { useEffect } from "react"
 
 /** Top navigation progress bar — shows instantly on route transitions */
 function NavigationProgress() {
@@ -39,10 +40,23 @@ function NativeHooks() {
 const Layout = () => {
   const native = isNativeApp()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries()
   }
+
+  // Onboarding redirect — native app only, first launch only
+  useEffect(() => {
+    if (!native) return
+    const hasSeenOnboarding = localStorage.getItem("suprameds_onboarding_seen_v2")
+    const isExcludedPath = location.pathname.includes("/onboarding") || location.pathname.includes("/pharmacy")
+
+    if (!hasSeenOnboarding && !isExcludedPath) {
+      navigate({ to: "/onboarding", replace: true })
+    }
+  }, [navigate, location.pathname, native])
 
   return (
     <ThemeProvider>

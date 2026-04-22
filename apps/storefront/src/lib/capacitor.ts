@@ -51,3 +51,41 @@ export async function initCapacitorPlugins() {
     /* web fallback — SplashScreen not available */
   }
 }
+
+/**
+ * Request the native POST_NOTIFICATIONS permission on Android 13+ / iOS and
+ * register for push. Listener forwards the FCM token to the backend once
+ * granted. Safe to call repeatedly — OS only shows the dialog the first time.
+ */
+export async function requestNotificationPermission(
+  onToken?: (token: string) => void | Promise<void>,
+) {
+  if (!isNative()) return "unsupported" as const
+  try {
+    const { PushNotifications } = await import("@capacitor/push-notifications")
+
+    const current = await PushNotifications.checkPermissions()
+    let status = current.receive
+    if (status === "prompt" || status === "prompt-with-rationale") {
+      const result = await PushNotifications.requestPermissions()
+      status = result.receive
+    }
+    if (status !== "granted") return status
+
+    if (onToken) {
+      await PushNotifications.addListener("registration", async ({ value }) => {
+        try {
+          await onToken(value)
+        } catch (err) {
+          if (import.meta.env.DEV) console.warn("[push] token handler failed", err)
+        }
+      })
+    }
+
+    await PushNotifications.register()
+    return status
+  } catch (err) {
+    if (import.meta.env.DEV) console.warn("[push] native permission request failed", err)
+    return "error" as const
+  }
+}

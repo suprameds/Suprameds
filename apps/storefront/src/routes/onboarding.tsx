@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { useState, useRef, useCallback, useEffect } from "react"
 import { ArrowRightIcon, ShieldCheckIcon } from "@/components/auth/auth-icons"
+import { requestNotificationPermission } from "@/lib/capacitor"
+import { sdk } from "@/lib/utils/sdk"
 
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
@@ -20,14 +22,28 @@ function OnboardingPage() {
 
   // Desktop: skip onboarding entirely
   useEffect(() => {
-    if (window.innerWidth >= 1024) {
-      localStorage.setItem("suprameds_onboarding_seen", "true")
+    // Only skip if it's a truly large screen (not just high density)
+    // and the user hasn't seen it yet.
+    if (window.innerWidth >= 1280) {
+      localStorage.setItem("suprameds_onboarding_seen_v2", "true")
       navigate({ to: "/account/login", search: { redirectTo: undefined } })
     }
   }, [navigate])
 
   const finish = useCallback(() => {
-    localStorage.setItem("suprameds_onboarding_seen", "true")
+    localStorage.setItem("suprameds_onboarding_seen_v2", "true")
+    // Fire-and-forget: triggers the native POST_NOTIFICATIONS dialog on Android 13+.
+    // No-op on web. Token registration happens via the "registration" listener.
+    void requestNotificationPermission(async (token) => {
+      try {
+        await sdk.client.fetch("/store/push/register", {
+          method: "POST",
+          body: { token },
+        })
+      } catch {
+        /* customer may not be logged in yet — backend rejects, retry happens on login */
+      }
+    })
     navigate({ to: "/account/login", search: { redirectTo: undefined } })
   }, [navigate])
 

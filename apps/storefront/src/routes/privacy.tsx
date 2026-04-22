@@ -28,7 +28,7 @@ function PrivacyPolicy() {
             Privacy Policy
           </h1>
           <p className="text-sm mt-2" style={{ color: "rgba(255,255,255,0.55)" }}>
-            Digital Personal Data Protection (DPDP) Act, 2023 · IT Act, 2000 · Last updated: March 2025 · Version 2.1
+            Digital Personal Data Protection (DPDP) Act, 2023 · IT Act, 2000 · Last updated: April 2026 · Version 3.0
           </p>
         </div>
       </div>
@@ -52,8 +52,10 @@ function PrivacyPolicy() {
                 <li><strong>Account data:</strong> Name, phone, email, date of birth</li>
                 <li><strong>Health data (PHI):</strong> Prescription documents, prescribing doctor details, dispensed medicines, family member health information</li>
                 <li><strong>Transaction data:</strong> Order history, payment method (not card numbers), delivery addresses</li>
-                <li><strong>Usage data:</strong> Pages visited, search queries (non-PHI pages only, with your analytics consent)</li>
-                <li><strong>Device data:</strong> IP address, browser type (for fraud prevention — legitimate interest basis)</li>
+                <li><strong>Location data:</strong> Approximate and precise location (with your permission) — used solely to check delivery availability for your pincode and pre-fill address fields. Never used for tracking or advertising.</li>
+                <li><strong>Camera &amp; photos:</strong> Camera access and photo library access are requested only when you upload a prescription. Images are uploaded directly to our encrypted prescription store; we do not access your gallery otherwise.</li>
+                <li><strong>Device identifiers:</strong> Firebase Cloud Messaging (FCM) push token for notifications, Google advertising ID for ad-conversion measurement, IP address for fraud prevention and security</li>
+                <li><strong>Usage data:</strong> Pages visited, search queries, product interactions (non-PHI pages only, with your analytics consent)</li>
               </ul>`,
             },
             {
@@ -68,9 +70,10 @@ function PrivacyPolicy() {
             },
             {
               title: "3. Data storage and security",
-              content: `All personal data is stored in data centres in India, complying with the DPDP Act's data localisation requirement for sensitive personal data.
+              content: `All sensitive personal data (prescriptions, health records) is stored in data centres in the India region, complying with the DPDP Act's data localisation requirement.
               <ul class="mt-2 space-y-1.5">
-                <li>Prescription documents: AES-256 encrypted at rest, stored only in India</li>
+                <li>Prescription documents: Encrypted at rest on Cloudflare R2 (India region), TLS in transit</li>
+                <li>Account &amp; order databases: Hosted on Supabase (Mumbai, India region)</li>
                 <li>Health records: Encrypted, access-logged, accessible only to authorised pharmacists</li>
                 <li>Backups: Regular backups with appropriate retention; PHI records retained as required by CDSCO</li>
                 <li>Access control: Role-based, with multi-factor authentication for staff access</li>
@@ -87,29 +90,42 @@ function PrivacyPolicy() {
                 <li><strong>Right to grievance:</strong> Raise complaints with our Grievance Officer (see /grievance)</li>
                 <li><strong>Right to nominate:</strong> Nominate a person to exercise rights on your behalf</li>
               </ul>
-              <p class="mt-3">To exercise these rights, email <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a> or call +91 76749 62758.</p>`,
+              <p class="mt-3">To exercise these rights, email <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a> or call +91 76749 62758. We respond within 15 days as required by DPDP Rules.</p>`,
             },
             {
-              title: "5. Data sharing",
-              content: `We never sell your personal data. We share data only as follows:
+              title: "5. Data sharing with third-party processors",
+              content: `We never sell your personal data. We share the minimum necessary data only with the following categories of processors, each bound by a data-processing agreement:
               <ul class="mt-2 space-y-1.5">
-                <li><strong>India Post:</strong> Delivery address and phone number for shipment</li>
-                <li><strong>Payment processors (Paytm):</strong> Transaction data only. We never store card numbers.</li>
-                <li><strong>MSG91/Twilio:</strong> Phone number for transactional SMS/WhatsApp only</li>
-                <li><strong>CDSCO inspectors:</strong> Prescription and dispensing records on court order or regulatory inspection</li>
+                <li><strong>Logistics carriers (via AfterShip):</strong> Delivery address, phone number, order contents for last-mile shipment and tracking</li>
+                <li><strong>Payment processors (Razorpay, Paytm):</strong> Transaction amount and order reference only — card and UPI details are entered directly into the processor's PCI-DSS-certified interface; we never see or store them. Cash-on-delivery transactions do not leave our systems.</li>
+                <li><strong>SMS providers (BulkSMSPlans.com primary, MSG91 fallback):</strong> Phone number + transactional OTP and order-status templates only. DLT-registered sender IDs (SUPRACYN PRIVATE LIMITED).</li>
+                <li><strong>Email provider (Resend):</strong> Email address + order-related transactional message content</li>
+                <li><strong>Push notifications (Firebase Cloud Messaging, a Google service):</strong> Device token + notification payload. FCM may transfer data outside India per Google's standard terms.</li>
+                <li><strong>Analytics (Firebase Analytics, Google Analytics 4, Google Tag Manager):</strong> Anonymous usage data. Does not include PHI. Requires your analytics consent.</li>
+                <li><strong>Google Ads conversion tracking:</strong> When you enable marketing consent, we send SHA-256 hashes of your email and phone (Enhanced Conversions) to Google Ads for cross-device attribution. Hashed values cannot be reversed to the original email/phone. Opt out by disabling marketing consent.</li>
+                <li><strong>Error monitoring (Sentry):</strong> Technical error traces. Sensitive fields are scrubbed before transmission.</li>
+                <li><strong>Regulatory authorities (CDSCO, State Drug Controller):</strong> Prescription and dispensing records on regulatory inspection</li>
                 <li><strong>Law enforcement:</strong> When legally required by court order</li>
-              </ul>`,
+              </ul>
+              <p class="mt-3"><strong>International transfers:</strong> Google and Sentry may process analytics/error data outside India. No sensitive PHI (prescriptions, health records, dispensing details) is ever transferred outside India.</p>`,
             },
             {
-              title: "6. Cookies",
-              content: `We use the following categories of cookies:
+              title: "6. Cookies &amp; mobile app permissions",
+              content: `On the web, we use the following categories of cookies:
               <ul class="mt-2 space-y-1.5">
                 <li><strong>Essential:</strong> Session, cart, OTP authentication — always active (legitimate interest)</li>
                 <li><strong>Functional:</strong> Order history, saved addresses, recently viewed — requires consent</li>
                 <li><strong>Analytics:</strong> Page view analytics on non-PHI pages — requires consent, off by default</li>
                 <li><strong>Marketing:</strong> Abandoned cart, WhatsApp marketing — requires explicit consent, off by default</li>
               </ul>
-              <p class="mt-3">To manage your preferences, email <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a>.</p>`,
+              <p class="mt-3">In our Android application (package <code>in.supracyn.app</code>), we request the following runtime permissions only at the moment they are needed:</p>
+              <ul class="mt-2 space-y-1.5">
+                <li><strong>Camera:</strong> Prompted when you choose "Take photo" to capture a prescription. Never used in the background.</li>
+                <li><strong>Photos &amp; media:</strong> Prompted when you choose "Upload from gallery" to attach a prescription image. We only read the specific image you select.</li>
+                <li><strong>Location (coarse/precise):</strong> Prompted when you tap "Use my location" to auto-detect your pincode. You can always enter your pincode manually instead.</li>
+                <li><strong>Notifications (Android 13+):</strong> Prompted for order and prescription-review status updates via Firebase Cloud Messaging. You can revoke at any time in Android Settings → Apps.</li>
+              </ul>
+              <p class="mt-3">To manage your preferences or withdraw consent, email <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a>.</p>`,
             },
             {
               title: "7. Data retention",
@@ -125,14 +141,16 @@ function PrivacyPolicy() {
               </ul>`,
             },
             {
-              title: "8. Contact",
-              content: `For privacy queries or to exercise your rights:
+              title: "8. Contact &amp; Grievance Officer",
+              content: `For privacy queries, data-rights requests, or to withdraw consent:
               <ul class="mt-2 space-y-1.5">
-                <li>Email: suprameds@gmail.com</li>
-                <li>Helpdesk: suprameds@gmail.com</li>
+                <li><strong>Data Protection / Grievance Officer:</strong> Supracyn Private Limited</li>
+                <li>Email: <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a></li>
+                <li>Grievance escalation: <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a> (response within 15 days per DPDP Rules)</li>
+                <li>Helpdesk: <a href="mailto:suprameds@gmail.com" style="color:var(--brand-teal)">suprameds@gmail.com</a></li>
                 <li>Phone: +91 76749 62758</li>
-                <li>Address: Supracyn Pharma Pvt Ltd, 1st Floor, H.No 7-2-544, SRT 323, Sanathnagar, Hyderabad – 500018, Telangana</li>
-                <li>For DPDP Act complaints: Data Protection Board of India (once operational)</li>
+                <li>Address: Supracyn Private Limited, 1st Floor, H.No 7-2-544, SRT 323, Sanathnagar, Hyderabad – 500018, Telangana, India</li>
+                <li>For unresolved DPDP Act complaints: Data Protection Board of India (once operational)</li>
               </ul>`,
             },
           ].map((section) => (

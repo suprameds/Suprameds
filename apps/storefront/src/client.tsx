@@ -4,6 +4,8 @@ import { hydrateRoot } from "react-dom/client"
 import { StartClient } from "@tanstack/react-start/client"
 // eslint-disable-next-line no-restricted-imports
 import { getRouter } from "./router"
+// eslint-disable-next-line no-restricted-imports
+import { isExtensionNoise } from "./lib/utils/sentry-filters"
 
 try {
   Sentry.init({
@@ -31,6 +33,9 @@ try {
     beforeSend(event) {
       const message = event.exception?.values?.[0]?.value || ""
       if (message.includes("ResizeObserver") || message.includes("ChunkLoadError")) {
+        return null
+      }
+      if (isExtensionNoise(event)) {
         return null
       }
       return event
