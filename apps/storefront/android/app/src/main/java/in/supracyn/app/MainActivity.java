@@ -1,4 +1,4 @@
-package in.suprameds.app;
+package in.supracyn.app;
 
 import com.getcapacitor.BridgeActivity;
 

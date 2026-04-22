@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
-  appId: "in.suprameds.app",
-  appName: "Suprameds",
+  appId: "in.supracyn.app",
+  appName: "Supracyn",
   webDir: "dist/client",
   server: {
     // Load the live hosted site — SSR works, always up-to-date content.
