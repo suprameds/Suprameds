@@ -10,6 +10,9 @@ import { useLocation } from "@tanstack/react-router"
  * 1. Close any open Radix dialog/drawer
  * 2. Navigate back in history
  * 3. Double-tap to exit from home screen
+ *
+ * Uses @capacitor/app's `backButton` event — the Cordova-era
+ * `document.addEventListener("backbutton", ...)` is NOT dispatched by Capacitor.
  */
 export function useAndroidBackButton() {
   const { showToast } = useToast()
@@ -19,41 +22,45 @@ export function useAndroidBackButton() {
   useEffect(() => {
     if (!isNativeApp()) return
 
-    const handler = (e: Event) => {
-      e.preventDefault()
+    let handle: { remove: () => void } | null = null
+    let cancelled = false
 
-      // 1. Close any open Radix dialog/drawer/sheet
-      const openOverlay = document.querySelector(
-        '[data-state="open"][role="dialog"], [data-state="open"][data-vaul-drawer]'
-      )
-      if (openOverlay) {
-        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))
-        return
-      }
+    ;(async () => {
+      const [{ App }] = await Promise.all([import("@capacitor/app")])
+      if (cancelled) return
 
-      // 2. Navigate back if not on home
-      const segments = location.pathname.split("/").filter(Boolean)
-      const isHome = segments.length === 0 // e.g. "/"
-      if (!isHome && window.history.length > 1) {
-        window.history.back()
-        return
-      }
-
-      // 3. Double-tap to exit from home
-      const now = Date.now()
-      if (now - lastBackPress.current < 2000) {
-        // Exit the app
-        const nav = navigator as any
-        if (nav.app?.exitApp) {
-          nav.app.exitApp()
+      handle = await App.addListener("backButton", async () => {
+        // 1. Close any open Radix dialog/drawer/sheet
+        const openOverlay = document.querySelector(
+          '[data-state="open"][role="dialog"], [data-state="open"][data-vaul-drawer]'
+        )
+        if (openOverlay) {
+          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))
+          return
         }
-        return
-      }
-      lastBackPress.current = now
-      showToast("Press back again to exit")
-    }
 
-    document.addEventListener("backbutton", handler)
-    return () => document.removeEventListener("backbutton", handler)
+        // 2. Navigate back if we have in-app history and aren't on home
+        const segments = location.pathname.split("/").filter(Boolean)
+        const isHome = segments.length === 0
+        if (!isHome && window.history.length > 1) {
+          window.history.back()
+          return
+        }
+
+        // 3. Double-tap to exit from home
+        const now = Date.now()
+        if (now - lastBackPress.current < 2000) {
+          await App.exitApp()
+          return
+        }
+        lastBackPress.current = now
+        showToast("Press back again to exit")
+      })
+    })()
+
+    return () => {
+      cancelled = true
+      handle?.remove()
+    }
   }, [location.pathname, showToast])
 }
