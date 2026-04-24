@@ -1,6 +1,8 @@
 import { getStoredCart } from "@/lib/utils/cart"
 import { queryKeys } from "@/lib/utils/query-keys"
 import { sdk } from "@/lib/utils/sdk"
+import { hapticNotification } from "@/lib/utils/haptics"
+import { maybePromptReview } from "@/lib/utils/in-app-review"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 const DEFAULT_CART_FIELDS = "+items.*, +shipping_methods.*"
@@ -229,13 +231,17 @@ export const useCompleteCartOrder = () => {
       return await completeCartOrder()
     },
     onSuccess: () => {
+      void hapticNotification("success")
       // Remove (don't null-out) cart cache so useCart transitions to
       // isLoading=true. This prevents checkout's "empty cart → redirect
       // to cart" guard from racing the payment button's navigation to
       // the order confirmation page.
       clearCartCache()
+      // Ask for Play Store review after the user's first few successful orders.
+      void maybePromptReview()
     },
     onError: (error) => {
+      void hapticNotification("error")
       // If the error indicates a concurrency issue (order likely placed),
       // completeCartOrder already called removeStoredCart(). Clear the
       // React Query cache too so the UI stops showing stale cart items.

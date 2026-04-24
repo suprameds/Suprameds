@@ -137,7 +137,9 @@ const UploadRx = () => {
       const photo = await Camera.getPhoto({
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Prompt,
-        quality: 85,
+        quality: 80,
+        width: 1600,
+        correctOrientation: true,
         allowEditing: false,
       })
       if (!photo.dataUrl) return

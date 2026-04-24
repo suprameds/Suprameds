@@ -11,24 +11,29 @@ export function isNative(): boolean {
   return Capacitor.isNativePlatform()
 }
 
-/** Sync status bar color with the active theme */
+/** Sync status + navigation bars with the active theme */
 export async function syncStatusBarTheme(resolved: "light" | "dark") {
   if (!isNative()) return
+  const bg = resolved === "dark" ? "#0B1120" : "#0D1B2A"
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar")
-    if (resolved === "dark") {
-      await StatusBar.setStyle({ style: Style.Dark })
-      await StatusBar.setBackgroundColor({ color: "#0B1120" })
-    } else {
-      await StatusBar.setStyle({ style: Style.Light })
-      await StatusBar.setBackgroundColor({ color: "#0D1B2A" })
-    }
+    await StatusBar.setStyle({ style: resolved === "dark" ? Style.Dark : Style.Light })
+    await StatusBar.setBackgroundColor({ color: bg })
+    // Match navigation bar color to status bar so the system chrome reads as one piece.
+    // Navigation bar color: set natively in MainActivity.onCreate() since
+    // @capacitor/status-bar v8 doesn't expose a JS API for it.
   } catch { /* not available */ }
 }
 
 /** Initialize native plugins after app mount */
 export async function initCapacitorPlugins() {
   if (!isNative()) return
+
+  // Mark the root element so CSS can target native-only rules (tap highlights,
+  // text-selection suppression, momentum scroll). Web builds never get this class.
+  if (typeof document !== "undefined") {
+    document.documentElement.classList.add("native-app")
+  }
 
   // Read saved theme to set initial status bar color (prevents flash)
   const saved = typeof localStorage !== "undefined"
@@ -38,8 +43,11 @@ export async function initCapacitorPlugins() {
 
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar")
+    const bg = isDark ? "#0B1120" : "#0D1B2A"
     await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light })
-    await StatusBar.setBackgroundColor({ color: isDark ? "#0B1120" : "#0D1B2A" })
+    await StatusBar.setBackgroundColor({ color: bg })
+    // Navigation bar color: set natively in MainActivity.onCreate() since
+    // @capacitor/status-bar v8 doesn't expose a JS API for it.
   } catch {
     /* web fallback — StatusBar not available */
   }
