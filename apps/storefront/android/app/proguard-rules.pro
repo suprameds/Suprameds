@@ -1,21 +1,41 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Keep line numbers for crash-reporting (Firebase Crashlytics / Sentry / Play Console)
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ---- Capacitor core ----
+-keep class com.getcapacitor.** { *; }
+-keep class com.getcapacitor.plugin.** { *; }
+-keep @com.getcapacitor.annotation.CapacitorPlugin class * { *; }
+-keep @com.getcapacitor.NativePlugin class * { *; }
+-keepclassmembers class * {
+    @com.getcapacitor.PluginMethod <methods>;
+    @com.getcapacitor.annotation.PluginMethod <methods>;
+}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Capacitor plugins use JS-bridged classes via reflection
+-keep class * extends com.getcapacitor.Plugin { *; }
+-keep class * extends com.getcapacitor.BridgeActivity { *; }
+-keep class * extends com.getcapacitor.WebViewListener { *; }
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ---- Cordova shim (Capacitor includes capacitor-cordova-android-plugins) ----
+-keep class org.apache.cordova.** { *; }
+-keep class * extends org.apache.cordova.CordovaPlugin { *; }
+
+# ---- Firebase / Google Play Services ----
+-keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.firebase.**
+-dontwarn com.google.android.gms.**
+
+# ---- WebView JS interfaces ----
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+-keep class androidx.webkit.** { *; }
+-dontwarn androidx.webkit.**
+
+# ---- Misc library warnings ----
+-dontwarn com.getcapacitor.**
+-dontwarn okhttp3.**
+-dontwarn okio.**

@@ -3,6 +3,7 @@ import { useOrder } from "@/lib/hooks/use-orders"
 import { trackPurchase } from "@/lib/utils/analytics"
 import { sdk } from "@/lib/utils/sdk"
 import { isManual } from "@/lib/utils/checkout"
+import { share } from "@/lib/utils/share"
 import { useLoaderData } from "@tanstack/react-router"
 import { ORDER_FIELDS } from "@/routes/order/$orderId/confirmed"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -315,6 +316,42 @@ const ReturnSection = ({ order }: { order: any }) => {
   )
 }
 
+// ============ SHARE BUTTON ============
+
+function ShareOrderButton({ order }: { order: any }) {
+  const [copied, setCopied] = useState(false)
+  const handleShare = async () => {
+    const url = `${window.location.origin}/order/${order.id}/confirmed`
+    const ok = await share({
+      title: `Suprameds order #${order.display_id ?? order.id}`,
+      text: "Track my Suprameds order",
+      url,
+      dialogTitle: "Share order",
+    })
+    if (ok) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1800)
+    }
+  }
+  return (
+    <button
+      type="button"
+      onClick={handleShare}
+      className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium"
+      style={{ color: "var(--brand-teal)" }}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <circle cx="18" cy="5" r="3" />
+        <circle cx="6" cy="12" r="3" />
+        <circle cx="18" cy="19" r="3" />
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+      </svg>
+      {copied ? "Shared!" : "Share order"}
+    </button>
+  )
+}
+
 // ============ MAIN PAGE ============
 
 const OrderConfirmation = () => {
@@ -394,6 +431,7 @@ const OrderConfirmation = () => {
           <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
             Thank you for your order! We'll notify you as it progresses.
           </p>
+          <ShareOrderButton order={order} />
         </div>
 
         {/* COD Confirmation Banner */}

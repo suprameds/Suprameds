@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState, forwardRef } from "react"
 import { useCustomer, useLogin, useOtpSend, useOtpVerify } from "@/lib/hooks/use-customer"
 import { trackLogin, trackSignup } from "@/lib/utils/analytics"
 import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
+import { hapticNotification } from "@/lib/utils/haptics"
 
 export const Route = createFileRoute("/account/login")({
   head: () => ({
@@ -147,6 +148,7 @@ function LoginPage() {
       { phone, otp: phoneOtp, country_code: "91", channel: "sms" },
       {
         onSuccess: (customer) => {
+          void hapticNotification("success")
           const isNew = !customer?.first_name
           const userData = { phone, country: DEFAULT_COUNTRY_CODE }
           if (isNew) {
@@ -157,6 +159,7 @@ function LoginPage() {
           navigateAfterLogin(isNew)
         },
         onError: (err: any) => {
+          void hapticNotification("error")
           setPhoneOtpError(err?.body?.message || err?.message || "Invalid or expired OTP.")
         },
       }
@@ -207,6 +210,7 @@ function LoginPage() {
       { email: otpEmail, otp: emailOtp, channel: "email" },
       {
         onSuccess: (customer) => {
+          void hapticNotification("success")
           const isNew = !customer?.first_name
           const userData = { email: otpEmail, country: DEFAULT_COUNTRY_CODE }
           if (isNew) {
@@ -217,6 +221,7 @@ function LoginPage() {
           navigateAfterLogin(isNew)
         },
         onError: (err: any) => {
+          void hapticNotification("error")
           setEmailOtpError(err?.body?.message || err?.message || "Invalid or expired OTP.")
         },
       }

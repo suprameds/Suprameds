@@ -13,6 +13,8 @@ import { ToastProvider } from "@/lib/context/toast-context"
 import { AnimatedOutlet } from "@/components/animated-outlet"
 import { useAndroidBackButton } from "@/lib/hooks/use-android-back-button"
 import { useAppLifecycle } from "@/lib/hooks/use-app-lifecycle"
+import { useExternalLinks } from "@/lib/hooks/use-external-links"
+import { useNativeKeyboard } from "@/lib/hooks/use-native-keyboard"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import { useQueryClient } from "@tanstack/react-query"
 import { useRouterState, useNavigate, useLocation } from "@tanstack/react-router"
@@ -36,6 +38,8 @@ function NavigationProgress() {
 function NativeHooks() {
   useAndroidBackButton()
   useAppLifecycle()
+  useExternalLinks()
+  useNativeKeyboard()
   return null
 }
 

@@ -11,6 +11,55 @@ html {
   overscroll-behavior-y: contain;
 }
 
+/* Native-feel: suppress web defaults that shout "webview". Scoped to .native-app
+   so desktop users still get normal browser behavior (text selection, highlights). */
+.native-app,
+.native-app * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+
+.native-app header,
+.native-app nav,
+.native-app footer,
+.native-app button,
+.native-app [role="button"],
+.native-app [role="tab"],
+.native-app [role="menuitem"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Keep text selectable inside content regions, inputs, and code */
+.native-app p,
+.native-app h1,
+.native-app h2,
+.native-app h3,
+.native-app article,
+.native-app [data-selectable],
+.native-app input,
+.native-app textarea,
+.native-app pre,
+.native-app code {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Momentum scrolling for scroll containers on iOS; Android ignores safely. */
+.native-app .scroll-container {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth keyboard inset \u2014 @capacitor/keyboard writes --kb-height on documentElement. */
+.native-app {
+  --kb-height: 0px;
+}
+.native-app .kb-aware {
+  padding-bottom: var(--kb-height, 0px);
+  transition: padding-bottom 180ms ease-out;
+}
+
 /* Page transition for native app */
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(6px); }
