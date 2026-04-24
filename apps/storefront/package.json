@@ -66,6 +66,7 @@
     "@eslint/js": "9.33.0",
     "@medusajs-ai/tags": "next",
     "@medusajs/types": "2.13.4",
+    "@rsbuild/core": "^2.0.1",
     "@tailwindcss/vite": "4.2.1",
     "@tanstack/react-router-devtools": "^1.144.0",
     "@testing-library/jest-dom": "^6.9.1",
