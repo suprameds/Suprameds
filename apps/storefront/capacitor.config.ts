@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli"
 
 const config: CapacitorConfig = {
   appId: "in.supracyn.app",
-  appName: "Supracyn",
+  appName: "Suprameds",
   webDir: "dist/client",
   server: {
     // Load the live hosted site — SSR always fresh.
