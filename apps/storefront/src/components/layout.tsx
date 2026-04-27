@@ -48,6 +48,10 @@ const Layout = () => {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const location = useLocation()
+  // Onboarding owns the full screen — suppress global chrome (navbar, footer,
+  // tab bar, WhatsApp button, consent banner) so it doesn't feel like a web
+  // page sandwiched in app chrome.
+  const isOnboarding = location.pathname.startsWith("/onboarding")
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries()
@@ -70,31 +74,45 @@ const Layout = () => {
       <CartProvider>
         {native && <NativeHooks />}
         <div className="min-h-screen flex flex-col">
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-[var(--text-primary)] focus:shadow-lg focus:border focus:border-[var(--border-primary)]"
-          >
-            Skip to main content
-          </a>
+          {!isOnboarding && (
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-[var(--text-primary)] focus:shadow-lg focus:border focus:border-[var(--border-primary)]"
+            >
+              Skip to main content
+            </a>
+          )}
           <NavigationProgress />
           <PushNotificationManager />
-          <Navbar />
+          {!isOnboarding && <Navbar />}
 
           <main id="main-content" className="relative flex-1">
-            <PullToRefresh onRefresh={handleRefresh}>
+            {isOnboarding ? (
               <ErrorBoundary>
                 <AnimatedOutlet />
               </ErrorBoundary>
-            </PullToRefresh>
+            ) : (
+              <PullToRefresh onRefresh={handleRefresh}>
+                <ErrorBoundary>
+                  <AnimatedOutlet />
+                </ErrorBoundary>
+              </PullToRefresh>
+            )}
           </main>
 
-          <Footer />
-          <WhatsAppButton />
-          <BottomTabBar />
+          {!isOnboarding && (
+            <>
+              <Footer />
+              <WhatsAppButton />
+              <BottomTabBar />
+            </>
+          )}
           <OfflineScreen />
-          <ConsentBanner />
+          {!isOnboarding && <ConsentBanner />}
           {/* Bottom padding when native tab bar is visible */}
-          {native && <div className="h-14" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />}
+          {native && !isOnboarding && (
+            <div className="h-14" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
+          )}
         </div>
       </CartProvider>
     </ToastProvider>
