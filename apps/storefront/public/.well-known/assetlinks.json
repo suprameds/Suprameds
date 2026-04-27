@@ -1,11 +1,15 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "in.supracyn.app",
       "sha256_cert_fingerprints": [
-        "89:B9:1D:CE:CA:3D:CC:73:51:13:EA:A5:FD:50:3F:59:F9:63:EE:6D:91:BF:F2:8C:46:76:AE:6A:F3:39:E2:43"
+        "89:B9:1D:CE:CA:3D:CC:73:51:13:EA:A5:FD:50:3F:59:F9:63:EE:6D:91:BF:F2:8C:46:76:AE:6A:F3:39:E2:43",
+        "7B:B1:A4:2E:00:B4:11:C0:72:4C:49:58:67:2E:BD:39:40:B8:89:DD:FE:E1:03:FC:F2:D1:2A:BF:C2:88:5D:DB"
       ]
     }
   }
