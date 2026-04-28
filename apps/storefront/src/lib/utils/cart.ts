@@ -5,6 +5,7 @@ import { queryKeys } from "@/lib/utils/query-keys"
 // ============ STORED CART ============
 
 const CART_KEY = "medusa_cart"
+const CART_REGION_KEY = "medusa_cart_region"
 
 export const getStoredCart = (): string | undefined => {
   if (typeof window === "undefined") return undefined
@@ -26,7 +27,27 @@ export const removeStoredCart = (): void => {
   if (typeof window === "undefined") return
   try {
     localStorage.removeItem(CART_KEY)
+    localStorage.removeItem(CART_REGION_KEY)
   } catch { /* restricted environment */ }
+}
+
+// Caching the cart's region alongside its id lets useAddToCart skip a
+// preflight cart-retrieve round trip on the hot path. If the stored region
+// matches the target region, we go straight to createLineItem.
+export const getStoredCartRegion = (): string | undefined => {
+  if (typeof window === "undefined") return undefined
+  try {
+    return localStorage.getItem(CART_REGION_KEY) || undefined
+  } catch {
+    return undefined
+  }
+}
+
+export const setStoredCartRegion = (regionId: string): void => {
+  if (typeof window === "undefined" || !regionId) return
+  try {
+    localStorage.setItem(CART_REGION_KEY, regionId)
+  } catch { /* quota exceeded or restricted */ }
 }
 
 // ============ SORT CART ITEMS ============

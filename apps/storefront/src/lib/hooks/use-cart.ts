@@ -6,6 +6,8 @@ import {
   getStoredCart,
   setStoredCart,
   removeStoredCart,
+  getStoredCartRegion,
+  setStoredCartRegion,
   addItemOptimistically,
   createOptimisticCartItem,
   getCurrentCart,
@@ -38,6 +40,7 @@ export const useCart = ({ fields }: { fields?: string } = {}) => {
           removeStoredCart()
           return null
         }
+        if (cart.region_id) setStoredCartRegion(cart.region_id)
         return cart
       } catch {
         // Cart no longer exists on the server (deleted, expired, etc.)
@@ -79,6 +82,7 @@ export const useCreateCart = () => {
     }) => {
       const { cart } = await sdk.store.cart.create({ region_id }, { fields })
       setStoredCart(cart.id)
+      setStoredCartRegion(region_id)
       return cart
     },
     onSuccess: () => {
@@ -121,22 +125,24 @@ export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
       }
 
       let cartId = getStoredCart()
+      const lineItemFields = requestFields || fields || DEFAULT_CART_FIELDS
 
       if (!cartId) {
         // Use a module-level lock so concurrent add-to-cart calls share
         // the same cart creation promise instead of each creating one.
         if (!_cartCreationPromise) {
           _cartCreationPromise = sdk.store.cart.create({ region_id: targetRegion.id }, {
-            fields: requestFields || fields || DEFAULT_CART_FIELDS,
+            fields: lineItemFields,
           }).then(({ cart }) => {
             setStoredCart(cart.id)
+            setStoredCartRegion(targetRegion.id)
             return cart.id
           }).finally(() => { _cartCreationPromise = null })
         }
         cartId = await _cartCreationPromise
-      } else {
-        // If a cart already exists in a different region, create a region-aligned cart.
-        // This prevents Medusa price resolution failures during add-to-cart.
+      } else if (getStoredCartRegion() !== targetRegion.id) {
+        // Stored region missing or different — verify with the server before
+        // adding to avoid Medusa price-resolution failures on region mismatch.
         try {
           const { cart: existingCart } = await sdk.store.cart.retrieve(cartId, {
             fields: "id,region_id",
@@ -145,28 +151,59 @@ export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
           if ((existingCart as any).completed_at || existingCart.region_id !== targetRegion.id) {
             const { cart } = await sdk.store.cart.create(
               { region_id: targetRegion.id },
-              { fields: requestFields || fields || DEFAULT_CART_FIELDS }
+              { fields: lineItemFields }
             )
             setStoredCart(cart.id)
+            setStoredCartRegion(targetRegion.id)
             cartId = cart.id
+          } else if (existingCart.region_id) {
+            // Backfill the region cache so subsequent adds skip the preflight.
+            setStoredCartRegion(existingCart.region_id)
           }
         } catch {
           // Stored cart may be stale/deleted; recreate for current region.
           const { cart } = await sdk.store.cart.create(
             { region_id: targetRegion.id },
-            { fields: requestFields || fields || DEFAULT_CART_FIELDS }
+            { fields: lineItemFields }
           )
           setStoredCart(cart.id)
+          setStoredCartRegion(targetRegion.id)
           cartId = cart.id
         }
       }
+      // else: stored region matches target — skip preflight retrieve entirely.
 
-      const response = await sdk.store.cart.createLineItem(
-        cartId,
-        { variant_id, quantity },
-        { fields: requestFields || fields || DEFAULT_CART_FIELDS }
-      )
-      return response.cart
+      try {
+        const response = await sdk.store.cart.createLineItem(
+          cartId,
+          { variant_id, quantity },
+          { fields: lineItemFields }
+        )
+        return response.cart
+      } catch (err) {
+        // If the stored cart was garbage-collected on the server (404) or the
+        // cached region is wrong, recreate the cart and retry once. Without
+        // this, a stale region cache would loop on every retry.
+        removeStoredCart()
+        const { cart: newCart } = await sdk.store.cart.create(
+          { region_id: targetRegion.id },
+          { fields: lineItemFields }
+        )
+        setStoredCart(newCart.id)
+        setStoredCartRegion(targetRegion.id)
+        try {
+          const retry = await sdk.store.cart.createLineItem(
+            newCart.id,
+            { variant_id, quantity },
+            { fields: lineItemFields }
+          )
+          return retry.cart
+        } catch {
+          // If the retry also fails, surface the original error so the user
+          // sees the real problem rather than a generic recreate failure.
+          throw err
+        }
+      }
     },
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ predicate: queryKeys.cart.predicate })
