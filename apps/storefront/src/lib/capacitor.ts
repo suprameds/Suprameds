@@ -29,6 +29,16 @@ export async function syncStatusBarTheme(resolved: "light" | "dark") {
 export async function initCapacitorPlugins() {
   if (!isNative()) return
 
+  // Hydrate secure storage cache from native Preferences (and migrate any
+  // pre-existing localStorage tokens). Run as early as possible so the first
+  // useCustomer() fetch can synchronously read the OTP JWT.
+  try {
+    const { hydrateSecureStorage } = await import("@/lib/utils/secure-storage")
+    await hydrateSecureStorage()
+  } catch {
+    /* secure-storage unavailable in older builds — falls through to localStorage */
+  }
+
   // Mark the root element so CSS can target native-only rules (tap highlights,
   // text-selection suppression, momentum scroll). Web builds never get this class.
   if (typeof document !== "undefined") {

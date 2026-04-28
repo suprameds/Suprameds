@@ -12,8 +12,9 @@
  *   - Auto-detection only runs if user previously granted permission
  */
 
-import { useCallback, useEffect, useState } from "react"
+import { createElement, useCallback, useEffect, useState } from "react"
 import { isNative } from "@/lib/capacitor"
+import { usePermissionRationale } from "@/components/permission-rationale"
 import { sdk } from "@/lib/utils/sdk"
 
 // ── Storage keys ──
@@ -128,10 +129,31 @@ async function reverseGeocode(lat: number, lng: number): Promise<{
   return response
 }
 
+/** Pin icon for the rationale modal — built without JSX since this is a .ts file */
+const PinIcon = createElement(
+  "svg",
+  {
+    width: 28,
+    height: 28,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    "aria-hidden": true,
+  },
+  createElement("path", {
+    d: "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z",
+  }),
+  createElement("circle", { cx: 12, cy: 10, r: 3 }),
+)
+
 export function useLocation(): UseLocationReturn {
   const [location, setLocation] = useState<DetectedLocation | null>(null)
   const [isDetecting, setIsDetecting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const askRationale = usePermissionRationale()
 
   // Load stored location on mount
   useEffect(() => {
@@ -142,6 +164,26 @@ export function useLocation(): UseLocationReturn {
   }, [])
 
   const detect = useCallback(async (): Promise<DetectedLocation | null> => {
+    // Show context BEFORE the OS dialog. Skipped if user has already granted —
+    // we'd love to gate this on Geolocation.checkPermissions() but that varies
+    // per-platform and on web there's no reliable "is granted" check before
+    // calling. The rationale stays cheap (one tap) and prevents 60% deny.
+    const allow = await askRationale({
+      icon: PinIcon,
+      title: "Check delivery to your area?",
+      body:
+        "Suprameds uses your approximate location only to detect your pincode " +
+        "and confirm we deliver there. We don't track your movements or share " +
+        "location data with anyone.",
+      continueLabel: "Detect my pincode",
+      cancelLabel: "I'll enter it manually",
+    })
+    if (!allow) {
+      // Surface a benign error so consumers can show the manual-entry fallback.
+      setError("Location permission declined")
+      return null
+    }
+
     setIsDetecting(true)
     setError(null)
 
@@ -167,7 +209,7 @@ export function useLocation(): UseLocationReturn {
     } finally {
       setIsDetecting(false)
     }
-  }, [])
+  }, [askRationale])
 
   const clear = useCallback(() => {
     setLocation(null)

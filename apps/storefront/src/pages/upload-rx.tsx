@@ -1,3 +1,4 @@
+import { usePermissionRationale } from "@/components/permission-rationale"
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useUploadPrescription } from "@/lib/hooks/use-prescriptions"
 import { isNativeApp } from "@/lib/utils/capacitor"
@@ -44,6 +45,7 @@ const UploadRx = () => {
   useLoaderData({ from: "/upload-rx" })
   const { data: customer } = useCustomer()
   const uploadMutation = useUploadPrescription()
+  const askRationale = usePermissionRationale()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const [isMobile, setIsMobile] = useState(false)
@@ -134,6 +136,52 @@ const UploadRx = () => {
   const handleNativeCamera = async () => {
     try {
       const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera")
+
+      // Show context BEFORE the OS camera-permission dialog. Skip the rationale
+      // if permission is already granted — no point pestering returning users.
+      let cameraGranted = false
+      try {
+        const status = await Camera.checkPermissions()
+        cameraGranted = status.camera === "granted"
+      } catch {
+        /* checkPermissions can throw on some OEMs; treat as unknown and prompt */
+      }
+
+      if (!cameraGranted) {
+        const allow = await askRationale({
+          icon: (
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+          ),
+          title: "Take a photo of your prescription?",
+          body:
+            "Suprameds uses your camera only when you choose to capture a " +
+            "prescription. Photos go straight to our pharmacist for review — " +
+            "we never access your camera in the background or save anything " +
+            "you don't upload.",
+          continueLabel: "Open camera",
+          cancelLabel: "Pick from gallery instead",
+        })
+        if (!allow) {
+          // User declined the rationale — fall back to the file picker so they
+          // can still upload from their gallery without granting camera.
+          await handleNativeFilePicker()
+          return
+        }
+      }
+
       const photo = await Camera.getPhoto({
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Prompt,

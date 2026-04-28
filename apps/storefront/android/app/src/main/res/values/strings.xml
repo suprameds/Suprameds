@@ -10,4 +10,15 @@
     <string name="shortcut_orders_long">View my orders</string>
     <string name="shortcut_search_short">Search</string>
     <string name="shortcut_search_long">Search medicines</string>
+
+    <!-- Notification channels (Android 8+ / API 26+). Users can mute each
+         category independently; missing this means users mute "all or nothing". -->
+    <string name="notif_channel_orders_name">Order updates</string>
+    <string name="notif_channel_orders_desc">Status updates for your orders — packed, shipped, out for delivery, delivered.</string>
+    <string name="notif_channel_prescriptions_name">Prescription review</string>
+    <string name="notif_channel_prescriptions_desc">Pharmacist verification status for prescriptions you upload.</string>
+    <string name="notif_channel_promotions_name">Offers and savings</string>
+    <string name="notif_channel_promotions_desc">Discounts on OTC medicines, seasonal offers, and new generic launches.</string>
+    <string name="notif_channel_account_name">Account and security</string>
+    <string name="notif_channel_account_desc">Login alerts, password resets, and other account activity.</string>
 </resources>

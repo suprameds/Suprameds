@@ -44,6 +44,9 @@ importers:
       '@capacitor/network':
         specifier: ^8.0.1
         version: 8.0.1(@capacitor/core@8.3.0)
+      '@capacitor/preferences':
+        specifier: ^8.0.1
+        version: 8.0.1(@capacitor/core@8.3.0)
       '@capacitor/push-notifications':
         specifier: ^8.0.3
         version: 8.0.3(@capacitor/core@8.3.0)
@@ -115,7 +118,7 @@ importers:
         version: 4.17.21
       nitro:
         specifier: 3.0.260311-beta
-        version: 3.0.260311-beta(dotenv@17.2.1)(jiti@2.6.1)(lru-cache@11.2.7)(rollup@4.50.0)(vite@7.1.2(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.20.5))(xml2js@0.6.2)
+        version: 3.0.260311-beta(@capacitor/preferences@8.0.1(@capacitor/core@8.3.0))(dotenv@17.2.1)(jiti@2.6.1)(lru-cache@11.2.7)(rollup@4.50.0)(vite@7.1.2(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.20.5))(xml2js@0.6.2)
       react:
         specifier: 19.1.1
         version: 19.1.1
@@ -882,6 +885,11 @@ packages:
 
   '@capacitor/network@8.0.1':
     resolution: {integrity: sha512-9xK/FHFmzKGanB6BdoSZOzXk8vF0OFVQSQ4PAsIrzAzLuXHryO317qy8dcHVpgxYeuZq2noI0My9z1DvVDi/9w==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
+
+  '@capacitor/preferences@8.0.1':
+    resolution: {integrity: sha512-T6no3ebi79XJCk91U3Jp/liJUwgBdvHR+s6vhvPkPxSuch7z3zx5Rv1bdWM6sWruNx+pViuEGqZvbfCdyBvcHQ==}
     peerDependencies:
       '@capacitor/core': '>=8.0.0'
 
@@ -6287,6 +6295,10 @@ snapshots:
     dependencies:
       '@capacitor/core': 8.3.0
 
+  '@capacitor/preferences@8.0.1(@capacitor/core@8.3.0)':
+    dependencies:
+      '@capacitor/core': 8.3.0
+
   '@capacitor/push-notifications@8.0.3(@capacitor/core@8.3.0)':
     dependencies:
       '@capacitor/core': 8.3.0
@@ -9678,7 +9690,7 @@ snapshots:
 
   nf3@0.3.16: {}
 
-  nitro@3.0.260311-beta(dotenv@17.2.1)(jiti@2.6.1)(lru-cache@11.2.7)(rollup@4.50.0)(vite@7.1.2(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.20.5))(xml2js@0.6.2):
+  nitro@3.0.260311-beta(@capacitor/preferences@8.0.1(@capacitor/core@8.3.0))(dotenv@17.2.1)(jiti@2.6.1)(lru-cache@11.2.7)(rollup@4.50.0)(vite@7.1.2(@types/node@24.3.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.44.0)(tsx@4.20.5))(xml2js@0.6.2):
     dependencies:
       consola: 3.4.2
       crossws: 0.4.4(srvx@0.11.12)
@@ -9693,7 +9705,7 @@ snapshots:
       rolldown: 1.0.0-rc.13
       srvx: 0.11.12
       unenv: 2.0.0-rc.24
-      unstorage: 2.0.0-alpha.7(db0@0.3.4)(lru-cache@11.2.7)(ofetch@2.0.0-alpha.3)
+      unstorage: 2.0.0-alpha.7(@capacitor/preferences@8.0.1(@capacitor/core@8.3.0))(db0@0.3.4)(lru-cache@11.2.7)(ofetch@2.0.0-alpha.3)
     optionalDependencies:
       dotenv: 17.2.1
       jiti: 2.6.1
@@ -10544,8 +10556,9 @@ snapshots:
       '@unrs/resolver-binding-win32-ia32-msvc': 1.11.1
       '@unrs/resolver-binding-win32-x64-msvc': 1.11.1
 
-  unstorage@2.0.0-alpha.7(db0@0.3.4)(lru-cache@11.2.7)(ofetch@2.0.0-alpha.3):
+  unstorage@2.0.0-alpha.7(@capacitor/preferences@8.0.1(@capacitor/core@8.3.0))(db0@0.3.4)(lru-cache@11.2.7)(ofetch@2.0.0-alpha.3):
     optionalDependencies:
+      '@capacitor/preferences': 8.0.1(@capacitor/core@8.3.0)
       db0: 0.3.4
       lru-cache: 11.2.7
       ofetch: 2.0.0-alpha.3
