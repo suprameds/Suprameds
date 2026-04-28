@@ -1,13 +1,9 @@
-import { ConsentBanner } from "@/components/consent-banner"
 import ErrorBoundary from "@/components/error-boundary"
 import Footer from "@/components/footer"
 import { Navbar } from "@/components/navbar"
-import WhatsAppButton from "@/components/whatsapp-button"
 import { BottomTabBar } from "@/components/bottom-tab-bar"
-import { OfflineScreen } from "@/components/offline-screen"
 import { PermissionRationaleProvider } from "@/components/permission-rationale"
 import { PullToRefresh } from "@/components/pull-to-refresh"
-import { PushNotificationManager } from "@/components/push-notification-manager"
 import { CartProvider } from "@/lib/context/cart"
 import { ThemeProvider } from "@/lib/context/theme"
 import { ToastProvider } from "@/lib/context/toast-context"
@@ -19,7 +15,23 @@ import { useNativeKeyboard } from "@/lib/hooks/use-native-keyboard"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import { useQueryClient } from "@tanstack/react-query"
 import { useRouterState, useNavigate, useLocation } from "@tanstack/react-router"
-import { useEffect } from "react"
+import { lazy, Suspense, useEffect } from "react"
+
+// Below-the-fold / non-critical components — kept out of main.js so the
+// initial bundle parses faster. Render in a single Suspense with a null
+// fallback since none of these need a placeholder on first paint.
+const WhatsAppButton = lazy(() => import("@/components/whatsapp-button"))
+const ConsentBanner = lazy(() =>
+  import("@/components/consent-banner").then((m) => ({ default: m.ConsentBanner })),
+)
+const OfflineScreen = lazy(() =>
+  import("@/components/offline-screen").then((m) => ({ default: m.OfflineScreen })),
+)
+const PushNotificationManager = lazy(() =>
+  import("@/components/push-notification-manager").then((m) => ({
+    default: m.PushNotificationManager,
+  })),
+)
 
 /** Top navigation progress bar — shows instantly on route transitions */
 function NavigationProgress() {
@@ -85,7 +97,9 @@ const Layout = () => {
             </a>
           )}
           <NavigationProgress />
-          <PushNotificationManager />
+          <Suspense fallback={null}>
+            <PushNotificationManager />
+          </Suspense>
           {!isOnboarding && <Navbar />}
 
           <main id="main-content" className="relative flex-1">
@@ -105,12 +119,16 @@ const Layout = () => {
           {!isOnboarding && (
             <>
               <Footer />
-              <WhatsAppButton />
+              <Suspense fallback={null}>
+                <WhatsAppButton />
+              </Suspense>
               <BottomTabBar />
             </>
           )}
-          <OfflineScreen />
-          {!isOnboarding && <ConsentBanner />}
+          <Suspense fallback={null}>
+            <OfflineScreen />
+            {!isOnboarding && <ConsentBanner />}
+          </Suspense>
           {/* Bottom padding when native tab bar is visible */}
           {native && !isOnboarding && (
             <div className="h-14" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />

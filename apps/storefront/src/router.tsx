@@ -32,7 +32,13 @@ export function createRouter() {
   const router = createTanStackRouter({
     routeTree,
     context: { queryClient },
-    defaultPreload: isCapacitor ? "intent" : false,
+    // Prefetch route chunk + loader data on Link hover/touch. Web previously
+    // had this disabled, which is the bulk of the perceived "navigation lag"
+    // gap between the native app and the browser. The 50ms delay debounces
+    // hover spam; the staleTime dedupes rapid re-prefetches.
+    defaultPreload: "intent",
+    defaultPreloadDelay: 50,
+    defaultPreloadStaleTime: 30_000,
     ...(isCapacitor ? { defaultSsr: false } : {}),
     defaultNotFoundComponent: NotFound,
     scrollRestoration: true,
