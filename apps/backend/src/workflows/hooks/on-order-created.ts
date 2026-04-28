@@ -12,6 +12,7 @@ import { WALLET_MODULE } from "../../modules/wallet"
  * 1. Link prescription to order + auto-create Rx lines
  * 2. Burn loyalty points if redeemed during checkout
  * 3. Debit wallet balance if applied during checkout
+ * 4. Tag test-account orders so dispatch / fulfillment paths skip them
  */
 // @ts-ignore — orderCreated hook exists at runtime but missing from TS declarations
 ;(completeCartWorkflow.hooks as any).orderCreated(
@@ -38,6 +39,9 @@ import { WALLET_MODULE } from "../../modules/wallet"
 
     // ── Task 3: Debit wallet balance ──
     await debitWalletBalance(container, orderId, cart)
+
+    // ── Task 4: Tag test-account orders ──
+    await tagTestAccountOrder(container, orderId, cart)
   }
 )
 
@@ -214,6 +218,62 @@ async function burnLoyaltyPoints(container: any, orderId: string, cart: any) {
       `[hook:loyalty-burn] Failed to burn points for order ${orderId}: ${err.message}`
     )
     // Non-fatal: order should still complete even if loyalty burn fails
+  }
+}
+
+// ─────────────────────────────────────────────────
+// Task 4: Tag test-account orders (dispatch safeguard)
+// ─────────────────────────────────────────────────
+/**
+ * If the cart's customer is flagged with `metadata.test_account === true`
+ * (e.g., the Google Play Store reviewer account), tag the order with
+ * `metadata.is_test = true` AND set `metadata.dispatch_blocked_reason` so:
+ *   - auto-allocate-fefo skips inventory deduction
+ *   - createOrderFulfillmentWorkflow throws instead of booking carrier
+ *   - admins see a clear warning in the order detail UI
+ *
+ * Reviewer COD orders therefore stay in "placed" state forever and never
+ * consume real stock or trigger India Post Speed Post booking.
+ */
+async function tagTestAccountOrder(container: any, orderId: string, cart: any) {
+  const customerId = cart?.customer_id
+  if (!customerId) return
+
+  try {
+    const customerService = container.resolve(Modules.CUSTOMER) as any
+    const customer = await customerService.retrieveCustomer(customerId)
+    const isTestAccount = (customer?.metadata as any)?.test_account === true
+    if (!isTestAccount) return
+
+    const purpose =
+      (customer?.metadata as any)?.purpose ?? "test_account"
+
+    const orderService = container.resolve(Modules.ORDER) as any
+    const order = await orderService.retrieveOrder(orderId)
+    const existingMeta = (order?.metadata ?? {}) as Record<string, any>
+
+    await orderService.updateOrders({
+      id: orderId,
+      metadata: {
+        ...existingMeta,
+        is_test: true,
+        test_account_purpose: purpose,
+        dispatch_blocked_reason:
+          "Order placed by a flagged test account (test_account=true). " +
+          "Dispatch, FEFO allocation, and carrier booking are skipped.",
+      },
+    })
+
+    console.warn(
+      `[hook:test-tag] Order ${orderId} tagged is_test=true ` +
+        `(customer ${customerId}, purpose: ${purpose}) — dispatch skipped`
+    )
+  } catch (err: any) {
+    console.error(
+      `[hook:test-tag] Failed to tag test order ${orderId}: ${err?.message}`
+    )
+    // Non-fatal: order completes either way. Other layers (FEFO + fulfillment
+    // hooks) will re-check customer.metadata.test_account as a fallback.
   }
 }
 

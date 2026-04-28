@@ -57,9 +57,26 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
       { id: orderIds },
       { relations: ["items", "items.variant"] }
     )
+
+    // Skip test-account orders (e.g., Play Store reviewer account). These are
+    // tagged with metadata.is_test=true at order-creation time by the
+    // tagTestAccountOrder hook in workflows/hooks/on-order-created.ts.
+    // Allocating real inventory to a reviewer's COD order would be a costly
+    // mistake (we'd ship medicines to a fake address).
     const orderMap = new Map<string, any>()
+    let skippedTestOrders = 0
     for (const o of allOrders) {
+      if ((o?.metadata as any)?.is_test === true) {
+        skippedTestOrders++
+        continue
+      }
       orderMap.set(o.id, o)
+    }
+    if (skippedTestOrders > 0) {
+      logger.warn(
+        `${LOG} Skipped ${skippedTestOrders} test-account order(s) ` +
+          `(metadata.is_test=true) — no inventory allocation`
+      )
     }
 
     // 2. Batch-fetch all existing deductions for all orders

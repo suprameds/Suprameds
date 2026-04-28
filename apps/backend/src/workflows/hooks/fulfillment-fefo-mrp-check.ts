@@ -137,6 +137,20 @@ createOrderFulfillmentWorkflow.hooks.fulfillmentCreated(
       return
     }
 
+    // Hard block: test-account orders (Play Store reviewer, internal QA)
+    // must NEVER reach a real carrier. Fail loudly so the workflow engine
+    // compensates and the fulfillment is not created.
+    if ((order?.metadata as any)?.is_test === true) {
+      throw new MedusaError(
+        MedusaError.Types.NOT_ALLOWED,
+        `Order ${orderId} is flagged as a test order ` +
+          `(metadata.is_test=true). Carrier booking and inventory ` +
+          `deduction are blocked. If this is a real customer order ` +
+          `that was mis-flagged, clear order.metadata.is_test in admin ` +
+          `before retrying fulfillment.`
+      )
+    }
+
     if (!order?.items?.length) {
       logger.info(`${LOG_PREFIX} Order ${orderId} has no items — skipping`)
       return
