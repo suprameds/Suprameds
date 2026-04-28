@@ -4,4 +4,7 @@
     <color name="colorPrimaryDark">#0D1B2A</color>
     <color name="colorAccent">#0E7C86</color>
     <color name="splashBackground">#0D1B2A</color>
+    <!-- Tint applied to FCM notification accent (badge dot, expanded color band).
+         Brand teal so notifications read as Supracyn at a glance. -->
+    <color name="notification_color">#0E7C86</color>
 </resources>

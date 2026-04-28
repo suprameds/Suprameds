@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Notification status-bar icon. Required for FCM/push notifications — without
+  this Android shows a featureless white square. Must be a single-color
+  silhouette; Android automatically tints non-white pixels white anyway.
+
+  Pharmacy "+" glyph for instant category recognition in the status bar.
+  Sized 24dp viewport-square (Android scales for status-bar density).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M14,4 L14,10 L20,10 L20,14 L14,14 L14,20 L10,20 L10,14 L4,14 L4,10 L10,10 L10,4 Z" />
+</vector>

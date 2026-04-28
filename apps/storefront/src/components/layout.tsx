@@ -5,6 +5,7 @@ import { Navbar } from "@/components/navbar"
 import WhatsAppButton from "@/components/whatsapp-button"
 import { BottomTabBar } from "@/components/bottom-tab-bar"
 import { OfflineScreen } from "@/components/offline-screen"
+import { PermissionRationaleProvider } from "@/components/permission-rationale"
 import { PullToRefresh } from "@/components/pull-to-refresh"
 import { PushNotificationManager } from "@/components/push-notification-manager"
 import { CartProvider } from "@/lib/context/cart"
@@ -71,6 +72,7 @@ const Layout = () => {
   return (
     <ThemeProvider>
     <ToastProvider>
+      <PermissionRationaleProvider>
       <CartProvider>
         {native && <NativeHooks />}
         <div className="min-h-screen flex flex-col">
@@ -115,6 +117,7 @@ const Layout = () => {
           )}
         </div>
       </CartProvider>
+      </PermissionRationaleProvider>
     </ToastProvider>
     </ThemeProvider>
   )

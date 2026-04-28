@@ -1,21 +1,28 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { sdk } from "@/lib/utils/sdk"
 import { queryKeys } from "@/lib/utils/query-keys"
+import { secureGet, secureRemove, secureSet } from "@/lib/utils/secure-storage"
 
-/** localStorage key for the OTP JWT token (bearer auth fallback) */
+/**
+ * Storage key for the OTP JWT token (bearer auth fallback).
+ *
+ * On native this is backed by Capacitor Preferences (sandboxed per-app, not
+ * readable from WebView JS) via the secure-storage abstraction; on web it
+ * falls back to localStorage (no better sync-accessible option).
+ */
 const OTP_JWT_KEY = "_suprameds_otp_jwt"
 
 export function getStoredOtpToken(): string | null {
   if (typeof window === "undefined") return null
-  return localStorage.getItem(OTP_JWT_KEY)
+  return secureGet(OTP_JWT_KEY)
 }
 
 export function setStoredOtpToken(token: string) {
-  localStorage.setItem(OTP_JWT_KEY, token)
+  secureSet(OTP_JWT_KEY, token)
 }
 
 export function clearStoredOtpToken() {
-  localStorage.removeItem(OTP_JWT_KEY)
+  secureRemove(OTP_JWT_KEY)
 }
 
 export const useCustomer = () => {

@@ -13,6 +13,21 @@
         android:theme="@style/AppTheme"
         android:networkSecurityConfig="@xml/network_security_config">
 
+        <!-- Firebase Cloud Messaging: monochrome (silhouette) icon + accent color.
+             Without these meta-data entries, the system shows a featureless white
+             square for incoming pushes on Android 5.0+. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notify" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_color" />
+        <!-- Default channel for FCM messages that don't specify channel_id; matches
+             channel ID created in MainActivity.onCreate. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="orders" />
+
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
@@ -26,7 +41,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep links: open supracyn.in URLs in the app. Verified via /.well-known/assetlinks.json -->
+            <!-- Deep links: open supracyn.in URLs in the app. Verified via
+                 /.well-known/assetlinks.json on the apex.
+                 NOTE: www.supracyn.in is intentionally NOT listed — that
+                 subdomain does not currently resolve in DNS, and listing an
+                 unverifiable host here would cause Google's atomic auto-verify
+                 to fail for the apex too. Add www only after the DNS CNAME
+                 is configured + the assetlinks file is served at the www URL. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -52,12 +73,41 @@
         </provider>
     </application>
 
+    <!-- Intent queries (Android 11+ / API 30+ package visibility).
+         Without these, calls to tel:, mailto:, share, and external https URLs
+         silently fail to find a handler on stricter OEM builds. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
+
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Coarse location only: pincode-level accuracy is sufficient for
+         delivery-area detection. Declaring FINE_LOCATION would force a
+         "Precise location" Data Safety label and a stronger Play justification
+         we don't need. -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -79,8 +129,10 @@
          Without this, advertising ID returns all zeros and conversion tracking silently breaks. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
 
-    <!-- Optional features — app must still function without them -->
+    <!-- Optional features — app must still function without them.
+         GPS is intentionally NOT listed: coarse-location uses cell-tower / Wi-Fi
+         positioning, which is available on every Android device. -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.location" android:required="false" />
-    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.location.network" android:required="false" />
 </manifest>
