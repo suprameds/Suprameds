@@ -1,6 +1,6 @@
 import { sdk } from "@/lib/utils/sdk"
 import { getRegion } from "@/lib/data/regions"
-import { getStoredCart, setStoredCart } from "@/lib/utils/cart"
+import { getStoredCart, setStoredCart, setStoredCartRegion } from "@/lib/utils/cart"
 import { HttpTypes } from "@medusajs/types"
 import { 
   sendPostRequest, 
@@ -87,6 +87,7 @@ export const createCart = async ({
     fields,
   })
   setStoredCart(cart.id)
+  setStoredCartRegion(region_id)
   return cart
 }
 

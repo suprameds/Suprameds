@@ -168,7 +168,7 @@ export const ReorderButton = ({
     setError("")
     try {
       const { sdk } = await import("@/lib/utils/sdk")
-      const { getStoredCart, setStoredCart } = await import("@/lib/utils/cart")
+      const { getStoredCart, setStoredCart, setStoredCartRegion } = await import("@/lib/utils/cart")
       const { DEFAULT_COUNTRY_CODE } = await import("@/lib/constants/site")
 
       const { regions } = await sdk.store.region.list({})
@@ -198,6 +198,7 @@ export const ReorderButton = ({
       if (!cartId) {
         const { cart } = await sdk.store.cart.create({ region_id: region.id })
         setStoredCart(cart.id)
+        setStoredCartRegion(region.id)
         cartId = cart.id
       }
 
