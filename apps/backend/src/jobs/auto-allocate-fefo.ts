@@ -303,5 +303,6 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
 
 export const config = {
   name: "auto-allocate-fefo",
-  schedule: "1-59/5 * * * *", // was: */5 * * * * — staggered to avoid pool exhaustion
+  // DISABLED (inventory system not in use): Feb 30 never fires — re-enable by restoring "1-59/5 * * * *"
+  schedule: "0 0 30 2 *",
 }

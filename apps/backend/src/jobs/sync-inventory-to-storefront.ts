@@ -156,5 +156,6 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
 
 export const config = {
   name: "sync-inventory",
-  schedule: "3-59/5 * * * *", // was: */5 * * * * — staggered to avoid pool exhaustion
+  // DISABLED (inventory system not in use): Feb 30 never fires — re-enable by restoring "3-59/5 * * * *"
+  schedule: "0 0 30 2 *",
 }
