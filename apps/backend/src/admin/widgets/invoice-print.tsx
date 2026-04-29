@@ -16,13 +16,18 @@ const InvoicePrintWidget = ({
   const [trackingId, setTrackingId] = useState("")
   const [paymentMode, setPaymentMode] = useState<"COD" | "PREPAID" | null>(null)
 
-  // Detect payment mode on mount and auto-fill India Post ID for COD
+  // Detect payment mode on mount and auto-fill India Post ID for COD.
+  // A COD order whose payment has been captured (e.g. admin marked it paid
+  // after collecting in person) should print as PREPAID — courier doesn't
+  // need to collect money on delivery.
   useEffect(() => {
     if (!orderId) return
-    sdk.client.fetch<{ order: any }>(`/admin/orders/${orderId}?fields=payment_collections.payment_sessions.*`)
+    sdk.client.fetch<{ order: any }>(`/admin/orders/${orderId}?fields=payment_status,payment_collections.payment_sessions.*`)
       .then(({ order }) => {
         const sessions = order?.payment_collections?.[0]?.payment_sessions ?? []
-        const isCod = !sessions.some((s: any) => s.provider_id?.includes("paytm") || s.provider_id?.includes("razorpay"))
+        const providerIsOnline = sessions.some((s: any) => s.provider_id?.includes("paytm") || s.provider_id?.includes("razorpay"))
+        const captured = order?.payment_status === "captured"
+        const isCod = !providerIsOnline && !captured
         const mode = isCod ? "COD" : "PREPAID"
         setPaymentMode(mode as "COD" | "PREPAID")
         if (isCod) setTrackingId(INDIA_POST_COD_ID)
@@ -38,7 +43,7 @@ const InvoicePrintWidget = ({
     try {
       const { order } = await sdk.client.fetch<{ order: any }>(
         `/admin/orders/${orderId}`,
-        { query: { fields: "id,display_id,created_at,total,items.*,shipping_address.*,payment_collections.payment_sessions.*" } }
+        { query: { fields: "id,display_id,created_at,total,payment_status,items.*,shipping_address.*,payment_collections.payment_sessions.*" } }
       )
 
       const addr = order.shipping_address || {}
@@ -53,9 +58,12 @@ const InvoicePrintWidget = ({
         (order.items || []).reduce((s: number, i: any) => s + Number(i.unit_price) * Number(i.quantity), 0)
       )
 
+      // Default to COD; flip to PREPAID if the order was paid online OR has been
+      // captured (admin marked a COD order as paid → no collection on delivery).
       let paymentMode = "COD"
       const sessions = order.payment_collections?.[0]?.payment_sessions ?? []
-      if (sessions[0]?.provider_id?.includes("paytm") || sessions[0]?.provider_id?.includes("razorpay")) paymentMode = "PREPAID"
+      const providerIsOnline = sessions[0]?.provider_id?.includes("paytm") || sessions[0]?.provider_id?.includes("razorpay")
+      if (providerIsOnline || order.payment_status === "captured") paymentMode = "PREPAID"
 
       const orderDate = new Date(order.created_at).toLocaleDateString("en-IN", {
         day: "2-digit", month: "short", year: "numeric",

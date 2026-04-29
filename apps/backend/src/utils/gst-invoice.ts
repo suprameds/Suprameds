@@ -476,16 +476,17 @@ export async function buildGstInvoice(
   if (order.metadata?.payment_mode) {
     paymentMode = order.metadata.payment_mode
   } else {
-    // Try resolving from payment collections
+    // Try resolving from payment collections + capture status
     try {
       const { data: pcData } = await query.graph({
         entity: "order",
-        fields: ["id", "payment_collections.payment_sessions.*"],
+        fields: ["id", "payment_status", "payment_collections.payment_sessions.*"],
         filters: { id: orderId },
       })
-      const sessions =
-        (pcData as any[])?.[0]?.payment_collections?.[0]?.payment_sessions ?? []
+      const orderRow = (pcData as any[])?.[0]
+      const sessions = orderRow?.payment_collections?.[0]?.payment_sessions ?? []
       const providerId = sessions[0]?.provider_id ?? ""
+      const captured = orderRow?.payment_status === "captured"
       if (providerId.includes("paytm") || providerId.includes("razorpay")) {
         paymentMode = providerId.includes("paytm") ? "paytm" : "razorpay"
       } else if (
@@ -493,7 +494,9 @@ export async function buildGstInvoice(
         providerId.includes("cod") ||
         providerId.includes("system_default")
       ) {
-        paymentMode = "cod"
+        // Captured = admin marked it paid (e.g. cash/UPI in person) → invoice
+        // shouldn't print as Cash on Delivery.
+        paymentMode = captured ? "online" : "cod"
       }
     } catch {
       // Fallback stays "online"
