@@ -83,6 +83,14 @@ export const Route = createRootRouteWithContext<{
         href: "/images/hero-bg.webp",
         fetchPriority: "high",
       } as any,
+      // Preconnect to API and image storage — eliminates TCP+TLS handshake latency
+      // on the first request to each domain (~200-300ms saved per domain)
+      ...(import.meta.env.VITE_MEDUSA_BACKEND_URL
+        ? [{ rel: "preconnect", href: new URL(import.meta.env.VITE_MEDUSA_BACKEND_URL).origin }]
+        : []),
+      ...(import.meta.env.VITE_SUPABASE_URL
+        ? [{ rel: "preconnect", href: new URL(import.meta.env.VITE_SUPABASE_URL).origin }]
+        : []),
       {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",
@@ -91,10 +99,6 @@ export const Route = createRootRouteWithContext<{
         rel: "preconnect",
         href: "https://fonts.gstatic.com",
         crossOrigin: "anonymous",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&display=swap",
       },
       { rel: "stylesheet", href: appCss },
     ],
@@ -127,6 +131,13 @@ export const Route = createRootRouteWithContext<{
         : []),
     ],
     scripts: [
+      // Non-blocking font loader — dynamically appending a link doesn't block the HTML parser
+      // unlike a static <link rel="stylesheet"> which stalls rendering until the CSS downloads.
+      // display=swap in the URL means text renders in system fonts immediately while Fraunces/DM
+      // Sans fetch in the background, then swap in with no layout shift.
+      {
+        children: `(function(){var l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&display=swap';document.head.appendChild(l)})();`,
+      },
       // Google Analytics 4 — async loader
       {
         src: "https://www.googletagmanager.com/gtag/js?id=G-JKGJ3D3B86",
