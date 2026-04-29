@@ -122,6 +122,6 @@ export default async function CheckLowStockJob(container: MedusaContainer) {
 
 export const config = {
   name: "check-low-stock",
-  // Every 6 hours (was: 0 */6 * * * — staggered to avoid pool exhaustion)
-  schedule: "33 */6 * * *",
+  // DISABLED (inventory system not in use): Feb 30 never fires — re-enable by restoring "33 */6 * * *"
+  schedule: "0 0 30 2 *",
 }

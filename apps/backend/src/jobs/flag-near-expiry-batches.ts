@@ -86,5 +86,6 @@ export default async function FlagNearExpiryBatchesJob(
 
 export const config = {
   name: "flag-expiry",
-  schedule: "35 5 * * *", // was: 0 5 * * * — staggered to avoid pool exhaustion
+  // DISABLED (inventory system not in use): Feb 30 never fires — re-enable by restoring "35 5 * * *"
+  schedule: "0 0 30 2 *",
 }

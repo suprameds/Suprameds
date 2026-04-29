@@ -157,5 +157,6 @@ export default async function SendChronicRefillRemindersJob(container: MedusaCon
 
 export const config = {
   name: "chronic-reminders",
-  schedule: "41 */6 * * *", // was: 0 */6 * * * — staggered to avoid pool exhaustion
+  // DISABLED (failing with empty-id ChronicReorderPattern lookup): Feb 30 never fires — re-enable after data fix by restoring "41 */6 * * *"
+  schedule: "0 0 30 2 *",
 }
