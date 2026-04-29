@@ -81,10 +81,12 @@ export default async function CheckLowStockJob(container: MedusaContainer) {
       )
 
       try {
+        // DB CHECK constraint allows only "stock_low" — use it for both
+        // out-of-stock and low-stock cases; the title/body differentiate.
         await notificationService.createInternalNotifications({
           user_id: "system",
           role_scope: "warehouse",
-          type: isOutOfStock ? "out_of_stock" : "low_stock",
+          type: "stock_low",
           title: isOutOfStock
             ? `OUT OF STOCK — ${variantId}`
             : `Low Stock — ${variantId}`,

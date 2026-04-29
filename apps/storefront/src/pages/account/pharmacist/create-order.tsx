@@ -51,7 +51,8 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
   return debounced
 }
 
-function formatPrice(amount: number): string {
+function formatPrice(amount: number | undefined | null): string {
+  if (amount == null || Number.isNaN(amount)) return "\u20B9\u2014"
   return `\u20B9${amount.toLocaleString("en-IN")}`
 }
 
