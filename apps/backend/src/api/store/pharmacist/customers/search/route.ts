@@ -53,14 +53,15 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
         }
       }
     } else {
-      // Name-based search — first name and last name separately
+      // Name-based search — case-insensitive partial match on first OR last name
+      const pattern = `%${q}%`
       const [byFirst] = await customerService.listAndCountCustomers(
-        { first_name: q },
+        { first_name: { $ilike: pattern } },
         { select: CUSTOMER_FIELDS, relations: ["addresses"], take: 10 }
       ).catch(() => [[]])
 
       const [byLast] = await customerService.listAndCountCustomers(
-        { last_name: q },
+        { last_name: { $ilike: pattern } },
         { select: CUSTOMER_FIELDS, relations: ["addresses"], take: 10 }
       ).catch(() => [[]])
 
