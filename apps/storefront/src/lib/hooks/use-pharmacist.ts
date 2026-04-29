@@ -169,6 +169,20 @@ export function useCreateOrderForCustomer() {
 
 // ── Pharmacist Create Order hooks ──
 
+export type AddressData = {
+  id?: string
+  first_name: string
+  last_name: string
+  address_1: string
+  address_2?: string
+  city: string
+  province?: string
+  postal_code: string
+  country_code: string
+  phone?: string
+  is_default_shipping?: boolean
+}
+
 type CustomerLookupResult = {
   found: boolean
   customer: {
@@ -177,19 +191,7 @@ type CustomerLookupResult = {
     last_name: string
     phone: string
     email: string
-    addresses: Array<{
-      id: string
-      first_name: string
-      last_name: string
-      address_1: string
-      address_2?: string
-      city: string
-      province?: string
-      postal_code: string
-      country_code: string
-      phone?: string
-      is_default_shipping?: boolean
-    }>
+    addresses: AddressData[]
   } | null
 }
 
@@ -213,6 +215,30 @@ type CreateOrderResult = {
   display_id: number
   total: number
   message: string
+}
+
+export type CustomerSearchResult = {
+  id: string
+  first_name: string
+  last_name: string
+  phone: string
+  email: string
+  addresses: AddressData[]
+}
+
+export function usePharmacistCustomerSearch(query: string) {
+  return useQuery<CustomerSearchResult[]>({
+    queryKey: ["pharmacist", "customers", "search", query],
+    queryFn: async () => {
+      if (query.trim().length < 2) return []
+      const res = await sdk.client.fetch<{ customers: CustomerSearchResult[] }>(
+        `/store/pharmacist/customers/search?q=${encodeURIComponent(query.trim())}`
+      )
+      return res.customers ?? []
+    },
+    enabled: query.trim().length >= 2,
+    staleTime: 30_000,
+  })
 }
 
 export function usePharmacistCreateOrder() {

@@ -1,8 +1,18 @@
 import { usePharmacistPrescriptions, type PharmacistPrescription } from "@/lib/hooks/use-pharmacist"
+import { loadDrafts, saveDrafts } from "./create-order"
 import { Link } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 type StatusFilter = "pending_review" | "approved" | "all"
+
+interface Draft {
+  id: string
+  savedAt: string
+  customer: { first_name: string; last_name: string; phone: string }
+  cartItems: Array<{ variant_id: string; quantity: number }>
+  prescriptionId: string
+  notes: string
+}
 
 const STATUS_TABS: { key: StatusFilter; label: string }[] = [
   { key: "pending_review", label: "Pending" },
@@ -20,6 +30,18 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }
 
 export default function RxQueuePage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("pending_review")
+  const [drafts, setDrafts] = useState<Draft[]>([])
+  const [draftsOpen, setDraftsOpen] = useState(false)
+
+  useEffect(() => {
+    setDrafts(loadDrafts() as Draft[])
+  }, [])
+
+  function discardDraft(draftId: string) {
+    const updated = drafts.filter((d) => d.id !== draftId)
+    saveDrafts(updated as any)
+    setDrafts(updated)
+  }
 
   const queryStatus = statusFilter === "all" ? undefined : statusFilter
   const { data: prescriptions, isLoading } = usePharmacistPrescriptions(queryStatus)
@@ -57,6 +79,92 @@ export default function RxQueuePage() {
           + Create Order
         </Link>
       </div>
+
+      {/* Draft orders panel */}
+      {drafts.length > 0 && (
+        <div
+          className="rounded-xl border overflow-hidden"
+          style={{ borderColor: "var(--brand-amber)", background: "rgba(245,158,11,0.04)" }}
+        >
+          <button
+            onClick={() => setDraftsOpen((o) => !o)}
+            className="w-full flex items-center justify-between px-5 py-3.5 text-left"
+          >
+            <div className="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand-amber)" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+              <span className="text-sm font-semibold" style={{ color: "var(--brand-amber)" }}>
+                Draft Orders
+              </span>
+              <span
+                className="px-1.5 py-0.5 rounded-full text-[10px] font-bold"
+                style={{ background: "var(--brand-amber)", color: "#fff" }}
+              >
+                {drafts.length}
+              </span>
+            </div>
+            <svg
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2"
+              style={{ transform: draftsOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+
+          {draftsOpen && (
+            <div className="border-t" style={{ borderColor: "var(--brand-amber)" }}>
+              {drafts.map((draft) => {
+                const savedAt = new Date(draft.savedAt).toLocaleString("en-IN", {
+                  day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+                })
+                const customerName = `${draft.customer.first_name} ${draft.customer.last_name}`.trim()
+                const itemCount = draft.cartItems.length
+
+                return (
+                  <div
+                    key={draft.id}
+                    className="flex items-center justify-between gap-3 px-5 py-3.5 border-b last:border-b-0"
+                    style={{ borderColor: "rgba(245,158,11,0.15)" }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                        {customerName || draft.customer.phone}
+                      </p>
+                      <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                        {itemCount} item{itemCount !== 1 ? "s" : ""} · Saved {savedAt}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Link
+                        to={"/account/pharmacist/create-order" as any}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
+                        style={{ background: "var(--brand-teal)" }}
+                      >
+                        Resume
+                      </Link>
+                      <button
+                        onClick={() => discardDraft(draft.id)}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
+                        style={{
+                          background: "rgba(239,68,68,0.08)",
+                          color: "var(--brand-red, #ef4444)",
+                          border: "1px solid rgba(239,68,68,0.2)",
+                        }}
+                      >
+                        Discard
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Status filter tabs */}
       <div className="flex gap-2">

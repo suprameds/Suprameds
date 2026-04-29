@@ -2,8 +2,10 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { Link } from "@tanstack/react-router"
 import {
   usePharmacistCustomerLookup,
+  usePharmacistCustomerSearch,
   usePharmacistCreateOrder,
   usePharmacistProductSearch,
+  type AddressData,
   type SearchProduct,
 } from "@/lib/hooks/use-pharmacist"
 import { useQuery } from "@tanstack/react-query"
@@ -28,20 +30,6 @@ interface CustomerData {
   phone: string
   email: string
   addresses: AddressData[]
-}
-
-interface AddressData {
-  id?: string
-  first_name: string
-  last_name: string
-  address_1: string
-  address_2?: string
-  city: string
-  province?: string
-  postal_code: string
-  country_code: string
-  phone?: string
-  is_default_shipping?: boolean
 }
 
 interface OrderResult {
@@ -93,11 +81,19 @@ interface Draft {
 }
 
 const DRAFTS_KEY = "suprameds_pharmacist_drafts"
+const DRAFT_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
 
 function loadDrafts(): Draft[] {
   if (typeof window === "undefined") return []
   try {
-    return JSON.parse(localStorage.getItem(DRAFTS_KEY) || "[]")
+    const all: Draft[] = JSON.parse(localStorage.getItem(DRAFTS_KEY) || "[]")
+    // Evict drafts older than 24 hours
+    const now = Date.now()
+    const fresh = all.filter((d) => now - new Date(d.savedAt).getTime() < DRAFT_TTL_MS)
+    if (fresh.length !== all.length) {
+      localStorage.setItem(DRAFTS_KEY, JSON.stringify(fresh))
+    }
+    return fresh
   } catch {
     return []
   }
@@ -107,11 +103,15 @@ function saveDrafts(drafts: Draft[]) {
   localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts))
 }
 
+export { loadDrafts, saveDrafts, DRAFTS_KEY }
+
 // ── Component ──────────────────────────────────────────────────────
 
 export default function CreateOrderPage() {
   // State
+  const [customerTab, setCustomerTab] = useState<"phone" | "name">("phone")
   const [phone, setPhone] = useState("")
+  const [nameQuery, setNameQuery] = useState("")
   const [newFirstName, setNewFirstName] = useState("")
   const [newLastName, setNewLastName] = useState("")
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerData | null>(null)
@@ -129,6 +129,8 @@ export default function CreateOrderPage() {
 
   // Hooks
   const customerLookup = usePharmacistCustomerLookup()
+  const debouncedName = useDebouncedValue(nameQuery, 350)
+  const { data: nameResults, isLoading: nameSearchLoading } = usePharmacistCustomerSearch(debouncedName)
   const createOrder = usePharmacistCreateOrder()
   const debouncedSearch = useDebouncedValue(searchQuery, 300)
   const { data: searchResults, isLoading: searchLoading } = usePharmacistProductSearch(debouncedSearch)
@@ -199,6 +201,8 @@ export default function CreateOrderPage() {
     customerLookup.reset()
     setNewFirstName("")
     setNewLastName("")
+    setNameQuery("")
+    setPhone("")
   }
 
   function addToCart(product: SearchProduct) {
@@ -452,7 +456,7 @@ export default function CreateOrderPage() {
                 {selectedCustomer.first_name} {selectedCustomer.last_name}
               </p>
               <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                {selectedCustomer.phone} {selectedCustomer.email ? `| ${selectedCustomer.email}` : ""}
+                {selectedCustomer.phone}{selectedCustomer.email ? ` · ${selectedCustomer.email}` : ""}
               </p>
             </div>
             <button
@@ -465,74 +469,138 @@ export default function CreateOrderPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            <div className="flex gap-2">
-              <div className="flex flex-1 items-center rounded-lg border overflow-hidden" style={{ borderColor: "var(--border-primary)" }}>
-                <span
-                  className="px-3 py-2.5 text-sm font-medium border-r"
-                  style={{ color: "var(--text-secondary)", borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
+            {/* Search mode tabs */}
+            <div className="flex gap-1 p-1 rounded-lg" style={{ background: "var(--bg-tertiary)" }}>
+              {(["phone", "name"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => { setCustomerTab(tab); customerLookup.reset() }}
+                  className="flex-1 py-1.5 rounded text-xs font-semibold transition-all capitalize"
+                  style={{
+                    background: customerTab === tab ? "var(--bg-primary)" : "transparent",
+                    color: customerTab === tab ? "var(--text-primary)" : "var(--text-tertiary)",
+                    boxShadow: customerTab === tab ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
+                  }}
                 >
-                  +91
-                </span>
-                <input
-                  type="tel"
-                  placeholder="Phone number"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCustomerSearch()}
-                  className="flex-1 px-3.5 py-2.5 text-sm outline-none"
-                  style={{ color: "var(--text-primary)", background: "transparent" }}
-                  maxLength={10}
-                />
-              </div>
-              <button
-                onClick={handleCustomerSearch}
-                disabled={customerLookup.isPending || !phone.trim()}
-                className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ background: "var(--brand-teal)" }}
-              >
-                {customerLookup.isPending ? "..." : "Search"}
-              </button>
+                  By {tab === "phone" ? "Phone" : "Name"}
+                </button>
+              ))}
             </div>
 
-            {/* Not found — create */}
-            {customerLookup.isSuccess && !customerLookup.data?.found && (
-              <div className="rounded-lg border p-4" style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}>
-                <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
-                  No customer found. Enter a name to create one:
-                </p>
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    placeholder="First name"
-                    value={newFirstName}
-                    onChange={(e) => setNewFirstName(e.target.value)}
-                    className="flex-1 px-3.5 py-2.5 rounded-lg border text-sm outline-none"
-                    style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "transparent" }}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Last name"
-                    value={newLastName}
-                    onChange={(e) => setNewLastName(e.target.value)}
-                    className="flex-1 px-3.5 py-2.5 rounded-lg border text-sm outline-none"
-                    style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "transparent" }}
-                  />
+            {/* Phone search */}
+            {customerTab === "phone" && (
+              <>
+                <div className="flex gap-2">
+                  <div className="flex flex-1 items-center rounded-lg border overflow-hidden" style={{ borderColor: "var(--border-primary)" }}>
+                    <span
+                      className="px-3 py-2.5 text-sm font-medium border-r"
+                      style={{ color: "var(--text-secondary)", borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
+                    >
+                      +91
+                    </span>
+                    <input
+                      type="tel"
+                      placeholder="10-digit phone number"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleCustomerSearch()}
+                      className="flex-1 px-3.5 py-2.5 text-sm outline-none"
+                      style={{ color: "var(--text-primary)", background: "transparent" }}
+                      maxLength={10}
+                    />
+                  </div>
+                  <button
+                    onClick={handleCustomerSearch}
+                    disabled={customerLookup.isPending || !phone.trim()}
+                    className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                    style={{ background: "var(--brand-teal)" }}
+                  >
+                    {customerLookup.isPending ? "..." : "Search"}
+                  </button>
                 </div>
-                <button
-                  onClick={handleCreateCustomer}
-                  disabled={customerLookup.isPending || !newFirstName.trim()}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
-                  style={{ background: "var(--brand-green)" }}
-                >
-                  {customerLookup.isPending ? "Creating..." : "Create & Select"}
-                </button>
-              </div>
+
+                {customerLookup.isSuccess && !customerLookup.data?.found && (
+                  <div className="rounded-lg border p-4" style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}>
+                    <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
+                      No customer with that number. Enter a name to register:
+                    </p>
+                    <div className="flex gap-2 mb-3">
+                      <input
+                        type="text"
+                        placeholder="First name"
+                        value={newFirstName}
+                        onChange={(e) => setNewFirstName(e.target.value)}
+                        className="flex-1 px-3.5 py-2.5 rounded-lg border text-sm outline-none"
+                        style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "transparent" }}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Last name"
+                        value={newLastName}
+                        onChange={(e) => setNewLastName(e.target.value)}
+                        className="flex-1 px-3.5 py-2.5 rounded-lg border text-sm outline-none"
+                        style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "transparent" }}
+                      />
+                    </div>
+                    <button
+                      onClick={handleCreateCustomer}
+                      disabled={customerLookup.isPending || !newFirstName.trim()}
+                      className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+                      style={{ background: "var(--brand-green)" }}
+                    >
+                      {customerLookup.isPending ? "Creating..." : "Register & Select"}
+                    </button>
+                  </div>
+                )}
+
+                {customerLookup.isError && (
+                  <p className="text-xs" style={{ color: "var(--brand-red)" }}>
+                    Lookup failed. Please try again.
+                  </p>
+                )}
+              </>
             )}
 
-            {customerLookup.isError && (
-              <p className="text-xs" style={{ color: "var(--brand-red)" }}>
-                Failed to look up customer. Please try again.
-              </p>
+            {/* Name search */}
+            {customerTab === "name" && (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  placeholder="Type customer name..."
+                  value={nameQuery}
+                  onChange={(e) => setNameQuery(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-lg border text-sm outline-none"
+                  style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
+                />
+                {nameSearchLoading && (
+                  <p className="text-xs px-1" style={{ color: "var(--text-tertiary)" }}>Searching...</p>
+                )}
+                {!nameSearchLoading && nameQuery.trim().length >= 2 && nameResults && nameResults.length === 0 && (
+                  <p className="text-xs px-1" style={{ color: "var(--text-tertiary)" }}>No customers found for "{nameQuery}".</p>
+                )}
+                {(nameResults ?? []).length > 0 && (
+                  <div className="rounded-lg border overflow-hidden" style={{ borderColor: "var(--border-primary)" }}>
+                    {nameResults!.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => setSelectedCustomer(c)}
+                        className="w-full flex items-center justify-between px-4 py-3 text-left border-b last:border-b-0 hover:opacity-80 transition-opacity"
+                        style={{ borderColor: "var(--border-primary)", background: "var(--bg-primary)" }}
+                      >
+                        <div>
+                          <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                            {c.first_name} {c.last_name}
+                          </p>
+                          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                            {c.phone}
+                          </p>
+                        </div>
+                        <span className="text-xs font-semibold" style={{ color: "var(--brand-teal)" }}>Select</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -994,24 +1062,24 @@ function PrescriptionSelector({
         reader.readAsDataURL(file)
       })
 
-      // Upload file
+      // Upload file to S3/R2
       const uploadRes = await sdk.client.fetch<{ file_key: string; file_url: string }>(
         "/store/prescriptions/upload-file",
         { method: "POST", body: { filename: file.name, content_type: file.type, content: base64 } }
       )
 
-      // Create prescription record linked to the customer
+      // Create prescription record linked to the patient (not the pharmacist)
       const rxRes = await sdk.client.fetch<{ prescription: any }>(
-        "/store/prescriptions",
+        "/store/pharmacist/prescriptions/upload",
         {
           method: "POST",
           body: {
+            customer_id: customerId,
             file_key: uploadRes.file_key,
             file_url: uploadRes.file_url,
             original_filename: file.name,
-            content_type: file.type,
+            mime_type: file.type,
             file_size_bytes: file.size,
-            customer_id: customerId,
           },
         }
       )
