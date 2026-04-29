@@ -132,5 +132,6 @@ export default async function SyncAftershipStatusJob(
 
 export const config = {
   name: "sync-aftership",
-  schedule: "12 */1 * * *", // was: */30 * * * * — staggered to avoid pool exhaustion
+  // DISABLED: Feb 30 never fires — re-enable by restoring "12 */1 * * *"
+  schedule: "0 0 30 2 *",
 }

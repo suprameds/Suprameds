@@ -80,5 +80,6 @@ export default async function ReleaseExpiredGuestSessionsJob(container: MedusaCo
 
 export const config = {
   name: "release-guest-sessions",
-  schedule: "17 * * * *", // was: 0 * * * * — staggered to avoid pool exhaustion
+  // DISABLED (guest session feature not in use): Feb 30 never fires — re-enable by restoring "17 * * * *"
+  schedule: "0 0 30 2 *",
 }
