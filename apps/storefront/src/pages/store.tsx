@@ -43,7 +43,7 @@ const Store = () => {
 
   // Fetch all categories for filter chips
   const { data: allCategories } = useCategories({
-    fields: "id,name,handle,parent_category_id",
+    fields: "id,name,handle,parent_category_id,is_active",
   })
   const medicinesParent = allCategories?.find((c) => c.handle === "medicines")
   const categories = medicinesParent

@@ -265,7 +265,7 @@ const Home = () => {
       }).slice(0, 8)
 
   const { data: allCats } = useCategories({
-    fields: "id,name,handle,parent_category_id",
+    fields: "id,name,handle,parent_category_id,is_active",
   })
   // Show medicine subcategories (Antibiotics, Diabetic, etc.) not parent categories
   const medicinesParent = allCats?.find((c) => c.handle === "medicines")
