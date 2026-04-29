@@ -213,11 +213,23 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     })
 
     // 10. Complete cart → create order
-    const { result: orderResult } = await completeCartWorkflow(req.scope).run({
+    await completeCartWorkflow(req.scope).run({
       input: { id: cart.id },
     })
 
-    const orderId = orderResult.id
+    // Resolve order id via the cart→order link table — robust against shape
+    // changes in completeCartWorkflow's return value across Medusa versions.
+    const { data: orderCartLink } = await query.graph({
+      entity: "order_cart",
+      fields: ["order_id"],
+      filters: { cart_id: cart.id },
+    })
+    const linkRow = Array.isArray(orderCartLink) ? orderCartLink[0] : orderCartLink
+    const orderId = (linkRow as { order_id?: string } | undefined)?.order_id
+    if (!orderId) {
+      throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, "Order was not created from cart.")
+    }
+
     logger.info(`Order created: ${orderId} for customer ${body.customer_id}`)
 
     // Retrieve order to get display_id and total
