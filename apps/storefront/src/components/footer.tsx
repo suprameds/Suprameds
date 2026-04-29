@@ -3,10 +3,12 @@ import { Link } from "@tanstack/react-router"
 
 const Footer = () => {
 
-  const { data: categories } = useCategories({
-    fields: "name,handle",
-    queryParams: { parent_category_id: "null", limit: 6 },
+  // Same query key as navbar/home/store — one network request shared across all callers.
+  // Filter top-level categories (no parent) client-side instead of asking the backend.
+  const { data: allCategories } = useCategories({
+    fields: "id,name,handle,parent_category_id,is_active",
   })
+  const categories = allCategories?.filter((c) => !c.parent_category_id).slice(0, 6)
 
   return (
     <footer style={{ background: "var(--bg-inverse)", color: "rgba(255,255,255,0.75)" }} data-testid="footer">

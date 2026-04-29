@@ -85,11 +85,24 @@ function MedicineIcon({ form }: { form?: string | null }) {
   )
 }
 
+// Rewrite Supabase Storage object URLs to use the built-in image transform API,
+// which serves WebP at the requested size — typically 60-80% smaller than the
+// original JPEG/PNG. Falls through unchanged for non-Supabase URLs.
+function supabaseTransform(url: string, width: number): string {
+  const marker = "/storage/v1/object/public/"
+  const idx = url.indexOf(marker)
+  if (idx === -1) return url
+  const origin = url.slice(0, idx)
+  const path = url.slice(idx + marker.length)
+  return `${origin}/storage/v1/render/image/public/${path}?width=${width}&quality=80&format=webp`
+}
+
 export const Thumbnail = ({ thumbnail, alt, className, dosageForm, loading = "lazy" }: ThumbnailProps) => {
   if (thumbnail) {
+    const src = supabaseTransform(thumbnail, 80)
     return (
       <img
-        src={thumbnail}
+        src={src}
         alt={alt}
         width={80}
         height={80}

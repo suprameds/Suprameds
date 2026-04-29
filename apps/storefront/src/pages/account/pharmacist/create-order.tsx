@@ -10,6 +10,7 @@ import {
 } from "@/lib/hooks/use-pharmacist"
 import { useQuery } from "@tanstack/react-query"
 import { sdk } from "@/lib/utils/sdk"
+import { loadDrafts, saveDrafts } from "@/pages/account/pharmacist/draft-utils"
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -79,31 +80,6 @@ interface Draft {
   prescriptionId: string
   notes: string
 }
-
-const DRAFTS_KEY = "suprameds_pharmacist_drafts"
-const DRAFT_TTL_MS = 24 * 60 * 60 * 1000 // 24 hours
-
-function loadDrafts(): Draft[] {
-  if (typeof window === "undefined") return []
-  try {
-    const all: Draft[] = JSON.parse(localStorage.getItem(DRAFTS_KEY) || "[]")
-    // Evict drafts older than 24 hours
-    const now = Date.now()
-    const fresh = all.filter((d) => now - new Date(d.savedAt).getTime() < DRAFT_TTL_MS)
-    if (fresh.length !== all.length) {
-      localStorage.setItem(DRAFTS_KEY, JSON.stringify(fresh))
-    }
-    return fresh
-  } catch {
-    return []
-  }
-}
-
-function saveDrafts(drafts: Draft[]) {
-  localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts))
-}
-
-export { loadDrafts, saveDrafts, DRAFTS_KEY }
 
 // ── Component ──────────────────────────────────────────────────────
 

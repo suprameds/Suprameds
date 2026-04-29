@@ -54,14 +54,18 @@ export const Route = createRootRouteWithContext<{
 }>()({
   loader: async ({ context }) => {
     const { queryClient } = context
-    // Pre-populate regions cache; don't block or throw on backend failure (SSR resilience)
+    // Pre-populate regions cache; cap SSR wait at 600ms so cold-start backend
+    // latency doesn't spike TTFB — client refetches if the race times out.
     try {
-      await queryClient.ensureQueryData({
-        queryKey: ["regions"],
-        queryFn: () => listRegions({ fields: "id, name, currency_code, *countries" }),
-      })
+      await Promise.race([
+        queryClient.ensureQueryData({
+          queryKey: ["regions"],
+          queryFn: () => listRegions({ fields: "id, name, currency_code, *countries" }),
+        }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), 600)),
+      ])
     } catch {
-      // Backend unreachable (e.g. dev); leave cache empty, client will refetch
+      // Backend unreachable or slow; leave cache empty, client will refetch
     }
     return {}
   },
