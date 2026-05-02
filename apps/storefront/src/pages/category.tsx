@@ -32,8 +32,13 @@ const Category = () => {
   // Use category.description if pharmacist/admin has filled it in,
   // otherwise fall back to a templated intro so every category page has
   // unique-ish content (avoids "thin content" deprioritization in Google).
+  // Skip redundant "medicines" when the category name already ends with it
+  // (e.g. "All Medicines" → "Browse all medicines from..." not "all medicines medicines").
+  const introSubject = /medicines?$/i.test(categoryName.trim())
+    ? categoryName.toLowerCase()
+    : `${categoryName.toLowerCase()} medicines`
   const introText = category?.description?.trim() ||
-    `Browse ${categoryName.toLowerCase()} medicines from India's licensed online pharmacy. ` +
+    `Browse ${introSubject} from India's licensed online pharmacy. ` +
     `Every product is sourced from CDSCO-approved manufacturers, dispensed by registered pharmacists, ` +
     `and shipped via Speed Post across India. Save 50–80% off MRP on generic alternatives with the same active ingredients as branded medicines.`
 

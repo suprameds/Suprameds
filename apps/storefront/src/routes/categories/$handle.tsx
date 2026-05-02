@@ -55,9 +55,13 @@ export const Route = createFileRoute("/categories/$handle")({
     const siteUrl = import.meta.env.VITE_SITE_URL || "https://supracyn.in"
     const categoryName = category?.name || "Category"
     const canonical = `${siteUrl}/categories/${category?.handle || params?.handle}`
-    const title = `${categoryName} Medicines Online - Buy at 50-80% Off | Suprameds`
+    // Skip redundant "Medicines" suffix when the category name already ends with it
+    // (e.g. "All Medicines" → "All Medicines Online" not "All Medicines Medicines Online").
+    const endsWithMedicines = /medicines?$/i.test(categoryName.trim())
+    const title = `${categoryName}${endsWithMedicines ? "" : " Medicines"} Online - Buy at 50-80% Off | Suprameds`
+    const subject = endsWithMedicines ? categoryName.toLowerCase() : `${categoryName.toLowerCase()} medicines`
     const description = (category?.description?.trim()?.slice(0, 155)) ||
-      `Buy ${categoryName.toLowerCase()} medicines online from India's licensed pharmacy. Pharmacist-dispensed, 50-80% off MRP. CDSCO-registered.`
+      `Buy ${subject} online from India's licensed pharmacy. Pharmacist-dispensed, 50-80% off MRP. CDSCO-registered.`
 
     const breadcrumbSchema = {
       "@context": "https://schema.org",
