@@ -51,13 +51,13 @@ export const Route = createFileRoute("/categories/$handle")({
     }
   },
   head: ({ loaderData, params }) => {
-    const { region, category, products } = loaderData || {}
+    const { category, products } = loaderData || {}
     const siteUrl = import.meta.env.VITE_SITE_URL || "https://supracyn.in"
-    const regionName = region?.name || DEFAULT_COUNTRY_CODE.toUpperCase()
     const categoryName = category?.name || "Category"
     const canonical = `${siteUrl}/categories/${category?.handle || params?.handle}`
-    const title = `${categoryName} - ${regionName} | Suprameds`
-    const description = `Shop ${categoryName.toLowerCase()} medicines online. Pharmacist-dispensed, delivered across ${regionName}. CDSCO-registered pharmacy.`
+    const title = `${categoryName} Medicines Online - Buy at 50-80% Off | Suprameds`
+    const description = (category?.description?.trim()?.slice(0, 155)) ||
+      `Buy ${categoryName.toLowerCase()} medicines online from India's licensed pharmacy. Pharmacist-dispensed, 50-80% off MRP. CDSCO-registered.`
 
     const breadcrumbSchema = {
       "@context": "https://schema.org",

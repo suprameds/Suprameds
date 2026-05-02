@@ -5,14 +5,6 @@ import { trackViewItemList } from "@/lib/utils/analytics"
 import { useLoaderData } from "@tanstack/react-router"
 import { useEffect } from "react"
 
-/**
- * Category Page Pattern
- *
- * Demonstrates:
- * - useLoaderData for SSR-loaded category and region
- * - useProducts with category_id filter
- * - Filtering products by category
- */
 const Category = () => {
   const { category, region } = useLoaderData({
     from: "/categories/$handle",
@@ -27,6 +19,8 @@ const Category = () => {
   })
 
   const products = data?.pages.flatMap((page) => page.products) || []
+  const categoryName = category?.name || "Category"
+  const productCount = products.length
 
   useEffect(() => {
     if (products.length && category?.name) {
@@ -35,9 +29,29 @@ const Category = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products.length, category?.name])
 
+  // Use category.description if pharmacist/admin has filled it in,
+  // otherwise fall back to a templated intro so every category page has
+  // unique-ish content (avoids "thin content" deprioritization in Google).
+  const introText = category?.description?.trim() ||
+    `Browse ${categoryName.toLowerCase()} medicines from India's licensed online pharmacy. ` +
+    `Every product is sourced from CDSCO-approved manufacturers, dispensed by registered pharmacists, ` +
+    `and shipped via Speed Post across India. Save 50–80% off MRP on generic alternatives with the same active ingredients as branded medicines.`
+
   return (
     <div className="content-container py-6">
-      <h1 className="text-xl mb-6">{category?.name || "Category"}</h1>
+      <header className="mb-6">
+        <h1 className="text-2xl lg:text-3xl font-semibold mb-3" style={{ fontFamily: "var(--font-serif, Fraunces, serif)", color: "var(--suprameds-navy, #1E2D5A)" }}>
+          {categoryName}
+        </h1>
+        <p className="text-sm leading-relaxed max-w-3xl" style={{ color: "var(--text-secondary)" }}>
+          {introText}
+        </p>
+        {productCount > 0 && (
+          <p className="mt-2 text-xs" style={{ color: "var(--text-tertiary)" }}>
+            {productCount}{hasNextPage ? "+" : ""} {productCount === 1 ? "medicine" : "medicines"} available
+          </p>
+        )}
+      </header>
 
       {isFetching && products.length === 0 ? (
         <div className="text-[var(--text-secondary)]">Loading...</div>
