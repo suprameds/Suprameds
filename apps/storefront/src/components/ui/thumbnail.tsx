@@ -7,6 +7,12 @@ type ThumbnailProps = {
   dosageForm?: string | null
   /** Set to "eager" for above-the-fold images, defaults to "lazy" */
   loading?: "lazy" | "eager"
+  /**
+   * Source pixel width to request from Supabase's image transform API.
+   * Defaults to 80 (small inline thumbnails). Pass ~400 for product card grids
+   * so the displayed image isn't a tiny 80px source upscaled into a 250px box.
+   */
+  width?: number
 }
 
 /** Dosage form icon — renders the appropriate medicine shape */
@@ -97,18 +103,24 @@ function supabaseTransform(url: string, width: number): string {
   return `${origin}/storage/v1/render/image/public/${path}?width=${width}&quality=80&format=webp`
 }
 
-export const Thumbnail = ({ thumbnail, alt, className, dosageForm, loading = "lazy" }: ThumbnailProps) => {
+export const Thumbnail = ({ thumbnail, alt, className, dosageForm, loading = "lazy", width = 80 }: ThumbnailProps) => {
   if (thumbnail) {
-    const src = supabaseTransform(thumbnail, 80)
+    // Request a 2x source for retina displays so the rendered image isn't blurry.
+    const src = supabaseTransform(thumbnail, width * 2)
+    // Only apply default sizing/fit when no className override is provided.
+    // When a parent passes className (e.g. product card), it owns layout entirely
+    // — otherwise both `object-cover` and the override's `object-contain` end up
+    // in the class attribute, and CSS rule order (not class order) decides the winner.
+    const baseClasses = className ? "" : "w-20 h-20 object-cover"
     return (
       <img
         src={src}
         alt={alt}
-        width={80}
-        height={80}
+        width={width}
+        height={width}
         loading={loading}
         decoding="async"
-        className={clsx("w-20 h-20 object-cover bg-[var(--bg-tertiary)]", className)}
+        className={clsx(baseClasses, "bg-[var(--bg-tertiary)]", className)}
       />
     )
   }

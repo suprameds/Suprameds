@@ -157,6 +157,7 @@ const ProductCard = ({ product, pharmaLoading, index }: ProductCardProps) => {
           alt={product.title}
           dosageForm={drug?.dosage_form}
           loading={index !== undefined && index < 8 ? "eager" : "lazy"}
+          width={400}
           className="absolute inset-0 object-contain object-center w-full h-full p-3 transition-transform duration-500 group-hover:scale-105"
         />
       </div>

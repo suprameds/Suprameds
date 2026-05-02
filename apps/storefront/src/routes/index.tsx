@@ -57,6 +57,57 @@ export const Route = createFileRoute("/")({
       },
     }
 
+    const localBusinessSchema = {
+      "@context": "https://schema.org",
+      "@type": ["Pharmacy", "LocalBusiness"],
+      name: "Suprameds",
+      url: siteUrl,
+      logo: `${siteUrl}/images/suprameds.svg`,
+      image: `${siteUrl}/og-default.png`,
+      description: "CDSCO-registered licensed online pharmacy. Pharmacist-dispensed prescription and OTC medicines at 50-80% off MRP. Drug License: TS/HYD/2021-82149.",
+      telephone: "+917674962758",
+      email: "support@supracynpharma.com",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Hyderabad",
+        addressLocality: "Hyderabad",
+        addressRegion: "Telangana",
+        postalCode: "500001",
+        addressCountry: "IN",
+      },
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: "17.3850",
+        longitude: "78.4867",
+      },
+      areaServed: {
+        "@type": "Country",
+        name: "India",
+      },
+      priceRange: "₹",
+      openingHoursSpecification: [
+        {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+          opens: "09:00",
+          closes: "18:00",
+        },
+      ],
+      hasCredential: {
+        "@type": "EducationalOccupationalCredential",
+        name: "Drug License",
+        credentialCategory: "license",
+        recognizedBy: {
+          "@type": "Organization",
+          name: "Telangana State Drugs Control Administration",
+        },
+        identifier: "TS/HYD/2021-82149",
+      },
+      sameAs: [
+        siteUrl,
+      ],
+    }
+
     const websiteSchema = {
       "@context": "https://schema.org",
       "@type": "WebSite",
@@ -90,6 +141,7 @@ export const Route = createFileRoute("/")({
       scripts: [
         { type: "application/ld+json", children: JSON.stringify(organizationSchema) },
         { type: "application/ld+json", children: JSON.stringify(websiteSchema) },
+        { type: "application/ld+json", children: JSON.stringify(localBusinessSchema) },
       ],
     }
   },
