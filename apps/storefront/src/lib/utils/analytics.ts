@@ -16,10 +16,16 @@
  * conversion closes the loop with the original click.
  */
 
+import { Capacitor } from "@capacitor/core"
 import { hashUserData, type UserDataInput } from "@/lib/utils/enhanced-conversions"
 import { getAdAttribution } from "@/lib/utils/ad-attribution"
 
 const GOOGLE_ADS_ID = import.meta.env.VITE_GOOGLE_ADS_ID as string | undefined
+
+/** "android" | "ios" | "web" — included on every event for platform segmentation in GA4. */
+function getPlatform(): string {
+  return Capacitor.isNativePlatform() ? Capacitor.getPlatform() : "web"
+}
 const SIGNUP_CONVERSION_LABEL = import.meta.env.VITE_GOOGLE_ADS_SIGNUP_CONVERSION_LABEL as string | undefined
 const LOGIN_CONVERSION_LABEL = import.meta.env.VITE_GOOGLE_ADS_LOGIN_CONVERSION_LABEL as string | undefined
 
@@ -39,7 +45,8 @@ declare global {
 
 function gtag(command: GtagCommand, action: string, params?: Record<string, unknown>) {
   if (typeof window === "undefined" || !window.gtag) return
-  window.gtag(command, action, params)
+  const enriched = command === "event" ? { platform: getPlatform(), ...params } : params
+  window.gtag(command, action, enriched)
 }
 
 function fbq(...args: unknown[]) {
@@ -50,7 +57,7 @@ function fbq(...args: unknown[]) {
 function pushDataLayer(event: string, data?: Record<string, unknown>) {
   if (typeof window === "undefined") return
   window.dataLayer = window.dataLayer || []
-  window.dataLayer.push({ event, ...data })
+  window.dataLayer.push({ event, platform: getPlatform(), ...data })
 }
 
 /* ------------------------------------------------------------------ */
