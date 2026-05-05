@@ -15,3 +15,21 @@ export function isExtensionNoise(event: ErrorEvent): boolean {
     return true
   })
 }
+
+/**
+ * Cloudflare Zaraz intercepts window.dataLayer.push and tries to JSON.stringify
+ * its internal payload. When a DOM element (HTMLAnchorElement with React fiber)
+ * ends up in Zaraz's page-context capture it throws a circular-structure error
+ * as an unhandled rejection. Our GA4/gtag tracking is unaffected — this is
+ * purely Zaraz noise.
+ */
+export function isZarazNoise(event: ErrorEvent): boolean {
+  const exception = event.exception?.values?.[0]
+  if (!exception) return false
+
+  const message = exception.value ?? ""
+  if (!message.includes("Converting circular structure to JSON")) return false
+
+  const frames = exception.stacktrace?.frames ?? []
+  return frames.some((frame) => frame.filename?.includes("/cdn-cgi/zaraz/"))
+}
