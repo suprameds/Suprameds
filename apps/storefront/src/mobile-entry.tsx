@@ -13,7 +13,7 @@ import { getRouter } from "./router"
 // eslint-disable-next-line no-restricted-imports
 import { initCapacitorPlugins } from "./lib/capacitor"
 // eslint-disable-next-line no-restricted-imports
-import { isExtensionNoise } from "./lib/utils/sentry-filters"
+import { isExtensionNoise, isZarazNoise } from "./lib/utils/sentry-filters"
 import * as Sentry from "@sentry/react"
 // eslint-disable-next-line no-restricted-imports
 import "./styles/app.css"
@@ -33,6 +33,9 @@ try {
         return null
       }
       if (isExtensionNoise(event)) {
+        return null
+      }
+      if (isZarazNoise(event)) {
         return null
       }
       return event

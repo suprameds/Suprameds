@@ -5,7 +5,7 @@ import { StartClient } from "@tanstack/react-start/client"
 // eslint-disable-next-line no-restricted-imports
 import { getRouter } from "./router"
 // eslint-disable-next-line no-restricted-imports
-import { isExtensionNoise } from "./lib/utils/sentry-filters"
+import { isExtensionNoise, isZarazNoise } from "./lib/utils/sentry-filters"
 
 try {
   Sentry.init({
@@ -36,6 +36,9 @@ try {
         return null
       }
       if (isExtensionNoise(event)) {
+        return null
+      }
+      if (isZarazNoise(event)) {
         return null
       }
       return event

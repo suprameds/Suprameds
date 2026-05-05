@@ -25,7 +25,6 @@ export default async function orderPlacedHandler({
     const order = await orderService.retrieveOrder(orderId, {
       relations: [
         "items",
-        "items.variant",
         "shipping_address",
         "billing_address",
         "shipping_methods",

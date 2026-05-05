@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import type { ErrorEvent, Exception } from "@sentry/react"
-import { isExtensionNoise } from "@/lib/utils/sentry-filters"
+import { isExtensionNoise, isZarazNoise } from "@/lib/utils/sentry-filters"
 
 function makeEvent(exception: Exception): ErrorEvent {
   return { exception: { values: [exception] } } as ErrorEvent
@@ -77,5 +77,51 @@ describe("isExtensionNoise", () => {
       },
     })
     expect(isExtensionNoise(event)).toBe(false)
+  })
+})
+
+describe("isZarazNoise", () => {
+  it("returns true for Zaraz circular-JSON unhandled rejection (SUPRAMEDS-J/P shape)", () => {
+    const event = makeEvent({
+      type: "TypeError",
+      value: "Converting circular structure to JSON\n    --> starting at object with constructor 'HTMLAnchorElement'",
+      mechanism: { type: "onunhandledrejection", handled: false },
+      stacktrace: {
+        frames: [
+          { filename: "/assets/analytics-DcbJGzxu.js", function: "pushDataLayer" },
+          { filename: "/cdn-cgi/zaraz/s.js", function: "zaraz._processDataLayer" },
+          { filename: "/cdn-cgi/zaraz/s.js", function: "zaraz.track" },
+        ],
+      },
+    })
+    expect(isZarazNoise(event)).toBe(true)
+  })
+
+  it("returns false when circular JSON does not involve Zaraz", () => {
+    const event = makeEvent({
+      type: "TypeError",
+      value: "Converting circular structure to JSON",
+      mechanism: { type: "onunhandledrejection", handled: false },
+      stacktrace: {
+        frames: [{ filename: "/assets/main-abc.js", function: "serialize" }],
+      },
+    })
+    expect(isZarazNoise(event)).toBe(false)
+  })
+
+  it("returns false when Zaraz frame is present but error is unrelated", () => {
+    const event = makeEvent({
+      type: "TypeError",
+      value: "Cannot read properties of null",
+      mechanism: { type: "onunhandledrejection", handled: false },
+      stacktrace: {
+        frames: [{ filename: "/cdn-cgi/zaraz/s.js", function: "zaraz.track" }],
+      },
+    })
+    expect(isZarazNoise(event)).toBe(false)
+  })
+
+  it("returns false when there is no exception", () => {
+    expect(isZarazNoise({} as ErrorEvent)).toBe(false)
   })
 })
