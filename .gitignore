@@ -72,6 +72,9 @@ e2e/performance/results/
 tmp/
 .gstack/
 
+# ---- Play Store assets (local only, not part of codebase) ----
+play-store-screenshots/
+
 # ---- Graphify ----
 .graphify_*
 graphify-out/
