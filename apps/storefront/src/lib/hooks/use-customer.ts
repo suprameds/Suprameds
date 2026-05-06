@@ -164,6 +164,7 @@ interface OtpVerifyResponse {
   success: boolean
   token: string
   customer_id: string
+  is_new: boolean
 }
 
 /**
@@ -227,9 +228,9 @@ export const useOtpVerify = () => {
 
       const { customer } = await sdk.store.customer.retrieve()
 
-      return customer
+      return { customer, is_new: response.is_new }
     },
-    onSuccess: (customer) => {
+    onSuccess: ({ customer }) => {
       queryClient.setQueryData(queryKeys.customer.current(), customer)
       queryClient.invalidateQueries({ queryKey: queryKeys.customer.all })
     },
