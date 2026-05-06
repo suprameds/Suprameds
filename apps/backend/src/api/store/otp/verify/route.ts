@@ -83,6 +83,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
   // ── Find or create customer ────────────────────────────────────────
   let customer: { id: string; phone?: string; email?: string }
+  let isNew: boolean
 
   const [existingCustomers] = await customerModule.listAndCountCustomers(
     { [lookupField]: identifier },
@@ -91,12 +92,14 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
   if (existingCustomers.length > 0) {
     customer = existingCustomers[0]
+    isNew = false
     logger.info(`[otp/verify] Existing customer found via ${lookupField}`, { customer_id: customer.id })
   } else {
     customer = await customerModule.createCustomers({
       [lookupField]: identifier,
       has_account: true,
     })
+    isNew = true
     logger.info(`[otp/verify] New customer created via ${lookupField}`, { customer_id: customer.id })
   }
 
@@ -156,5 +159,5 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     identifier: lookupField === "email" ? identifier : `${identifier.slice(0, 4)}****`,
   })
 
-  res.json({ success: true, token, customer_id: customer.id })
+  res.json({ success: true, token, customer_id: customer.id, is_new: isNew })
 }

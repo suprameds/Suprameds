@@ -147,16 +147,15 @@ function LoginPage() {
     otpVerify.mutate(
       { phone, otp: phoneOtp, country_code: "91", channel: "sms" },
       {
-        onSuccess: (customer) => {
+        onSuccess: ({ customer, is_new }) => {
           void hapticNotification("success")
-          const isNew = !customer?.first_name
           const userData = { phone, country: DEFAULT_COUNTRY_CODE }
-          if (isNew) {
+          if (is_new) {
             void trackSignup({ method: "phone-otp", userId: customer?.id, userData })
           } else {
             void trackLogin({ method: "phone-otp", userId: customer?.id, userData })
           }
-          navigateAfterLogin(isNew)
+          navigateAfterLogin(is_new)
         },
         onError: (err: any) => {
           void hapticNotification("error")
@@ -209,16 +208,15 @@ function LoginPage() {
     otpVerify.mutate(
       { email: otpEmail, otp: emailOtp, channel: "email" },
       {
-        onSuccess: (customer) => {
+        onSuccess: ({ customer, is_new }) => {
           void hapticNotification("success")
-          const isNew = !customer?.first_name
           const userData = { email: otpEmail, country: DEFAULT_COUNTRY_CODE }
-          if (isNew) {
+          if (is_new) {
             void trackSignup({ method: "email-otp", userId: customer?.id, userData })
           } else {
             void trackLogin({ method: "email-otp", userId: customer?.id, userData })
           }
-          navigateAfterLogin(isNew)
+          navigateAfterLogin(is_new)
         },
         onError: (err: any) => {
           void hapticNotification("error")
