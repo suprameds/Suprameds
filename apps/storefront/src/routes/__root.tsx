@@ -142,25 +142,20 @@ export const Route = createRootRouteWithContext<{
       {
         children: `(function(){var l=document.createElement('link');l.rel='stylesheet';l.href='https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&display=swap';document.head.appendChild(l)})();`,
       },
-      // Google Analytics 4 — async loader
+      // Initialise dataLayer + gtag shim before GTM loads.
+      // GA4 is now configured via a GTM tag (GTM-P53KN295) — no direct gtag.js needed.
+      // gtag() shim is kept so analytics.ts Google Ads conversion calls still work.
       {
-        src: "https://www.googletagmanager.com/gtag/js?id=G-JKGJ3D3B86",
-        async: true,
-      },
-      // GA4 inline initialisation (also configures Google Ads conversion ID when set)
-      {
-        children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JKGJ3D3B86');${
+        children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());${
           import.meta.env.VITE_GOOGLE_ADS_ID
             ? `gtag('config','${import.meta.env.VITE_GOOGLE_ADS_ID}');`
             : ""
         }`,
       },
-      // Google Tag Manager — enables AdScale, Meta Pixel management, and other tags via GTM dashboard
-      ...(import.meta.env.VITE_GTM_ID
-        ? [{
-            children: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${import.meta.env.VITE_GTM_ID}');`,
-          }]
-        : []),
+      // Google Tag Manager — GA4 + Meta Pixel + Google Ads all managed via GTM-P53KN295
+      {
+        children: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-P53KN295');`,
+      },
       // Meta / Facebook Pixel — conversion tracking for Meta Ads
       ...(import.meta.env.VITE_META_PIXEL_ID
         ? [{
@@ -195,16 +190,14 @@ function RootComponent() {
       <body>
         {showSplash && <SplashScreen onComplete={hideSplash} />}
         {/* GTM noscript fallback */}
-        {import.meta.env.VITE_GTM_ID && (
-          <noscript>
-            <iframe
-              src={`https://www.googletagmanager.com/ns.html?id=${import.meta.env.VITE_GTM_ID}`}
-              height="0"
-              width="0"
-              style={{ display: "none", visibility: "hidden" }}
-            />
-          </noscript>
-        )}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-P53KN295"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         {/* Meta Pixel noscript fallback */}
         {import.meta.env.VITE_META_PIXEL_ID && (
           <noscript>
