@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { useCallback, useEffect, useRef, useState, forwardRef } from "react"
 import { useCustomer, useLogin, useOtpSend, useOtpVerify } from "@/lib/hooks/use-customer"
+import { sdk } from "@/lib/utils/sdk"
 import { trackLogin, trackSignup } from "@/lib/utils/analytics"
 import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 import { hapticNotification } from "@/lib/utils/haptics"
@@ -13,9 +14,10 @@ export const Route = createFileRoute("/account/login")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { redirectTo: string | undefined; pendingAction?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { redirectTo: string | undefined; pendingAction?: string; ref?: string } => ({
     redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
     pendingAction: typeof search.pendingAction === "string" ? search.pendingAction : undefined,
+    ref: typeof search.ref === "string" ? search.ref : undefined,
   }),
   component: LoginPage,
 })
@@ -24,7 +26,7 @@ type LoginMode = "email" | "phone-otp" | "email-otp"
 type OtpStep = "input" | "verify"
 
 function LoginPage() {
-  const { redirectTo, pendingAction } = Route.useSearch()
+  const { redirectTo, pendingAction, ref } = Route.useSearch()
   const navigate = useNavigate()
   const login = useLogin()
   const { data: customer, isLoading: customerLoading } = useCustomer()
@@ -161,6 +163,11 @@ function LoginPage() {
           } else {
             void trackLogin({ method: "phone-otp", userId: customer?.id, userData })
           }
+          if (is_new && ref) {
+            // Fire-and-forget metadata write; tolerated to fail silently
+            void sdk.store.customer.update({ metadata: { referred_by: ref } })
+              .catch(() => { /* non-fatal */ })
+          }
           navigateAfterLogin(is_new)
         },
         onError: (err: any) => {
@@ -221,6 +228,11 @@ function LoginPage() {
             void trackSignup({ method: "email-otp", userId: customer?.id, userData })
           } else {
             void trackLogin({ method: "email-otp", userId: customer?.id, userData })
+          }
+          if (is_new && ref) {
+            // Fire-and-forget metadata write; tolerated to fail silently
+            void sdk.store.customer.update({ metadata: { referred_by: ref } })
+              .catch(() => { /* non-fatal */ })
           }
           navigateAfterLogin(is_new)
         },
