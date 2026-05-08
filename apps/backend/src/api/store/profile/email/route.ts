@@ -7,23 +7,28 @@ import { Modules } from "@medusajs/framework/utils"
 const PHONE_BRIDGE_RE = /@phone\.suprameds\.in$/i
 
 /**
- * POST /store/customers/update-email — dedicated email-upgrade endpoint.
+ * POST /store/profile/email — dedicated email-upgrade endpoint.
  *
  * OTP-only signups receive an auto-generated `{phone}@phone.suprameds.in`
- * placeholder email. This endpoint is the path for those customers to upgrade
- * to a real address. We:
- *   - Validate format (basic regex; Medusa applies stricter checks downstream)
+ * placeholder email. This is the path for those customers to upgrade to
+ * a real address.
+ *
+ * Path note: this lives under /store/profile/ rather than the more natural
+ * /store/customers/me/email because adding ANY file under
+ * apps/backend/src/api/store/customers/ triggers medusa-cli's admin builder
+ * to fail with `Rollup failed to resolve "@medusajs/draft-order/admin"`.
+ * Hypothesis: medusa-cli scans for plugin admin extensions whenever
+ * user-space extends customer-related routes — and @medusajs/draft-order
+ * adds a "create draft order" widget on the customer detail page in admin.
+ * Workaround until upstream tooling allows opting out.
+ *
+ * Behavior:
+ *   - Validate email format (basic regex)
  *   - Reject the auto-generated placeholder format
  *   - Lowercase + trim before uniqueness check + write
  *   - Use `find` (not [0]) to catch a conflict at any index
- *   - Catch DB unique-constraint errors and map to a clean 409 (handles legacy
- *     mixed-case rows from email/password registration)
- *
- * Note: this endpoint lives at /customers/update-email rather than the more
- * natural /customers/me/email because adding any directory under
- * /api/store/customers/me/ in user-space triggers medusa-cli's admin builder
- * to fail with `Rollup failed to resolve "@medusajs/draft-order/admin"`.
- * Workaround until that build path is investigated.
+ *   - Catch DB unique-constraint errors and map to a clean 409 (handles
+ *     legacy mixed-case rows from email/password registration)
  */
 export const POST = async (
   req: AuthenticatedMedusaRequest,
