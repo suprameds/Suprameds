@@ -13,6 +13,7 @@ COPY apps/storefront/package.json apps/storefront/pnpm-lock.yaml apps/storefront
 # pnpm v10 split lockfiles: workspace lockfiles live in apps/backend/pnpm-lock.yaml
 # --frozen-lockfile only checks the root lockfile (which has no workspace importers)
 # so we use --no-frozen-lockfile like the storefront Dockerfile
+# Cache-bust: 2026-05-08 — admin dashboard build started failing on stale layer
 RUN pnpm install --no-frozen-lockfile --filter backend
 
 # Pre-create the pruned production node_modules here (while deps are cached).
