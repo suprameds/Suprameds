@@ -1,6 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
-import { updateCustomersWorkflow } from "@medusajs/core-flows"
+import { updateCustomersWorkflow } from "@medusajs/medusa/core-flows"
 
 /**
  * POST /store/customers/me — defensive override of Medusa's default.
