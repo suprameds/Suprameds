@@ -85,9 +85,25 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   let customer: { id: string; phone?: string; email?: string }
   let isNew: boolean
 
+  // Phone storage has historically used two formats:
+  //   - 10-digit  (legacy email/password registration):    "9876543210"
+  //   - E.164 no-+ (this OTP route, via normalisePhone):   "919876543210"
+  // Match both so an existing customer isn't accidentally duplicated when
+  // they sign in via OTP for the first time. Email is a single canonical
+  // (lowercased + trimmed) form so we match it directly.
+  let lookupValue: any = identifier
+  if (channel === "sms") {
+    const tenDigit = identifier.length > 10 ? identifier.slice(-10) : identifier
+    const fullForm = identifier.length > 10 ? identifier : `${country_code}${identifier}`
+    lookupValue = { $in: [fullForm, tenDigit, `+${fullForm}`] }
+  }
+
+  // Order by created_at ASC so the OLDEST matching customer wins. Important
+  // when a duplicate has already been created — we want OTP to log into the
+  // original account, not the orphan.
   const [existingCustomers] = await customerModule.listAndCountCustomers(
-    { [lookupField]: identifier },
-    { take: 1 },
+    { [lookupField]: lookupValue },
+    { take: 1, order: { created_at: "ASC" } },
   )
 
   if (existingCustomers.length > 0) {
