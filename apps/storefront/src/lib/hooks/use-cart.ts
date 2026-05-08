@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { HttpTypes } from "@medusajs/types"
 import { queryKeys } from "@/lib/utils/query-keys"
 import { sdk } from "@/lib/utils/sdk"
+import { useCustomer } from "@/lib/hooks/use-customer"
 import {
   getStoredCart,
   setStoredCart,
@@ -16,6 +17,23 @@ import {
   removeLineItemOptimistically,
   createOptimisticCart,
 } from "@/lib/utils/cart"
+
+/**
+ * Thrown by `useAddToCart` when an unauthenticated user attempts to add
+ * an item. Carries a `pendingAction` token (e.g. `add_to_cart:variant_xxx`)
+ * that the login round-trip preserves so the original intent can be
+ * replayed once the user authenticates. Defense-in-depth: button-level
+ * `useRequireAuth` is the primary gate; this is the safety net for any
+ * caller that bypasses the UI.
+ */
+export class AuthRequiredError extends Error {
+  pendingAction: string
+  constructor(pendingAction: string) {
+    super("Authentication required")
+    this.name = "AuthRequiredError"
+    this.pendingAction = pendingAction
+  }
+}
 
 const DEFAULT_CART_FIELDS = "+items.total, +shipping_methods.name"
 
@@ -93,6 +111,7 @@ export const useCreateCart = () => {
 
 export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
   const queryClient = useQueryClient()
+  const { data: customer } = useCustomer()
 
   return useMutation({
     mutationFn: async (variables: {
@@ -106,6 +125,13 @@ export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
     }) => {
       const { variant_id, quantity, country_code, fields: requestFields } = variables
       if (!variant_id) throw new Error("Missing variant ID when adding to cart")
+
+      // Defense-in-depth auth gate. Button-level `useRequireAuth` is the
+      // primary UX path (toast + redirect with pendingAction); this throw
+      // protects any caller that bypasses the button gate.
+      if (!customer) {
+        throw new AuthRequiredError(`add_to_cart:${variant_id}`)
+      }
 
       const normalizedCountryCode = country_code.toLowerCase()
 

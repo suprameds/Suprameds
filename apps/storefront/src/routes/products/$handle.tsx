@@ -9,6 +9,12 @@ import { createFileRoute, notFound } from "@tanstack/react-router"
 import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 
 export const Route = createFileRoute("/products/$handle")({
+  // Allow ?pendingAction=add_to_cart:<variant_id> on the PDP URL so that
+  // post-login round-trips can replay the original add-to-cart intent.
+  // See: pages/product.tsx for the resume effect.
+  validateSearch: (search: Record<string, unknown>): { pendingAction?: string } => ({
+    pendingAction: typeof search.pendingAction === "string" ? search.pendingAction : undefined,
+  }),
   loader: async ({ params, context }) => {
     const { handle } = params
     const { queryClient } = context
