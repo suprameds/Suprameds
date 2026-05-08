@@ -11,6 +11,7 @@ import {
 import { useQuery } from "@tanstack/react-query"
 import { sdk } from "@/lib/utils/sdk"
 import { loadDrafts, saveDrafts } from "@/pages/account/pharmacist/draft-utils"
+import { toTenDigitIndian } from "@/lib/utils/phone"
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -286,7 +287,7 @@ export default function CreateOrderPage() {
 
   function handleLoadDraft(draft: Draft) {
     setSelectedCustomer(draft.customer)
-    setPhone(draft.customer.phone?.replace("+91", "") || "")
+    setPhone(toTenDigitIndian(draft.customer.phone))
     setCartItems(draft.cartItems)
     setSelectedPrescriptionId(draft.prescriptionId)
     setNotes(draft.notes)

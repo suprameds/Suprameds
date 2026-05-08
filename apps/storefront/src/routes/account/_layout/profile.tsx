@@ -11,6 +11,7 @@ import {
 import { ProfileCompletionBanner } from "@/components/profile/profile-completion-banner"
 import { PharmaFieldsForm } from "@/components/profile/pharma-fields-form"
 import type { PharmaCustomerMetadata } from "@/lib/types/pharma-customer"
+import { formatIndianPhone, toTenDigitIndian } from "@/lib/utils/phone"
 
 export const Route = createFileRoute("/account/_layout/profile")({
   head: () => ({
@@ -30,7 +31,7 @@ function ProfilePage() {
   const [form, setForm] = useState({
     first_name: customer?.first_name ?? "",
     last_name: customer?.last_name ?? "",
-    phone: customer?.phone ?? "",
+    phone: toTenDigitIndian(customer?.phone),
   })
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
@@ -45,7 +46,7 @@ function ProfilePage() {
     setForm({
       first_name: customer?.first_name ?? "",
       last_name: customer?.last_name ?? "",
-      phone: customer?.phone ?? "",
+      phone: toTenDigitIndian(customer?.phone),
     })
     setEditing(true)
     setSaved(false)
@@ -170,7 +171,7 @@ function ProfilePage() {
             <InfoRow label="First name" value={customer?.first_name ?? "—"} />
             <InfoRow label="Last name" value={customer?.last_name ?? "—"} />
             <InfoRow label="Email address" value={customer?.email ?? "—"} />
-            <InfoRow label="Mobile" value={customer?.phone ? `+91 ${customer.phone}` : "—"} />
+            <InfoRow label="Mobile" value={formatIndianPhone(customer?.phone)} />
           </div>
         )}
 
