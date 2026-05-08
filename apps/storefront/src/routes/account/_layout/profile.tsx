@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
-import { useCustomer, useUpdateCustomer } from "@/lib/hooks/use-customer"
+import { useCustomer, useUpdateCustomer, useUpdateCustomerEmail } from "@/lib/hooks/use-customer"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import {
   authenticateBiometric,
@@ -8,6 +8,9 @@ import {
   isBiometricEnabled,
   setBiometricEnabled,
 } from "@/lib/utils/biometric"
+import { ProfileCompletionBanner } from "@/components/profile/profile-completion-banner"
+import { PharmaFieldsForm } from "@/components/profile/pharma-fields-form"
+import type { PharmaCustomerMetadata } from "@/lib/types/pharma-customer"
 
 export const Route = createFileRoute("/account/_layout/profile")({
   head: () => ({
@@ -31,6 +34,12 @@ function ProfilePage() {
   })
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
+
+  const updateEmail = useUpdateCustomerEmail()
+  const [editingEmail, setEditingEmail] = useState(false)
+  const [newEmail, setNewEmail] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const isAutoEmail = !!customer?.email?.endsWith("@phone.suprameds.in")
 
   const handleEdit = () => {
     setForm({
@@ -67,6 +76,8 @@ function ProfilePage() {
           Manage your personal information
         </p>
       </div>
+
+      <ProfileCompletionBanner />
 
       {/* Personal info card */}
       <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
@@ -173,21 +184,82 @@ function ProfilePage() {
         )}
       </div>
 
-      {/* Email notice */}
       <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
-        <h2 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-          Email address
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+            Email address
+          </h2>
+          {!editingEmail && (
+            <button
+              onClick={() => {
+                setNewEmail(isAutoEmail ? "" : customer?.email ?? "")
+                setEditingEmail(true)
+                setEmailError("")
+              }}
+              className="text-xs font-medium px-3 py-1.5 rounded-lg border transition-all hover:bg-gray-50"
+              style={{ color: "var(--text-primary)", borderColor: "var(--border-primary)" }}
+            >
+              {isAutoEmail ? "Add email" : "Change"}
+            </button>
+          )}
+        </div>
+        {editingEmail ? (
+          <div className="flex flex-col gap-3">
+            <input
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="px-3 py-2 rounded-lg border text-sm outline-none focus:ring-2 focus:ring-offset-1"
+              style={{ borderColor: "var(--border-primary)" }}
+            />
+            {emailError && <p className="text-sm" style={{ color: "#B91C1C" }}>{emailError}</p>}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setEmailError("")
+                  updateEmail.mutate(newEmail, {
+                    onSuccess: () => {
+                      setEditingEmail(false)
+                    },
+                    onError: (err: any) => {
+                      const msg = err?.body?.message || err?.message || "Couldn't update email."
+                      setEmailError(msg)
+                    },
+                  })
+                }}
+                disabled={updateEmail.isPending || !newEmail}
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
+                style={{ background: "var(--bg-inverse)" }}
+              >
+                {updateEmail.isPending ? "Saving..." : "Save email"}
+              </button>
+              <button
+                onClick={() => { setEditingEmail(false); setEmailError("") }}
+                className="px-4 py-2 rounded-lg text-sm font-medium border transition-all hover:bg-gray-50"
+                style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm" style={{ color: isAutoEmail ? "var(--text-tertiary)" : "var(--text-secondary)" }}>
+            {isAutoEmail ? "No email on file — add one to receive order receipts." : customer?.email}
+          </p>
+        )}
+      </div>
+
+      <div>
+        <h2
+          className="text-lg font-semibold mb-3"
+          style={{ color: "var(--text-primary)", fontFamily: "Fraunces, Georgia, serif" }}
+        >
+          Medical & contact details
         </h2>
-        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-          {customer?.email}
-        </p>
-        <p className="text-xs mt-2" style={{ color: "var(--text-tertiary)" }}>
-          Email cannot be changed. Contact{" "}
-          <a href="/grievance" className="underline" style={{ color: "var(--text-secondary)" }}>
-            support
-          </a>{" "}
-          if you need to update your email.
-        </p>
+        <div className="bg-[var(--bg-secondary)] border rounded-xl p-6" style={{ borderColor: "var(--border-primary)" }}>
+          <PharmaFieldsForm initial={(customer?.metadata ?? {}) as PharmaCustomerMetadata} />
+        </div>
       </div>
 
       {/* Loyalty Points section — Coming Soon */}
