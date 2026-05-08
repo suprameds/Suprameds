@@ -60,64 +60,10 @@ if (import.meta.env.PROD && typeof window !== "undefined" && "serviceWorker" in 
     navigator.serviceWorker
       .register("/sw.js", { scope: "/" })
       .then((registration) => {
-        registration.addEventListener("updatefound", () => {
-          const newWorker = registration.installing
-          if (!newWorker) return
-
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state !== "installed" || !navigator.serviceWorker.controller) return
-
-            // Don't show if already displayed or dismissed this session
-            if (document.getElementById("pwa-update-toast")) return
-            if (sessionStorage.getItem("pwa-update-dismissed")) return
-
-            const toast = document.createElement("div")
-            toast.id = "pwa-update-toast"
-            toast.setAttribute("role", "alert")
-            Object.assign(toast.style, {
-              position: "fixed",
-              bottom: "1.5rem",
-              left: "50%",
-              transform: "translateX(-50%)",
-              background: "var(--bg-inverse, #1E2D5A)",
-              color: "var(--text-inverse, #fff)",
-              padding: "0.75rem 1.25rem",
-              borderRadius: "10px",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.18)",
-              zIndex: "99999",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              fontFamily: "DM Sans, sans-serif",
-              fontSize: "0.875rem",
-            })
-            toast.innerHTML = `
-              <span>A new version is available</span>
-              <button id="pwa-update-btn" style="
-                background:var(--brand-green, #27AE60);color:var(--text-inverse, #fff);border:none;padding:0.4rem 1rem;
-                border-radius:6px;font-size:0.8125rem;font-weight:600;cursor:pointer;
-              ">Update</button>
-              <button id="pwa-dismiss-btn" style="
-                background:transparent;color:rgba(255,255,255,0.7);border:none;
-                font-size:1.1rem;cursor:pointer;padding:0 0.25rem;
-              ">&times;</button>
-            `
-            document.body.appendChild(toast)
-
-            document.getElementById("pwa-update-btn")?.addEventListener("click", () => {
-              newWorker.postMessage({ type: "SKIP_WAITING" })
-              window.location.reload()
-            })
-            document.getElementById("pwa-dismiss-btn")?.addEventListener("click", () => {
-              toast.remove()
-              sessionStorage.setItem("pwa-update-dismissed", "1")
-            })
-
-            // Auto-dismiss after 15 seconds if user ignores it
-            setTimeout(() => { toast.remove() }, 15000)
-          })
-        })
-
+        // New SW versions install in the background and activate silently
+        // on the next page load when no tab is controlling the old worker.
+        // We deliberately do NOT show an "update available" toast — users
+        // get the new bundle whenever they next refresh, no nag.
         // eslint-disable-next-line no-console
         console.log("[PWA] Service worker registered:", registration.scope)
       })
