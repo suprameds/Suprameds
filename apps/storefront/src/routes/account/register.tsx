@@ -214,7 +214,7 @@ function RegisterPage() {
                   autoComplete="tel"
                   value={form.phone}
                   onChange={handleChange}
-                  placeholder="98765 43210"
+                  placeholder="0000000000"
                   className="flex-1 px-3.5 py-2.5 rounded-r-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
                   style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)" }}
                 />

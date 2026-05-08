@@ -440,7 +440,7 @@ function LoginPage() {
                         maxLength={10}
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                        placeholder="98765 43210"
+                        placeholder="0000000000"
                         className="flex-1 px-3.5 py-2.5 rounded-r-lg border text-sm outline-none transition-all focus:ring-2 focus:ring-offset-1"
                         style={{ borderColor: "var(--border-primary)", color: "var(--text-primary)", "--tw-ring-color": TEAL } as React.CSSProperties}
                       />
