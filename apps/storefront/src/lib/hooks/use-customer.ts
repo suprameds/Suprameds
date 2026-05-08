@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import type { HttpTypes } from "@medusajs/types"
 import { sdk } from "@/lib/utils/sdk"
 import { queryKeys } from "@/lib/utils/query-keys"
 import { secureGet, secureRemove, secureSet } from "@/lib/utils/secure-storage"
+import type { CustomerProfileUpdate } from "@/lib/types/pharma-customer"
 
 /**
  * Storage key for the OTP JWT token (bearer auth fallback).
@@ -259,17 +261,31 @@ export const useUpdateCustomer = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: {
-      first_name?: string
-      last_name?: string
-      phone?: string
-    }) => {
-      const { customer } = await sdk.store.customer.update(data)
+    mutationFn: async (data: CustomerProfileUpdate) => {
+      const { customer } = await sdk.store.customer.update(data as never)
       return customer
     },
     onSuccess: (customer) => {
       queryClient.setQueryData(queryKeys.customer.current(), customer)
-      queryClient.invalidateQueries({ queryKey: queryKeys.customer.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.customer.current() })
+    },
+  })
+}
+
+export const useUpdateCustomerEmail = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (email: string) => {
+      const res = await sdk.client.fetch<{ customer: HttpTypes.StoreCustomer }>(
+        "/store/customers/me/email",
+        { method: "POST", body: { email } }
+      )
+      return res.customer
+    },
+    onSuccess: (customer) => {
+      queryClient.setQueryData(queryKeys.customer.current(), customer)
+      queryClient.invalidateQueries({ queryKey: queryKeys.customer.current() })
     },
   })
 }
