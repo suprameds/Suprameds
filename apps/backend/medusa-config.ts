@@ -25,32 +25,11 @@ export default defineConfig({
         allowedHosts = [process.env.__MEDUSA_ADDITIONAL_ALLOWED_HOSTS];
       }
 
-      const path = require("path");
       return {
         server: {
           allowedHosts,
           hmr: {
             server: hmrServer,
-          },
-        },
-        // Workaround: @medusajs/draft-order ships an /admin subpath that
-        // resolves to a file (.medusa/server/src/admin/index.mjs) that pnpm
-        // sometimes fails to extract into Docker's node_modules. medusa-cli's
-        // generated admin entry.jsx imports it for plugin auto-discovery.
-        //
-        // Earlier we marked it `external` — that leaves the bare specifier
-        // in the bundle and crashes the browser on load with "Failed to
-        // resolve module specifier '@medusajs/draft-order/admin'", which
-        // means the entire admin SPA never mounts (blank /app and /app/login).
-        //
-        // Instead, alias to an empty stub so Rollup bundles a no-op and the
-        // import resolves cleanly at runtime.
-        resolve: {
-          alias: {
-            "@medusajs/draft-order/admin": path.resolve(
-              __dirname,
-              "src/admin/_stubs/draft-order-admin.ts"
-            ),
           },
         },
       };
