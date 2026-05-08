@@ -195,7 +195,7 @@ function AddressesPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <Field label="PIN code *" name="postal_code" value={form.postal_code} onChange={handleChange} placeholder="560001" />
-              <Field label="Phone" name="phone" value={form.phone} onChange={handleChange} placeholder="98765 43210" />
+              <Field label="Phone" name="phone" value={form.phone} onChange={handleChange} placeholder="0000000000" />
             </div>
 
             {formError && (
