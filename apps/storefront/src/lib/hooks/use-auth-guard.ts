@@ -30,7 +30,7 @@ export function useAuthGuard() {
       const search = {
         redirectTo,
         ...(pendingAction ? { pendingAction } : {}),
-      } as unknown as { redirectTo: string }
+      } as unknown as { redirectTo: string; pendingAction?: string }
       navigate({ to: "/account/login", search })
       return false
     },
