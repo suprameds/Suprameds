@@ -41,6 +41,34 @@ const emptyForm: AddressForm = {
   phone: "",
 }
 
+/** Trim text fields, strip phone/postal_code to digits. Idempotent. */
+function sanitizeAddressForm(form: AddressForm): AddressForm {
+  return {
+    first_name: form.first_name.trim(),
+    last_name: form.last_name.trim(),
+    address_1: form.address_1.trim(),
+    address_2: form.address_2.trim(),
+    city: form.city.trim(),
+    province: form.province.trim(),
+    postal_code: form.postal_code.replace(/\D/g, "").slice(0, 6),
+    phone: form.phone.replace(/\D/g, "").slice(-10),
+  }
+}
+
+/** Returns error string if invalid, null if OK. */
+function validateAddressForm(form: AddressForm): string | null {
+  if (!form.first_name || !form.last_name || !form.address_1 || !form.city || !form.postal_code) {
+    return "Please fill in all required fields."
+  }
+  if (!/^\d{6}$/.test(form.postal_code)) {
+    return "PIN code must be exactly 6 digits."
+  }
+  if (form.phone && !/^[6-9]\d{9}$/.test(form.phone)) {
+    return "Mobile number must be 10 digits and start with 6, 7, 8, or 9."
+  }
+  return null
+}
+
 function AddressesPage() {
   const { data: addresses, isLoading } = useCustomerAddresses()
   const createAddress = useCreateAddress()
@@ -79,8 +107,10 @@ function AddressesPage() {
     e.preventDefault()
     setFormError("")
 
-    if (!form.first_name || !form.last_name || !form.address_1 || !form.city || !form.postal_code) {
-      setFormError("Please fill in all required fields.")
+    const cleaned = sanitizeAddressForm(form)
+    const validation = validateAddressForm(cleaned)
+    if (validation) {
+      setFormError(validation)
       return
     }
 
@@ -88,15 +118,15 @@ function AddressesPage() {
       {
         addressId: editingId!,
         data: {
-          first_name: form.first_name,
-          last_name: form.last_name,
-          address_1: form.address_1,
-          address_2: form.address_2 || undefined,
-          city: form.city,
-          province: form.province || undefined,
-          postal_code: form.postal_code,
+          first_name: cleaned.first_name,
+          last_name: cleaned.last_name,
+          address_1: cleaned.address_1,
+          address_2: cleaned.address_2 || undefined,
+          city: cleaned.city,
+          province: cleaned.province || undefined,
+          postal_code: cleaned.postal_code,
           country_code: "in",
-          phone: form.phone || undefined,
+          phone: cleaned.phone || undefined,
         },
       },
       {
@@ -118,22 +148,24 @@ function AddressesPage() {
     e.preventDefault()
     setFormError("")
 
-    if (!form.first_name || !form.last_name || !form.address_1 || !form.city || !form.postal_code) {
-      setFormError("Please fill in all required fields.")
+    const cleaned = sanitizeAddressForm(form)
+    const validation = validateAddressForm(cleaned)
+    if (validation) {
+      setFormError(validation)
       return
     }
 
     createAddress.mutate(
       {
-        first_name: form.first_name,
-        last_name: form.last_name,
-        address_1: form.address_1,
-        address_2: form.address_2 || undefined,
-        city: form.city,
-        province: form.province || undefined,
-        postal_code: form.postal_code,
+        first_name: cleaned.first_name,
+        last_name: cleaned.last_name,
+        address_1: cleaned.address_1,
+        address_2: cleaned.address_2 || undefined,
+        city: cleaned.city,
+        province: cleaned.province || undefined,
+        postal_code: cleaned.postal_code,
         country_code: "in",
-        phone: form.phone || undefined,
+        phone: cleaned.phone || undefined,
       },
       {
         onSuccess: () => {

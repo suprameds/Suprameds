@@ -40,7 +40,11 @@ function ProfilePage() {
   const [editingEmail, setEditingEmail] = useState(false)
   const [newEmail, setNewEmail] = useState("")
   const [emailError, setEmailError] = useState("")
-  const isAutoEmail = !!customer?.email?.endsWith("@phone.suprameds.in")
+  // No real email = OTP-signup customer who never added one. Treat the same
+  // as the legacy "@phone.suprameds.in" placeholder: prompt to add.
+  const hasRealEmail =
+    !!customer?.email && !customer.email.endsWith("@phone.suprameds.in")
+  const isAutoEmail = !hasRealEmail
 
   const handleEdit = () => {
     setForm({
@@ -55,16 +59,37 @@ function ProfilePage() {
 
   const handleSave = () => {
     setError("")
-    updateCustomer.mutate(form, {
-      onSuccess: () => {
-        setEditing(false)
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
+
+    // Validate before send. Phone must be 10 digits starting 6-9 (Indian mobile).
+    // Empty phone is allowed (user clearing it).
+    const trimmedFirst = form.first_name.trim()
+    const trimmedLast = form.last_name.trim()
+    const phoneDigits = form.phone.replace(/\D/g, "")
+    if (phoneDigits && !/^[6-9]\d{9}$/.test(phoneDigits)) {
+      setError("Mobile number must be 10 digits and start with 6, 7, 8, or 9.")
+      return
+    }
+
+    updateCustomer.mutate(
+      {
+        first_name: trimmedFirst,
+        last_name: trimmedLast,
+        // Send empty string when cleared, else the 10-digit form. The
+        // backend customer-phone-normalize subscriber rewrites this to
+        // E.164-no-plus (`919876543210`) so OTP login keeps working.
+        phone: phoneDigits,
       },
-      onError: () => {
-        setError("Failed to save changes. Please try again.")
-      },
-    })
+      {
+        onSuccess: () => {
+          setEditing(false)
+          setSaved(true)
+          setTimeout(() => setSaved(false), 3000)
+        },
+        onError: () => {
+          setError("Failed to save changes. Please try again.")
+        },
+      }
+    )
   }
 
   return (
@@ -138,12 +163,28 @@ function ProfilePage() {
                 </span>
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="0000000000"
                   value={form.phone}
-                  onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      // Strip non-digits + cap at 10 — same rule as login page
+                      phone: e.target.value.replace(/\D/g, "").slice(0, 10),
+                    }))
+                  }
                   className="flex-1 px-3 py-2 rounded-r-lg border text-sm outline-none focus:ring-2 focus:ring-offset-1"
                   style={{ borderColor: "var(--border-primary)" }}
                 />
               </div>
+              <p
+                className="text-xs"
+                style={{ color: "var(--text-tertiary)" }}
+              >
+                We send order updates and login OTPs to this number. Make sure
+                you can receive SMS here before saving.
+              </p>
             </div>
             {error && (
               <p className="text-sm" style={{ color: "#B91C1C" }}>{error}</p>
@@ -219,7 +260,12 @@ function ProfilePage() {
               <button
                 onClick={() => {
                   setEmailError("")
-                  updateEmail.mutate(newEmail, {
+                  const trimmed = newEmail.trim().toLowerCase()
+                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+                    setEmailError("Enter a valid email address.")
+                    return
+                  }
+                  updateEmail.mutate(trimmed, {
                     onSuccess: () => {
                       setEditingEmail(false)
                     },
@@ -229,7 +275,7 @@ function ProfilePage() {
                     },
                   })
                 }}
-                disabled={updateEmail.isPending || !newEmail}
+                disabled={updateEmail.isPending || !newEmail.trim()}
                 className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
                 style={{ background: "var(--bg-inverse)" }}
               >
