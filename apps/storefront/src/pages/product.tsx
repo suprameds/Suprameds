@@ -12,6 +12,7 @@ import { useEffect, useRef } from "react"
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useAddToCart } from "@/lib/hooks/use-cart"
 import { useCartDrawer } from "@/lib/context/cart"
+import { useToast } from "@/lib/context/toast-context"
 
 const ShareIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -62,9 +63,10 @@ const ProductDetails = () => {
   })
   const { pendingAction } = useSearch({ from: "/products/$handle" })
   const navigate = useNavigate({ from: "/products/$handle" })
-  const { data: customer } = useCustomer()
+  const { data: customer, isLoading: customerLoading } = useCustomer()
   const addToCartMutation = useAddToCart()
   const { openCart } = useCartDrawer()
+  const { showToast } = useToast()
   const resumedRef = useRef(false)
 
   const drug = (product as any)?.drug_product as DrugProduct | undefined
@@ -90,6 +92,9 @@ const ProductDetails = () => {
   // refresh doesn't re-fire the mutation.
   useEffect(() => {
     if (resumedRef.current) return
+    // Wait for customer hydration before deciding — avoids firing against a
+    // stale cached customer that's about to refetch to null.
+    if (customerLoading) return
     if (!customer || !pendingAction) return
     const [verb, variantId] = pendingAction.split(":")
     if (verb !== "add_to_cart" || !variantId) return
@@ -108,7 +113,10 @@ const ProductDetails = () => {
           variant,
           region,
         },
-        { onSuccess: () => openCart() }
+        {
+          onSuccess: () => openCart(),
+          onError: () => showToast("Couldn't add to cart. Please try again."),
+        }
       )
     }
     navigate({
@@ -118,7 +126,7 @@ const ProductDetails = () => {
       replace: true,
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customer, pendingAction, product])
+  }, [customer, customerLoading, pendingAction, product])
 
   const currentPrice =
     product.variants?.[0]?.calculated_price?.calculated_amount ?? 0

@@ -1,22 +1,25 @@
-import { describe, it, expect, vi } from "vitest"
+import { describe, it, expect, beforeEach } from "vitest"
 import { renderHook, act } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { ReactNode } from "react"
 import { useAddToCart, AuthRequiredError } from "./use-cart"
+import { queryKeys } from "@/lib/utils/query-keys"
 
-// useCustomer must resolve to null/anonymous for the gate to fire.
-vi.mock("@/lib/hooks/use-customer", () => ({
-  useCustomer: () => ({ data: null, isLoading: false }),
-}))
-
-const wrapper = ({ children }: { children: ReactNode }) => {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return <QueryClientProvider client={qc}>{children}</QueryClientProvider>
-}
+const makeWrapper = (qc: QueryClient) =>
+  function Wrapper({ children }: { children: ReactNode }) {
+    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+  }
 
 describe("useAddToCart auth gate", () => {
+  let qc: QueryClient
+  beforeEach(() => {
+    qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    // Seed the customer cache as anonymous so the gate fires synchronously.
+    qc.setQueryData(queryKeys.customer.current(), null)
+  })
+
   it("rejects anonymous add with AuthRequiredError carrying the variant id", async () => {
-    const { result } = renderHook(() => useAddToCart(), { wrapper })
+    const { result } = renderHook(() => useAddToCart(), { wrapper: makeWrapper(qc) })
     await act(async () => {
       await expect(
         result.current.mutateAsync({

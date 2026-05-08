@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { HttpTypes } from "@medusajs/types"
 import { queryKeys } from "@/lib/utils/query-keys"
 import { sdk } from "@/lib/utils/sdk"
-import { useCustomer } from "@/lib/hooks/use-customer"
 import {
   getStoredCart,
   setStoredCart,
@@ -111,7 +110,6 @@ export const useCreateCart = () => {
 
 export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
   const queryClient = useQueryClient()
-  const { data: customer } = useCustomer()
 
   return useMutation({
     mutationFn: async (variables: {
@@ -129,6 +127,10 @@ export const useAddToCart = ({ fields }: { fields?: string } = {}) => {
       // Defense-in-depth auth gate. Button-level `useRequireAuth` is the
       // primary UX path (toast + redirect with pendingAction); this throw
       // protects any caller that bypasses the button gate.
+      // Read imperatively from the cache so this hook doesn't subscribe
+      // every consumer (e.g. each card on a listing page) to the customer
+      // query — window-focus refetches would otherwise cascade re-renders.
+      const customer = queryClient.getQueryData(queryKeys.customer.current())
       if (!customer) {
         throw new AuthRequiredError(`add_to_cart:${variant_id}`)
       }
