@@ -32,6 +32,19 @@ export default defineConfig({
             server: hmrServer,
           },
         },
+        // Workaround: @medusajs/draft-order ships an /admin subpath that
+        // resolves to a file (.medusa/server/src/admin/index.mjs) that pnpm
+        // sometimes fails to extract into Docker's node_modules. medusa-cli's
+        // generated admin entry.jsx imports it for plugin auto-discovery, and
+        // vite-plugin-react escalates the unresolved-import warning to a build
+        // error. We don't use draft-order's admin extension, so externalising
+        // it tells Rollup to skip resolution (the runtime import never
+        // executes since draft-order isn't a registered plugin in our config).
+        build: {
+          rollupOptions: {
+            external: ["@medusajs/draft-order/admin"],
+          },
+        },
       };
     },
   },
