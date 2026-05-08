@@ -12,8 +12,9 @@ export const Route = createFileRoute("/account/login")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>) => ({
+  validateSearch: (search: Record<string, unknown>): { redirectTo: string | undefined; pendingAction?: string } => ({
     redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
+    pendingAction: typeof search.pendingAction === "string" ? search.pendingAction : undefined,
   }),
   component: LoginPage,
 })
@@ -22,7 +23,7 @@ type LoginMode = "email" | "phone-otp" | "email-otp"
 type OtpStep = "input" | "verify"
 
 function LoginPage() {
-  const { redirectTo } = Route.useSearch()
+  const { redirectTo, pendingAction } = Route.useSearch()
   const navigate = useNavigate()
   const login = useLogin()
   const { data: customer, isLoading: customerLoading } = useCustomer()
@@ -66,15 +67,19 @@ function LoginPage() {
   const otpVerify = useOtpVerify()
 
   const navigateAfterLogin = useCallback((isNewUser?: boolean) => {
+    // pendingAction encodes "<verb>:<id>" — UI on the redirect target reads it
+    // from search params and replays the original intent (e.g. add-to-cart resume).
+    const search = pendingAction ? { pendingAction } : undefined
     if (redirectTo && redirectTo.startsWith("/")) {
-      navigate({ to: redirectTo as never })
+      // @ts-expect-error - search shape varies per route
+      navigate({ to: redirectTo as never, search })
     } else if (isNewUser) {
       // New OTP users → account page to complete profile (add name etc.)
       navigate({ to: "/account" })
     } else {
       navigate({ to: "/" })
     }
-  }, [redirectTo, navigate])
+  }, [redirectTo, pendingAction, navigate])
 
   // ── Email/Password submit ────────────────────────────────────────
   const handleEmailSubmit = async (e: React.FormEvent) => {
