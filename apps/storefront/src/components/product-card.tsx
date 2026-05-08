@@ -81,7 +81,7 @@ const ProductCard = ({ product, pharmaLoading, index }: ProductCardProps) => {
     e.preventDefault()
     e.stopPropagation()
     if (!variant?.id || isBlocked) return
-    if (!requireAuth()) return
+    if (!requireAuth(`add_to_cart:${variant.id}`)) return
     hapticImpact("medium")
     addToCartMutation.mutate(
       {

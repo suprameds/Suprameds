@@ -124,7 +124,7 @@ const ProductActions = memo(function ProductActions({
 
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
-    if (!requireAuth()) return null
+    if (!requireAuth(`add_to_cart:${selectedVariant.id}`)) return null
     hapticImpact("medium")
 
     try {

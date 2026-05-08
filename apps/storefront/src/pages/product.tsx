@@ -6,9 +6,12 @@ import { calcDiscountFromMRP } from "@/lib/hooks/use-pharma"
 import { trackViewItem } from "@/lib/utils/analytics"
 import { addRecentlyViewed } from "@/lib/utils/recently-viewed"
 import { share } from "@/lib/utils/share"
-import { SITE_URL } from "@/lib/constants/site"
-import { useLoaderData } from "@tanstack/react-router"
-import { useEffect } from "react"
+import { SITE_URL, DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
+import { useLoaderData, useNavigate, useSearch } from "@tanstack/react-router"
+import { useEffect, useRef } from "react"
+import { useCustomer } from "@/lib/hooks/use-customer"
+import { useAddToCart } from "@/lib/hooks/use-cart"
+import { useCartDrawer } from "@/lib/context/cart"
 
 const ShareIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -57,6 +60,12 @@ const ProductDetails = () => {
   const { product, region } = useLoaderData({
     from: "/products/$handle",
   })
+  const { pendingAction } = useSearch({ from: "/products/$handle" })
+  const navigate = useNavigate({ from: "/products/$handle" })
+  const { data: customer } = useCustomer()
+  const addToCartMutation = useAddToCart()
+  const { openCart } = useCartDrawer()
+  const resumedRef = useRef(false)
 
   const drug = (product as any)?.drug_product as DrugProduct | undefined
   const sched = scheduleCopy(drug?.schedule)
@@ -72,6 +81,44 @@ const ProductDetails = () => {
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id])
+
+  // ── Pending add-to-cart resume ──────────────────────────────────────
+  // After auth, login.tsx forwards `?pendingAction=add_to_cart:<variant_id>`
+  // to the redirect target. When this PDP loads with such a param AND the
+  // user is now authenticated AND the variant belongs to this product,
+  // replay the add-to-cart, then strip the param from the URL so that a
+  // refresh doesn't re-fire the mutation.
+  useEffect(() => {
+    if (resumedRef.current) return
+    if (!customer || !pendingAction) return
+    const [verb, variantId] = pendingAction.split(":")
+    if (verb !== "add_to_cart" || !variantId) return
+    const variant = product?.variants?.find((v) => v.id === variantId)
+    // If the pendingAction targets a different product's variant, silently
+    // ignore — don't replay on the wrong PDP. Still strip the URL param so
+    // it doesn't haunt subsequent navigations.
+    resumedRef.current = true
+    if (variant) {
+      addToCartMutation.mutate(
+        {
+          variant_id: variantId,
+          quantity: 1,
+          country_code: DEFAULT_COUNTRY_CODE,
+          product,
+          variant,
+          region,
+        },
+        { onSuccess: () => openCart() }
+      )
+    }
+    navigate({
+      to: "/products/$handle",
+      params: { handle: product.handle ?? "" },
+      search: (s: Record<string, unknown>) => ({ ...s, pendingAction: undefined }),
+      replace: true,
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer, pendingAction, product])
 
   const currentPrice =
     product.variants?.[0]?.calculated_price?.calculated_amount ?? 0
