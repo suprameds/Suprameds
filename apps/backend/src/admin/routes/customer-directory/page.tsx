@@ -7,7 +7,6 @@ import {
   Table,
   Text,
   Button,
-  Tooltip,
 } from "@medusajs/ui"
 import { Users, MagnifyingGlass, ArrowDownTray } from "@medusajs/icons"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
@@ -23,7 +22,6 @@ type Customer = {
   phone: string | null
   has_account: boolean
   created_at: string
-  metadata: Record<string, unknown> | null
 }
 
 type ListResponse = {
@@ -44,16 +42,8 @@ function fullName(c: Customer): string {
   return combined || "—"
 }
 
-function getPhone(c: Customer): { phone: string; via_otp: boolean } {
-  if (c.phone && c.phone.trim()) return { phone: c.phone.trim(), via_otp: false }
-  const meta = c.metadata
-  if (meta && typeof meta === "object") {
-    const metaPhone = (meta as Record<string, unknown>).phone
-    if (typeof metaPhone === "string" && metaPhone.trim()) {
-      return { phone: metaPhone.trim(), via_otp: true }
-    }
-  }
-  return { phone: "—", via_otp: false }
+function getPhone(c: Customer): string {
+  return c.phone && c.phone.trim() ? c.phone.trim() : "—"
 }
 
 function formatDate(iso: string): string {
@@ -69,15 +59,14 @@ function formatDate(iso: string): string {
 }
 
 function exportToCsv(rows: Customer[]): void {
-  const header = ["Email", "Name", "Phone", "Phone Source", "Account", "Created"]
+  const header = ["Email", "Name", "Phone", "Account", "Created"]
   const lines = [header.join(",")]
   for (const c of rows) {
-    const { phone, via_otp } = getPhone(c)
+    const phone = getPhone(c)
     const cells = [
       c.email || "",
       fullName(c),
       phone === "—" ? "" : phone,
-      phone === "—" ? "" : via_otp ? "metadata (OTP)" : "customer.phone",
       c.has_account ? "Registered" : "Guest",
       formatDate(c.created_at),
     ].map((v) => {
@@ -118,10 +107,7 @@ const CustomerDirectoryPage = () => {
             limit: PAGE_SIZE,
             offset: opts.page * PAGE_SIZE,
             ...(opts.search ? { q: opts.search } : {}),
-            // Bring metadata so we can fall back to metadata.phone for
-            // OTP-signup customers (their phone lives there, not on customer.phone).
-            fields:
-              "id,email,first_name,last_name,phone,has_account,created_at,metadata",
+            fields: "id,email,first_name,last_name,phone,has_account,created_at",
           },
         })
         setRows(res.customers || [])
@@ -154,16 +140,10 @@ const CustomerDirectoryPage = () => {
     [count]
   )
 
-  const stats = useMemo(() => {
-    let withPhone = 0
-    let viaOtp = 0
-    for (const c of rows) {
-      const { phone, via_otp } = getPhone(c)
-      if (phone !== "—") withPhone++
-      if (via_otp) viaOtp++
-    }
-    return { withPhone, viaOtp, total: rows.length }
-  }, [rows])
+  const withPhoneCount = useMemo(
+    () => rows.filter((c) => getPhone(c) !== "—").length,
+    [rows]
+  )
 
   return (
     <Container className="divide-y p-0">
@@ -172,9 +152,8 @@ const CustomerDirectoryPage = () => {
         <div>
           <Heading>Customer Directory</Heading>
           <Text size="small" className="text-ui-fg-subtle mt-1">
-            All customers with phone numbers. OTP-signup phones come from
-            customer metadata; password/checkout phones from the standard
-            phone field.
+            All customers with email, name, and mobile number. Click any row to
+            open the full customer profile.
           </Text>
         </div>
         <div className="flex items-center gap-2">
@@ -208,14 +187,8 @@ const CustomerDirectoryPage = () => {
           <span>{count.toLocaleString("en-IN")} total</span>
           <span>·</span>
           <span>
-            {stats.withPhone}/{stats.total} on this page have phone
+            {withPhoneCount}/{rows.length} on this page have phone
           </span>
-          {stats.viaOtp > 0 && (
-            <>
-              <span>·</span>
-              <span>{stats.viaOtp} via OTP</span>
-            </>
-          )}
         </div>
       </div>
 
@@ -259,12 +232,11 @@ const CustomerDirectoryPage = () => {
               </Table.Row>
             )}
             {rows.map((c) => {
-              const { phone, via_otp } = getPhone(c)
+              const phone = getPhone(c)
               return (
                 <Table.Row
                   key={c.id}
                   onClick={() => {
-                    // Send to Medusa's built-in customer detail page
                     window.location.href = `/app/customers/${c.id}`
                   }}
                   className="cursor-pointer"
@@ -276,18 +248,9 @@ const CustomerDirectoryPage = () => {
                     <Text size="small">{fullName(c)}</Text>
                   </Table.Cell>
                   <Table.Cell>
-                    <div className="flex items-center gap-2">
-                      <Text size="small" className="font-mono">
-                        {phone}
-                      </Text>
-                      {via_otp && (
-                        <Tooltip content="Phone collected via OTP signup (stored in customer.metadata.phone)">
-                          <Badge size="2xsmall" color="blue">
-                            OTP
-                          </Badge>
-                        </Tooltip>
-                      )}
-                    </div>
+                    <Text size="small" className="font-mono">
+                      {phone}
+                    </Text>
                   </Table.Cell>
                   <Table.Cell>
                     <Badge
