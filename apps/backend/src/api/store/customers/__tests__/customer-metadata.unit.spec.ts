@@ -8,13 +8,13 @@
  * handlers directly — no HTTP layer needed.
  *
  * The metadata route delegates the actual write to `updateCustomersWorkflow`
- * from `@medusajs/core-flows`. We mock that module so the workflow's `run()`
+ * from `@medusajs/medusa/core-flows`. We mock that module so the workflow's `run()`
  * resolves synchronously and we can assert it was invoked (proves the
  * `customer.updated` event path is preserved).
  */
 
 // Mock the core-flows workflow BEFORE importing the route handler.
-jest.mock("@medusajs/core-flows", () => {
+jest.mock("@medusajs/medusa/core-flows", () => {
   const run = jest.fn(async ({ input }: any) => ({
     result: [{ id: input.selector.id, ...input.update }],
   }))
@@ -27,7 +27,7 @@ jest.mock("@medusajs/core-flows", () => {
 
 import { POST as updateMe } from "../me/route"
 import { POST as updateEmail } from "../me/email/route"
-import * as coreFlows from "@medusajs/core-flows"
+import * as coreFlows from "@medusajs/medusa/core-flows"
 
 const mockedWorkflow = coreFlows.updateCustomersWorkflow as unknown as jest.Mock
 const mockedWorkflowRun = (coreFlows as unknown as { __mockRun: jest.Mock })
