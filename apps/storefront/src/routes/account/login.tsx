@@ -8,7 +8,8 @@ import { hapticNotification } from "@/lib/utils/haptics"
 export const Route = createFileRoute("/account/login")({
   head: () => ({
     meta: [
-      { title: "Sign In | Suprameds" },
+      { title: "Sign in or sign up | Suprameds" },
+      { name: "description", content: "Sign in to Suprameds with your mobile number. New here? We'll create your account automatically." },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -39,7 +40,7 @@ function LoginPage() {
     }
   }, [customerLoading, customer, navigate, redirectTo])
 
-  const [mode, setMode] = useState<LoginMode>("email")
+  const [mode, setMode] = useState<LoginMode>("phone-otp")
 
   // Email/password state
   const [email, setEmail] = useState("")
@@ -338,28 +339,21 @@ function LoginPage() {
             </p>
           </div>
 
-          {/* Mode toggle tabs (3-way) */}
-          <div className="flex rounded-lg p-1 mb-6" style={{ background: "var(--bg-tertiary)" }}>
-            {([
-              { key: "email" as const, label: "Password" },
-              { key: "phone-otp" as const, label: "Phone OTP" },
-              { key: "email-otp" as const, label: "Email OTP" },
-            ]).map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => switchMode(tab.key)}
-                className="flex-1 py-2 text-sm font-medium rounded-md transition-all"
-                style={{
-                  background: mode === tab.key ? "var(--bg-secondary)" : "transparent",
-                  color: mode === tab.key ? NAVY : "var(--text-secondary)",
-                  boxShadow: mode === tab.key ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+          {mode === "phone-otp" && (
+            <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
+              Enter your mobile number — we'll send a 6-digit OTP. New user? We'll create your account automatically.
+            </p>
+          )}
+          {mode !== "phone-otp" && (
+            <button
+              type="button"
+              onClick={() => switchMode("phone-otp")}
+              className="text-sm font-medium hover:underline mb-4"
+              style={{ color: TEAL }}
+            >
+              ← Use Mobile OTP instead (recommended)
+            </button>
+          )}
 
           {/* ── Email / Password Form ───────────────────────────────── */}
           {mode === "email" && (
@@ -578,36 +572,22 @@ function LoginPage() {
             </div>
           )}
 
-          {/* Register link — OTP modes double as signup, so adjust messaging */}
           <div className="mt-6 pt-6 border-t text-center" style={{ borderColor: "var(--border-primary)" }}>
-            {mode === "email" ? (
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                New to Suprameds?{" "}
-                <Link
-                  to="/account/register"
-                  search={{ redirectTo, ref: undefined }}
-                  className="font-medium hover:underline"
-                  style={{ color: TEAL }}
-                >
-                  Create an account
-                </Link>
-                {" "}or use{" "}
+            <p className="text-xs mb-2" style={{ color: "var(--text-tertiary)" }}>
+              Trouble with SMS?
+            </p>
+            <div className="flex justify-center gap-4 text-sm">
+              {mode !== "email-otp" && (
                 <button type="button" onClick={() => switchMode("email-otp")} className="font-medium hover:underline" style={{ color: TEAL }}>
-                  Email OTP
+                  Use Email OTP
                 </button>
-              </p>
-            ) : (
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                New user? OTP will create your account automatically.
-                <br />
-                <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-                  Already have a password?{" "}
-                  <button type="button" onClick={() => switchMode("email")} className="font-medium hover:underline" style={{ color: TEAL }}>
-                    Sign in with password
-                  </button>
-                </span>
-              </p>
-            )}
+              )}
+              {mode !== "email" && (
+                <button type="button" onClick={() => switchMode("email")} className="font-medium hover:underline" style={{ color: TEAL }}>
+                  Sign in with password
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Trust footer */}
