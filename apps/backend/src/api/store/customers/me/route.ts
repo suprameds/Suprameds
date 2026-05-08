@@ -1,5 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { Modules } from "@medusajs/framework/utils"
+import { updateCustomersWorkflow } from "@medusajs/core-flows"
 
 /**
  * POST /store/customers/me — defensive override of Medusa's default.
@@ -20,6 +21,17 @@ import { Modules } from "@medusajs/framework/utils"
  * referred_by, plus future additions). The metadata list is intentionally
  * open — we use a denial list rather than an allow list to keep the route
  * permissive for future fields.
+ *
+ * The actual write is dispatched through `updateCustomersWorkflow` (Medusa's
+ * public core-flow). This guarantees parity with the framework default:
+ *   • emits the `customer.updated` event so subscribers (analytics, search
+ *     reindex, audit log) see self-service profile changes
+ *   • runs the `customersUpdated` workflow hook so downstream extensions can
+ *     attach behaviour without monkey-patching this route
+ *
+ * Response shape mirrors the default: customer hydrated with `addresses`
+ * (so the storefront cache doesn't lose `default_shipping_address_id` etc.
+ * after a profile save).
  *
  * Auth is provided by Medusa's default `/store/customers/me*` middleware.
  */
@@ -74,14 +86,30 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   // Build the update payload — only forward defined keys
-  const update: Record<string, unknown> = { id: customerId }
+  const update: Record<string, unknown> = {}
   if (body.first_name !== undefined) update.first_name = body.first_name
   if (body.last_name !== undefined) update.last_name = body.last_name
   if (body.phone !== undefined) update.phone = body.phone
   if (body.company_name !== undefined) update.company_name = body.company_name
   if (mergedMetadata !== undefined) update.metadata = mergedMetadata
 
-  const updated = await customerService.updateCustomers(update)
+  // Run through the public workflow so the `customer.updated` event fires
+  // and the `customersUpdated` hook is exposed to downstream extensions.
+  await updateCustomersWorkflow(req.scope).run({
+    input: {
+      selector: { id: customerId },
+      update: update as any,
+    },
+  })
 
-  return res.json({ customer: updated })
+  // Re-hydrate with `addresses` to match the default response shape.
+  // The storefront writes the response into its React Query cache, so missing
+  // relations would silently break UI that reads e.g.
+  // `customer.default_shipping_address_id` / `customer.addresses` until the
+  // 15-min staleTime elapses.
+  const hydrated = await customerService.retrieveCustomer(customerId, {
+    relations: ["addresses"],
+  })
+
+  return res.json({ customer: hydrated })
 }

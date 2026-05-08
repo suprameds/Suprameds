@@ -14,7 +14,13 @@ import { Modules } from "@medusajs/framework/utils"
  * Validation:
  *   - basic email format check
  *   - rejects the @phone.suprameds.in placeholder
- *   - rejects emails already in use by a different customer
+ *   - rejects emails already in use by a different customer (scans ALL
+ *     matches via find() — not just index 0 — so legacy duplicate rows
+ *     can't sneak past the check when the requesting user happens to be
+ *     listed first)
+ *   - falls back to a clean 409 if the DB unique constraint trips at write
+ *     time (covers the case where a different-cased duplicate exists from
+ *     legacy email/password registration that wrote whatever the user typed)
  */
 
 const PHONE_BRIDGE_RE = /@phone\.suprameds\.in$/i
@@ -40,16 +46,35 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
   const customerService = req.scope.resolve(Modules.CUSTOMER) as any
 
-  // Uniqueness check — must not collide with a different customer
+  // Uniqueness check — query against the lowercase form (we always write
+  // lowercase via this route, so any future collision will share casing).
+  // Legacy email/password registration could have written mixed-case emails;
+  // those are caught by the DB unique-constraint catch below.
+  //
+  // Use find() — not existing[0] — so that if multiple rows match (legacy
+  // dirty data, soft-deleted resurfacing) we still catch a conflict even
+  // when the requesting customer happens to be index 0.
   const existing = await customerService.listCustomers({ email: normalised })
-  if (existing.length > 0 && existing[0].id !== customerId) {
+  const conflict = existing.find((c: { id: string }) => c.id !== customerId)
+  if (conflict) {
     return res.status(409).json({ message: "This email is already in use" })
   }
 
-  const updated = await customerService.updateCustomers({
-    id: customerId,
-    email: normalised,
-  })
+  let updated
+  try {
+    updated = await customerService.updateCustomers({
+      id: customerId,
+      email: normalised,
+    })
+  } catch (err: any) {
+    // Postgres unique-constraint violation (23505) → another customer holds
+    // a different-cased version of this email. Surface as a clean 409 instead
+    // of a 500.
+    if (err?.code === "23505" || /unique/i.test(err?.message ?? "")) {
+      return res.status(409).json({ message: "This email is already in use" })
+    }
+    throw err
+  }
 
   return res.json({ customer: updated })
 }
