@@ -7,7 +7,7 @@ import { Modules } from "@medusajs/framework/utils"
 const PHONE_BRIDGE_RE = /@phone\.suprameds\.in$/i
 
 /**
- * POST /store/customers/me/email — dedicated email-upgrade endpoint.
+ * POST /store/customers/update-email — dedicated email-upgrade endpoint.
  *
  * OTP-only signups receive an auto-generated `{phone}@phone.suprameds.in`
  * placeholder email. This endpoint is the path for those customers to upgrade
@@ -18,6 +18,12 @@ const PHONE_BRIDGE_RE = /@phone\.suprameds\.in$/i
  *   - Use `find` (not [0]) to catch a conflict at any index
  *   - Catch DB unique-constraint errors and map to a clean 409 (handles legacy
  *     mixed-case rows from email/password registration)
+ *
+ * Note: this endpoint lives at /customers/update-email rather than the more
+ * natural /customers/me/email because adding any directory under
+ * /api/store/customers/me/ in user-space triggers medusa-cli's admin builder
+ * to fail with `Rollup failed to resolve "@medusajs/draft-order/admin"`.
+ * Workaround until that build path is investigated.
  */
 export const POST = async (
   req: AuthenticatedMedusaRequest,

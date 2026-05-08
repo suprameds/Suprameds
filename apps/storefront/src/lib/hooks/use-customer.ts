@@ -278,7 +278,7 @@ export const useUpdateCustomerEmail = () => {
   return useMutation({
     mutationFn: async (email: string) => {
       const res = await sdk.client.fetch<{ customer: HttpTypes.StoreCustomer }>(
-        "/store/customers/me/email",
+        "/store/customers/update-email",
         { method: "POST", body: { email } }
       )
       return res.customer
