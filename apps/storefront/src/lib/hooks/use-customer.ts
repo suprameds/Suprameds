@@ -290,6 +290,50 @@ export const useUpdateCustomerEmail = () => {
   })
 }
 
+/**
+ * Phone change — step 1: ask backend to send OTP to the new phone.
+ *
+ * Returns `{ masked_phone, other_owners_count }` on success so the UI can
+ * confirm which number got the SMS and warn if another customer already
+ * owns this phone.
+ */
+export const useInitPhoneChange = () => {
+  return useMutation({
+    mutationFn: async (phone: string) => {
+      const res = await sdk.client.fetch<{
+        success: boolean
+        masked_phone: string
+        other_owners_count: number
+      }>("/store/profile/phone/init", { method: "POST", body: { phone } })
+      return res
+    },
+  })
+}
+
+/**
+ * Phone change — step 2: submit OTP to commit the new phone.
+ *
+ * On success, refreshes the cached customer so the new phone shows up
+ * in the UI immediately.
+ */
+export const useVerifyPhoneChange = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (vars: { phone: string; otp: string }) => {
+      const res = await sdk.client.fetch<{ customer: HttpTypes.StoreCustomer }>(
+        "/store/profile/phone/verify",
+        { method: "POST", body: vars }
+      )
+      return res.customer
+    },
+    onSuccess: (customer) => {
+      queryClient.setQueryData(queryKeys.customer.current(), customer)
+      queryClient.invalidateQueries({ queryKey: queryKeys.customer.current() })
+    },
+  })
+}
+
 export const useCreateAddress = () => {
   const queryClient = useQueryClient()
 

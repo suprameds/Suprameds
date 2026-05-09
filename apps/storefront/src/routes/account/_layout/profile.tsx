@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useEffect, useState } from "react"
-import { useCustomer, useUpdateCustomer, useUpdateCustomerEmail } from "@/lib/hooks/use-customer"
+import { useEffect, useRef, useState } from "react"
+import {
+  useCustomer,
+  useUpdateCustomer,
+  useUpdateCustomerEmail,
+  useInitPhoneChange,
+  useVerifyPhoneChange,
+} from "@/lib/hooks/use-customer"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import {
   authenticateBiometric,
@@ -10,6 +16,7 @@ import {
 } from "@/lib/utils/biometric"
 import { ProfileCompletionBanner } from "@/components/profile/profile-completion-banner"
 import { PharmaFieldsForm } from "@/components/profile/pharma-fields-form"
+import { OtpDigitInput } from "@/components/auth/otp-digit-input"
 import type { PharmaCustomerMetadata } from "@/lib/types/pharma-customer"
 import { formatIndianPhone, toTenDigitIndian } from "@/lib/utils/phone"
 
@@ -26,6 +33,8 @@ export const Route = createFileRoute("/account/_layout/profile")({
 function ProfilePage() {
   const { data: customer } = useCustomer()
   const updateCustomer = useUpdateCustomer()
+  const initPhoneChange = useInitPhoneChange()
+  const verifyPhoneChange = useVerifyPhoneChange()
 
   const [editing, setEditing] = useState(false)
   const [form, setForm] = useState({
@@ -35,6 +44,35 @@ function ProfilePage() {
   })
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState("")
+
+  // ── Phone-change OTP flow ────────────────────────────────────────
+  // The phone is verified independently from the rest of the form so a
+  // typo can never lock a user out of OTP login. Step 1 sends an OTP to
+  // the NEW number; step 2 commits the change after a correct OTP.
+  type PhoneStep = "idle" | "otp" | "done"
+  const [phoneStep, setPhoneStep] = useState<PhoneStep>("idle")
+  const [phoneOtp, setPhoneOtp] = useState("")
+  const [phoneOtpError, setPhoneOtpError] = useState("")
+  const [phoneOtpInfo, setPhoneOtpInfo] = useState("")
+  const [phoneOtpCountdown, setPhoneOtpCountdown] = useState(0)
+  const phoneOtpInputRef = useRef<HTMLInputElement>(null)
+
+  // Tick down the resend countdown
+  useEffect(() => {
+    if (phoneOtpCountdown <= 0) return
+    const t = setTimeout(() => setPhoneOtpCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [phoneOtpCountdown])
+
+  // Reset step + clear OTP fields whenever the user exits edit mode
+  useEffect(() => {
+    if (!editing) {
+      setPhoneStep("idle")
+      setPhoneOtp("")
+      setPhoneOtpError("")
+      setPhoneOtpInfo("")
+    }
+  }, [editing])
 
   const updateEmail = useUpdateCustomerEmail()
   const [editingEmail, setEditingEmail] = useState(false)
@@ -57,39 +95,124 @@ function ProfilePage() {
     setError("")
   }
 
+  // Saves name fields immediately; phone changes go through OTP if it actually
+  // changed from what's on the customer record.
   const handleSave = () => {
     setError("")
 
-    // Validate before send. Phone must be 10 digits starting 6-9 (Indian mobile).
-    // Empty phone is allowed (user clearing it).
     const trimmedFirst = form.first_name.trim()
     const trimmedLast = form.last_name.trim()
     const phoneDigits = form.phone.replace(/\D/g, "")
-    if (phoneDigits && !/^[6-9]\d{9}$/.test(phoneDigits)) {
+    const currentPhone10 = toTenDigitIndian(customer?.phone)
+    const phoneChanged = phoneDigits !== currentPhone10
+
+    // Validate phone if user provided one (empty is OK — user clearing it)
+    if (phoneChanged && phoneDigits && !/^[6-9]\d{9}$/.test(phoneDigits)) {
       setError("Mobile number must be 10 digits and start with 6, 7, 8, or 9.")
       return
     }
 
+    // Save name fields first (no verification needed). If phone is unchanged
+    // we're done. If phone changed, kick off the OTP flow next.
     updateCustomer.mutate(
       {
         first_name: trimmedFirst,
         last_name: trimmedLast,
-        // Send empty string when cleared, else the 10-digit form. The
-        // backend customer-phone-normalize subscriber rewrites this to
-        // E.164-no-plus (`919876543210`) so OTP login keeps working.
-        phone: phoneDigits,
       },
       {
         onSuccess: () => {
-          setEditing(false)
-          setSaved(true)
-          setTimeout(() => setSaved(false), 3000)
+          if (!phoneChanged) {
+            setEditing(false)
+            setSaved(true)
+            setTimeout(() => setSaved(false), 3000)
+            return
+          }
+
+          // Phone changed → start OTP verification on the NEW number.
+          // We don't write customer.phone yet; backend only commits after
+          // /verify succeeds.
+          if (!phoneDigits) {
+            // User cleared the phone — no OTP to send to nothing. Just save.
+            updateCustomer.mutate(
+              { phone: "" },
+              {
+                onSuccess: () => {
+                  setEditing(false)
+                  setSaved(true)
+                  setTimeout(() => setSaved(false), 3000)
+                },
+                onError: () => setError("Failed to clear phone."),
+              }
+            )
+            return
+          }
+
+          handleSendPhoneOtp(phoneDigits)
         },
         onError: () => {
           setError("Failed to save changes. Please try again.")
         },
       }
     )
+  }
+
+  const handleSendPhoneOtp = (phoneDigits: string) => {
+    setPhoneOtpError("")
+    setPhoneOtpInfo("")
+    initPhoneChange.mutate(phoneDigits, {
+      onSuccess: (data) => {
+        setPhoneStep("otp")
+        setPhoneOtp("")
+        setPhoneOtpCountdown(60)
+        setPhoneOtpInfo(`OTP sent to +91 ${phoneDigits.slice(0, 5)} ${phoneDigits.slice(5)}.`)
+        if (data.other_owners_count > 0) {
+          setPhoneOtpInfo(
+            (prev) =>
+              prev +
+              ` Note: ${data.other_owners_count} other account${
+                data.other_owners_count === 1 ? "" : "s"
+              } already use${data.other_owners_count === 1 ? "s" : ""} this number — OTP login on it will route to the oldest account.`
+          )
+        }
+        // Focus the OTP input on the next paint
+        setTimeout(() => phoneOtpInputRef.current?.focus(), 0)
+      },
+      onError: (err: any) => {
+        const msg = err?.body?.message || err?.message || "Failed to send OTP."
+        setPhoneOtpError(msg)
+      },
+    })
+  }
+
+  const handleVerifyPhoneOtp = () => {
+    setPhoneOtpError("")
+    if (!/^\d{6}$/.test(phoneOtp)) {
+      setPhoneOtpError("Enter the 6-digit OTP.")
+      return
+    }
+    const phoneDigits = form.phone.replace(/\D/g, "")
+    verifyPhoneChange.mutate(
+      { phone: phoneDigits, otp: phoneOtp },
+      {
+        onSuccess: () => {
+          setPhoneStep("done")
+          setEditing(false)
+          setSaved(true)
+          setTimeout(() => setSaved(false), 3000)
+        },
+        onError: (err: any) => {
+          const msg = err?.body?.message || err?.message || "Invalid or expired OTP."
+          setPhoneOtpError(msg)
+        },
+      }
+    )
+  }
+
+  const handleResendPhoneOtp = () => {
+    if (phoneOtpCountdown > 0) return
+    const phoneDigits = form.phone.replace(/\D/g, "")
+    if (!/^[6-9]\d{9}$/.test(phoneDigits)) return
+    handleSendPhoneOtp(phoneDigits)
   }
 
   return (
@@ -182,21 +305,106 @@ function ProfilePage() {
                 className="text-xs"
                 style={{ color: "var(--text-tertiary)" }}
               >
-                We send order updates and login OTPs to this number. Make sure
-                you can receive SMS here before saving.
+                We send order updates and login OTPs to this number. Changing
+                it requires a one-time verification — we'll send a 6-digit
+                code to the new number before it's saved.
               </p>
             </div>
+
+            {/* Phone OTP verification step (shown only when phone is being changed) */}
+            {phoneStep === "otp" && (
+              <div
+                className="rounded-xl border p-4 flex flex-col gap-3"
+                style={{
+                  borderColor: "var(--brand-teal)",
+                  background: "var(--bg-tertiary)",
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p
+                      className="text-sm font-semibold"
+                      style={{ color: "var(--text-primary)" }}
+                    >
+                      Verify your new mobile number
+                    </p>
+                    <p
+                      className="text-xs mt-0.5"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      {phoneOtpInfo || "Enter the 6-digit OTP sent to your new number."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPhoneStep("idle")
+                      setPhoneOtp("")
+                      setPhoneOtpError("")
+                    }}
+                    className="text-xs font-medium underline"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <OtpDigitInput
+                  ref={phoneOtpInputRef}
+                  value={phoneOtp}
+                  onChange={setPhoneOtp}
+                  length={6}
+                />
+                {phoneOtpError && (
+                  <p className="text-sm" style={{ color: "#B91C1C" }}>
+                    {phoneOtpError}
+                  </p>
+                )}
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={handleVerifyPhoneOtp}
+                    disabled={verifyPhoneChange.isPending || phoneOtp.length < 6}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
+                    style={{ background: "var(--bg-inverse)" }}
+                  >
+                    {verifyPhoneChange.isPending
+                      ? "Verifying..."
+                      : "Verify & save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResendPhoneOtp}
+                    disabled={phoneOtpCountdown > 0 || initPhoneChange.isPending}
+                    className="text-xs font-medium underline disabled:opacity-50 disabled:no-underline"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    {phoneOtpCountdown > 0
+                      ? `Resend in ${phoneOtpCountdown}s`
+                      : initPhoneChange.isPending
+                        ? "Sending..."
+                        : "Resend OTP"}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {error && (
               <p className="text-sm" style={{ color: "#B91C1C" }}>{error}</p>
             )}
             <div className="flex gap-3 pt-1">
               <button
                 onClick={handleSave}
-                disabled={updateCustomer.isPending}
+                disabled={
+                  updateCustomer.isPending ||
+                  initPhoneChange.isPending ||
+                  phoneStep === "otp"
+                }
                 className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60"
                 style={{ background: "var(--bg-inverse)" }}
               >
-                {updateCustomer.isPending ? "Saving..." : "Save changes"}
+                {updateCustomer.isPending || initPhoneChange.isPending
+                  ? "Saving..."
+                  : "Save changes"}
               </button>
               <button
                 onClick={() => setEditing(false)}
