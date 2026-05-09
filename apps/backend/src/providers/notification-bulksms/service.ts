@@ -27,36 +27,49 @@ const SMS_TEMPLATES: Record<
   string,
   { dlt_template_id: string; text: (data: Record<string, unknown>) => string }
 > = {
+  // IMPORTANT: each `text` body MUST match the DLT-registered template
+  // EXACTLY (after {#var#} substitution). Telcos drop messages that
+  // diverge — even one character of difference is enough. If a template
+  // body needs to change, register a NEW DLT template and update the ID.
   "otp_sent": {
     dlt_template_id: process.env.BULKSMS_DLT_OTP_TEMPLATE_ID || "",
     text: (data) => `${data.otp} is your verification code for SUPRAMEDS.`,
   },
   "order_place": {
+    // DLT 99766: contains {#var#} TWICE (same display_id in both slots).
+    // Body: "Thanks for shopping with us! We have received your order {#var#}. We will notify you once the products in your order {#var#} have been shipped. Regards, SUPRAMEDS."
     dlt_template_id: process.env.BULKSMS_DLT_ORDER_PLACE_ID || "",
-    text: (data) =>
-      `Thanks for shopping with us! We have received your order ${data.display_id || data.order_id}. We will notify you once the product is dispatched. Regards, SUPRAMEDS.`,
+    text: (data) => {
+      const id = data.display_id || data.order_id
+      return `Thanks for shopping with us! We have received your order ${id}. We will notify you once the products in your order ${id} have been shipped. Regards, SUPRAMEDS.`
+    },
   },
   "order_confirmed": {
+    // DLT 99765
     dlt_template_id: process.env.BULKSMS_DLT_ORDER_CONFIRMED_ID || "",
     text: (data) =>
       `Your order ${data.display_id || data.order_id} has been confirmed and Ready to ship. Regards, SUPRAMEDS.`,
   },
   "order_shipped": {
+    // DLT 99762: registered with "in on time" (sic) — keep verbatim.
     dlt_template_id: process.env.BULKSMS_DLT_ORDER_SHIPPED_ID || "",
     text: (data) =>
-      `Your products of your order ${data.display_id || data.order_id} have been shipped successfully. We will be delivering the order soon. Regards, SUPRAMEDS.`,
+      `Your products of your order ${data.display_id || data.order_id} have been shipped successfully. We will be delivering the order in on time. Regards, SUPRAMEDS.`,
   },
   "order_delivered": {
+    // DLT 99763: "has been" (sic — not "have been") and ends with "again!" (with exclamation).
     dlt_template_id: process.env.BULKSMS_DLT_ORDER_DELIVERED_ID || "",
     text: (data) =>
-      `Your products of your order ${data.display_id || data.order_id} has been delivered successfully. We wish you good health and hope to serve you again. Regards, SUPRAMEDS.`,
+      `Your products of your order ${data.display_id || data.order_id} has been delivered successfully. We wish you good health and hope to serve you again! Regards, SUPRAMEDS.`,
   },
   "order_rejected": {
+    // DLT 99761
     dlt_template_id: process.env.BULKSMS_DLT_ORDER_REJECTED_ID || "",
     text: (data) =>
-      `Your order ${data.display_id || data.order_id} has been rejected. In case of any concern related to the order, you can always reach us. Regards, SUPRAMEDS.`,
+      `Your order ${data.display_id || data.order_id} has been rejected. In case of any concern related to the order, you can always reach out to us on our customer care. Regards, SUPRAMEDS.`,
   },
   "order_updated": {
+    // DLT 99764
     dlt_template_id: process.env.BULKSMS_DLT_ORDER_UPDATED_ID || "",
     text: (data) =>
       `Your order ${data.display_id || data.order_id} has been updated. Regards, SUPRAMEDS.`,
