@@ -14,6 +14,48 @@
  * Signup/login events also push SHA-256-hashed user_data for Google Ads
  * Enhanced Conversions and attach stored ad attribution (gclid/utm) so the
  * conversion closes the loop with the original click.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ *  HEALTHCARE / PHARMA POLICY — DRUG-IDENTIFYING DATA IS SUPPRESSED FROM
+ *  AD-NETWORK PAYLOADS
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * We are a licensed online pharmacy. Every product on this site is a medical
+ * product. Sending drug names / SKUs / specific item IDs to ad networks —
+ * even for OTC products — can violate:
+ *
+ *   - Google Ads Healthcare & Medicines policy (personalised advertising
+ *     using health-inferred signals is prohibited)
+ *   - Meta (Facebook) Personal Health and Appearance policy (custom and
+ *     lookalike audiences may not be built from drug-specific behaviour)
+ *   - India DPDP Act 2023 (health data is "sensitive personal data" with
+ *     restricted processing)
+ *
+ * Concrete risks if drug-level data leaks to ad networks:
+ *   - Account suspension after policy review
+ *   - LegitScript / regulator scrutiny
+ *   - User-level inference of health conditions
+ *
+ * RULES IMPLEMENTED IN THIS FILE:
+ *
+ *   - Meta Pixel (`fbq`) receives ONLY aggregate value + currency + count.
+ *     No `content_name`, no `content_ids`, no `search_string`. The Pixel can
+ *     still optimise its algorithm on value but cannot infer specific drugs.
+ *   - Google Ads conversions (`gtag('event','conversion',...)`) send only
+ *     hashed PII via Enhanced Conversions + `value`/`transaction_id`.
+ *   - GA4 (`gtag('event', ...)`) and dataLayer (`pushDataLayer`) DO receive
+ *     full product detail because they feed our INTERNAL analytics. If a
+ *     GTM tag forwards these to an ad network, that tag's payload must be
+ *     redacted in GTM admin — not from here.
+ *   - dataLayer pushes include `sensitive_data: true` for medical events
+ *     so GTM tags can decide what to forward to which destination.
+ *   - Search queries are NEVER sent to ad networks (only GA4 internally).
+ *
+ * If you add a new event handler in this file, default to:
+ *   gtag()         → full data (internal analytics)
+ *   pushDataLayer  → full data + `sensitive_data: true`
+ *   fbq()          → value, currency, count — that's it
+ *   Google Ads     → hashed PII via setEnhancedConversionsUserData
  */
 
 import { Capacitor } from "@capacitor/core"
@@ -60,6 +102,21 @@ function pushDataLayer(event: string, data?: Record<string, unknown>) {
   window.dataLayer.push({ event, platform: getPlatform(), ...data })
 }
 
+/**
+ * Same as pushDataLayer but flags the event as containing healthcare-sensitive
+ * data. GTM tags forwarding to ad networks MUST check `sensitive_data` and
+ * strip drug-level fields (item_id, item_name, items[].*) before sending.
+ *
+ * In GTM admin, a single "Drug Data Redaction" lookup table variable can map
+ * `sensitive_data == true → strip items[].item_id, item_name` for every ad
+ * destination tag (Google Ads remarketing, Meta Pixel via GTM, etc.).
+ */
+function pushSensitiveDataLayer(event: string, data?: Record<string, unknown>) {
+  if (typeof window === "undefined") return
+  window.dataLayer = window.dataLayer || []
+  window.dataLayer.push({ event, platform: getPlatform(), sensitive_data: true, ...data })
+}
+
 /* ------------------------------------------------------------------ */
 /*  Shared item builder                                               */
 /* ------------------------------------------------------------------ */
@@ -98,15 +155,13 @@ export function trackViewItem(product: ProductLike, currency = "INR") {
   const value = product.variants?.[0]?.calculated_price?.calculated_amount ?? 0
   const items = [buildItem(product)]
 
+  // GA4 — full product detail (internal analytics)
   gtag("event", "view_item", { currency, value, items })
-  fbq("track", "ViewContent", {
-    content_ids: [product.id],
-    content_name: product.title ?? "",
-    content_type: "product",
-    value,
-    currency,
-  })
-  pushDataLayer("view_item", { currency, value, items })
+  // Meta Pixel — value + currency only. No content_ids / content_name so Meta
+  // cannot build audiences inferring health conditions from drug-specific views.
+  fbq("track", "ViewContent", { value, currency })
+  // dataLayer — full data, but flagged sensitive so GTM tags redact for ad destinations
+  pushSensitiveDataLayer("view_item", { currency, value, items })
 }
 
 /** Product list / category page viewed */
@@ -121,13 +176,12 @@ export function trackViewItemList(
     item_list_name: listName,
   }))
 
+  // GA4 — full data
   gtag("event", "view_item_list", { item_list_name: listName, currency, items })
-  fbq("track", "ViewContent", {
-    content_ids: products.slice(0, 20).map((p) => p.id),
-    content_type: "product_group",
-    content_name: listName,
-  })
-  pushDataLayer("view_item_list", { item_list_name: listName, currency, items })
+  // Meta Pixel — suppressed. Even category listings can imply health intent
+  // (e.g., "Diabetic Care", "Cardiac"). Not worth the policy risk for a list view.
+  // dataLayer — full data, flagged sensitive
+  pushSensitiveDataLayer("view_item_list", { item_list_name: listName, currency, items })
 }
 
 /** Item added to cart */
@@ -140,15 +194,12 @@ export function trackAddToCart(
   const item = buildItem(product, variantIndex, quantity)
   const value = (item.price ?? 0) * quantity
 
+  // GA4 — full product detail
   gtag("event", "add_to_cart", { currency, value, items: [item] })
-  fbq("track", "AddToCart", {
-    content_ids: [product.id],
-    content_name: product.title ?? "",
-    content_type: "product",
-    value,
-    currency,
-  })
-  pushDataLayer("add_to_cart", { currency, value, items: [item] })
+  // Meta Pixel — value + currency only (no drug name / SKU)
+  fbq("track", "AddToCart", { value, currency })
+  // dataLayer — full data, flagged sensitive
+  pushSensitiveDataLayer("add_to_cart", { currency, value, items: [item] })
 }
 
 /** Item removed from cart */
@@ -162,8 +213,8 @@ export function trackRemoveFromCart(
   const value = (item.price ?? 0) * quantity
 
   gtag("event", "remove_from_cart", { currency, value, items: [item] })
-  pushDataLayer("remove_from_cart", { currency, value, items: [item] })
-  // Meta Pixel has no remove_from_cart equivalent
+  pushSensitiveDataLayer("remove_from_cart", { currency, value, items: [item] })
+  // Meta Pixel has no remove_from_cart equivalent — and we wouldn't send drug data anyway
 }
 
 /** Checkout started */
@@ -176,14 +227,16 @@ export function trackBeginCheckout(
     buildItem(product, variantIndex, quantity),
   )
 
+  // GA4 — full product detail
   gtag("event", "begin_checkout", { currency, value: totalValue, items: builtItems })
+  // Meta Pixel — value + currency + cart size only (no per-product detail)
   fbq("track", "InitiateCheckout", {
-    content_ids: items.map(({ product }) => product.id),
-    num_items: items.length,
     value: totalValue,
     currency,
+    num_items: items.length,
   })
-  pushDataLayer("begin_checkout", { currency, value: totalValue, items: builtItems })
+  // dataLayer — full data, flagged sensitive
+  pushSensitiveDataLayer("begin_checkout", { currency, value: totalValue, items: builtItems })
 }
 
 /** Order completed */
@@ -197,25 +250,31 @@ export function trackPurchase(
 ) {
   const params = { transaction_id: orderId, currency, value: totalValue, tax, shipping, items }
 
+  // GA4 — full transaction detail for revenue/product analytics
   gtag("event", "purchase", params)
+  // Meta Pixel — minimum needed for purchase attribution (no drug data).
+  // We pass transaction_id to dedupe with server-side Conversions API if added later.
   fbq("track", "Purchase", {
-    content_ids: items.map((i) => i.item_id),
-    content_type: "product",
-    num_items: items.length,
     value: totalValue,
     currency,
+    num_items: items.length,
+    eventID: orderId,
   })
-  pushDataLayer("purchase", params)
+  // dataLayer — full data, flagged sensitive
+  pushSensitiveDataLayer("purchase", params)
 }
 
 /** Site search */
 export function trackSearch(query: string, resultCount?: number) {
+  // GA4 only — search queries on a pharmacy site reveal health intent and
+  // must NEVER be sent to ad networks (e.g., "atorvastatin" → high cholesterol).
   gtag("event", "search", {
     search_term: query,
     ...(resultCount !== undefined ? { results_count: resultCount } : {}),
   })
-  fbq("track", "Search", { search_string: query })
-  pushDataLayer("search", { search_term: query, results_count: resultCount })
+  // Meta Pixel Search event suppressed — search_string would leak drug names.
+  // dataLayer flagged sensitive so GTM tags must NOT forward search_term to ad destinations.
+  pushSensitiveDataLayer("search", { search_term: query, results_count: resultCount })
 }
 
 /** Generic custom event */
