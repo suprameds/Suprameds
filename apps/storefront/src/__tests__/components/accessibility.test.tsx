@@ -52,6 +52,10 @@ vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
 }))
 
+vi.mock("@/lib/hooks/use-customer", () => ({
+  useCustomer: () => ({ data: null, isLoading: false }),
+}))
+
 vi.mock("@/components/bottom-tab-bar", () => ({
   BottomTabBar: () => null,
 }))

@@ -5,6 +5,10 @@ import { sdk } from "@/lib/utils/sdk"
 import { trackLogin, trackSignup } from "@/lib/utils/analytics"
 import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 import { hapticNotification } from "@/lib/utils/haptics"
+import { isNativeApp } from "@/lib/utils/capacitor"
+
+/** Same key the layout.tsx first-launch effect reads. Setting "logged-in" or "skip" prevents re-prompt. */
+const NATIVE_LOGIN_RESOLVED_KEY = "suprameds_native_login_resolved"
 
 export const Route = createFileRoute("/account/login")({
   head: () => ({
@@ -14,10 +18,11 @@ export const Route = createFileRoute("/account/login")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { redirectTo: string | undefined; pendingAction?: string; ref?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { redirectTo: string | undefined; pendingAction?: string; ref?: string; firstLaunch?: boolean } => ({
     redirectTo: typeof search.redirectTo === "string" ? search.redirectTo : undefined,
     pendingAction: typeof search.pendingAction === "string" ? search.pendingAction : undefined,
     ref: typeof search.ref === "string" ? search.ref : undefined,
+    firstLaunch: search.firstLaunch === true || search.firstLaunch === "true",
   }),
   component: LoginPage,
 })
@@ -26,14 +31,25 @@ type LoginMode = "email" | "phone-otp" | "email-otp"
 type OtpStep = "input" | "verify"
 
 function LoginPage() {
-  const { redirectTo, pendingAction, ref } = Route.useSearch()
+  const { redirectTo, pendingAction, ref, firstLaunch } = Route.useSearch()
   const navigate = useNavigate()
   const login = useLogin()
   const { data: customer, isLoading: customerLoading } = useCustomer()
 
-  // Redirect already-logged-in users
+  // Whether to show the "Continue without signing in" link.
+  // Only in the native Capacitor app and only on the first-launch path.
+  const showSkipCta = !!firstLaunch && isNativeApp()
+
+  // Redirect already-logged-in users (and mark the first-launch prompt resolved)
   useEffect(() => {
     if (!customerLoading && customer) {
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(NATIVE_LOGIN_RESOLVED_KEY, "logged-in")
+        } catch {
+          // localStorage can be disabled in some webviews — non-fatal
+        }
+      }
       if (redirectTo && redirectTo.startsWith("/")) {
         navigate({ to: redirectTo as never })
       } else {
@@ -41,6 +57,16 @@ function LoginPage() {
       }
     }
   }, [customerLoading, customer, navigate, redirectTo])
+
+  const handleSkipLogin = () => {
+    try {
+      localStorage.setItem(NATIVE_LOGIN_RESOLVED_KEY, "skip")
+    } catch {
+      // non-fatal
+    }
+    const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/"
+    navigate({ to: target as never, replace: true })
+  }
 
   const [mode, setMode] = useState<LoginMode>("phone-otp")
 
@@ -70,6 +96,12 @@ function LoginPage() {
   const otpVerify = useOtpVerify()
 
   const navigateAfterLogin = useCallback((isNewUser?: boolean) => {
+    // Mark the native first-launch prompt resolved so users aren't re-prompted on next launch
+    try {
+      localStorage.setItem(NATIVE_LOGIN_RESOLVED_KEY, "logged-in")
+    } catch {
+      // non-fatal
+    }
     // pendingAction encodes "<verb>:<id>" — UI on the redirect target reads it
     // from search params and replays the original intent (e.g. add-to-cart resume).
     const search = pendingAction ? { pendingAction } : undefined
@@ -609,6 +641,23 @@ function LoginPage() {
             </p>
           </div>
         </div>
+
+        {/* Native app first-launch: let casual browsers continue without signing in. */}
+        {showSkipCta && (
+          <div className="mt-4 text-center">
+            <button
+              type="button"
+              onClick={handleSkipLogin}
+              className="text-sm font-medium hover:underline"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Continue without signing in
+            </button>
+            <p className="text-xs mt-1.5" style={{ color: "var(--text-tertiary)" }}>
+              You can sign in later from your account
+            </p>
+          </div>
+        )}
 
         {/* Mobile-only: "Please sign in to continue" banner */}
         <p className="lg:hidden text-center text-xs mt-4" style={{ color: "var(--text-tertiary)" }}>
