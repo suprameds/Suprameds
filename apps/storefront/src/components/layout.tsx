@@ -13,9 +13,13 @@ import { useAppLifecycle } from "@/lib/hooks/use-app-lifecycle"
 import { useExternalLinks } from "@/lib/hooks/use-external-links"
 import { useNativeKeyboard } from "@/lib/hooks/use-native-keyboard"
 import { isNativeApp } from "@/lib/utils/capacitor"
+import { useCustomer } from "@/lib/hooks/use-customer"
 import { useQueryClient } from "@tanstack/react-query"
 import { useRouterState, useNavigate, useLocation } from "@tanstack/react-router"
 import { lazy, Suspense, useEffect } from "react"
+
+/** localStorage key — set to "logged-in" or "skip" once the user resolves the first-launch login prompt */
+const NATIVE_LOGIN_RESOLVED_KEY = "suprameds_native_login_resolved"
 
 // Below-the-fold / non-critical components — kept out of main.js so the
 // initial bundle parses faster. Render in a single Suspense with a null
@@ -77,6 +81,8 @@ const Layout = () => {
     await queryClient.invalidateQueries()
   }
 
+  const { data: customer, isLoading: customerLoading } = useCustomer()
+
   // Onboarding redirect — native app only, first launch only
   useEffect(() => {
     if (!native) return
@@ -87,6 +93,44 @@ const Layout = () => {
       navigate({ to: "/onboarding", replace: true })
     }
   }, [navigate, location.pathname, native])
+
+  // First-launch login prompt — native only, after onboarding, before the
+  // user has either signed in or chosen to skip. Mirrors the soft-gate
+  // pattern in Zomato/Swiggy/Flipkart: the app deliberately asks for an
+  // account at first launch but lets browsers continue as guest.
+  //
+  // Web users are unaffected — anonymous browsing is critical for SEO/Ads.
+  useEffect(() => {
+    if (!native) return
+    if (customerLoading) return // wait for customer state to settle
+
+    const hasSeenOnboarding = localStorage.getItem("suprameds_onboarding_seen_v2")
+    if (!hasSeenOnboarding) return // onboarding redirect above handles this
+
+    // If they're already logged in, mark the prompt as resolved so it
+    // doesn't fire on a future logout-then-launch sequence.
+    if (customer) {
+      if (!localStorage.getItem(NATIVE_LOGIN_RESOLVED_KEY)) {
+        localStorage.setItem(NATIVE_LOGIN_RESOLVED_KEY, "logged-in")
+      }
+      return
+    }
+
+    if (localStorage.getItem(NATIVE_LOGIN_RESOLVED_KEY)) return // already chose
+
+    // Don't redirect if they're already on an auth/onboarding/pharmacy path
+    const isAuthOrIntroPath =
+      /^\/account\/(login|register|forgot-password|reset-password)(\/|$)/.test(location.pathname) ||
+      location.pathname.startsWith("/onboarding") ||
+      location.pathname.startsWith("/pharmacy")
+    if (isAuthOrIntroPath) return
+
+    navigate({
+      to: "/account/login",
+      search: { firstLaunch: true, redirectTo: location.pathname || "/" } as never,
+      replace: true,
+    })
+  }, [native, customer, customerLoading, location.pathname, navigate])
 
   return (
     <ThemeProvider>
