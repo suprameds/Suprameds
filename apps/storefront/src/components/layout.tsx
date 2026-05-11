@@ -65,6 +65,13 @@ const Layout = () => {
   // tab bar, WhatsApp button, consent banner) so it doesn't feel like a web
   // page sandwiched in app chrome.
   const isOnboarding = location.pathname.startsWith("/onboarding")
+  // Auth pages are self-contained (own logo + brand panel) and get the same
+  // fullscreen treatment so the native tab bar doesn't appear underneath the
+  // sign-in form and the navbar/footer don't compete for attention.
+  const isAuthPage = /^\/account\/(login|register|forgot-password|reset-password)(\/|$)/.test(
+    location.pathname,
+  )
+  const isChromeSuppressed = isOnboarding || isAuthPage
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries()
@@ -88,7 +95,7 @@ const Layout = () => {
       <CartProvider>
         {native && <NativeHooks />}
         <div className="min-h-screen flex flex-col">
-          {!isOnboarding && (
+          {!isChromeSuppressed && (
             <a
               href="#main-content"
               className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-white focus:text-[var(--text-primary)] focus:shadow-lg focus:border focus:border-[var(--border-primary)]"
@@ -100,10 +107,10 @@ const Layout = () => {
           <Suspense fallback={null}>
             <PushNotificationManager />
           </Suspense>
-          {!isOnboarding && <Navbar />}
+          {!isChromeSuppressed && <Navbar />}
 
           <main id="main-content" className="relative flex-1">
-            {isOnboarding ? (
+            {isChromeSuppressed ? (
               <ErrorBoundary>
                 <AnimatedOutlet />
               </ErrorBoundary>
@@ -116,7 +123,7 @@ const Layout = () => {
             )}
           </main>
 
-          {!isOnboarding && (
+          {!isChromeSuppressed && (
             <>
               <Footer />
               <Suspense fallback={null}>
@@ -127,10 +134,10 @@ const Layout = () => {
           )}
           <Suspense fallback={null}>
             <OfflineScreen />
-            {!isOnboarding && <ConsentBanner />}
+            {!isChromeSuppressed && <ConsentBanner />}
           </Suspense>
           {/* Bottom padding when native tab bar is visible */}
-          {native && !isOnboarding && (
+          {native && !isChromeSuppressed && (
             <div className="h-14" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }} />
           )}
         </div>
