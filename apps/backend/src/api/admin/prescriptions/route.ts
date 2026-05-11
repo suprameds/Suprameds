@@ -2,6 +2,10 @@ import { AuthenticatedMedusaRequest, MedusaRequest, MedusaResponse } from "@medu
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../../../modules/prescription"
 import {
+  getPrescriptionInitialStatus,
+  getAutoApproveFields,
+} from "../../../modules/prescription/initial-status"
+import {
   decryptPhiArray,
   encryptPhi,
   PRESCRIPTION_PHI_FIELDS,
@@ -139,7 +143,8 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     original_filename: shouldEncrypt ? encryptPhi(original_filename) : original_filename,
     mime_type,
     file_size_bytes: file_size_bytes ?? null,
-    status: "pending_review",
+    status: getPrescriptionInitialStatus(),
+    ...getAutoApproveFields(),
   })
 
   // Link to order if order_id provided

@@ -6,6 +6,10 @@ import {
   transform,
 } from "@medusajs/framework/workflows-sdk"
 import { PRESCRIPTION_MODULE } from "../modules/prescription"
+import {
+  getPrescriptionInitialStatus,
+  getAutoApproveFields,
+} from "../modules/prescription/initial-status"
 
 type CreatePrescriptionInput = {
   customer_id?: string
@@ -30,7 +34,8 @@ const createPrescriptionStep = createStep(
       original_filename: input.original_filename ?? null,
       mime_type: input.mime_type ?? null,
       file_size_bytes: input.file_size_bytes ?? null,
-      status: "pending_review",
+      status: getPrescriptionInitialStatus(),
+      ...getAutoApproveFields(),
     })
 
     return new StepResponse(prescription, prescription.id)

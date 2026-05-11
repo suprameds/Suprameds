@@ -1,6 +1,10 @@
 import { createStep, createWorkflow, StepResponse, WorkflowResponse } from "@medusajs/framework/workflows-sdk"
 import { Modules } from "@medusajs/framework/utils"
 import { PRESCRIPTION_MODULE } from "../../modules/prescription"
+import {
+  getPrescriptionInitialStatus,
+  getAutoApproveFields,
+} from "../../modules/prescription/initial-status"
 import { encryptPhi, isPhiEncryptionEnabled } from "../../lib/phi-crypto"
 
 type UploadRxStepInput = {
@@ -16,12 +20,18 @@ type UploadRxStepInput = {
 export const createPrescriptionStep = createStep(
   "create-prescription-step",
   async (input: UploadRxStepInput, { container }) => {
-    const data = { ...input }
+    const data: Record<string, unknown> = { ...input }
 
     // Encrypt PHI fields before persisting
     if (isPhiEncryptionEnabled() && data.guest_phone) {
-      data.guest_phone = encryptPhi(data.guest_phone) as string
+      data.guest_phone = encryptPhi(data.guest_phone as string) as string
     }
+
+    // Apply initial-status policy (pending_review by default, or "approved"
+    // when PRESCRIPTION_AUTO_APPROVE_ON_UPLOAD=true). See ../../modules/
+    // prescription/initial-status.ts for the compliance trade-off.
+    data.status = getPrescriptionInitialStatus()
+    Object.assign(data, getAutoApproveFields())
 
     const prescriptionModuleService = container.resolve(PRESCRIPTION_MODULE) as any
     const prescription = await prescriptionModuleService.createPrescriptions(data)
