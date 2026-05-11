@@ -7,6 +7,35 @@ import {
 
 loadEnv(process.env.NODE_ENV || "development", process.cwd())
 
+/**
+ * Decide whether to enable TLS for the Postgres connection.
+ *
+ * Returns true when the DB host is a managed cloud Postgres that requires
+ * TLS (Supabase, Neon, AWS RDS, Azure, GCP, etc.) and false for Railway's
+ * internal Postgres on .railway.internal which runs unencrypted on a private
+ * network.
+ *
+ * The PG_FORCE_SSL env var ("true"/"false") overrides auto-detection for
+ * edge cases (local dev with SSL, custom setups).
+ */
+function detectPgSsl(url: string | undefined): boolean {
+  const override = (process.env.PG_FORCE_SSL || "").toLowerCase().trim()
+  if (override === "true") return true
+  if (override === "false") return false
+  if (!url) return false
+  try {
+    const u = new URL(url)
+    // Railway's internal Postgres lives on a .railway.internal hostname
+    // and rejects TLS handshakes.
+    if (u.hostname.endsWith(".railway.internal")) return false
+    // Anything else (Supabase pooler, Neon, RDS, public hosts) — assume SSL.
+    return true
+  } catch {
+    // Malformed URL → safer to require SSL than to send creds plaintext.
+    return true
+  }
+}
+
 export default defineConfig({
   plugins: ["medusa-plugin-razorpay-v2"],
   admin: {
@@ -38,13 +67,19 @@ export default defineConfig({
   projectConfig: {
     databaseUrl: process.env.DATABASE_URL,
     databaseDriverOptions: {
-      // Neon requires SSL for all connections
-      connection: { ssl: { rejectUnauthorized: false } },
-      // Neon serverless Postgres kills idle connections after ~5 minutes.
-      // These pool settings prevent "Connection ended unexpectedly" errors.
+      // SSL is required for managed cloud Postgres (Supabase, Neon, RDS) but
+      // not for Railway's internal Postgres which runs on a private network.
+      // Detect by hostname so the same code works across environments.
+      // Override with PG_FORCE_SSL=true/false if auto-detection ever lies.
+      connection: detectPgSsl(process.env.DATABASE_URL)
+        ? { ssl: { rejectUnauthorized: false } }
+        : { ssl: false },
+      // Pool sizing tuned for ~17 background jobs + storefront API traffic.
+      // These idleTimeout values also help managed Postgres providers that
+      // kill long-idle connections (Neon ~5 min, Supabase pooler varies).
       pool: {
         min: 2,
-        max: 20,                          // 10 was too low for 17 jobs + API traffic
+        max: 20,
         idleTimeoutMillis: 30_000,
         acquireTimeoutMillis: 60_000,
         reapIntervalMillis: 1_000,
