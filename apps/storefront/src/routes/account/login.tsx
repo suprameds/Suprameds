@@ -642,20 +642,20 @@ function LoginPage() {
           </div>
         </div>
 
-        {/* Native app first-launch: let casual browsers continue without signing in. */}
+        {/* Native app first-launch: an escape hatch for users who really
+            don't want to sign in. Deliberately understated — text-tertiary,
+            no underline, no reinforcing subtitle — so it doesn't compete
+            with the primary Sign-In CTA. We want the phone number. */}
         {showSkipCta && (
-          <div className="mt-4 text-center">
+          <div className="mt-6 text-center">
             <button
               type="button"
               onClick={handleSkipLogin}
-              className="text-sm font-medium hover:underline"
-              style={{ color: "var(--text-secondary)" }}
+              className="text-xs"
+              style={{ color: "var(--text-tertiary)" }}
             >
-              Continue without signing in
+              Skip for now
             </button>
-            <p className="text-xs mt-1.5" style={{ color: "var(--text-tertiary)" }}>
-              You can sign in later from your account
-            </p>
           </div>
         )}
 
