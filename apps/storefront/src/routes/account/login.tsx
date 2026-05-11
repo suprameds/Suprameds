@@ -334,21 +334,17 @@ function LoginPage() {
             className="text-3xl xl:text-4xl font-semibold text-white leading-tight mb-4"
             style={{ fontFamily: "Fraunces, Georgia, serif" }}
           >
-            Quality medicines,
-            <br />
-            affordable prices.
+            Welcome back.
           </h2>
           <p className="text-sm leading-relaxed max-w-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-            India's licensed online pharmacy. Same composition, 50-80% less than branded alternatives.
-            Pharmacist-verified, delivered to your door.
+            Sign in to access your orders, saved addresses, and account preferences.
           </p>
         </div>
 
         {/* Trust badges at bottom */}
         <div className="flex flex-wrap gap-6 mt-auto pt-8">
           {[
-            { label: "Licensed Pharmacy", sub: "DL: TS/HYD/2021-82149" },
-            { label: "Pharmacist Verified", sub: "Every order checked" },
+            { label: "Secure sign-in", sub: "256-bit encrypted" },
             { label: "Pan-India Delivery", sub: "Speed Post" },
           ].map((badge) => (
             <div key={badge.label}>
@@ -379,7 +375,7 @@ function LoginPage() {
               Sign in
             </h1>
             <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
-              Access your orders, prescriptions, and account
+              Access your orders, addresses, and account
             </p>
           </div>
 
@@ -637,7 +633,7 @@ function LoginPage() {
           {/* Trust footer */}
           <div className="mt-6 p-3 rounded-lg text-center" style={{ background: "var(--bg-tertiary)" }}>
             <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-              Protected by 256-bit encryption · Licensed pharmacy under CDSCO
+              Protected by 256-bit encryption
             </p>
           </div>
         </div>
@@ -659,10 +655,6 @@ function LoginPage() {
           </div>
         )}
 
-        {/* Mobile-only: "Please sign in to continue" banner */}
-        <p className="lg:hidden text-center text-xs mt-4" style={{ color: "var(--text-tertiary)" }}>
-          India's licensed online pharmacy · DL: TS/HYD/2021-82149
-        </p>
       </div>
       </div>
     </div>
