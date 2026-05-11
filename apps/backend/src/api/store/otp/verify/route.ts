@@ -12,6 +12,7 @@ import {
   normaliseEmail,
   verifyOtp,
 } from "../otp-store"
+import { parseDevice, mergeDevice } from "../device-parser"
 
 type OtpChannel = "sms" | "email"
 
@@ -130,13 +131,33 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     provider_identities: { entity_id: identifier, provider },
   })
 
+  // Capture a device snapshot from the request — what OS/browser/platform
+  // logged in. Used by admin to spot "Pavani logged in from a new Android
+  // device" and to power coarse device analytics. See ../device-parser.ts.
+  const device = parseDevice(req)
+
   if (existingIdentities.length > 0) {
     authIdentity = existingIdentities[0]
 
-    if (authIdentity.app_metadata?.customer_id !== customer.id) {
+    const prevMeta = authIdentity.app_metadata || {}
+    const nextDevices = device
+      ? mergeDevice(
+          (prevMeta as Record<string, unknown>).last_devices,
+          device
+        )
+      : (prevMeta as Record<string, unknown>).last_devices
+
+    if (
+      authIdentity.app_metadata?.customer_id !== customer.id ||
+      device // refresh the device list on every login
+    ) {
       authIdentity = await authModule.updateAuthIdentities({
         id: authIdentity.id,
-        app_metadata: { ...authIdentity.app_metadata, customer_id: customer.id },
+        app_metadata: {
+          ...prevMeta,
+          customer_id: customer.id,
+          ...(nextDevices ? { last_devices: nextDevices } : {}),
+        },
       })
     }
   } else {
@@ -148,7 +169,10 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
           user_metadata: { [lookupField]: identifier },
         },
       ],
-      app_metadata: { customer_id: customer.id },
+      app_metadata: {
+        customer_id: customer.id,
+        ...(device ? { last_devices: [device] } : {}),
+      },
     })
     logger.info(`[otp/verify] Auth identity created for ${provider}`, { auth_id: authIdentity.id })
   }
