@@ -38,6 +38,7 @@ export const Route = createFileRoute("/llms.txt")({
 
 - [Homepage](${SITE_URL}): Catalog of licensed generic medicines at 50-80% off MRP
 - [All Medicines](${SITE_URL}/store): Full searchable catalog of branded-generic medicines
+- [FAQ](${SITE_URL}/faq): Citable Q&A on generic medicines, prescription verification, Schedule H/H1 rules, delivery, pricing, returns, and pharmacist responsibility
 - [Prescription Policy](${SITE_URL}/prescription-policy): How Schedule H and H1 prescription verification works under Indian pharmacy law
 - [Pharmacy Licenses](${SITE_URL}/pharmacy/licenses): Drug license, GST registration, and pharmacist credentials
 - [Privacy Policy](${SITE_URL}/privacy): DPDP Act 2023 compliant data handling for patient records and prescriptions

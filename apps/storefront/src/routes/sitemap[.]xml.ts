@@ -19,6 +19,12 @@ const COMPLIANCE_PAGES = [
   "terms",
 ]
 
+// Higher-priority static content pages (above compliance pages in priority
+// because they're user-facing and citation-worthy for SEO / AI engines).
+const CONTENT_PAGES: Array<[slug: string, priority: string, changefreq: string]> = [
+  ["faq", "0.7", "monthly"],
+]
+
 function urlEntry(
   loc: string,
   priority: string,
@@ -48,6 +54,9 @@ export const Route = createFileRoute("/sitemap.xml")({
         const staticEntries = [
           urlEntry(`${SITE_URL}`, `1.0`, `daily`, today),
           urlEntry(`${SITE_URL}/store`, `0.9`, `daily`, today),
+          ...CONTENT_PAGES.map(([slug, priority, changefreq]) =>
+            urlEntry(`${SITE_URL}/${slug}`, priority, changefreq),
+          ),
           ...COMPLIANCE_PAGES.map((slug) =>
             urlEntry(`${SITE_URL}/${slug}`, `0.3`, `monthly`),
           ),
