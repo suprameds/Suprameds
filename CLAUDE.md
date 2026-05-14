@@ -74,7 +74,7 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 - **scripts/** — `seed.ts`, `run-migrations.ts`, `import-products.ts`, `cloud-start.mjs`
 
 ### Storefront (TanStack Start) — `apps/storefront/src/`
-- **routes/** — File-based routing with `$param` syntax (not `[param]`). Routes live at root; there is NO `$countryCode/` prefix. Legacy `/in/*` URLs are 301-redirected via sibling routes `routes/in/index.tsx` + `routes/in/$.tsx`.
+- **routes/** — File-based routing with `$param` syntax (not `[param]`). Routes live at root; there is NO `$countryCode/` prefix. Legacy `/in/*` URLs are 301-redirected via sibling routes `routes/in/index.tsx` + `routes/in/$.tsx`. Major route groups: `routes/products/$handle.tsx` (PDP), `routes/categories/$handle.tsx` (category page), `routes/drugs/$handle.tsx` (drug page — `noindex` until pharmacist-reviewed), `routes/onboarding.tsx` (mobile onboarding), `routes/account/*` (auth pages — chrome suppressed).
 - **lib/constants/site.ts** — `SITE_URL` (canonical, env-overridable via `VITE_SITE_URL`) and `DEFAULT_COUNTRY_CODE = "in"`. Every `getRegion({ country_code })` call passes the constant; never read the country from the URL.
 - **components/ui/** — Primitive UI components
 - **lib/hooks/** — React Query hooks for data fetching
@@ -92,7 +92,7 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 - **BulkSMS**: API ID `BULKSMS_API_ID`, password `BULKSMS_API_PASSWORD`, sender `BULKSMS_SENDER_ID`. DLT template IDs as `BULKSMS_DLT_*` env vars.
 - **Push**: Firebase Cloud Messaging
 - **Shipping**: AfterShip tracking API
-- **File Storage**: Cloudflare R2 / S3 (prod), local filesystem (dev)
+- **File Storage**: Supabase Storage in production (project `ivccaqwaxqeibwtxsbbz`), fronted by Cloudflare CDN at `cdn.supracyn.in`. The Medusa R2/S3 plugin is wired in `medusa-config.ts` (activates only when `R2_FILE_URL` is set) but is currently unused — active product image URLs in the DB point to `cdn.supracyn.in/...`. Dev uses local filesystem.
 
 ## Critical Constraints
 
@@ -152,6 +152,9 @@ cd apps/backend && pnpm email:dev               # Preview email templates on :90
 - **`/drugs/*` thin-content guard**: When `!drug || drug.pharmacist_reviewed === false`, the drug page ships `<meta robots="noindex, follow">` AND is excluded from the sitemap (in `routes/sitemap[.]xml.ts`). Once a pharmacist flips `pharmacist_reviewed=true`, the noindex lifts automatically — but you must also re-add `/drugs/*` to the sitemap entries to regain crawl.
 - **Canonical + OG URLs**: Always template from `SITE_URL` (imported from `@/lib/constants/site`). Never hardcode `https://supracyn.in` in route heads — use `` `${SITE_URL}/store` `` so env overrides (preview, staging) work.
 - **Homepage resilience**: `useBulkPharma()` can fail (503) when the pharma API is down. The homepage must show products even when pharma metadata is unavailable. Check `isError` and fall back to showing all products instead of filtering to OTC-only.
+- **`pushSensitiveDataLayer()` is a compliance pattern, not a wrapper to simplify** (`apps/storefront/src/lib/utils/analytics.ts`): drug-related events (`view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, `begin_checkout`, `purchase`, etc.) go through `pushSensitiveDataLayer()`, which tags every event with `sensitive_data: true`. GTM-side rules read that flag to redact item names/IDs from Meta Pixel and Google Ads payloads while leaving GA4 intact. Never "simplify" this back to a single `window.dataLayer.push()` — it will break Drugs & Magic Remedies Act 1954 compliance and likely get the ad accounts suspended. Meta Pixel is aggregate-only by design (no `content_ids`).
+- **Auth + onboarding pages suppress global chrome** (`apps/storefront/src/components/layout.tsx`): `isChromeSuppressed = isOnboarding || isAuthPage` where `isAuthPage` matches `/^\/account\/(login|register|forgot-password|reset-password)(\/|$)/`. Navbar, Footer, and BottomTabBar are all hidden for these routes. Adding a new auth-flow route? Extend the regex on `isAuthPage` or it'll render with full chrome.
+- **Native app first-launch login prompt** (mobile only): controlled by `localStorage["suprameds_native_login_resolved"]` with values `"logged-in"` or `"skip"`. When unset on a native (Capacitor) build, the login page renders with `firstLaunch=true` query param showing a "Skip for now" tertiary link. Set automatically on successful login OR explicit skip. To re-trigger for testing, clear BOTH this key and the customer JWT (`medusa_auth_token`).
 
 ## Design System
 - Colors: `--suprameds-navy` (#1E2D5A), `--suprameds-green` (#27AE60), `--suprameds-amber` (#F39C12), `--suprameds-cream` (#FAFAF8), `--suprameds-charcoal` (#2C3E50)
@@ -206,7 +209,7 @@ Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/pla
 
 ## CI/CD
 
-- **Always run tests locally before pushing**: `cd apps/storefront && pnpm test` (Vitest, 123 tests) and `cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"` (Jest, 635 tests)
+- **Always run tests locally before pushing**: `cd apps/storefront && pnpm test` (Vitest) and `cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"` (Jest)
 - **Always run lint before pushing**: `cd apps/storefront && npx eslint src/ --max-warnings 0`
 - **Always type-check before pushing**: `cd apps/backend && npx tsc --noEmit` and `cd apps/storefront && npx tsc --noEmit`
 - CI pipeline runs: TypeScript check, ESLint (zero warnings), Vitest/Jest, Storefront build, Backend build, Docker image build, E2E Playwright, Accessibility audit, Security audit
@@ -220,9 +223,9 @@ Available skills: `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/pla
 cd apps/backend && npx tsc --noEmit
 cd apps/storefront && npx tsc --noEmit
 
-# 2. Run tests
-cd apps/storefront && pnpm test          # 123 Vitest tests
-cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"  # 635 Jest tests
+# 2. Run tests (both must pass — don't hardcode counts, they drift)
+cd apps/storefront && pnpm test
+cd apps/backend && npx jest --testMatch="**/*.unit.spec.ts"
 
 # 3. Lint storefront
 cd apps/storefront && npx eslint src/ --max-warnings 0
@@ -239,7 +242,7 @@ grep "COPY.*scripts" Dockerfile.backend   # must include all patch scripts
 ```
 
 ### Deployment (Railway)
-- **Branch strategy**: Push to `development` for staging deploy, merge to `main` for production
+- **Branch strategy** (post go-live): only two long-lived branches — `development` (staging) and `main` (production at https://supracyn.in, serving real customers). NEVER push directly to `main`. Flow: commit on `development` → push → verify on staging → `git checkout main && git merge development && git push origin main`. No long-lived feature branches; small commits straight on `development` is the convention. Cleaned up 2026-05-14 — anything other than these two branches is stale.
 - **Auto-deploy**: Railway watches both branches; each push triggers a build
 - `SKIP_MIGRATIONS=true` is set on Railway backend — skips db:migrate on deploy (saves ~3 min). Unset when pushing schema changes.
 - **Test Docker builds locally first**: `bash scripts/test-deploy.sh` (requires `.env.storefront` — copy from `.env.storefront.example`)
