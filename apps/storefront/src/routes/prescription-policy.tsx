@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router"
+import MedicalReviewBlock from "@/components/medical-review-block"
 import { SITE_URL } from "@/lib/constants/site"
+
+const POLICY_LAST_REVIEWED = "2026-03-15"
+const POLICY_NEXT_REVIEW = "2026-09-15"
 
 export const Route = createFileRoute("/prescription-policy")({
   head: () => ({
@@ -35,6 +39,11 @@ function PrescriptionPolicy() {
 
       <div className="content-container py-12">
         <div className="max-w-3xl flex flex-col gap-8">
+
+          <MedicalReviewBlock
+            lastReviewedAt={POLICY_LAST_REVIEWED}
+            nextReviewAt={POLICY_NEXT_REVIEW}
+          />
 
           <div className="p-5 rounded-xl" style={{ background: "#fdebd0", border: "1px solid var(--brand-amber)" }}>
             <div className="flex items-start gap-3">

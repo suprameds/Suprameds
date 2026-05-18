@@ -19,6 +19,7 @@ export const Route = createFileRoute("/blog/$slug")({
     const post = loaderData?.post
     const siteUrl = SITE_URL
 
+    const postUpdatedAt = (post as { updated_at?: string } | null)?.updated_at
     const articleSchema = post
       ? {
           "@context": "https://schema.org",
@@ -26,9 +27,20 @@ export const Route = createFileRoute("/blog/$slug")({
           headline: post.seo_title || post.title,
           description: post.seo_description || post.description,
           datePublished: post.date,
+          dateModified: postUpdatedAt || post.date,
           author: {
             "@type": "Organization",
             name: post.author || "Suprameds Pharmacy Team",
+          },
+          reviewedBy: {
+            "@type": "Person",
+            name: "Mirza Askary Ali",
+            jobTitle: "Registered Pharmacist",
+            identifier: "TSPC #031171/A1",
+            affiliation: {
+              "@type": "Organization",
+              name: "Telangana State Pharmacy Council",
+            },
           },
           publisher: {
             "@type": "Organization",

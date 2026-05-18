@@ -18,8 +18,10 @@ import { Route as ReturnsRouteImport } from './routes/returns'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PrescriptionPolicyRouteImport } from './routes/prescription-policy'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as GrievanceRouteImport } from './routes/grievance'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as AccountRouteImport } from './routes/account'
@@ -98,6 +100,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
+  id: '/llms.txt',
+  path: '/llms.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HealthRoute = HealthRouteImport.update({
   id: '/health',
   path: '/health',
@@ -106,6 +113,11 @@ const HealthRoute = HealthRouteImport.update({
 const GrievanceRoute = GrievanceRouteImport.update({
   id: '/grievance',
   path: '/grievance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -280,8 +292,10 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountLayoutRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/faq': typeof FaqRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
@@ -324,8 +338,10 @@ export interface FileRoutesByTo {
   '/account': typeof AccountLayoutIndexRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/faq': typeof FaqRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
@@ -368,8 +384,10 @@ export interface FileRoutesById {
   '/account': typeof AccountRouteWithChildren
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/faq': typeof FaqRoute
   '/grievance': typeof GrievanceRoute
   '/health': typeof HealthRoute
+  '/llms.txt': typeof LlmsDottxtRoute
   '/onboarding': typeof OnboardingRoute
   '/prescription-policy': typeof PrescriptionPolicyRoute
   '/privacy': typeof PrivacyRoute
@@ -415,8 +433,10 @@ export interface FileRouteTypes {
     | '/account'
     | '/cart'
     | '/checkout'
+    | '/faq'
     | '/grievance'
     | '/health'
+    | '/llms.txt'
     | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
@@ -459,8 +479,10 @@ export interface FileRouteTypes {
     | '/account'
     | '/cart'
     | '/checkout'
+    | '/faq'
     | '/grievance'
     | '/health'
+    | '/llms.txt'
     | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
@@ -502,8 +524,10 @@ export interface FileRouteTypes {
     | '/account'
     | '/cart'
     | '/checkout'
+    | '/faq'
     | '/grievance'
     | '/health'
+    | '/llms.txt'
     | '/onboarding'
     | '/prescription-policy'
     | '/privacy'
@@ -548,8 +572,10 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRouteWithChildren
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
+  FaqRoute: typeof FaqRoute
   GrievanceRoute: typeof GrievanceRoute
   HealthRoute: typeof HealthRoute
+  LlmsDottxtRoute: typeof LlmsDottxtRoute
   OnboardingRoute: typeof OnboardingRoute
   PrescriptionPolicyRoute: typeof PrescriptionPolicyRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -635,6 +661,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/llms.txt': {
+      id: '/llms.txt'
+      path: '/llms.txt'
+      fullPath: '/llms.txt'
+      preLoaderRoute: typeof LlmsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/health': {
       id: '/health'
       path: '/health'
@@ -647,6 +680,13 @@ declare module '@tanstack/react-router' {
       path: '/grievance'
       fullPath: '/grievance'
       preLoaderRoute: typeof GrievanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -939,8 +979,10 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRouteWithChildren,
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
+  FaqRoute: FaqRoute,
   GrievanceRoute: GrievanceRoute,
   HealthRoute: HealthRoute,
+  LlmsDottxtRoute: LlmsDottxtRoute,
   OnboardingRoute: OnboardingRoute,
   PrescriptionPolicyRoute: PrescriptionPolicyRoute,
   PrivacyRoute: PrivacyRoute,
