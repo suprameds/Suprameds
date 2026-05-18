@@ -18,8 +18,14 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useRouterState, useNavigate, useLocation } from "@tanstack/react-router"
 import { lazy, Suspense, useEffect } from "react"
 
-/** localStorage key — set to "logged-in" or "skip" once the user resolves the first-launch login prompt */
-const NATIVE_LOGIN_RESOLVED_KEY = "suprameds_native_login_resolved"
+/**
+ * sessionStorage key — set when the user taps "Skip for now" on the login page.
+ * sessionStorage is cleared by the Capacitor webview on cold launch (process kill),
+ * so every cold open with no signed-in customer re-prompts. Warm resumes (app
+ * brought back from background without termination) keep the skip flag, so we
+ * don't re-prompt mid-session.
+ */
+const NATIVE_LOGIN_SKIPPED_SESSION_KEY = "suprameds_native_login_skipped"
 
 // Below-the-fold / non-critical components — kept out of main.js so the
 // initial bundle parses faster. Render in a single Suspense with a null
@@ -94,10 +100,31 @@ const Layout = () => {
     }
   }, [navigate, location.pathname, native])
 
-  // First-launch login prompt — native only, after onboarding, before the
-  // user has either signed in or chosen to skip. Mirrors the soft-gate
-  // pattern in Zomato/Swiggy/Flipkart: the app deliberately asks for an
-  // account at first launch but lets browsers continue as guest.
+  // Migration: clear the legacy persistent skip/resolved flag so users who
+  // dismissed the prompt under the old contract get re-prompted on next cold
+  // launch under the new "every-cold-open" contract. Safe to run on web too —
+  // the key is namespaced and unused there.
+  useEffect(() => {
+    try {
+      localStorage.removeItem("suprameds_native_login_resolved")
+    } catch {
+      // non-fatal
+    }
+  }, [])
+
+  // Native login gate — every cold launch of the native app, if no customer
+  // is signed in, redirect to /account/login. Pattern matches food-delivery
+  // and Q-commerce apps that require an account before browsing in earnest.
+  //
+  // Dismissal model:
+  //   - sessionStorage skip flag survives intra-session navigation and warm
+  //     resume from background, so users who chose "Skip for now" aren't
+  //     re-prompted on every route change or app-resume in the same session.
+  //   - Capacitor clears sessionStorage when the OS terminates the webview
+  //     process, so the next cold launch re-prompts.
+  //   - Once signed in, the auth JWT in localStorage (medusa_auth_token) is
+  //     the source of truth and useCustomer() returns the customer → no
+  //     redirect.
   //
   // Web users are unaffected — anonymous browsing is critical for SEO/Ads.
   useEffect(() => {
@@ -107,16 +134,15 @@ const Layout = () => {
     const hasSeenOnboarding = localStorage.getItem("suprameds_onboarding_seen_v2")
     if (!hasSeenOnboarding) return // onboarding redirect above handles this
 
-    // If they're already logged in, mark the prompt as resolved so it
-    // doesn't fire on a future logout-then-launch sequence.
-    if (customer) {
-      if (!localStorage.getItem(NATIVE_LOGIN_RESOLVED_KEY)) {
-        localStorage.setItem(NATIVE_LOGIN_RESOLVED_KEY, "logged-in")
-      }
-      return
-    }
+    // Signed-in → no prompt
+    if (customer) return
 
-    if (localStorage.getItem(NATIVE_LOGIN_RESOLVED_KEY)) return // already chose
+    // Skipped during this session → don't re-prompt on every navigation
+    try {
+      if (sessionStorage.getItem(NATIVE_LOGIN_SKIPPED_SESSION_KEY)) return
+    } catch {
+      // sessionStorage can be disabled in some webview configurations — non-fatal
+    }
 
     // Don't redirect if they're already on an auth/onboarding/pharmacy path
     const isAuthOrIntroPath =
