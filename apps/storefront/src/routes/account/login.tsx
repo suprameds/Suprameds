@@ -7,8 +7,13 @@ import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 import { hapticNotification } from "@/lib/utils/haptics"
 import { isNativeApp } from "@/lib/utils/capacitor"
 
-/** Same key the layout.tsx first-launch effect reads. Setting "logged-in" or "skip" prevents re-prompt. */
-const NATIVE_LOGIN_RESOLVED_KEY = "suprameds_native_login_resolved"
+/**
+ * Same sessionStorage key the layout.tsx native login-gate reads. Setting it
+ * suppresses the re-prompt for the rest of the current app session.
+ * sessionStorage clears on cold launch (process termination), so the next
+ * cold open re-prompts an unauthenticated user.
+ */
+const NATIVE_LOGIN_SKIPPED_SESSION_KEY = "suprameds_native_login_skipped"
 
 export const Route = createFileRoute("/account/login")({
   head: () => ({
@@ -40,16 +45,9 @@ function LoginPage() {
   // Only in the native Capacitor app and only on the first-launch path.
   const showSkipCta = !!firstLaunch && isNativeApp()
 
-  // Redirect already-logged-in users (and mark the first-launch prompt resolved)
+  // Redirect already-logged-in users away from /account/login
   useEffect(() => {
     if (!customerLoading && customer) {
-      if (typeof window !== "undefined") {
-        try {
-          localStorage.setItem(NATIVE_LOGIN_RESOLVED_KEY, "logged-in")
-        } catch {
-          // localStorage can be disabled in some webviews — non-fatal
-        }
-      }
       if (redirectTo && redirectTo.startsWith("/")) {
         navigate({ to: redirectTo as never })
       } else {
@@ -59,8 +57,11 @@ function LoginPage() {
   }, [customerLoading, customer, navigate, redirectTo])
 
   const handleSkipLogin = () => {
+    // Session-scoped: suppresses the prompt for this session only. Next cold
+    // launch of the app will re-prompt because Capacitor's webview clears
+    // sessionStorage on process termination.
     try {
-      localStorage.setItem(NATIVE_LOGIN_RESOLVED_KEY, "skip")
+      sessionStorage.setItem(NATIVE_LOGIN_SKIPPED_SESSION_KEY, "1")
     } catch {
       // non-fatal
     }
@@ -96,12 +97,9 @@ function LoginPage() {
   const otpVerify = useOtpVerify()
 
   const navigateAfterLogin = useCallback((isNewUser?: boolean) => {
-    // Mark the native first-launch prompt resolved so users aren't re-prompted on next launch
-    try {
-      localStorage.setItem(NATIVE_LOGIN_RESOLVED_KEY, "logged-in")
-    } catch {
-      // non-fatal
-    }
+    // Once signed in, the auth JWT in localStorage (medusa_auth_token) is the
+    // source of truth — useCustomer() returns the customer and the layout
+    // gate stops redirecting. No additional flag write needed here.
     // pendingAction encodes "<verb>:<id>" — UI on the redirect target reads it
     // from search params and replays the original intent (e.g. add-to-cart resume).
     const search = pendingAction ? { pendingAction } : undefined
@@ -361,7 +359,7 @@ function LoginPage() {
         {/* Mobile logo (hidden on desktop) */}
         <div className="lg:hidden text-center mb-6">
           <Link to="/" className="inline-block">
-            <img src="/images/suprameds-logo-full.png" alt="Suprameds" className="h-9" style={{ objectFit: "contain" }} />
+            <img src="/images/suprameds-logo-full.png" alt="Suprameds" className="h-9 dark:[filter:brightness(0)_invert(1)]" style={{ objectFit: "contain" }} />
           </Link>
         </div>
 
