@@ -1,3 +1,4 @@
+import MedicalReviewBlock from "@/components/medical-review-block"
 import ExpandableSection from "@/components/pdp/expandable-section"
 import FactBox from "@/components/pdp/fact-box"
 import FAQAccordion from "@/components/pdp/faq-accordion"
@@ -25,6 +26,8 @@ type DrugProduct = {
   is_chronic?: boolean
   therapeutic_class?: string | null
   pharmacist_reviewed?: boolean
+  pharmacist_reviewed_by?: string | null
+  pharmacist_reviewed_at?: string | null
   metadata?: {
     manufacturer?: string
     chemical_class?: string
@@ -827,6 +830,9 @@ const DrugInfoPage = () => {
               substitutes={substitutes as Substitute[]}
               currentPrice={currentPrice}
             />
+
+            {/* Medical review attribution (E-E-A-T) */}
+            <MedicalReviewBlock lastReviewedAt={drug.pharmacist_reviewed_at} />
 
             {/* Disclaimer */}
             <Disclaimer isRx={isRx} />

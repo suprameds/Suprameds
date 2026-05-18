@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router"
+import MedicalReviewBlock from "@/components/medical-review-block"
 import { SITE_URL } from "@/lib/constants/site"
+
+// Editorial review log for /faq. Update on every content change.
+const FAQ_LAST_REVIEWED = "2026-05-16"
+const FAQ_NEXT_REVIEW = "2026-11-16"
 
 /**
  * /faq — citable Q&A page for SEO and AI answer engines.
@@ -74,6 +79,13 @@ export const Route = createFileRoute("/faq")({
     const faqPageSchema = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
+      dateModified: FAQ_LAST_REVIEWED,
+      reviewedBy: {
+        "@type": "Person",
+        name: "Mirza Askary Ali",
+        jobTitle: "Registered Pharmacist",
+        identifier: "TSPC #031171/A1",
+      },
       mainEntity: FAQS.map((f) => ({
         "@type": "Question",
         name: f.q,
@@ -151,6 +163,10 @@ function FAQ() {
 
       <div className="content-container py-12">
         <div className="max-w-3xl flex flex-col gap-4">
+          <MedicalReviewBlock
+            lastReviewedAt={FAQ_LAST_REVIEWED}
+            nextReviewAt={FAQ_NEXT_REVIEW}
+          />
           {FAQS.map((item, idx) => (
             <details
               key={item.q}

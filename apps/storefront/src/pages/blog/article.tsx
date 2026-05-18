@@ -1,3 +1,4 @@
+import MedicalReviewBlock from "@/components/medical-review-block"
 import { useBlogPost, useBlogPosts } from "@/lib/hooks/use-blog"
 import { Link, useParams } from "@tanstack/react-router"
 
@@ -151,6 +152,13 @@ const BlogArticlePage = () => {
           className="blog-prose"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
+
+        {/* Medical review attribution */}
+        <div className="mt-10 max-w-3xl">
+          <MedicalReviewBlock
+            lastReviewedAt={(post as { updated_at?: string }).updated_at || post.date}
+          />
+        </div>
 
         {/* CTA */}
         <div
