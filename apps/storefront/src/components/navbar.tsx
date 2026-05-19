@@ -13,7 +13,7 @@ import {
 import { useCustomer } from "@/lib/hooks/use-customer"
 import { useCategories } from "@/lib/hooks/use-categories"
 import { isNativeApp } from "@/lib/utils/capacitor"
-import { Link, useLocation, useNavigate } from "@tanstack/react-router"
+import { Link, useLocation, useNavigate, useSearch as useRouterSearch } from "@tanstack/react-router"
 import { useState, useRef, useEffect } from "react"
 
 const MenuIcon = () => (
@@ -38,8 +38,12 @@ const SearchIcon = () => (
 export const Navbar = () => {
   const location = useLocation()
   const navigate = useNavigate()
+  // Read current ?q= from the URL — used to keep the navbar input in sync
+  // with the store page so refining a query feels intuitive.
+  const routerSearch = useRouterSearch({ strict: false }) as Record<string, string> | undefined
+  const urlQ = routerSearch?.q ?? ""
   const { data: customer } = useCustomer()
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState(urlQ)
   const [scrolled, setScrolled] = useState(false)
 
   // Backdrop blur effect on scroll
@@ -63,10 +67,43 @@ export const Navbar = () => {
         to: "/store",
         search: { q: trimmed },
       })
-      setSearchQuery("")
+      // NOTE: intentionally do NOT clear searchQuery — keeping the input in
+      // sync with the URL lets users see what they searched and refine it.
       setSearchFocused(false)
     }
   }
+
+  // ── Keep navbar input in sync with URL ?q= (one-way: URL → input) ──
+  // Fires when the route changes (e.g. user pastes a /store?q=foo URL or
+  // navigates back/forward in history) or when a search submit updates the
+  // URL. Skipped when the values already match to avoid render loops.
+  useEffect(() => {
+    if (urlQ !== searchQuery) {
+      setSearchQuery(urlQ)
+    }
+    // intentionally only re-run when URL changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlQ, location.pathname])
+
+  // ── Search-as-you-type when already on /store (debounced) ──
+  // Eliminates the "did anything happen?" UX bug: typing a refined query
+  // (e.g. metfor → metformin) updates results without requiring Enter.
+  // Outside /store we still require Enter so users on other pages aren't
+  // yanked away while typing.
+  useEffect(() => {
+    if (location.pathname !== "/store") return
+    const trimmed = searchQuery.trim()
+    if (trimmed === urlQ) return
+
+    const timer = setTimeout(() => {
+      navigate({
+        to: "/store",
+        search: trimmed ? { q: trimmed } : ({} as never),
+        replace: true,
+      })
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery, location.pathname, urlQ, navigate])
 
   const handleSearchFocus = () => {
     if (blurTimeout.current) clearTimeout(blurTimeout.current)
@@ -84,6 +121,7 @@ export const Navbar = () => {
       to: "/products/$handle",
       params: { handle },
     })
+    // Clear input when navigating AWAY from search (to a product page).
     setSearchQuery("")
     setSearchFocused(false)
   }
@@ -94,7 +132,9 @@ export const Navbar = () => {
       to: "/store",
       search: { q },
     })
-    setSearchQuery("")
+    // Keep input synced with the query that was just submitted — the URL→
+    // input effect will pick it up, but set it eagerly to avoid a flicker.
+    setSearchQuery(q)
     setSearchFocused(false)
   }
 
