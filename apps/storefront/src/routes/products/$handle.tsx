@@ -113,12 +113,25 @@ export const Route = createFileRoute("/products/$handle")({
       firstVariant &&
       (!firstVariant.manage_inventory || (firstVariant.inventory_quantity ?? 0) > 0)
 
+    // Schema.org Product `image` is REQUIRED for Google Merchant Listings rich
+    // results. Many products in our catalog don't populate `product.images` but
+    // do have a `thumbnail` — fall back to thumbnail (and de-dup) to ensure
+    // every PDP emits at least one image URL.
+    const productImageUrls = (product.images?.map((img) => img.url).filter(Boolean) ||
+      []) as string[]
+    const schemaImages =
+      productImageUrls.length > 0
+        ? productImageUrls
+        : product.thumbnail
+          ? [product.thumbnail]
+          : []
+
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Product",
       name: product.title,
       description: product.description,
-      image: product.images?.map((img) => img.url).filter(Boolean) || [],
+      image: schemaImages,
       url: canonical,
       sku: firstVariant?.sku || product.id,
       brand: {
@@ -139,6 +152,46 @@ export const Route = createFileRoute("/products/$handle")({
         seller: {
           "@type": "Organization",
           name: "Suprameds",
+        },
+        // Free delivery over ₹300; 2-7 business days India-wide.
+        // Matches the policy surfaced in the homepage FAQ and free-delivery
+        // badge, so the schema does not drift from on-site claims.
+        shippingDetails: {
+          "@type": "OfferShippingDetails",
+          shippingRate: {
+            "@type": "MonetaryAmount",
+            value: "0",
+            currency: "INR",
+          },
+          shippingDestination: {
+            "@type": "DefinedRegion",
+            addressCountry: "IN",
+          },
+          deliveryTime: {
+            "@type": "ShippingDeliveryTime",
+            handlingTime: {
+              "@type": "QuantitativeValue",
+              minValue: 0,
+              maxValue: 1,
+              unitCode: "DAY",
+            },
+            transitTime: {
+              "@type": "QuantitativeValue",
+              minValue: 2,
+              maxValue: 7,
+              unitCode: "DAY",
+            },
+          },
+        },
+        // Per Indian pharma regulations medicines cannot be returned once
+        // dispatched. Schema.org expresses this as MerchantReturnNotPermitted.
+        // Damaged/incorrect-product replacements are handled through support
+        // (see homepage FAQ) and are not a generic return policy.
+        hasMerchantReturnPolicy: {
+          "@type": "MerchantReturnPolicy",
+          applicableCountry: "IN",
+          returnPolicyCategory:
+            "https://schema.org/MerchantReturnNotPermitted",
         },
       },
     }
