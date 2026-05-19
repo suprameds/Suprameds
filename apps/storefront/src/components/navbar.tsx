@@ -254,7 +254,7 @@ export const Navbar = () => {
           </div>
 
           {/* ── Search bar (expanded, desktop) ── */}
-          <form onSubmit={handleSearch} className="hidden lg:block relative flex-1 max-w-lg mx-4" role="search" aria-label="Search medicines">
+          <form onSubmit={handleSearch} className="hidden lg:block relative flex-1 max-w-lg mx-4" role="search" aria-label="Search medicines or compositions">
             <div
               className="flex items-center rounded-full overflow-hidden transition-all"
               style={{
@@ -273,8 +273,8 @@ export const Navbar = () => {
                 onFocus={handleSearchFocus}
                 onBlur={handleSearchBlur}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="Search medicines, e.g. Metformin, Paracetamol..."
-                aria-label="Search medicines"
+                placeholder="Search medicines or compositions, e.g. Atorvastatin, Paracetamol..."
+                aria-label="Search medicines or compositions"
                 className="flex-1 px-2.5 py-2 text-sm outline-none bg-transparent caret-current"
                 style={{ color: "var(--text-primary)" }}
                 suppressHydrationWarning
@@ -323,8 +323,8 @@ export const Navbar = () => {
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search medicines..."
-                      aria-label="Search medicines"
+                      placeholder="Search medicines or compositions..."
+                      aria-label="Search medicines or compositions"
                       className="px-2.5 py-2.5 text-sm outline-none bg-transparent flex-1"
                       style={{ color: "var(--text-primary)" }}
                     />
