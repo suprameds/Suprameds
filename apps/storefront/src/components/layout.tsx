@@ -89,16 +89,23 @@ const Layout = () => {
 
   const { data: customer, isLoading: customerLoading } = useCustomer()
 
-  // Onboarding redirect — native app only, first launch only
+  // Onboarding redirect — DISABLED. The first-launch onboarding adds an
+  // extra step before users see the storefront on the native app; we're
+  // currently optimising for time-to-first-screen, so the route is left
+  // accessible (direct nav to /onboarding still works) but no longer
+  // auto-redirects. Mark it "seen" eagerly so the legacy native-login gate
+  // below — which depends on `hasSeenOnboarding` — keeps firing normally.
+  //
+  // Re-enable by restoring the original block:
+  //   if (!hasSeenOnboarding && !isExcludedPath) navigate({ to: "/onboarding", replace: true })
   useEffect(() => {
     if (!native) return
-    const hasSeenOnboarding = localStorage.getItem("suprameds_onboarding_seen_v2")
-    const isExcludedPath = location.pathname.includes("/onboarding") || location.pathname.includes("/pharmacy")
-
-    if (!hasSeenOnboarding && !isExcludedPath) {
-      navigate({ to: "/onboarding", replace: true })
+    try {
+      localStorage.setItem("suprameds_onboarding_seen_v2", "true")
+    } catch {
+      // non-fatal
     }
-  }, [navigate, location.pathname, native])
+  }, [native])
 
   // Migration: clear the legacy persistent skip/resolved flag so users who
   // dismissed the prompt under the old contract get re-prompted on next cold
