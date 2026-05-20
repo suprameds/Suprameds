@@ -132,39 +132,45 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   // device" and to power coarse device analytics. See ../device-parser.ts.
   const device = parseDevice(req)
 
-  // Find the existing provider identity directly. The earlier code used
-  // `listAndCountAuthIdentities({ provider_identities: { entity_id, provider } })`
-  // — a nested filter through the one-to-many relation that DOES NOT
-  // reliably resolve in Medusa v2.13's filter pipeline and always returned
-  // an empty array. That made every login attempt fall through to
-  // createAuthIdentities, which then failed on the second attempt because
-  // the (provider, entity_id) pair already exists with a UNIQUE constraint
-  // — producing the user-visible "entity_id" error on retry.
-  //
-  // We also match all phone-format variants of entity_id (10-digit legacy +
-  // 12-digit E.164 + with-plus) so an identity stored under a different
-  // format isn't accidentally duplicated.
-  const entityIdVariants: string[] = [identifier]
-  if (channel === "sms") {
+  // Build phone-format variants of entity_id so an identity stored under a
+  // different historical format (10-digit legacy vs 12-digit E.164 vs
+  // +E.164) is still matched. Email is single canonical form.
+  const entityIdVariants: string[] = (() => {
+    if (channel !== "sms") return [identifier]
     const tenDigit = identifier.length > 10 ? identifier.slice(-10) : identifier
     const fullForm = identifier.length > 10 ? identifier : `${country_code}${identifier}`
-    entityIdVariants.splice(0, entityIdVariants.length, fullForm, tenDigit, `+${fullForm}`)
-  }
+    return [fullForm, tenDigit, `+${fullForm}`]
+  })()
 
-  let providerIdentity: { id: string; entity_id: string; auth_identity_id: string } | null = null
-  try {
-    const [matches] = await authModule.listAndCountProviderIdentities({
+  // Find the existing provider identity directly.
+  //
+  // History: the earlier code used
+  //   `listAndCountAuthIdentities({ provider_identities: { entity_id, provider } })`
+  // which is a nested filter through a one-to-many relation. Medusa v2.13's
+  // filter pipeline does NOT reliably resolve it — the call returned an
+  // empty array regardless of whether a matching identity existed. That
+  // made every login fall through to createAuthIdentities, which threw
+  // "Provider identity with entity_id: …, already exists" on retry because
+  // of the UNIQUE(provider, entity_id) constraint on provider_identities.
+  //
+  // The correct entity to query is ProviderIdentity directly, via
+  // `listProviderIdentities` (singular — there is no listAndCount variant
+  // on this module in v2.13). FilterableProviderIdentityProps only declares
+  // `entity_id: string` (no operator support in the types), so we do
+  // sequential exact-match lookups for each variant instead of relying on
+  // $in at runtime.
+  let providerIdentity:
+    | { id: string; entity_id: string; auth_identity_id: string }
+    | null = null
+  for (const variant of entityIdVariants) {
+    const matches = await authModule.listProviderIdentities({
       provider,
-      entity_id: { $in: entityIdVariants },
+      entity_id: variant,
     })
-    providerIdentity = matches[0] ?? null
-  } catch (err) {
-    // If the filter syntax is unsupported in the running Medusa version, fall back
-    // to listing all provider identities for the provider (small dataset in practice)
-    // and matching client-side. Still beats the previous always-empty result.
-    const [allForProvider] = await authModule.listAndCountProviderIdentities({ provider })
-    providerIdentity = allForProvider.find((p: any) => entityIdVariants.includes(p.entity_id)) ?? null
-    logger.warn(`[otp/verify] $in filter failed on provider_identities, fell back to manual scan: ${(err as Error).message}`)
+    if (matches.length > 0) {
+      providerIdentity = matches[0]
+      break
+    }
   }
 
   if (providerIdentity) {
@@ -207,20 +213,37 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       })
       logger.info(`[otp/verify] Auth identity created for ${provider}`, { auth_id: authIdentity.id })
     } catch (err: any) {
-      // Race-condition recovery: a concurrent request created the identity
-      // between our lookup and create. Re-fetch and reuse instead of failing.
-      const isUniqueConflict =
+      // Recovery: a concurrent request, an orphaned identity, or a stale
+      // identity from a previous broken-lookup login already owns
+      // (provider, entity_id). Medusa v2.13 wraps this as
+      // `MedusaError(INVALID_DATA, "Provider identity with entity_id: <e>, provider: <p>, already exists.")`.
+      // We re-fetch the existing identity and reuse it instead of failing
+      // the login.
+      const message = (err?.message ?? "").toString()
+      const isAlreadyExists =
         err?.code === "23505" ||
-        /unique|duplicate|entity_id/i.test(err?.message ?? "")
-      if (!isUniqueConflict) throw err
+        err?.type === "invalid_data" ||
+        /already exists|unique|duplicate|entity_id/i.test(message)
+      if (!isAlreadyExists) throw err
 
-      logger.warn(`[otp/verify] Race-condition duplicate on auth identity, recovering: ${err.message}`)
-      const [retryMatches] = await authModule.listAndCountProviderIdentities({
-        provider,
-        entity_id: { $in: entityIdVariants },
-      })
-      if (retryMatches.length === 0) throw err
-      authIdentity = await authModule.retrieveAuthIdentity(retryMatches[0].auth_identity_id)
+      logger.warn(
+        `[otp/verify] Duplicate provider identity on create — recovering: ${message}`,
+      )
+      let recovered:
+        | { id: string; entity_id: string; auth_identity_id: string }
+        | null = null
+      for (const variant of entityIdVariants) {
+        const matches = await authModule.listProviderIdentities({
+          provider,
+          entity_id: variant,
+        })
+        if (matches.length > 0) {
+          recovered = matches[0]
+          break
+        }
+      }
+      if (!recovered) throw err
+      authIdentity = await authModule.retrieveAuthIdentity(recovered.auth_identity_id)
 
       // Make sure the recovered identity points at our customer
       if (authIdentity.app_metadata?.customer_id !== customer.id) {
