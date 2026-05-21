@@ -121,7 +121,6 @@ function LoginPage() {
       navigate({ to: redirectTo as never, search })
     } else if (isNewUser) {
       markFreshSignup()
-      // @ts-expect-error - /welcome route tree entry regenerates on pnpm dev/build, not tsc.
       navigate({ to: "/welcome" })
     } else {
       navigate({ to: "/" })
