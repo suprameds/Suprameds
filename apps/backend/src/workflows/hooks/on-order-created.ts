@@ -240,7 +240,7 @@ async function tagTestAccountOrder(container: any, orderId: string, cart: any) {
   if (!customerId) return
 
   try {
-    const customerService = container.resolve(Modules.CUSTOMER) as any
+    const customerService = container.resolve(Modules.CUSTOMER)
     const customer = await customerService.retrieveCustomer(customerId)
     const isTestAccount = (customer?.metadata as any)?.test_account === true
     if (!isTestAccount) return

@@ -44,7 +44,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   // Verify the customer exists before creating the prescription
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
   try {
     await customerService.retrieveCustomer(customer_id)
   } catch {

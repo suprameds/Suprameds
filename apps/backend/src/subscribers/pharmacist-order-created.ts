@@ -26,7 +26,7 @@ export default async function pharmacistOrderCreatedHandler({
     Modules.NOTIFICATION
   )
   const orderService = container.resolve(Modules.ORDER) as any
-  const customerService = container.resolve(Modules.CUSTOMER) as any
+  const customerService = container.resolve(Modules.CUSTOMER)
 
   let order: any
   try {

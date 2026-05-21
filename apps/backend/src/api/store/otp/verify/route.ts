@@ -1,4 +1,5 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import type { CustomerDTO, ProviderIdentityDTO } from "@medusajs/types"
 import {
   ContainerRegistrationKeys,
   generateJwtToken,
@@ -79,11 +80,11 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   // ── Resolve Medusa services ────────────────────────────────────────
-  const authModule = req.scope.resolve(Modules.AUTH) as any
-  const customerModule = req.scope.resolve(Modules.CUSTOMER) as any
+  const authModule = req.scope.resolve(Modules.AUTH)
+  const customerModule = req.scope.resolve(Modules.CUSTOMER)
 
   // ── Find or create customer ────────────────────────────────────────
-  let customer: { id: string; phone?: string; email?: string }
+  let customer: CustomerDTO
   let isNew: boolean
 
   // Phone storage has historically used two formats:
@@ -163,9 +164,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   // We also match all phone-format variants of entity_id (10-digit legacy +
   // 12-digit E.164 + with-plus) so an identity stored under any historical
   // format is still resolved.
-  const findExistingProviderIdentity = async (): Promise<
-    { id: string; entity_id: string; auth_identity_id: string } | null
-  > => {
+  const findExistingProviderIdentity = async (): Promise<ProviderIdentityDTO | null> => {
     // Strategy 1: filtered lookup per variant
     for (const variant of entityIdVariants) {
       const matches = await authModule.listProviderIdentities({
@@ -193,7 +192,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
   const providerIdentity = await findExistingProviderIdentity()
 
-  if (providerIdentity) {
+  if (providerIdentity && providerIdentity.auth_identity_id) {
     authIdentity = await authModule.retrieveAuthIdentity(providerIdentity.auth_identity_id)
     const prevMeta = authIdentity.app_metadata || {}
     const nextDevices = device
@@ -250,11 +249,13 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
         `[otp/verify] Duplicate provider identity on create — recovering: ${message}`,
       )
       const recovered = await findExistingProviderIdentity()
-      if (!recovered) {
+      if (!recovered?.auth_identity_id) {
         // The error said the identity exists but neither strategy could find
-        // it. Surface a more debuggable error than the raw 'already exists'.
+        // it (or the matched row has no auth_identity_id, which would be a
+        // data-integrity problem). Surface a more debuggable error than the
+        // raw 'already exists'.
         logger.error(
-          `[otp/verify] Duplicate reported but both lookup strategies returned empty for entity_id variants: ${entityIdVariants.join(", ")}`,
+          `[otp/verify] Duplicate reported but both lookup strategies returned empty (or missing auth_identity_id) for entity_id variants: ${entityIdVariants.join(", ")}`,
         )
         throw err
       }

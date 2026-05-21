@@ -35,7 +35,7 @@ export default async function orderPlacedFillCustomerHandler({
 
   try {
     const orderService = container.resolve(Modules.ORDER) as any
-    const customerService = container.resolve(Modules.CUSTOMER) as any
+    const customerService = container.resolve(Modules.CUSTOMER)
 
     const order = await orderService.retrieveOrder(orderId, {
       relations: ["shipping_address"],
@@ -82,7 +82,7 @@ export default async function orderPlacedFillCustomerHandler({
       return
     }
 
-    await customerService.updateCustomers({ id: customerId, ...patch })
+    await customerService.updateCustomers(customerId, patch)
 
     logger.info(
       `Back-filled customer ${customerId} from order ${orderId}: ${Object.keys(patch).join(", ")}`,

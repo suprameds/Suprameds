@@ -47,7 +47,7 @@ export const POST = async (
     return res.status(400).json({ message: "Please use a real email address" })
   }
 
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
 
   const existing = await customerService.listCustomers({ email: normalised })
   const conflict = existing.find((c: { id: string }) => c.id !== customerId)
@@ -57,8 +57,7 @@ export const POST = async (
 
   let updated
   try {
-    updated = await customerService.updateCustomers({
-      id: customerId,
+    updated = await customerService.updateCustomers(customerId, {
       email: normalised,
     })
   } catch (err: any) {

@@ -38,7 +38,7 @@ async function normalizeHandler({
   if (!customerId) return
 
   try {
-    const customerService = container.resolve(Modules.CUSTOMER) as any
+    const customerService = container.resolve(Modules.CUSTOMER)
     const customer = await customerService.retrieveCustomer(customerId)
     if (!customer?.phone) return
 
@@ -52,8 +52,7 @@ async function normalizeHandler({
     const canonical = normalisePhone(stored, "91")
     if (canonical === stored) return
 
-    await customerService.updateCustomers({
-      id: customerId,
+    await customerService.updateCustomers(customerId, {
       phone: canonical,
     })
 

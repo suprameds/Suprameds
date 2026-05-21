@@ -43,7 +43,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // ── Fetch customer email ──────────────────────────────────────────
-    const customerModule = req.scope.resolve(Modules.CUSTOMER) as any
+    const customerModule = req.scope.resolve(Modules.CUSTOMER)
     const customer = await customerModule.retrieveCustomer(customerId)
 
     if (!customer?.email) {
@@ -76,7 +76,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       from: process.env.RESEND_FROM || "Suprameds <support@supracynpharma.com>",
       to: [customer.email],
       subject: `Suprameds — Invoice for Order #${displayId}`,
-      html: buildInvoiceEmailHtml(displayId, customer.first_name),
+      html: buildInvoiceEmailHtml(displayId, customer.first_name ?? undefined),
       attachments: [
         {
           filename,

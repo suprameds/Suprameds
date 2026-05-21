@@ -89,7 +89,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
   const rbacService = req.scope.resolve(RBAC_MODULE) as any
   const userModuleService = req.scope.resolve(Modules.USER) as any
-  const authModuleService = req.scope.resolve(Modules.AUTH) as any
+  const authModuleService = req.scope.resolve(Modules.AUTH)
 
   // ── Validate role exists ─────────────────────────────────────────────
   const roles = (await rbacService.listRoles(

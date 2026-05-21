@@ -16,7 +16,7 @@ export function requirePharmacistRole() {
     }
 
     try {
-      const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+      const customerService = req.scope.resolve(Modules.CUSTOMER)
       const customer = await customerService.retrieveCustomer(customerId)
 
       if (customer?.metadata?.role !== "pharmacist") {

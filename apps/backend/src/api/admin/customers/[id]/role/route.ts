@@ -9,7 +9,7 @@ const VALID_ROLES = ["pharmacist", "customer", ""] as const
  */
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { id } = req.params
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
 
   const customer = await customerService.retrieveCustomer(id)
   if (!customer) {
@@ -38,7 +38,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
     )
   }
 
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
   const customer = await customerService.retrieveCustomer(id)
   if (!customer) {
     throw new MedusaError(MedusaError.Types.NOT_FOUND, "Customer not found.")
@@ -47,7 +47,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   const metadata = { ...(customer.metadata || {}), role: role || undefined }
   if (!role) delete metadata.role
 
-  await customerService.updateCustomers({ id, metadata })
+  await customerService.updateCustomers(id, { metadata })
 
   return res.json({
     customer_id: id,

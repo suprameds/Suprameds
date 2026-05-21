@@ -94,7 +94,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   // 3. Resolve customer
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
   let customer: any
   try {
     customer = await customerService.retrieveCustomer(rx.customer_id, { relations: ["addresses"] })

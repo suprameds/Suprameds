@@ -17,7 +17,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
   try {
     const loyaltyService = req.scope.resolve(LOYALTY_MODULE) as any
-    const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+    const customerService = req.scope.resolve(Modules.CUSTOMER)
 
     const [account] = await loyaltyService.listLoyaltyAccounts(
       { referral_code: code },

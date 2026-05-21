@@ -59,7 +59,7 @@ export const POST = async (
   const newPhone = normalisePhone(phone, "91")
 
   // Reject if the new phone matches the current phone — nothing to do.
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
   const customer = await customerService.retrieveCustomer(customerId)
   if (customer?.phone === newPhone) {
     return res.status(400).json({
@@ -71,7 +71,8 @@ export const POST = async (
   // Legitimate cases exist (family / staff sharing one number) but worth
   // letting the user know OTP login routing may not behave as expected.
   const [conflicts] = await customerService.listAndCountCustomers(
-    { phone: newPhone },
+    // Medusa types omit `phone` from FilterableCustomerProps; runtime accepts it.
+    { phone: newPhone } as any,
     { take: 5 }
   )
   const otherOwners = conflicts.filter(

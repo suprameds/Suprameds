@@ -175,7 +175,7 @@ async function ensureAdminUser(
   roleCodes: string[]
 ): Promise<boolean> {
   const userService = container.resolve(Modules.USER) as any
-  const authService = container.resolve(Modules.AUTH) as any
+  const authService = container.resolve(Modules.AUTH)
   const rbacService = container.resolve(RBAC_MODULE) as any
 
   // ── Check if user already exists ──────────────────────────────────────

@@ -44,7 +44,7 @@ export default async function testPush({
 
   // Sanity check that the customer exists — avoids sending into a void if
   // the operator pasted a bad ID.
-  const customerService = container.resolve(Modules.CUSTOMER) as any
+  const customerService = container.resolve(Modules.CUSTOMER)
   let customer
   try {
     customer = await customerService.retrieveCustomer(customerId)
