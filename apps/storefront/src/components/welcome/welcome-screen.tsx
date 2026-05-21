@@ -1,6 +1,4 @@
 import { Link } from "@tanstack/react-router"
-import { useEffect } from "react"
-import { trackWelcomeCtaClicked, trackWelcomeViewed } from "@/lib/utils/analytics"
 
 /**
  * Welcome screen shown ONCE immediately after a successful signup
@@ -11,21 +9,18 @@ import { trackWelcomeCtaClicked, trackWelcomeViewed } from "@/lib/utils/analytic
  * pills + soft CTAs only.
  *
  * Visual style chosen by Daisy: subtle. Brand navy/teal palette, gentle
- * fade-and-rise animation on mount via Tailwind utilities, no confetti or
+ * fade-and-rise animation on mount via inline keyframes, no confetti or
  * illustration. Reads "professional pharmacy", not "consumer app celebration".
  *
  * Chrome (navbar, footer, bottom tab bar, consent banner) is suppressed by
  * `isChromeSuppressed` in layout.tsx so this is the only thing on screen
  * during the first-impression moment.
+ *
+ * No analytics: this screen is decoration around the existing trackSignup()
+ * event that already fires at the source of truth (OTP verify success). A
+ * separate welcome_viewed event would be redundant and noisy in GA4.
  */
 export function WelcomeScreen() {
-  // Fire the view event once on mount. Not in a useCallback / dep array —
-  // the route is one-shot (sessionStorage flag is consumed in beforeLoad),
-  // so this effect can never run twice in a single signup.
-  useEffect(() => {
-    trackWelcomeViewed()
-  }, [])
-
   return (
     <div
       className="min-h-screen flex items-center justify-center px-5 py-10"
@@ -107,7 +102,6 @@ export function WelcomeScreen() {
         <div className="w-full flex flex-col gap-2.5">
           <Link
             to="/"
-            onClick={() => trackWelcomeCtaClicked("browse")}
             className="w-full py-3 px-4 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 active:opacity-80"
             style={{ background: "var(--color-brand-teal)" }}
           >
@@ -115,7 +109,6 @@ export function WelcomeScreen() {
           </Link>
           <Link
             to="/account"
-            onClick={() => trackWelcomeCtaClicked("profile")}
             className="w-full py-3 px-4 rounded-lg text-sm font-medium border transition-all hover:bg-[var(--color-brand-cream)]"
             style={{
               borderColor: "var(--border-primary)",

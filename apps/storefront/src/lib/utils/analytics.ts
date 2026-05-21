@@ -265,29 +265,6 @@ export function trackPurchase(
 }
 
 /** Site search */
-/**
- * Welcome-screen view event. Fires once on mount of the /welcome route
- * (a one-shot, sessionStorage-gated screen — see lib/welcome.ts).
- *
- * Uses pushDataLayer, NOT pushSensitiveDataLayer: the welcome screen does
- * not surface any drug-level data. Safe to forward to ad networks for new-
- * user funnel attribution alongside the existing trackSignup() event.
- */
-export function trackWelcomeViewed() {
-  gtag("event", "welcome_viewed")
-  pushDataLayer("welcome_viewed")
-}
-
-/**
- * Welcome-screen CTA click. `cta` distinguishes "browse" (primary, → /)
- * from "profile" (secondary, → /account). Lets us measure which destination
- * new users actually pick so we can re-order or simplify later.
- */
-export function trackWelcomeCtaClicked(cta: "browse" | "profile") {
-  gtag("event", "welcome_cta_clicked", { cta })
-  pushDataLayer("welcome_cta_clicked", { cta })
-}
-
 export function trackSearch(query: string, resultCount?: number) {
   // GA4 only — search queries on a pharmacy site reveal health intent and
   // must NEVER be sent to ad networks (e.g., "atorvastatin" → high cholesterol).
