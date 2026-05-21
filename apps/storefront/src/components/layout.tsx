@@ -81,7 +81,11 @@ const Layout = () => {
   const isAuthPage = /^\/account\/(login|register|forgot-password|reset-password)(\/|$)/.test(
     location.pathname,
   )
-  const isChromeSuppressed = isOnboarding || isAuthPage
+  // /welcome is a one-shot post-signup screen (gated by sessionStorage in
+  // routes/welcome.tsx). Keep the chrome off so the first-impression moment
+  // isn't competing with the navbar/footer/bottom-tab-bar.
+  const isWelcome = location.pathname === "/welcome"
+  const isChromeSuppressed = isOnboarding || isAuthPage || isWelcome
 
   const handleRefresh = async () => {
     await queryClient.invalidateQueries()
