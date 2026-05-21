@@ -16,7 +16,7 @@ export default async function ReleaseExpiredGuestSessionsJob(container: MedusaCo
 
   const logger = container.resolve("logger") as any
   const orderService = container.resolve(ORDERS_MODULE) as any
-  const cartService = container.resolve(Modules.CART) as any
+  const cartService = container.resolve(Modules.CART)
 
   logger.info(`${LOG_PREFIX} Starting expired guest session cleanup`)
 

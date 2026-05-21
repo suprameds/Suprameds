@@ -25,8 +25,8 @@ export default async function SyncInventoryToStorefrontJob(container: MedusaCont
 
   try {
     const batchService = container.resolve(INVENTORY_BATCH_MODULE) as any
-    const inventoryService = container.resolve(Modules.INVENTORY) as any
-    const productService = container.resolve(Modules.PRODUCT) as any
+    const inventoryService = container.resolve(Modules.INVENTORY)
+    const productService = container.resolve(Modules.PRODUCT)
 
     // Paginate batch loading to avoid unbounded memory usage
     const PAGE_SIZE = 1000

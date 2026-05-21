@@ -54,7 +54,7 @@ export const POST = async (
     })
   }
 
-  const fileModuleService = req.scope.resolve(Modules.FILE) as any
+  const fileModuleService = req.scope.resolve(Modules.FILE)
   const complianceService = req.scope.resolve(COMPLIANCE_MODULE) as any
 
   const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "_")

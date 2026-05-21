@@ -100,7 +100,7 @@ addToCartWorkflow.hooks.validate(async ({ input }, { container }) => {
     const warnings = checkInteractions(compositions)
     if (warnings.length === 0) return
 
-    const cartService = container.resolve(Modules.CART) as any
+    const cartService = container.resolve(Modules.CART)
     await cartService.updateCarts(cartId, {
       metadata: {
         drug_interactions: warnings,

@@ -126,7 +126,7 @@ createOrderFulfillmentWorkflow.hooks.fulfillmentCreated(
 
     let order: any
     try {
-      const orderService = container.resolve(Modules.ORDER) as any
+      const orderService = container.resolve(Modules.ORDER)
       order = await orderService.retrieveOrder(orderId, {
         relations: ["items", "items.variant"],
       })

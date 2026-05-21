@@ -70,7 +70,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   // ── 2. No existing order — run the standard Medusa completion workflow ──
-  const we = req.scope.resolve(Modules.WORKFLOW_ENGINE) as any
+  const we = req.scope.resolve(Modules.WORKFLOW_ENGINE)
 
   const { errors, result, transaction } = await we.run(
     "complete-cart",

@@ -107,7 +107,7 @@ export const updateRefundApprovalStep = createStep(
 export const emitRefundApprovedStep = createStep(
   "emit-refund-approved-step",
   async (data: { refund_id: string; order_id: string }, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "refund.approved",
       data: {

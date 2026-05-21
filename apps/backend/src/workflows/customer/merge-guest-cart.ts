@@ -34,7 +34,7 @@ const findGuestSessionStep = createStep(
       throw new Error(`Guest session ${input.guest_session_id} has expired`)
     }
 
-    const cartService = container.resolve(Modules.CART) as any
+    const cartService = container.resolve(Modules.CART)
     const guestCart = await cartService.retrieveCart(session.cart_id, {
       relations: ["items", "items.variant", "shipping_address"],
     })
@@ -52,11 +52,13 @@ const findOrCreateCustomerCartStep = createStep(
     input: { customer_id: string; region_id: string; currency_code: string },
     { container }
   ) => {
-    const cartService = container.resolve(Modules.CART) as any
+    const cartService = container.resolve(Modules.CART)
 
-    // Look for an existing active cart for this customer
+    // Look for an existing active cart for this customer.
+    // FilterableCartProps types completed_at as OperatorMap<string>; null
+    // means "not completed" at runtime, but we cast to bypass the narrow type.
     const [existingCart] = await cartService.listCarts(
-      { customer_id: input.customer_id, completed_at: null },
+      { customer_id: input.customer_id, completed_at: null } as any,
       { take: 1, relations: ["items", "items.variant", "shipping_address"] }
     )
 
@@ -90,7 +92,7 @@ const mergeLineItemsStep = createStep(
     input: { customer_cart_id: string; guest_cart_items: any[] },
     { container }
   ) => {
-    const cartService = container.resolve(Modules.CART) as any
+    const cartService = container.resolve(Modules.CART)
     const logger = container.resolve("logger") as any
 
     let addedCount = 0
@@ -123,11 +125,15 @@ const mergeLineItemsStep = createStep(
           `[cart-merge] Merged variant ${guestItem.variant_id}: qty ${existingItem.quantity} + ${guestItem.quantity}`
         )
       } else {
-        // New variant — add as new line item
-        await cartService.addLineItems(input.customer_cart_id, {
-          variant_id: guestItem.variant_id,
-          quantity: guestItem.quantity,
-        })
+        // New variant — add as new line item.
+        // CreateLineItemDTO requires title + quantity at the type level, but
+        // Medusa's runtime expands variant_id → title/price/etc. automatically.
+        await cartService.addLineItems(input.customer_cart_id, [
+          {
+            variant_id: guestItem.variant_id,
+            quantity: guestItem.quantity,
+          } as any,
+        ])
         addedCount++
       }
     }
@@ -153,7 +159,7 @@ const copyShippingAddressStep = createStep(
       return new StepResponse({ copied: false })
     }
 
-    const cartService = container.resolve(Modules.CART) as any
+    const cartService = container.resolve(Modules.CART)
     const addr = input.guest_shipping_address
 
     await cartService.updateCarts(input.customer_cart_id, {
@@ -197,7 +203,7 @@ const emitCartMergedStep = createStep(
     input: { customer_id: string; cart_id: string; guest_session_id: string },
     { container }
   ) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "cart.merged",
       data: {

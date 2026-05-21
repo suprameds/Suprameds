@@ -25,7 +25,7 @@ export default async function GenerateSalesTaxReportJob(container: MedusaContain
   logger.info(`${LOG} Starting`)
 
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
 
     // Calculate previous month date range
     const now = new Date()

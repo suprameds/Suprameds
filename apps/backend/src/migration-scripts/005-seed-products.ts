@@ -122,7 +122,7 @@ export default async function seedProducts({
   container: MedusaContainer
 }) {
   const query = container.resolve(ContainerRegistrationKeys.QUERY)
-  const inventoryService = container.resolve(Modules.INVENTORY) as any
+  const inventoryService = container.resolve(Modules.INVENTORY)
   const pharmaService = container.resolve(PHARMA_MODULE) as any
   const batchService = container.resolve(INVENTORY_BATCH_MODULE) as any
   const fulfillmentService = container.resolve(ModuleRegistrationName.FULFILLMENT) as any
@@ -272,15 +272,19 @@ export default async function seedProducts({
       // ── 3c. Set stock level ──
 
       if (invItemId) {
-        const [existingLevels] = await inventoryService.listInventoryLevels({
+        const existingLevels = await inventoryService.listInventoryLevels({
           inventory_item_id: invItemId,
           location_id: locationId,
         })
         if (existingLevels?.length > 0) {
-          await inventoryService.updateInventoryLevels({
-            id: existingLevels[0].id,
-            stocked_quantity: stockQty,
-          })
+          await inventoryService.updateInventoryLevels([
+            {
+              id: existingLevels[0].id,
+              inventory_item_id: invItemId,
+              location_id: locationId,
+              stocked_quantity: stockQty,
+            },
+          ])
         } else {
           await inventoryService.createInventoryLevels({
             inventory_item_id: invItemId,

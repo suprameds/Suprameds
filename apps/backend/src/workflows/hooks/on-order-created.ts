@@ -24,7 +24,7 @@ import { WALLET_MODULE } from "../../modules/wallet"
     // ── Resolve cart (shared by both tasks) ──
     let cart: any
     try {
-      const cartService = container.resolve(Modules.CART) as any
+      const cartService = container.resolve(Modules.CART)
       cart = await cartService.retrieveCart(cartId)
     } catch (err: any) {
       console.warn(`[hook:orderCreated] Failed to retrieve cart ${cartId}: ${err.message}`)
@@ -55,7 +55,7 @@ async function linkPrescription(container: any, orderId: string, cart: any) {
   // (Medusa may propagate cart.metadata → order.metadata on completion)
   if (!prescriptionId) {
     try {
-      const orderService = container.resolve(Modules.ORDER) as any
+      const orderService = container.resolve(Modules.ORDER)
       const order = await orderService.retrieveOrder(orderId)
       prescriptionId = (order?.metadata as any)?.prescription_id
       if (prescriptionId) {
@@ -99,7 +99,7 @@ async function linkPrescription(container: any, orderId: string, cart: any) {
       (rx.lines ?? []).map((l: any) => l.product_id)
     )
 
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const order = await orderService.retrieveOrder(orderId, { relations: ["items"] })
     const items = order?.items ?? []
 
@@ -201,7 +201,7 @@ async function burnLoyaltyPoints(container: any, orderId: string, cart: any) {
 
     // Emit event for push notification
     try {
-      const eventBus = container.resolve(Modules.EVENT_BUS) as any
+      const eventBus = container.resolve(Modules.EVENT_BUS)
       await eventBus.emit({
         name: "loyalty.points_redeemed",
         data: {
@@ -248,7 +248,7 @@ async function tagTestAccountOrder(container: any, orderId: string, cart: any) {
     const purpose =
       (customer?.metadata as any)?.purpose ?? "test_account"
 
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const order = await orderService.retrieveOrder(orderId)
     const existingMeta = (order?.metadata ?? {}) as Record<string, any>
 

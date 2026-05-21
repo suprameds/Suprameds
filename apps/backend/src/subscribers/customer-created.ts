@@ -125,7 +125,7 @@ export default async function customerCreatedHandler({
 
     // Emit event for analytics
     try {
-      const eventBus = container.resolve(Modules.EVENT_BUS) as any
+      const eventBus = container.resolve(Modules.EVENT_BUS)
       await eventBus.emit({
         name: "loyalty.referral_signup",
         data: {

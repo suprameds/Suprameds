@@ -22,7 +22,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   const codService = req.scope.resolve(COD_MODULE) as any
-  const paymentModule = req.scope.resolve(Modules.PAYMENT) as any
+  const paymentModule = req.scope.resolve(Modules.PAYMENT)
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
   const results = {

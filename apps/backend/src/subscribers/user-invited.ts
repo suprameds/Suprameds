@@ -14,7 +14,7 @@ export default async function inviteCreatedHandler({
 
   try {
     const query = container.resolve("query")
-    const notificationModuleService = container.resolve(Modules.NOTIFICATION) as any
+    const notificationModuleService = container.resolve(Modules.NOTIFICATION)
 
     // Fetch invite — include all useful fields
     const { data: invites } = await query.graph({

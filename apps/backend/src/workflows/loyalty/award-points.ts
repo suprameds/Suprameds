@@ -79,7 +79,7 @@ const calculatePointsStep = createStep(
     { container }
   ) => {
     const logger = container.resolve("logger") as any
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const pharmaService = container.resolve(PHARMA_MODULE) as any
 
     const order = await orderService.retrieveOrder(input.order_id, {
@@ -238,7 +238,7 @@ const emitPointsEarnedStep = createStep(
   ) => {
     if (input.points <= 0) return new StepResponse(null)
 
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "loyalty.points_earned",
       data: {

@@ -14,7 +14,7 @@ export async function GET(
   res: MedusaResponse
 ) {
   const rbacService = req.scope.resolve(RBAC_MODULE) as any
-  const userService = req.scope.resolve(Modules.USER) as any
+  const userService = req.scope.resolve(Modules.USER)
 
   const { user_id, credential_type } = req.query as Record<string, string>
 

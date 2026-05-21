@@ -19,7 +19,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
   try {
     const orderService = req.scope.resolve(ORDERS_MODULE) as any
-    const cartService = req.scope.resolve(Modules.CART) as any
+    const cartService = req.scope.resolve(Modules.CART)
 
     // Create a fresh cart for this guest session (India region, INR)
     const cart = await cartService.createCarts({
@@ -79,10 +79,10 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
     }
 
     // Optionally load the cart if it exists
-    let cart = null
+    let cart: any = null
     if (session.cart_id) {
       try {
-        const cartService = req.scope.resolve(Modules.CART) as any
+        const cartService = req.scope.resolve(Modules.CART)
         cart = await cartService.retrieveCart(session.cart_id, {
           relations: ["items"],
         })

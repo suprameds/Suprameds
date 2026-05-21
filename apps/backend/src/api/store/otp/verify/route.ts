@@ -284,7 +284,9 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       auth_identity_id: authIdentity.id,
       app_metadata: { customer_id: customer.id },
     },
-    { secret: jwtSecret, expiresIn: "7d" },
+    // Matches http.jwtExpiresIn in medusa-config.ts — customers stay signed in
+    // until they explicitly log out.
+    { secret: jwtSecret, expiresIn: "3650d" },
   )
 
   logger.info(`[otp/verify] ${channel} login successful`, {

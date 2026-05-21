@@ -21,10 +21,14 @@ export default async function shipmentRtoInitiatedHandler({
   )
 
   // Fetch order to get customer_id and display_id
-  const orderService = container.resolve(Modules.ORDER) as any
+  const orderService = container.resolve(Modules.ORDER)
   const order = await orderService.retrieveOrder(order_id)
+  if (!order.customer_id) {
+    logger.warn(`[shipment-rto-initiated] order ${order_id} has no customer_id — skipping push`)
+    return
+  }
   const customerId: string = order.customer_id
-  const displayId: string = order.display_id ?? order_id
+  const displayId: string = String(order.display_id ?? order_id)
 
   // Push notification to customer
   try {

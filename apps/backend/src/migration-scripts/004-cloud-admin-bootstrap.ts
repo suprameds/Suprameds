@@ -37,7 +37,7 @@ export default async function cloudAdminBootstrap({
     `004-cloud-admin-bootstrap: ensuring super_admin for ${cloudAdminEmail}`
   )
 
-  const userService = container.resolve(Modules.USER) as any
+  const userService = container.resolve(Modules.USER)
   const rbacService = container.resolve(RBAC_MODULE) as any
 
   // ── Find the user ──────────────────────────────────────────────────────

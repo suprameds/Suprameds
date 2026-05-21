@@ -45,10 +45,12 @@ export default async function refundProcessedHandler({
     // Attempt to fetch customer email from the order
     let customerEmail: string | null = null
     try {
-      const orderService = container.resolve(Modules.ORDER) as any
-      const order = await orderService.retrieveOrder(order_id, {
+      const orderService = container.resolve(Modules.ORDER)
+      // OrderDTO doesn't declare `customer` in its base shape; it's a loaded
+      // relation populated when relations: ["customer"] is passed.
+      const order = (await orderService.retrieveOrder(order_id, {
         relations: ["customer"],
-      })
+      })) as any
       customerEmail = order?.customer?.email ?? order?.email ?? null
     } catch (err) {
       logger.warn(`${LOG} Could not retrieve order email: ${(err as Error).message}`)
@@ -65,7 +67,7 @@ export default async function refundProcessedHandler({
     // Send external email notification via Medusa's notification module
     if (customerEmail) {
       try {
-        const notifModule = container.resolve(Modules.NOTIFICATION) as any
+        const notifModule = container.resolve(Modules.NOTIFICATION)
         await notifModule.createNotifications({
           to: customerEmail,
           channel: "email",

@@ -82,7 +82,7 @@ export default async function codUnconfirmedTimeoutHandler({
 
     // Send cancellation notification
     try {
-      const notificationService = container.resolve(Modules.NOTIFICATION) as any
+      const notificationService = container.resolve(Modules.NOTIFICATION)
       await notificationService.createNotifications({
         to: "",
         channel: "sms",

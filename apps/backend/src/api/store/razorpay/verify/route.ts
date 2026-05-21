@@ -80,8 +80,8 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   })
 
   // ── Retrieve cart + payment session ────────────────────────────────
-  const cartModule = req.scope.resolve(Modules.CART) as any
-  const paymentModule = req.scope.resolve(Modules.PAYMENT) as any
+  const cartModule = req.scope.resolve(Modules.CART)
+  const paymentModule = req.scope.resolve(Modules.PAYMENT)
 
   let cart: any
   try {

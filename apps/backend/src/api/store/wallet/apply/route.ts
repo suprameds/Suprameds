@@ -29,7 +29,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   }
 
   const walletService = req.scope.resolve(WALLET_MODULE) as any
-  const cartService = req.scope.resolve(Modules.CART) as any
+  const cartService = req.scope.resolve(Modules.CART)
 
   // Verify the cart belongs to this customer
   const cart = await cartService.retrieveCart(cart_id)
@@ -48,8 +48,8 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     )
   }
 
-  // Cap at wallet balance and cart total
-  const cartTotal = cart.total ?? 0
+  // Cap at wallet balance and cart total. cart.total is BigNumberValue.
+  const cartTotal = Number(cart.total ?? 0)
   const applicableAmount = Math.min(amount, walletBalance, cartTotal)
 
   if (applicableAmount <= 0) {
@@ -61,8 +61,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
   // Store in cart metadata (actual debit happens at order creation)
   const existingMetadata = (cart.metadata ?? {}) as Record<string, any>
-  await cartService.updateCarts({
-    id: cart_id,
+  await cartService.updateCarts(cart_id, {
     metadata: {
       ...existingMetadata,
       wallet_amount: applicableAmount,

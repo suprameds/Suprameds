@@ -49,7 +49,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
   try {
     const pharmaOrderService = req.scope.resolve(ORDERS_MODULE) as any
-    const orderService = req.scope.resolve(Modules.ORDER) as any
+    const orderService = req.scope.resolve(Modules.ORDER)
     const authUser = (req as any).auth_context?.actor_id || "unknown"
 
     // Create the CS-placed order record

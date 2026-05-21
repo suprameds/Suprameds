@@ -22,7 +22,7 @@ export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
     )
   }
 
-  const cartService = req.scope.resolve(Modules.CART) as any
+  const cartService = req.scope.resolve(Modules.CART)
 
   const cart = await cartService.retrieveCart(cart_id)
   if (!cart) {
@@ -33,8 +33,7 @@ export async function DELETE(req: MedusaRequest, res: MedusaResponse) {
   const existingMetadata = (cart.metadata ?? {}) as Record<string, any>
   const { wallet_amount, wallet_account_id, ...restMetadata } = existingMetadata
 
-  await cartService.updateCarts({
-    id: cart_id,
+  await cartService.updateCarts(cart_id, {
     metadata: restMetadata,
   })
 

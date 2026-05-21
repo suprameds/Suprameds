@@ -61,10 +61,12 @@ export default async function returnReceivedHandler({
   // ── Credit wallet with refund amount ──
   try {
     if (orderId && orderId !== "unknown") {
-      const orderService = container.resolve(Modules.ORDER) as any
-      const order = await orderService.retrieveOrder(orderId, {
+      const orderService = container.resolve(Modules.ORDER)
+      // OrderDTO doesn't declare `returns` in its base shape; it's a loaded
+      // relation. Cast so the downstream access compiles.
+      const order = (await orderService.retrieveOrder(orderId, {
         relations: ["items", "returns"],
-      })
+      })) as any
 
       if (order?.customer_id) {
         // Calculate refund amount from the return's items

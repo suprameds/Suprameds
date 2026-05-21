@@ -20,7 +20,7 @@ export default async function userCreatedHandler({
 
   try {
     const rbacService = container.resolve(RBAC_MODULE) as any
-    const userService = container.resolve(Modules.USER) as any
+    const userService = container.resolve(Modules.USER)
 
     // Retrieve the user to get their email
     let user: any

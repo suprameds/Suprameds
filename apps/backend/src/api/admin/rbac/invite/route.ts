@@ -54,7 +54,7 @@ export async function POST(
 
   try {
     // Create Medusa invite
-    const userModuleService = req.scope.resolve(Modules.USER) as any
+    const userModuleService = req.scope.resolve(Modules.USER)
     const invite = await userModuleService.createInvites({
       email: normalizedEmail,
     })

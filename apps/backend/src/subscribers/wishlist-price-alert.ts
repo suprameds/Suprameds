@@ -20,7 +20,7 @@ export default async function wishlistPriceAlertHandler({
 }: SubscriberArgs<WishlistPriceAlertData>) {
   const { customer_id, product_id, wishlist_item_id } = event.data
 
-  const notificationService = container.resolve(Modules.NOTIFICATION) as any
+  const notificationService = container.resolve(Modules.NOTIFICATION)
   const logger = container.resolve("logger") as any
 
   try {

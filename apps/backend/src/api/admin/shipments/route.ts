@@ -38,8 +38,8 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
  */
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const shipmentService = req.scope.resolve(SHIPMENT_MODULE) as any
-  const orderService = req.scope.resolve(Modules.ORDER) as any
-  const eventBus = req.scope.resolve(Modules.EVENT_BUS) as any
+  const orderService = req.scope.resolve(Modules.ORDER)
+  const eventBus = req.scope.resolve(Modules.EVENT_BUS)
   const logger = req.scope.resolve(ContainerRegistrationKeys.LOGGER) as any
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 

@@ -18,7 +18,7 @@ export default async function checkWishlistPriceAlerts(
   if (guard.shouldSkip()) return
 
   const wishlistService = container.resolve(WISHLIST_MODULE) as any
-  const eventBus = container.resolve(Modules.EVENT_BUS) as any
+  const eventBus = container.resolve(Modules.EVENT_BUS)
   const logger = container.resolve("logger") as any
 
   logger.info("[wishlist-alerts] Starting price-alert scan")
@@ -50,13 +50,16 @@ export default async function checkWishlistPriceAlerts(
           continue
         }
 
-        await eventBus.emit("wishlist.price_check", {
-          wishlist_item_id: item.id,
-          customer_id: item.customer_id,
-          product_id: item.product_id,
-          variant_id: item.variant_id,
-          price_at_addition: item.price_at_addition,
-          alert_threshold_pct: item.alert_threshold_pct,
+        await eventBus.emit({
+          name: "wishlist.price_check",
+          data: {
+            wishlist_item_id: item.id,
+            customer_id: item.customer_id,
+            product_id: item.product_id,
+            variant_id: item.variant_id,
+            price_at_addition: item.price_at_addition,
+            alert_threshold_pct: item.alert_threshold_pct,
+          },
         })
 
         emitted++

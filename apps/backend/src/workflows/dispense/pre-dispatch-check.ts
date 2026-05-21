@@ -299,7 +299,7 @@ export const createSignOffStep = createStep(
 export const emitPreDispatchEventStep = createStep(
   "emit-pre-dispatch-event-step",
   async (input: { signOff: any; allPassed: boolean }, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     const eventName = input.allPassed
       ? "dispense.pre_dispatch_approved"
       : "dispense.pre_dispatch_rejected"

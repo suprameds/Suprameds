@@ -21,7 +21,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
   try {
     const warehouseService = req.scope.resolve(WAREHOUSE_MODULE) as any
     const batchService = req.scope.resolve(INVENTORY_BATCH_MODULE) as any
-    const orderService = req.scope.resolve(Modules.ORDER) as any
+    const orderService = req.scope.resolve(Modules.ORDER)
 
     // Fetch pick list lines for this order via the warehouse task → pick list lines
     // PickListLine has task_id, so we need to look up the task by order context.

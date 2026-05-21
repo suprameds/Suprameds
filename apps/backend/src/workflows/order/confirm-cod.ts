@@ -166,7 +166,7 @@ const emitCodEventStep = createStep(
     input: { order_id: string; confirmed: boolean; cod_order: any },
     { container }
   ) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
 
     const eventName = input.confirmed ? "cod.confirmed" : "cod.cancelled"
     await eventBus.emit({

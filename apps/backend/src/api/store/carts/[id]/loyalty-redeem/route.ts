@@ -34,7 +34,7 @@ export async function POST(
 
   try {
     const loyaltyService = req.scope.resolve(LOYALTY_MODULE) as any
-    const cartService = req.scope.resolve(Modules.CART) as any
+    const cartService = req.scope.resolve(Modules.CART)
 
     // Validate customer has enough points
     const [account] = await loyaltyService.listLoyaltyAccounts(
@@ -103,7 +103,7 @@ export async function DELETE(
   const cartId = req.params.id
 
   try {
-    const cartService = req.scope.resolve(Modules.CART) as any
+    const cartService = req.scope.resolve(Modules.CART)
     const cart = await cartService.retrieveCart(cartId)
 
     if (!cart) {

@@ -258,7 +258,7 @@ export const linkH1EntryStep = createStep(
 export const emitDecisionEventStep = createStep(
   "emit-decision-event-step",
   async (data: { decision: any }, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "dispense.decision_made",
       data: {

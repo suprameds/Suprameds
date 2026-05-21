@@ -16,7 +16,7 @@ type CompleteCartInput = {
 const validateCartStep = createStep(
   "complete-cart-validate",
   async (input: { cart_id: string }, { container }) => {
-    const cartService = container.resolve(Modules.CART) as any
+    const cartService = container.resolve(Modules.CART)
     const cart = await cartService.retrieveCart(input.cart_id, {
       relations: ["items", "items.variant", "shipping_methods"],
     })

@@ -21,7 +21,7 @@ type LowStockVariant = {
  */
 export async function GET(req: MedusaRequest, res: MedusaResponse) {
   const batchService = req.scope.resolve(INVENTORY_BATCH_MODULE) as any
-  const productService = req.scope.resolve(Modules.PRODUCT) as any
+  const productService = req.scope.resolve(Modules.PRODUCT)
   const logger = req.scope.resolve("logger") as any
 
   const threshold = req.query.threshold
