@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as UploadRxRouteImport } from './routes/upload-rx'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StoreRouteImport } from './routes/store'
@@ -55,6 +56,11 @@ import { Route as AccountLayoutPharmacistRxQueueRouteImport } from './routes/acc
 import { Route as AccountLayoutPharmacistCreateOrderRouteImport } from './routes/account/_layout/pharmacist/create-order'
 import { Route as AccountLayoutPharmacistPrescriptionPrescriptionIdRouteImport } from './routes/account/_layout/pharmacist/prescription/$prescriptionId'
 
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UploadRxRoute = UploadRxRouteImport.update({
   id: '/upload-rx',
   path: '/upload-rx',
@@ -305,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
   '/upload-rx': typeof UploadRxRoute
+  '/welcome': typeof WelcomeRoute
   '/account/forgot-password': typeof AccountForgotPasswordRoute
   '/account/login': typeof AccountLoginRoute
   '/account/register': typeof AccountRegisterRoute
@@ -351,6 +358,7 @@ export interface FileRoutesByTo {
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
   '/upload-rx': typeof UploadRxRoute
+  '/welcome': typeof WelcomeRoute
   '/account/forgot-password': typeof AccountForgotPasswordRoute
   '/account/login': typeof AccountLoginRoute
   '/account/register': typeof AccountRegisterRoute
@@ -397,6 +405,7 @@ export interface FileRoutesById {
   '/store': typeof StoreRoute
   '/terms': typeof TermsRoute
   '/upload-rx': typeof UploadRxRoute
+  '/welcome': typeof WelcomeRoute
   '/account/_layout': typeof AccountLayoutRouteWithChildren
   '/account/forgot-password': typeof AccountForgotPasswordRoute
   '/account/login': typeof AccountLoginRoute
@@ -446,6 +455,7 @@ export interface FileRouteTypes {
     | '/store'
     | '/terms'
     | '/upload-rx'
+    | '/welcome'
     | '/account/forgot-password'
     | '/account/login'
     | '/account/register'
@@ -492,6 +502,7 @@ export interface FileRouteTypes {
     | '/store'
     | '/terms'
     | '/upload-rx'
+    | '/welcome'
     | '/account/forgot-password'
     | '/account/login'
     | '/account/register'
@@ -537,6 +548,7 @@ export interface FileRouteTypes {
     | '/store'
     | '/terms'
     | '/upload-rx'
+    | '/welcome'
     | '/account/_layout'
     | '/account/forgot-password'
     | '/account/login'
@@ -585,6 +597,7 @@ export interface RootRouteChildren {
   StoreRoute: typeof StoreRoute
   TermsRoute: typeof TermsRoute
   UploadRxRoute: typeof UploadRxRoute
+  WelcomeRoute: typeof WelcomeRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CategoriesHandleRoute: typeof CategoriesHandleRoute
   DrugsHandleRoute: typeof DrugsHandleRoute
@@ -598,6 +611,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/upload-rx': {
       id: '/upload-rx'
       path: '/upload-rx'
@@ -992,6 +1012,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRoute,
   TermsRoute: TermsRoute,
   UploadRxRoute: UploadRxRoute,
+  WelcomeRoute: WelcomeRoute,
   BlogSlugRoute: BlogSlugRoute,
   CategoriesHandleRoute: CategoriesHandleRoute,
   DrugsHandleRoute: DrugsHandleRoute,

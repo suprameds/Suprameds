@@ -17,7 +17,6 @@ import { consumeFreshSignup } from "@/lib/welcome"
  * Chrome (navbar, footer, bottom tab bar, consent banner) is suppressed by
  * the matching path check in layout.tsx — keep them in lockstep.
  */
-// @ts-expect-error - route tree regenerates on pnpm dev/build, not tsc.
 export const Route = createFileRoute("/welcome")({
   head: () => ({
     meta: [
