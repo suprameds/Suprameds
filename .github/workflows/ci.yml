@@ -20,11 +20,14 @@ jobs:
       COOKIE_SECRET: ci-test-cookie
       NODE_ENV: test
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+        # v6 reads pnpm version from the root packageManager field
+        # ("pnpm@10.33.0") — matches what corepack uses locally and what the
+        # Dockerfiles install. No `version:` input needed.
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: TypeScript
@@ -63,11 +66,14 @@ jobs:
       VITE_CAPACITOR: ""
       VITE_APP_VERSION: ci
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+        # v6 reads pnpm version from the root packageManager field
+        # ("pnpm@10.33.0") — matches what corepack uses locally and what the
+        # Dockerfiles install. No `version:` input needed.
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: TypeScript
@@ -87,11 +93,14 @@ jobs:
     name: Security — Dependency Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v6
+        # v6 reads pnpm version from the root packageManager field
+        # ("pnpm@10.33.0") — matches what corepack uses locally and what the
+        # Dockerfiles install. No `version:` input needed.
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm audit --audit-level=high || echo "::warning::pnpm audit failed (npm registry may be unavailable)"
@@ -102,7 +111,7 @@ jobs:
     needs: [backend, storefront]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v3
       - name: Build backend image
         uses: docker/build-push-action@v5

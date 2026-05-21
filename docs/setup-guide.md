@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- **Node.js** >= 20 ([download](https://nodejs.org))
+- **Node.js** 24 ([download](https://nodejs.org)) — matches CI and the production Docker images. Run `nvm use` if you have nvm; the repo ships an `.nvmrc`.
 - **pnpm** >= 10 (`corepack enable && corepack prepare pnpm@10 --activate`)
 - **Docker** and Docker Compose ([download](https://docker.com))
 - **PostgreSQL** — local install or Docker (production runs on Railway-managed Postgres)
