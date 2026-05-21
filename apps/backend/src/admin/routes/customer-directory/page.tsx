@@ -281,7 +281,11 @@ const CustomerDirectoryPage = () => {
           <Table.Body>
             {loading && rows.length === 0 && (
               <Table.Row>
-                <Table.Cell colSpan={6}>
+                {/* Table.Cell's typed props in @medusajs/ui omit colSpan, but
+                    the underlying <td> accepts it at runtime — needed so the
+                    empty/loading state spans the full table width instead of
+                    collapsing into column 1. */}
+                <Table.Cell {...({ colSpan: 6 } as any)}>
                   <Text size="small" className="text-ui-fg-subtle py-6 text-center">
                     Loading…
                   </Text>
@@ -290,7 +294,7 @@ const CustomerDirectoryPage = () => {
             )}
             {!loading && rows.length === 0 && (
               <Table.Row>
-                <Table.Cell colSpan={6}>
+                <Table.Cell {...({ colSpan: 6 } as any)}>
                   <Text size="small" className="text-ui-fg-subtle py-6 text-center">
                     {search ? "No customers match your search." : "No customers yet."}
                   </Text>
