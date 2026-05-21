@@ -31,6 +31,10 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Custom plugins MUST be registered BEFORE super.onCreate() — that's
+        // where Capacitor's bridge is initialized and plugins are bound to it.
+        registerPlugin(SmsConsentPlugin.class);
+
         super.onCreate(savedInstanceState);
 
         // Create notification channels before any FCM message can arrive.

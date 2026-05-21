@@ -6,6 +6,7 @@ import { trackLogin, trackSignup } from "@/lib/utils/analytics"
 import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 import { hapticNotification } from "@/lib/utils/haptics"
 import { isNativeApp } from "@/lib/utils/capacitor"
+import { startSmsConsent } from "@/lib/sms-consent"
 
 /**
  * Same sessionStorage key the layout.tsx native login-gate reads. Setting it
@@ -174,16 +175,20 @@ function LoginPage() {
   }
 
   // ── Phone OTP: Verify ────────────────────────────────────────────
-  const handleVerifyPhoneOtp = () => {
+  // `otpOverride` lets the SMS User Consent callback submit the freshly-
+  // received code without waiting for React to flush `setPhoneOtp(code)`.
+  // Without it, the closure would read a stale "" and bail on the regex.
+  const handleVerifyPhoneOtp = (otpOverride?: string) => {
     setPhoneOtpError("")
+    const otp = otpOverride ?? phoneOtp
 
-    if (!/^\d{6}$/.test(phoneOtp)) {
+    if (!/^\d{6}$/.test(otp)) {
       setPhoneOtpError("Please enter the 6-digit OTP.")
       return
     }
 
     otpVerify.mutate(
-      { phone, otp: phoneOtp, country_code: "91", channel: "sms" },
+      { phone, otp, country_code: "91", channel: "sms" },
       {
         onSuccess: ({ customer, is_new }) => {
           void hapticNotification("success")
@@ -274,9 +279,40 @@ function LoginPage() {
     )
   }
 
-  // Auto-focus OTP inputs
+  // Auto-focus OTP inputs + (Android native) kick off SMS User Consent so
+  // the user can tap "Allow" on the system dialog instead of typing the code.
+  // The consent flow runs entirely in the native shell; on web/iOS the
+  // returned handle is a no-op.
   useEffect(() => {
-    if (phoneOtpStep === "verify") setTimeout(() => phoneOtpInputRef.current?.focus(), 100)
+    if (phoneOtpStep !== "verify") return
+
+    const focusTimer = setTimeout(() => phoneOtpInputRef.current?.focus(), 100)
+
+    let handle: { cancel: () => void } | null = null
+    let cancelled = false
+    void startSmsConsent((code) => {
+      if (cancelled) return
+      setPhoneOtp(code)
+      // Submit with the override — setPhoneOtp's update hasn't flushed yet,
+      // so the closure reading state would still see "".
+      handleVerifyPhoneOtp(code)
+    }).then((h) => {
+      if (cancelled) {
+        h.cancel()
+      } else {
+        handle = h
+      }
+    })
+
+    return () => {
+      cancelled = true
+      clearTimeout(focusTimer)
+      handle?.cancel()
+    }
+    // handleVerifyPhoneOtp closes over `phone` + the verify mutation, both of
+    // which are stable for the lifetime of a verify step. Re-running this
+    // effect on every render would tear down the SMS listener prematurely.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phoneOtpStep])
 
   useEffect(() => {
@@ -521,7 +557,7 @@ function LoginPage() {
 
                   <button
                     type="button"
-                    onClick={handleVerifyPhoneOtp}
+                    onClick={() => handleVerifyPhoneOtp()}
                     disabled={otpVerify.isPending || phoneOtp.length !== 6}
                     className="w-full py-2.5 px-4 rounded-lg text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
                     style={{ background: TEAL }}

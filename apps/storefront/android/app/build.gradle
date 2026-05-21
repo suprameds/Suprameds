@@ -68,6 +68,12 @@ dependencies {
     implementation 'com.google.firebase:firebase-analytics'
     implementation 'com.google.firebase:firebase-messaging'
 
+    // SMS User Consent API — used by SmsConsentPlugin to autofill OTP codes
+    // without requiring the READ_SMS permission. Works with any SMS body that
+    // contains a 4-10 digit code, so it does NOT depend on the DLT template
+    // including the special `<#> ... <hash>` suffix that SMS Retriever needs.
+    implementation 'com.google.android.gms:play-services-auth-api-phone:18.2.0'
+
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
