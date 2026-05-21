@@ -27,6 +27,25 @@ export function clearStoredOtpToken() {
   secureRemove(OTP_JWT_KEY)
 }
 
+/**
+ * Distinguishes "token is genuinely invalid" (HTTP 401) from transient
+ * failures (network blip, 5xx, CORS, DNS, backend cold-start). Only the
+ * former should ever clear stored auth — otherwise users get silently
+ * signed out by hiccups they shouldn't notice.
+ */
+function isAuthError(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false
+  const e = err as { status?: number; statusCode?: number; message?: string }
+  if (e.status === 401 || e.statusCode === 401) return true
+  if (typeof e.message === "string") {
+    const m = e.message.toLowerCase()
+    if (m.includes("401") || m.includes("unauthorized") || m.includes("unauthenticated")) {
+      return true
+    }
+  }
+  return false
+}
+
 export const useCustomer = () => {
   return useQuery({
     queryKey: queryKeys.customer.current(),
@@ -35,28 +54,39 @@ export const useCustomer = () => {
       try {
         const { customer } = await sdk.store.customer.retrieve()
         return customer
-      } catch {
-        // Fallback: try stored OTP JWT (phone/email OTP login from before SDK token fix)
+      } catch (err) {
+        if (!isAuthError(err)) {
+          // Transient — keep cached customer state intact, let React Query retry.
+          throw err
+        }
+        // Real 401 — try the stored OTP JWT fallback once (covers older OTP
+        // sessions where the SDK token wasn't set at login time).
         const otpToken = getStoredOtpToken()
         if (otpToken) {
           try {
-            // Set the token in the SDK so future calls don't need this fallback
             await sdk.client.setToken(otpToken)
             const { customer } = await sdk.store.customer.retrieve()
             return customer
-          } catch {
-            // Token expired or invalid — clear it
+          } catch (err2) {
+            if (!isAuthError(err2)) {
+              throw err2
+            }
+            // OTP token also rejected → genuinely signed out.
             clearStoredOtpToken()
             await sdk.client.clearToken()
             return null
           }
         }
+        // No fallback and 401 → not signed in.
+        await sdk.client.clearToken()
         return null
       }
     },
     staleTime: 15 * 60 * 1000, // 15 min — customer data can change (profile/address updates)
     gcTime: 1000 * 60 * 60,
-    retry: 1,
+    // Retry transient errors a few times with backoff; do NOT retry real 401s
+    // (the user is signed out — no amount of retries will fix that).
+    retry: (failureCount, err) => failureCount < 3 && !isAuthError(err),
     refetchOnWindowFocus: true,
   })
 }
