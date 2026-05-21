@@ -94,6 +94,11 @@ export default defineConfig({
       authCors: process.env.AUTH_CORS!,
       jwtSecret: process.env.JWT_SECRET!,
       cookieSecret: process.env.COOKIE_SECRET!,
+      // Customers stay signed in until they explicitly log out. Practical
+      // upper bound; Medusa JWTs are stateless so there's no per-session
+      // revocation — see clearToken() in apps/storefront/src/lib/hooks/use-customer.ts
+      // for the only path that ends a session before this TTL elapses.
+      jwtExpiresIn: "3650d",
     },
   },
   modules: {

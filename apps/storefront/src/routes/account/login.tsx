@@ -332,10 +332,10 @@ function LoginPage() {
             className="text-3xl xl:text-4xl font-semibold text-white leading-tight mb-4"
             style={{ fontFamily: "Fraunces, Georgia, serif" }}
           >
-            Welcome back.
+            Welcome to Suprameds.
           </h2>
           <p className="text-sm leading-relaxed max-w-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
-            Sign in to access your orders, saved addresses, and account preferences.
+            Sign in or create your account in seconds — access your orders, saved addresses, and preferences.
           </p>
         </div>
 
@@ -370,7 +370,7 @@ function LoginPage() {
               className="text-2xl font-semibold"
               style={{ color: NAVY, fontFamily: "Fraunces, Georgia, serif" }}
             >
-              Sign in
+              Sign in or sign up
             </h1>
             <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
               Access your orders, addresses, and account
