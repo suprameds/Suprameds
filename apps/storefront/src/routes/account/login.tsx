@@ -7,6 +7,7 @@ import { DEFAULT_COUNTRY_CODE } from "@/lib/constants/site"
 import { hapticNotification } from "@/lib/utils/haptics"
 import { isNativeApp } from "@/lib/utils/capacitor"
 import { startSmsConsent } from "@/lib/sms-consent"
+import { markFreshSignup } from "@/lib/welcome"
 
 /**
  * Same sessionStorage key the layout.tsx native login-gate reads. Setting it
@@ -104,12 +105,24 @@ function LoginPage() {
     // pendingAction encodes "<verb>:<id>" — UI on the redirect target reads it
     // from search params and replays the original intent (e.g. add-to-cart resume).
     const search = pendingAction ? { pendingAction } : undefined
+
+    // New users get the one-shot welcome screen FIRST, before any other
+    // destination. The flag is set here and consumed by /welcome's beforeLoad
+    // (lib/welcome.ts). After the welcome CTAs, the user lands on / or
+    // /account — the welcome screen replaces, not duplicates, the old
+    // "send new OTP users straight to /account" behavior.
+    //
+    // pendingAction (e.g. resume add-to-cart) intentionally bypasses welcome:
+    // if a user clicked "add to cart" on a PDP and got bounced to login, they
+    // want their cart back, not a welcome celebration. We do not write the
+    // flag in that branch.
     if (redirectTo && redirectTo.startsWith("/")) {
       // @ts-expect-error - search shape varies per route
       navigate({ to: redirectTo as never, search })
     } else if (isNewUser) {
-      // New OTP users → account page to complete profile (add name etc.)
-      navigate({ to: "/account" })
+      markFreshSignup()
+      // @ts-expect-error - /welcome route tree entry regenerates on pnpm dev/build, not tsc.
+      navigate({ to: "/welcome" })
     } else {
       navigate({ to: "/" })
     }
