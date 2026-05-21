@@ -22,12 +22,14 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
     q?: string
   }
 
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
-  const authService = req.scope.resolve(Modules.AUTH) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
+  const authService = req.scope.resolve(Modules.AUTH)
 
   // 1. Fetch customers
+  // FilterableCustomerProps doesn't expose `phone` and Medusa's typed $or
+  // shape doesn't accept arbitrary filter shapes; runtime accepts both.
   const [customers, count] = await customerService.listAndCountCustomers(
-    q
+    (q
       ? {
           $or: [
             { email: { $ilike: `%${q}%` } },
@@ -36,7 +38,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
             { phone: { $ilike: `%${q}%` } },
           ],
         }
-      : {},
+      : {}) as any,
     {
       take: Number(limit),
       skip: Number(offset),

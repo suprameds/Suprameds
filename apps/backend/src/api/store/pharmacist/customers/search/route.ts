@@ -24,7 +24,7 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
     return res.json({ customers: [] })
   }
 
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
   const results: any[] = []
 
   try {
@@ -41,8 +41,11 @@ export async function GET(req: MedusaRequest, res: MedusaResponse) {
 
       for (const variant of variants) {
         try {
+          // Medusa's FilterableCustomerProps doesn't declare `phone` even
+          // though the runtime query accepts it. Cast just this filter
+          // literal to bypass the type narrowing.
           const [customers] = await customerService.listAndCountCustomers(
-            { phone: variant },
+            { phone: variant } as any,
             { select: CUSTOMER_FIELDS, relations: ["addresses"], take: 10 }
           )
           for (const c of customers ?? []) {

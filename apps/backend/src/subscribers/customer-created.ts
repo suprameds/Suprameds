@@ -26,7 +26,7 @@ export default async function customerCreatedHandler({
 
   let customer: any
   try {
-    const customerService = container.resolve(Modules.CUSTOMER) as any
+    const customerService = container.resolve(Modules.CUSTOMER)
     customer = await customerService.retrieveCustomer(customerId)
 
     if (!customer?.email) {

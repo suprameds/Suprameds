@@ -279,7 +279,7 @@ export default async function orderCanceledHandler({
       // If no email on order, look up customer
       if (!emailTo && order.customer_id) {
         try {
-          const customerService = container.resolve(Modules.CUSTOMER) as any
+          const customerService = container.resolve(Modules.CUSTOMER)
           const customer = await customerService.retrieveCustomer(order.customer_id)
           emailTo = customer?.email ?? null
         } catch {

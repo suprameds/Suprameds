@@ -56,11 +56,10 @@ export const POST = async (
 
   // Write the new phone. The customer-phone-normalize subscriber listens to
   // customer.updated and re-checks the canonical form (idempotent here).
-  const customerService = req.scope.resolve(Modules.CUSTOMER) as any
+  const customerService = req.scope.resolve(Modules.CUSTOMER)
   let updated
   try {
-    updated = await customerService.updateCustomers({
-      id: customerId,
+    updated = await customerService.updateCustomers(customerId, {
       phone: newPhone,
     })
   } catch (err: any) {

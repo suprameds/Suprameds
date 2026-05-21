@@ -95,7 +95,7 @@ export default async function completeOrderOnDeliveryHandler({
 
         if (!emailTo && customer_id) {
           try {
-            const customerService = container.resolve(Modules.CUSTOMER) as any
+            const customerService = container.resolve(Modules.CUSTOMER)
             const customer = await customerService.retrieveCustomer(customer_id)
             emailTo = customer?.email ?? null
           } catch {

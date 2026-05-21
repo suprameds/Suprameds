@@ -51,7 +51,7 @@ export default async function prescriptionRejectedHandler({
 
     // Send email notification to customer
     try {
-      const customerService = container.resolve(Modules.CUSTOMER) as any
+      const customerService = container.resolve(Modules.CUSTOMER)
       const customer = await customerService.retrieveCustomer(prescription.customer_id)
 
       if (customer?.email) {

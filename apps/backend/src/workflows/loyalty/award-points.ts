@@ -34,7 +34,7 @@ const validateCustomerStep = createStep(
     const loyaltyService = container.resolve(LOYALTY_MODULE) as any
 
     // Ensure the customer actually exists in Medusa
-    const customerService = container.resolve(Modules.CUSTOMER) as any
+    const customerService = container.resolve(Modules.CUSTOMER)
     const customer = await customerService.retrieveCustomer(input.customer_id)
     if (!customer) {
       throw new Error(`Customer ${input.customer_id} not found`)

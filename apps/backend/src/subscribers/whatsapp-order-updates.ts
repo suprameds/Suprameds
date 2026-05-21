@@ -76,7 +76,7 @@ async function getPrescriptionPhone(
 
     // If no guest_phone, try to get phone from the linked customer
     if (!phone && rx?.customer_id) {
-      const customerService = container.resolve(Modules.CUSTOMER) as any
+      const customerService = container.resolve(Modules.CUSTOMER)
       const customer = await customerService.retrieveCustomer(rx.customer_id)
       return { phone: customer?.phone ?? null, customerName: customer?.first_name ?? "Customer" }
     }
