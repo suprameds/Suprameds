@@ -34,11 +34,38 @@ export const OtpDigitInput = forwardRef<HTMLInputElement, OtpDigitInputProps>(
     )
 
     const handleChange = useCallback(
-      (i: number, char: string) => {
-        if (!/^\d$/.test(char)) return
+      (i: number, raw: string) => {
+        // Strip non-digits up front so SMS-autofill payloads like "123 456" or
+        // "Your code: 123456" still work when iOS/Android type them into a cell.
+        const digits = raw.replace(/\D/g, "")
+        if (!digits) return
+
+        // Autofill / paste path: iOS Safari + Android Gboard "tap to fill from
+        // SMS" types the entire code into the focused cell at once. Distribute
+        // those digits across the remaining cells instead of keeping just one.
+        if (digits.length > 1) {
+          const arr = value.split("").slice(0, length)
+          while (arr.length < length) arr.push("")
+          for (let k = 0; k < digits.length && i + k < length; k++) {
+            arr[i + k] = digits[k]
+          }
+          const next = arr.join("").replace(/[^\d]/g, "")
+          onChange(next)
+          // Focus the next empty cell, or blur the last one so the keyboard
+          // dismisses and the verify button is reachable.
+          const filledTo = Math.min(i + digits.length, length)
+          if (filledTo >= length) {
+            inputRefs.current[length - 1]?.blur()
+          } else {
+            focusCell(filledTo)
+          }
+          return
+        }
+
+        // Single-digit path: standard typing.
         const arr = value.split("").slice(0, length)
         while (arr.length < length) arr.push("")
-        arr[i] = char
+        arr[i] = digits
         const next = arr.join("").replace(/[^\d]/g, "")
         onChange(next)
         if (i < length - 1) focusCell(i + 1)
@@ -95,10 +122,17 @@ export const OtpDigitInput = forwardRef<HTMLInputElement, OtpDigitInputProps>(
                 ref={(el) => { inputRefs.current[i] = el }}
                 type="text"
                 inputMode="numeric"
-                maxLength={1}
+                pattern="[0-9]*"
+                // No maxLength: SMS autofill types the whole code into the
+                // focused cell at once, and handleChange splits it across cells.
+                // Capping at 1 here would discard 5 of 6 digits.
                 value={d}
                 aria-label={`Digit ${i + 1} of ${length}`}
-                autoComplete={i === 0 ? "one-time-code" : "off"}
+                // Mark every cell as one-time-code so whichever cell the user
+                // taps gets the SMS-autofill suggestion (iOS focuses cell 0,
+                // but some Android keyboards only attach to the focused cell).
+                autoComplete="one-time-code"
+                name={i === 0 ? "otp" : `otp-${i}`}
                 className="flex-1 h-14 text-center text-2xl font-normal rounded-xl border-[1.5px] outline-none transition-all duration-200"
                 style={{
                   fontFamily: "var(--font-serif)",
@@ -111,7 +145,7 @@ export const OtpDigitInput = forwardRef<HTMLInputElement, OtpDigitInputProps>(
                   color: "var(--color-brand-navy)",
                   boxShadow: isActive ? "0 0 0 4px rgba(14,124,134,.12)" : "none",
                 }}
-                onChange={(e) => handleChange(i, e.target.value.slice(-1))}
+                onChange={(e) => handleChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
                 onFocus={() => {
                   // Jump to the first empty cell if clicking a later cell
