@@ -142,36 +142,56 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     return [fullForm, tenDigit, `+${fullForm}`]
   })()
 
-  // Find the existing provider identity directly.
+  // Find the existing provider identity. Bulletproof strategy:
   //
-  // History: the earlier code used
-  //   `listAndCountAuthIdentities({ provider_identities: { entity_id, provider } })`
-  // which is a nested filter through a one-to-many relation. Medusa v2.13's
-  // filter pipeline does NOT reliably resolve it — the call returned an
-  // empty array regardless of whether a matching identity existed. That
-  // made every login fall through to createAuthIdentities, which threw
-  // "Provider identity with entity_id: …, already exists" on retry because
-  // of the UNIQUE(provider, entity_id) constraint on provider_identities.
+  // History: earlier attempts used filter shapes that Medusa v2.13's filter
+  // pipeline doesn't reliably resolve (nested filter on the one-to-many
+  // relation, or methods that don't actually exist on the auth module). Each
+  // failed lookup fell through to createAuthIdentities which then threw
+  // "Provider identity with entity_id: …, already exists" because of the
+  // UNIQUE(provider, entity_id) constraint on provider_identities.
   //
-  // The correct entity to query is ProviderIdentity directly, via
-  // `listProviderIdentities` (singular — there is no listAndCount variant
-  // on this module in v2.13). FilterableProviderIdentityProps only declares
-  // `entity_id: string` (no operator support in the types), so we do
-  // sequential exact-match lookups for each variant instead of relying on
-  // $in at runtime.
-  let providerIdentity:
-    | { id: string; entity_id: string; auth_identity_id: string }
-    | null = null
-  for (const variant of entityIdVariants) {
-    const matches = await authModule.listProviderIdentities({
-      provider,
-      entity_id: variant,
-    })
-    if (matches.length > 0) {
-      providerIdentity = matches[0]
-      break
+  // Today's approach has two strategies in sequence and either is enough:
+  //
+  //   1. Per-variant filtered lookup (cheap, works in most cases).
+  //   2. List ALL provider identities for this provider and match
+  //      client-side (guaranteed-correct, regardless of any quirk in the
+  //      filter pipeline). The provider_identity table is small (<200 rows
+  //      total in practice), so a full scan per login is acceptable as a
+  //      safety net.
+  //
+  // We also match all phone-format variants of entity_id (10-digit legacy +
+  // 12-digit E.164 + with-plus) so an identity stored under any historical
+  // format is still resolved.
+  const findExistingProviderIdentity = async (): Promise<
+    { id: string; entity_id: string; auth_identity_id: string } | null
+  > => {
+    // Strategy 1: filtered lookup per variant
+    for (const variant of entityIdVariants) {
+      const matches = await authModule.listProviderIdentities({
+        provider,
+        entity_id: variant,
+      })
+      if (matches.length > 0) return matches[0]
     }
+    // Strategy 2: list-all + client-side filter (bulletproof fallback)
+    // Take a big chunk so we don't get tripped up by the default take=15.
+    const all = await authModule.listProviderIdentities(
+      { provider },
+      { take: 1000 },
+    )
+    const variantSet = new Set(entityIdVariants)
+    const found = all.find((p: any) => variantSet.has(p.entity_id))
+    if (found) {
+      logger.info(
+        `[otp/verify] Provider identity resolved via list-all fallback (entity_id=${found.entity_id})`,
+      )
+      return found
+    }
+    return null
   }
+
+  const providerIdentity = await findExistingProviderIdentity()
 
   if (providerIdentity) {
     authIdentity = await authModule.retrieveAuthIdentity(providerIdentity.auth_identity_id)
@@ -229,20 +249,15 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       logger.warn(
         `[otp/verify] Duplicate provider identity on create — recovering: ${message}`,
       )
-      let recovered:
-        | { id: string; entity_id: string; auth_identity_id: string }
-        | null = null
-      for (const variant of entityIdVariants) {
-        const matches = await authModule.listProviderIdentities({
-          provider,
-          entity_id: variant,
-        })
-        if (matches.length > 0) {
-          recovered = matches[0]
-          break
-        }
+      const recovered = await findExistingProviderIdentity()
+      if (!recovered) {
+        // The error said the identity exists but neither strategy could find
+        // it. Surface a more debuggable error than the raw 'already exists'.
+        logger.error(
+          `[otp/verify] Duplicate reported but both lookup strategies returned empty for entity_id variants: ${entityIdVariants.join(", ")}`,
+        )
+        throw err
       }
-      if (!recovered) throw err
       authIdentity = await authModule.retrieveAuthIdentity(recovered.auth_identity_id)
 
       // Make sure the recovered identity points at our customer
