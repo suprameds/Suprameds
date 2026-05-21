@@ -283,8 +283,8 @@ After setup, verify everything works:
              v           v             v
     +--------+--+ +------+------+ +----+------+
     | PostgreSQL | |    Redis    | |  Supabase |
-    | (Neon/     | | Cache, Jobs | |  Storage  |
-    |  Supabase) | | Event Bus   | |  (S3)     |
+    | (Railway)  | | Cache, Jobs | |  Storage  |
+    |            | | Event Bus   | |  (images) |
     +------------+ +-------------+ +-----------+
 
     External Services:
@@ -363,7 +363,7 @@ The storefront is built with [TanStack Start](https://tanstack.com/router/latest
 
 ## 2.5 Database: PostgreSQL
 
-The primary database is PostgreSQL, hosted on Supabase (development) or Neon (production). The database holds:
+The primary database is PostgreSQL. Production runs on Railway-managed Postgres (in the `Suprameds_Medusa` Railway project, alongside the backend and storefront services). Local development typically uses a local Docker Postgres or the developer's choice of remote (Supabase is no longer the recommended path — historical local-dev configs that point at Supabase project `kcghvavcvlotwyepqsdu` are stale; that project is INACTIVE). The database holds:
 
 - All Medusa core tables (products, orders, carts, customers, payments, etc.)
 - 17 custom module table sets (drug products, prescriptions, batches, RBAC, dispensing, compliance, etc.)
@@ -2042,7 +2042,18 @@ const url = import.meta.env.VITE_MEDUSA_BACKEND_URL
 
 **Problem:** Cannot connect to production database from local machine.
 
-**Explanation:** Medusa Cloud Neon URLs are read-only externally. Use Supabase for local development, which provides a connection string that works from any network.
+**Explanation:** Production Postgres lives on Railway. The default `DATABASE_URL` in the backend Railway service uses the internal hostname `postgres.railway.internal`, which only resolves inside Railway's private network — it will fail with `ENOTFOUND` from your laptop. The Postgres service itself exposes a `DATABASE_PUBLIC_URL` (public Railway proxy host) that works from any network.
+
+**How to query prod Postgres from local (no plaintext URLs in your terminal history):**
+
+```bash
+$env:RAILWAY_TOKEN = "<workspace-token>"      # PowerShell; bash: export RAILWAY_TOKEN=…
+railway run --service Postgres node my-script.mjs
+```
+
+Inside `my-script.mjs`, read `process.env.DATABASE_PUBLIC_URL` and connect with `pg` (or your client) using `ssl: { rejectUnauthorized: false }`. The `--service Postgres` flag tells Railway to inject the Postgres service's vars (including `DATABASE_PUBLIC_URL`) rather than the backend service's internal-only `DATABASE_URL`.
+
+To get the workspace token: Railway dashboard → Settings → Tokens → create a workspace token scoped to the project.
 
 ---
 
