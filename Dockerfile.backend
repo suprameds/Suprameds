@@ -1,7 +1,7 @@
 # ──────────────────────────────────────────────
 # Stage 1: Install ALL dependencies (cached unless lockfile changes)
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
 
@@ -39,7 +39,7 @@ RUN cd /app/pruned && node /app/apps/backend/scripts/patch-shipment-workflow.mjs
 # ──────────────────────────────────────────────
 # Stage 2: Build (only re-runs when source changes)
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 RUN apk add --no-cache libc6-compat
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 WORKDIR /app
@@ -67,7 +67,7 @@ RUN test -f apps/backend/.medusa/server/public/admin/index.html \
 # Stage 3: Production
 # ──────────────────────────────────────────────
 # Medusa v2 production: run from .medusa/server/ with deps installed there.
-FROM node:20-alpine AS production
+FROM node:24-alpine AS production
 WORKDIR /app
 
 # Copy the compiled Medusa build output (server + admin + compiled modules)
