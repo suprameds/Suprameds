@@ -5,7 +5,7 @@
 - **Node.js** >= 20 ([download](https://nodejs.org))
 - **pnpm** >= 10 (`corepack enable && corepack prepare pnpm@10 --activate`)
 - **Docker** and Docker Compose ([download](https://docker.com))
-- **PostgreSQL** via Supabase, Neon, or local install
+- **PostgreSQL** — local install or Docker (production runs on Railway-managed Postgres)
 
 ## Local Development
 
@@ -123,14 +123,14 @@ The production stack uses:
 
 Create a `.env` file at the project root with all production values. See `apps/backend/.env.example` for the complete list. Critical production variables:
 
-- `DATABASE_URL` — Production PostgreSQL (Neon/Supabase)
+- `DATABASE_URL` — Production PostgreSQL (Railway-managed; injected by the Railway runtime)
 - `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` — Live Razorpay keys
 - `PHI_ENCRYPTION_KEY` — Generate with: `openssl rand -hex 32`
 - `VITE_MEDUSA_BACKEND_URL` — Public backend URL (e.g., `https://api.suprameds.in`)
 
-### Medusa Cloud
+### Railway (production)
 
-The backend supports Medusa Cloud deployment via `src/scripts/cloud-start.mjs`, which runs migrations and seeds before starting the server.
+The backend deploys to Railway via `Dockerfile.backend` and starts with `src/scripts/cloud-start.mjs`, which runs migrations (skippable with `SKIP_MIGRATIONS=true`) and seeds before booting the server. The script was originally written for Medusa Cloud and the name still reflects that — it works equivalently on Railway.
 
 ## Database
 
