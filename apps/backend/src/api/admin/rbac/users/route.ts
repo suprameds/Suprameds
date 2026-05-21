@@ -13,7 +13,7 @@ export async function GET(
   req: AuthenticatedMedusaRequest,
   res: MedusaResponse
 ) {
-  const userService = req.scope.resolve(Modules.USER) as any
+  const userService = req.scope.resolve(Modules.USER)
   const rbacService = req.scope.resolve(RBAC_MODULE) as any
 
   const {

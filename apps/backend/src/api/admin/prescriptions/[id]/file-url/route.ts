@@ -34,7 +34,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   // S3/R2: file_key contains the file module's file ID
   if (rx.file_key) {
     try {
-      const fileModuleService = req.scope.resolve(Modules.FILE) as any
+      const fileModuleService = req.scope.resolve(Modules.FILE)
       const file = await fileModuleService.retrieveFile(rx.file_key)
       return res.json({ url: file.url, expires_in: 3600 })
     } catch {

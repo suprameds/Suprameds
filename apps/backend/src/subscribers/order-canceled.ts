@@ -172,12 +172,14 @@ export default async function orderCanceledHandler({
   // 3. Auto-refund prepaid (Paytm/Razorpay) payments on cancellation
   //    (renumbered from step 2 after adding loyalty reversal)
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
-    const paymentModule = container.resolve(Modules.PAYMENT) as any
+    const orderService = container.resolve(Modules.ORDER)
+    const paymentModule = container.resolve(Modules.PAYMENT)
 
-    const order = await orderService.retrieveOrder(orderId, {
+    // OrderDTO doesn't declare `payment_collections` in its base shape — it's
+    // a loaded relation; cast the typed return so we can access it.
+    const order = (await orderService.retrieveOrder(orderId, {
       relations: ["payment_collections", "payment_collections.payments"],
-    })
+    })) as any
 
     const payments = order.payment_collections
       ?.flatMap((pc: any) => pc.payments ?? [])
@@ -208,12 +210,14 @@ export default async function orderCanceledHandler({
 
   // 4. Credit wallet with COD order amount (or any non-refundable-to-gateway amount)
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
-    const order = await orderService.retrieveOrder(orderId, {
+    const orderService = container.resolve(Modules.ORDER)
+    // OrderDTO doesn't declare `payment_collections`; cast the loaded shape.
+    // order.total is BigNumberValue (string | number) — coerce for comparison.
+    const order = (await orderService.retrieveOrder(orderId, {
       relations: ["payment_collections", "payment_collections.payments"],
-    })
+    })) as any
 
-    if (order?.customer_id && order.total > 0) {
+    if (order?.customer_id && Number(order.total) > 0) {
       // Check if this was a prepaid order that was already gateway-refunded
       const capturedPayments = order.payment_collections
         ?.flatMap((pc: any) => pc.payments ?? [])
@@ -245,7 +249,7 @@ export default async function orderCanceledHandler({
 
   // 5. Send push notification to customer
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const order = await orderService.retrieveOrder(orderId, {
       relations: ["items"],
     })
@@ -300,7 +304,7 @@ export default async function orderCanceledHandler({
           ? `₹${order.total}`
           : null
 
-        const notificationService = container.resolve(Modules.NOTIFICATION) as any
+        const notificationService = container.resolve(Modules.NOTIFICATION)
         await notificationService.createNotifications({
           to: emailTo,
           channel: "email",

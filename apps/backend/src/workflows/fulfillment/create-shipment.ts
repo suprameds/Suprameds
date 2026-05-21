@@ -57,7 +57,7 @@ const createShipmentRecordStep = createStep(
     { container }
   ) => {
     const shipmentService = container.resolve(SHIPMENT_MODULE) as any
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
 
     const order = await orderService.retrieveOrder(input.order_id, {
       relations: ["items", "shipping_address"],
@@ -131,7 +131,7 @@ const updateOrderStatusStep = createStep(
 const emitDispatchEventStep = createStep(
   "create-shipment-emit-event",
   async (input: { order_id: string }, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "order.dispatched",
       data: { order_id: input.order_id },

@@ -25,7 +25,7 @@ export default async function orderEditConfirmedHandler({
   }
 
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const order = await orderService.retrieveOrder(orderId, {})
 
     const existingMeta = (order.metadata ?? {}) as Record<string, any>

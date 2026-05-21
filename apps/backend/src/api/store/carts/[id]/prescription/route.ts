@@ -23,7 +23,7 @@ export async function POST(
   const { prescription_id } = req.body as { prescription_id: string | null }
   const customerId = (req as any).auth_context?.actor_id
 
-  const cartService = req.scope.resolve(Modules.CART) as any
+  const cartService = req.scope.resolve(Modules.CART)
 
   // Retrieve current cart to verify ownership
   const cart = await cartService.retrieveCart(cartId)
@@ -85,7 +85,7 @@ export async function POST(
 export async function GET(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
   const { id: cartId } = req.params
 
-  const cartService = req.scope.resolve(Modules.CART) as any
+  const cartService = req.scope.resolve(Modules.CART)
   const cart = await cartService.retrieveCart(cartId, {
     relations: ["items"],
   })

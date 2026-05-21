@@ -17,7 +17,7 @@ export default async function autoCaptureHandler({
   logger.info(`Payment authorized: ${paymentId}`)
 
   try {
-    const paymentModule = container.resolve(Modules.PAYMENT) as any
+    const paymentModule = container.resolve(Modules.PAYMENT)
 
     // Retrieve the payment to check provider
     const payment = await paymentModule.retrievePayment(paymentId, {

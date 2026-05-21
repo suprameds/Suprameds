@@ -340,7 +340,7 @@ export const emitRefundProcessedStep = createStep(
     data: { refund_id: string; order_id: string; gateway_refund_id: string | null },
     { container }
   ) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "refund.processed",
       data: {

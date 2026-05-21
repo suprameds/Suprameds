@@ -190,7 +190,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     })
 
     // 8. Add shipping method
-    const fulfillmentService = req.scope.resolve(Modules.FULFILLMENT) as any
+    const fulfillmentService = req.scope.resolve(Modules.FULFILLMENT)
     const shippingOptions = await fulfillmentService.listShippingOptions({}, { take: 10 })
     const shippingOption =
       shippingOptions.find((o: any) => o.name === "Standard Shipping (India)") || shippingOptions[0]
@@ -233,13 +233,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     logger.info(`Order created: ${orderId} for customer ${body.customer_id}`)
 
     // Retrieve order to get display_id and total
-    const orderService = req.scope.resolve(Modules.ORDER) as any
+    const orderService = req.scope.resolve(Modules.ORDER)
     let displayId: number | undefined
     let total: number | undefined
     try {
       const order = await orderService.retrieveOrder(orderId)
       displayId = order.display_id
-      total = order.total
+      total = order.total != null ? Number(order.total) : undefined
     } catch (err) {
       logger.warn(`Failed to retrieve order details: ${(err as Error).message}`)
     }

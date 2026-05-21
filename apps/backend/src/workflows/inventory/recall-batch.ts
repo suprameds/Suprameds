@@ -196,7 +196,7 @@ const flagAffectedOrdersStep = createStep(
     },
     { container }
   ) => {
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const logger = container.resolve("logger") as any
 
     const uniqueOrderIds = [...new Set(input.affected_orders.map((o) => o.order_id))]
@@ -246,7 +246,7 @@ const flagAffectedOrdersStep = createStep(
   async (flaggedOrderIds, { container }) => {
     if (!flaggedOrderIds?.length) return
 
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const logger = container.resolve("logger") as any
 
     for (const orderId of flaggedOrderIds) {
@@ -343,8 +343,8 @@ const notifyAffectedCustomersStep = createStep(
     },
     { container }
   ) => {
-    const orderService = container.resolve(Modules.ORDER) as any
-    const notificationService = container.resolve(Modules.NOTIFICATION) as any
+    const orderService = container.resolve(Modules.ORDER)
+    const notificationService = container.resolve(Modules.NOTIFICATION)
     const logger = container.resolve("logger") as any
 
     const uniqueOrderIds = [...new Set(input.affected_orders.map((o) => o.order_id))]
@@ -402,7 +402,7 @@ const emitRecallEventStep = createStep(
     input: RecallResult,
     { container }
   ) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     const logger = container.resolve("logger") as any
 
     await eventBus.emit({

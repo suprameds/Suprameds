@@ -15,7 +15,7 @@ const logger = createLogger("admin:warehouse:pick-lists")
 export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   try {
     const pharmaOrderService = req.scope.resolve(ORDERS_MODULE) as any
-    const orderService = req.scope.resolve(Modules.ORDER) as any
+    const orderService = req.scope.resolve(Modules.ORDER)
     const batchService = req.scope.resolve(INVENTORY_BATCH_MODULE) as any
 
     const limit = Number(req.query.limit) || 20

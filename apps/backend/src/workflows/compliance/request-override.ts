@@ -99,7 +99,7 @@ const createOverrideRecordStep = createStep(
 const emitOverrideEventStep = createStep(
   "request-override-emit-event",
   async (input: { overrideRequest: any }, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "compliance.override_requested",
       data: {

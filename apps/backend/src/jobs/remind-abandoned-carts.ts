@@ -41,7 +41,7 @@ export default async function RemindAbandonedCartsJob(container: MedusaContainer
 
   try {
     const query = container.resolve(ContainerRegistrationKeys.QUERY)
-    const cartService = container.resolve(Modules.CART) as any
+    const cartService = container.resolve(Modules.CART)
     const pharmaService = container.resolve(PHARMA_MODULE) as any
 
     // Fetch incomplete carts with items and product references

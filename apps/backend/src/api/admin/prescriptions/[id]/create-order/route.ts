@@ -202,7 +202,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
 
     // ── 8. Add shipping method ─────────────────────────────────────────
     // Find the default shipping option for this region
-    const fulfillmentService = req.scope.resolve(Modules.FULFILLMENT) as any
+    const fulfillmentService = req.scope.resolve(Modules.FULFILLMENT)
     const shippingOptions = await fulfillmentService.listShippingOptions(
       {},
       { take: 10 }
@@ -264,7 +264,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
 
     // ── 13. Emit event for notifications ───────────────────────────────
     try {
-      const eventBus = req.scope.resolve(Modules.EVENT_BUS) as any
+      const eventBus = req.scope.resolve(Modules.EVENT_BUS)
       await eventBus.emit({
         name: "pharmacist-order.created",
         data: {

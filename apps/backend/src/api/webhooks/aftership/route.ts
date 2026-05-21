@@ -120,7 +120,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   )
 
   // ── 5. Emit domain events ──────────────────────────────────────
-  const eventBus = req.scope.resolve(Modules.EVENT_BUS) as any
+  const eventBus = req.scope.resolve(Modules.EVENT_BUS)
 
   if (status === "delivered") {
     await eventBus.emit({

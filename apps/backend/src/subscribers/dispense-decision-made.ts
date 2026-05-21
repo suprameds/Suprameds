@@ -70,7 +70,7 @@ export default async function dispenseDecisionHandler({
     if (decision === "approved") {
       // ── FEFO batch allocation ──
       try {
-        const orderService = container.resolve(Modules.ORDER) as any
+        const orderService = container.resolve(Modules.ORDER)
         const order = await orderService.retrieveOrder(order_id, { relations: ["items"] })
         const batchService = container.resolve(INVENTORY_BATCH_MODULE) as any
 

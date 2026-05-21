@@ -21,7 +21,7 @@ export default async function CancelUnconfirmedCodJob(container: MedusaContainer
   const logger = container.resolve("logger")
   const codService = container.resolve(COD_MODULE) as any
   const orderService = container.resolve(ORDERS_MODULE) as any
-  const eventBus = container.resolve(Modules.EVENT_BUS) as any
+  const eventBus = container.resolve(Modules.EVENT_BUS)
 
   logger.info(`${LOG_PREFIX} Starting unconfirmed COD cancellation sweep`)
 

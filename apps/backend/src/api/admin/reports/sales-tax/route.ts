@@ -12,19 +12,20 @@ const logger = createLogger("admin:reports:sales-tax")
  */
 export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
   try {
-    const orderService = req.scope.resolve(Modules.ORDER) as any
+    const orderService = req.scope.resolve(Modules.ORDER)
 
     const from = (req.query.from as string) || getFirstOfMonth()
     const to = (req.query.to as string) || new Date().toISOString()
 
     const orders = await orderService.listOrders(
+      // FilterableOrderProps doesn't declare `status` though runtime accepts it
       {
         status: "completed",
         created_at: {
           $gte: from,
           $lte: to,
         },
-      },
+      } as any,
       {
         take: null,
         relations: ["items", "shipping_address"],
@@ -46,7 +47,7 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
  */
 export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   try {
-    const orderService = req.scope.resolve(Modules.ORDER) as any
+    const orderService = req.scope.resolve(Modules.ORDER)
     const body = req.body as Record<string, any>
 
     const from = body.from || getFirstOfMonth()
@@ -56,13 +57,14 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
       : ["completed"]
 
     const orders = await orderService.listOrders(
+      // FilterableOrderProps doesn't declare `status` though runtime accepts it
       {
         status: statuses,
         created_at: {
           $gte: from,
           $lte: to,
         },
-      },
+      } as any,
       {
         take: null,
         relations: ["items", "shipping_address"],

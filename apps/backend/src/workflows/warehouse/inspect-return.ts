@@ -470,7 +470,7 @@ export const notifyCustomerStep = createStep(
     }
 
     // Emit event for downstream notification handler (push, SMS, email)
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "return.inspection_completed",
       data: {
@@ -508,7 +508,7 @@ export const emitReturnEventStep = createStep(
     },
     { container }
   ) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
 
     await eventBus.emit({
       name: "return.inspected",

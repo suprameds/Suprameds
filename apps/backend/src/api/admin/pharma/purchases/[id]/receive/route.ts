@@ -23,7 +23,7 @@ interface LineOverride {
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const batchService = req.scope.resolve(INVENTORY_BATCH_MODULE) as any
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
-  const inventoryService = req.scope.resolve(Modules.INVENTORY) as any
+  const inventoryService = req.scope.resolve(Modules.INVENTORY)
   const { id } = req.params
   const body = req.body as Record<string, any>
 
@@ -108,10 +108,14 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
           if ((levels as any[])?.length > 0) {
             const level = (levels as any[])[0]
-            await inventoryService.updateInventoryLevels({
-              id: level.id,
-              stocked_quantity: Number(level.stocked_quantity) + receivedQty,
-            })
+            await inventoryService.updateInventoryLevels([
+              {
+                id: level.id,
+                inventory_item_id: inventoryItemId,
+                location_id: level.location_id,
+                stocked_quantity: Number(level.stocked_quantity) + receivedQty,
+              },
+            ])
             inventoryUpdated++
           }
         }
@@ -164,7 +168,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
       // Emit event if there are MRP conflicts so the subscriber creates admin notifications
       if (mrpConflicts.length > 0) {
         try {
-          const eventBus = req.scope.resolve(Modules.EVENT_BUS) as any
+          const eventBus = req.scope.resolve(Modules.EVENT_BUS)
           await eventBus.emit({
             name: "batch.mrp_conflict",
             data: { conflicts: mrpConflicts, po_number: po.po_number },

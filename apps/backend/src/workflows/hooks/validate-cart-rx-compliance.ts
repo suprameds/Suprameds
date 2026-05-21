@@ -160,7 +160,7 @@ async function enforcePromoOncePerCustomer(cart: any, container: any) {
   if (!promoCodes.length || !cart.customer_id) return
 
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
 
     // Fetch customer's past orders that have promotions
     const pastOrders = await orderService.listOrders(

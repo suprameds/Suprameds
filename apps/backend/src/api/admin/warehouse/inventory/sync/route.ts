@@ -18,8 +18,8 @@ const logger = createLogger("admin:warehouse:inventory:sync")
 export async function POST(req: MedusaRequest, res: MedusaResponse) {
   try {
     const batchService = req.scope.resolve(INVENTORY_BATCH_MODULE) as any
-    const inventoryService = req.scope.resolve(Modules.INVENTORY) as any
-    const productService = req.scope.resolve(Modules.PRODUCT) as any
+    const inventoryService = req.scope.resolve(Modules.INVENTORY)
+    const productService = req.scope.resolve(Modules.PRODUCT)
 
     // 1. Get all active batches
     const allBatches = await batchService.listBatches(
@@ -63,7 +63,11 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     for (const [sku, totalStock] of stockBySku) {
       try {
-        const [inventoryItems] = await inventoryService.listInventoryItems({ sku })
+        // listInventoryItems returns InventoryItemDTO[] directly — there was a
+        // latent bug here using `const [items] = await …` which destructured
+        // the first item rather than the array, so the !items?.length check
+        // would silently skip every SKU.
+        const inventoryItems = await inventoryService.listInventoryItems({ sku })
 
         if (!inventoryItems?.length) {
           skipped++
@@ -72,15 +76,19 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
         }
 
         for (const item of inventoryItems) {
-          const [levels] = await inventoryService.listInventoryLevels({
+          const levels = await inventoryService.listInventoryLevels({
             inventory_item_id: item.id,
           })
 
           for (const level of levels ?? []) {
-            await inventoryService.updateInventoryLevels({
-              id: level.id,
-              stocked_quantity: totalStock,
-            })
+            await inventoryService.updateInventoryLevels([
+              {
+                id: level.id,
+                inventory_item_id: level.inventory_item_id,
+                location_id: level.location_id,
+                stocked_quantity: totalStock,
+              },
+            ])
           }
         }
 

@@ -34,7 +34,7 @@ export default async function orderPlacedFillCustomerHandler({
   if (!orderId) return
 
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const customerService = container.resolve(Modules.CUSTOMER)
 
     const order = await orderService.retrieveOrder(orderId, {
@@ -67,14 +67,15 @@ export default async function orderPlacedFillCustomerHandler({
     if (!currentFirst && shipFirst) patch.first_name = shipFirst
     if (!currentLast && shipLast) patch.last_name = shipLast
 
-    // email — only replace the phone-bridge placeholder, never a real email
+    // email — only replace the phone-bridge placeholder, never a real email.
+    // OrderAddressDTO doesn't carry email; the Order itself does.
     const currentEmail = (customer.email ?? "").trim()
-    const shipEmail = (ship.email ?? "").trim().toLowerCase()
+    const orderEmail = ((order as { email?: string }).email ?? "").trim().toLowerCase()
     const currentIsPlaceholder = !!currentEmail && PHONE_BRIDGE_EMAIL_RE.test(currentEmail)
-    const shipIsPlaceholder = !!shipEmail && PHONE_BRIDGE_EMAIL_RE.test(shipEmail)
+    const orderIsPlaceholder = !!orderEmail && PHONE_BRIDGE_EMAIL_RE.test(orderEmail)
 
-    if (currentIsPlaceholder && shipEmail && !shipIsPlaceholder) {
-      patch.email = shipEmail
+    if (currentIsPlaceholder && orderEmail && !orderIsPlaceholder) {
+      patch.email = orderEmail
     }
 
     if (Object.keys(patch).length === 0) {

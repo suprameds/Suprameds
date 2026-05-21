@@ -168,7 +168,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     })
 
     // 7. Add shipping method
-    const fulfillmentService = req.scope.resolve(Modules.FULFILLMENT) as any
+    const fulfillmentService = req.scope.resolve(Modules.FULFILLMENT)
     const shippingOptions = await fulfillmentService.listShippingOptions({}, { take: 10 })
     const shippingOption = shippingOptions.find((o: any) => o.name === "Standard Shipping (India)") || shippingOptions[0]
 
@@ -206,7 +206,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     // 11. Emit event for notifications
     try {
-      const eventBus = req.scope.resolve(Modules.EVENT_BUS) as any
+      const eventBus = req.scope.resolve(Modules.EVENT_BUS)
       await eventBus.emit({
         name: "pharmacist-order.created",
         data: { order_id: orderId, prescription_id: prescriptionId, customer_id: rx.customer_id, pharmacist_id: pharmacistId },

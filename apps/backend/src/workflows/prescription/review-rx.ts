@@ -92,7 +92,7 @@ export const reviewPrescriptionStep = createStep(
 export const emitReviewEventStep = createStep(
   "emit-review-event-step",
   async (data: { action: "approve" | "reject", prescription: any }, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     const eventName = data.action === "approve" ? "prescription.fully-approved" : "prescription.rejected"
     
     await eventBus.emit({

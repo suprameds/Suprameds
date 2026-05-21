@@ -118,7 +118,7 @@ export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse)
   }
 
   const prescriptionService = req.scope.resolve(PRESCRIPTION_MODULE) as any
-  const fileModuleService = req.scope.resolve(Modules.FILE) as any
+  const fileModuleService = req.scope.resolve(Modules.FILE)
 
   // Strip the data:...;base64, prefix if present
   const base64Content = file.includes(",") ? file.split(",")[1] : file

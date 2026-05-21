@@ -124,7 +124,7 @@ export async function POST(
   // so pre-dispatch check can trace each Rx item to its approved decision.
   if (body.order_id && body.order_item_id && body.prescription_drug_line_id) {
     try {
-      const orderService = req.scope.resolve(Modules.ORDER) as any
+      const orderService = req.scope.resolve(Modules.ORDER)
       const order = await orderService.retrieveOrder(body.order_id, {
         select: ["id", "metadata"],
       })

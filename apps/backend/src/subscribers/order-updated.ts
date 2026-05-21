@@ -19,8 +19,10 @@ export default async function orderUpdatedHandler({
   if (!orderId) return
 
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
-    const order = await orderService.retrieveOrder(orderId, {})
+    const orderService = container.resolve(Modules.ORDER)
+    // OrderDTO doesn't expose fulfillment_status / payment_status in the
+    // base shape (they're computed at the API layer); runtime returns them.
+    const order = (await orderService.retrieveOrder(orderId, {})) as any
 
     const {
       status,

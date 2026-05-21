@@ -115,7 +115,7 @@ const updateGrnStatusStep = createStep(
 const emitGrnApprovedStep = createStep(
   "approve-grn-emit-event",
   async (input: { grn: any; approved_by: string; batchCount: number }, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "warehouse.grn_approved",
       data: {

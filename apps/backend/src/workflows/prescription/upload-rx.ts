@@ -46,7 +46,7 @@ export const createPrescriptionStep = createStep(
 export const emitPrescriptionUploadedEventStep = createStep(
   "emit-prescription-uploaded-event",
   async (prescriptionId: string, { container }) => {
-    const eventBus = container.resolve(Modules.EVENT_BUS) as any
+    const eventBus = container.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "prescription.uploaded",
       data: { id: prescriptionId },

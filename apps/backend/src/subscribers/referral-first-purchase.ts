@@ -96,7 +96,7 @@ export default async function referralFirstPurchaseHandler({
 
     // Send push notification to referrer
     try {
-      const eventBus = container.resolve(Modules.EVENT_BUS) as any
+      const eventBus = container.resolve(Modules.EVENT_BUS)
       await eventBus.emit({
         name: "loyalty.referral_bonus_earned",
         data: {

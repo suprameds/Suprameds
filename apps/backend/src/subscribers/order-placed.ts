@@ -20,7 +20,7 @@ export default async function orderPlacedHandler({
 
   try {
     // ── 1. Retrieve full order details ──────────────────────────────
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
 
     const order = await orderService.retrieveOrder(orderId, {
       relations: [
@@ -60,7 +60,7 @@ export default async function orderPlacedHandler({
             : orderCartLink?.cart_id
 
           if (cartId) {
-            const cartService = container.resolve(Modules.CART) as any
+            const cartService = container.resolve(Modules.CART)
             const cart = await cartService.retrieveCart(cartId)
             prescriptionId = (cart?.metadata as any)?.prescription_id
             if (prescriptionId) {
@@ -107,7 +107,7 @@ export default async function orderPlacedHandler({
 
     // ── 2. Send customer confirmation notification ──────────────────
     try {
-      const notificationService = container.resolve(Modules.NOTIFICATION) as any
+      const notificationService = container.resolve(Modules.NOTIFICATION)
 
       await notificationService.createNotifications({
         to: order.email ?? "",

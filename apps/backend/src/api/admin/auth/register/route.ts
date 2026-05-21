@@ -88,7 +88,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const normalizedEmail = email.trim().toLowerCase()
 
   const rbacService = req.scope.resolve(RBAC_MODULE) as any
-  const userModuleService = req.scope.resolve(Modules.USER) as any
+  const userModuleService = req.scope.resolve(Modules.USER)
   const authModuleService = req.scope.resolve(Modules.AUTH)
 
   // ── Validate role exists ─────────────────────────────────────────────
@@ -200,8 +200,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
       // Emit event for admin notification
       try {
-        const eventBus = req.scope.resolve(Modules.EVENT_BUS) as any
-        await eventBus.emit("admin.signup_request.created", {
+        const eventBus = req.scope.resolve(Modules.EVENT_BUS)
+        await eventBus.emit({
+          name: "admin.signup_request.created",
           data: {
             email: normalizedEmail,
             first_name: first_name.trim(),

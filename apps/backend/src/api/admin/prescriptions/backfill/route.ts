@@ -20,9 +20,9 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
   const query = req.scope.resolve(ContainerRegistrationKeys.QUERY) as any
   const pgConnection = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION) as any
   const prescriptionService = req.scope.resolve(PRESCRIPTION_MODULE) as any
-  const cartService = req.scope.resolve(Modules.CART) as any
+  const cartService = req.scope.resolve(Modules.CART)
   const linkService = req.scope.resolve(ContainerRegistrationKeys.LINK) as any
-  const orderService = req.scope.resolve(Modules.ORDER) as any
+  const orderService = req.scope.resolve(Modules.ORDER)
 
   const results: any[] = []
 

@@ -32,7 +32,7 @@ export const POST = async (
     return res.status(400).json({ error: "filename and content are required" })
   }
 
-  const fileModuleService = req.scope.resolve(Modules.FILE) as any
+  const fileModuleService = req.scope.resolve(Modules.FILE)
 
   const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "_")
   const key = `rx/${customerId}/${Date.now()}-${safeFilename}`

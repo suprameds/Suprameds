@@ -43,7 +43,7 @@ export default async function orderDispatchedHandler({
   }
 
   try {
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
     const order = await orderService.retrieveOrder(orderId, {
       relations: ["items"],
     })
@@ -120,7 +120,7 @@ export default async function orderDispatchedHandler({
           quantity: item.quantity,
         })) ?? []
 
-        const notificationService = container.resolve(Modules.NOTIFICATION) as any
+        const notificationService = container.resolve(Modules.NOTIFICATION)
         await notificationService.createNotifications({
           to: emailTo,
           channel: "email",

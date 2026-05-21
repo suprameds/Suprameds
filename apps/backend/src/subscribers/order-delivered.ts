@@ -86,7 +86,7 @@ export default async function completeOrderOnDeliveryHandler({
 
         // Try to get email from the order, then fall back to customer lookup
         try {
-          const orderService = container.resolve(Modules.ORDER) as any
+          const orderService = container.resolve(Modules.ORDER)
           const orderWithEmail = await orderService.retrieveOrder(orderId, {})
           emailTo = orderWithEmail?.email ?? null
         } catch {
@@ -107,7 +107,7 @@ export default async function completeOrderOnDeliveryHandler({
           // Retrieve order items for the email
           let items: { title: string; quantity: number }[] = []
           try {
-            const orderService = container.resolve(Modules.ORDER) as any
+            const orderService = container.resolve(Modules.ORDER)
             const fullOrder = await orderService.retrieveOrder(orderId, {
               relations: ["items"],
             })

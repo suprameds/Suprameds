@@ -30,7 +30,7 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
   try {
     const pharmaOrderService = container.resolve(ORDERS_MODULE) as any
     const batchService = container.resolve(INVENTORY_BATCH_MODULE) as any
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
 
     const pendingOrders = await pharmaOrderService.listOrderExtensions(
       { status: "payment_captured" },
@@ -257,7 +257,7 @@ export default async function AutoAllocateFefoJob(container: MedusaContainer) {
               (sum: number, b: any) => sum + (runningStockByBatchId.get(b.id) ?? Number(b.available_quantity)), 0
             )
             if (totalStock < LOW_STOCK_THRESHOLD) {
-              const eventBus = container.resolve(Modules.EVENT_BUS) as any
+              const eventBus = container.resolve(Modules.EVENT_BUS)
               await eventBus.emit({
                 name: "inventory.low_stock",
                 data: {

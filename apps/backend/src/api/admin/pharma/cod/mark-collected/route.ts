@@ -43,7 +43,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
     // Capture the payment in Medusa's payment system
     try {
-      const paymentModule = req.scope.resolve(Modules.PAYMENT) as any
+      const paymentModule = req.scope.resolve(Modules.PAYMENT)
       const query = req.scope.resolve(ContainerRegistrationKeys.QUERY)
 
       const {

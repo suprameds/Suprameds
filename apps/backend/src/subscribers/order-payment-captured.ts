@@ -24,7 +24,7 @@ export default async function paymentCapturedHandler({
 
   try {
     // ── 1. Retrieve order for context ───────────────────────────────
-    const orderService = container.resolve(Modules.ORDER) as any
+    const orderService = container.resolve(Modules.ORDER)
 
     const order = await orderService.retrieveOrder(orderId, {
       relations: ["items", "items.variant"],
@@ -109,7 +109,7 @@ export default async function paymentCapturedHandler({
 
     // ── 3. Send payment confirmation notification ───────────────────
     try {
-      const notificationService = container.resolve(Modules.NOTIFICATION) as any
+      const notificationService = container.resolve(Modules.NOTIFICATION)
 
       await notificationService.createNotifications({
         to: order.email ?? "",

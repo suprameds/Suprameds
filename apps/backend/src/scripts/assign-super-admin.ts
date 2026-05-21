@@ -21,7 +21,7 @@ export default async function assignSuperAdmin({
   container: MedusaContainer
 }) {
   const logger = container.resolve(ContainerRegistrationKeys.LOGGER)
-  const userService = container.resolve(Modules.USER) as any
+  const userService = container.resolve(Modules.USER)
   const rbacService = container.resolve(RBAC_MODULE) as any
 
   const targetEmail = process.env.TARGET_EMAIL ?? "suprameds@gmail.com"

@@ -43,7 +43,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
   try {
     // Validate order belongs to this customer
-    const orderService = req.scope.resolve(Modules.ORDER) as any
+    const orderService = req.scope.resolve(Modules.ORDER)
     let order: any
     try {
       order = await orderService.retrieveOrder(orderId, {
@@ -69,7 +69,7 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
     }
 
     // Emit the return_requested event for warehouse and refund processing
-    const eventBus = req.scope.resolve(Modules.EVENT_BUS) as any
+    const eventBus = req.scope.resolve(Modules.EVENT_BUS)
     await eventBus.emit({
       name: "order.return_requested",
       data: {

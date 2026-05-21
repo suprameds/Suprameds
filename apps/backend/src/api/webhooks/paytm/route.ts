@@ -58,7 +58,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     }
 
     // Delegate to payment module webhook handler
-    const paymentModule = req.scope.resolve(Modules.PAYMENT) as any
+    const paymentModule = req.scope.resolve(Modules.PAYMENT)
     const result = await paymentModule.getWebhookActionAndData({
       provider: PROVIDER,
       payload: {
@@ -84,7 +84,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     }
 
     // Run Medusa's processPaymentWorkflow
-    const workflowEngine = req.scope.resolve(Modules.WORKFLOW_ENGINE) as any
+    const workflowEngine = req.scope.resolve(Modules.WORKFLOW_ENGINE)
     await workflowEngine.run("process-payment-workflow", { input: result })
 
     logger.info(

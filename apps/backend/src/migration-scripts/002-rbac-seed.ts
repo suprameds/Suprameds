@@ -174,7 +174,7 @@ async function ensureAdminUser(
   lastName: string,
   roleCodes: string[]
 ): Promise<boolean> {
-  const userService = container.resolve(Modules.USER) as any
+  const userService = container.resolve(Modules.USER)
   const authService = container.resolve(Modules.AUTH)
   const rbacService = container.resolve(RBAC_MODULE) as any
 

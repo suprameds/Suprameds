@@ -48,7 +48,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
     // Delegate to payment module — the provider handles HMAC signature
     // verification via Razorpay.validateWebhookSignature internally.
-    const paymentModule = req.scope.resolve(Modules.PAYMENT) as any
+    const paymentModule = req.scope.resolve(Modules.PAYMENT)
     const result = await paymentModule.getWebhookActionAndData({
       provider: PROVIDER,
       payload: {
@@ -77,7 +77,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
 
     // Run Medusa's processPaymentWorkflow which handles cart completion,
     // payment authorization, and capture in a single transactional flow.
-    const workflowEngine = req.scope.resolve(Modules.WORKFLOW_ENGINE) as any
+    const workflowEngine = req.scope.resolve(Modules.WORKFLOW_ENGINE)
     await workflowEngine.run("process-payment-workflow", { input: result })
 
     logger.info(
