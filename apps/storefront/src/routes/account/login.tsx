@@ -669,6 +669,13 @@ const OtpInput = forwardRef<HTMLInputElement, { value: string; onChange: (v: str
         ref={ref}
         type="text"
         inputMode="numeric"
+        // iOS Safari + Android Chrome scrape SMS for verification codes only when
+        // these three attrs line up: autoComplete="one-time-code", a recognizable
+        // name, and a numeric inputMode. Don't rename without testing autofill.
+        autoComplete="one-time-code"
+        name="otp"
+        id="otp"
+        pattern="[0-9]*"
         maxLength={6}
         value={value}
         onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
