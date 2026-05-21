@@ -82,6 +82,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   // ── Resolve Medusa services ────────────────────────────────────────
   const authModule = req.scope.resolve(Modules.AUTH)
   const customerModule = req.scope.resolve(Modules.CUSTOMER)
+  const pg = req.scope.resolve(ContainerRegistrationKeys.PG_CONNECTION)
 
   // ── Find or create customer ────────────────────────────────────────
   let customer: CustomerDTO
@@ -122,7 +123,7 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
   }
 
   // ── Find or create auth identity ───────────────────────────────────
-  let authIdentity: {
+  let authIdentity!: {
     id: string
     app_metadata?: Record<string, unknown>
     provider_identities?: any[]
@@ -190,10 +191,35 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     return null
   }
 
-  const providerIdentity = await findExistingProviderIdentity()
+  let providerIdentity = await findExistingProviderIdentity()
 
-  if (providerIdentity && providerIdentity.auth_identity_id) {
-    authIdentity = await authModule.retrieveAuthIdentity(providerIdentity.auth_identity_id)
+  // If we found a provider_identity but the auth_identity it points at is
+  // gone (Medusa's soft-delete cascade missed provider_identity when the
+  // customer was deleted — see 2026-05-21 incident), hard-delete the dangling
+  // row and treat it as a cache miss so the create-path below runs cleanly.
+  //
+  // Hard-delete (not soft-delete) is required: the UNIQUE(entity_id, provider)
+  // index on provider_identity is not partial on deleted_at, so a tombstoned
+  // row still occupies the slot and the next INSERT would hit a UNIQUE
+  // violation. We bypass Medusa's deleteProviderIdentities (soft) and use
+  // raw SQL for an actual DELETE.
+  if (providerIdentity?.auth_identity_id) {
+    try {
+      authIdentity = await authModule.retrieveAuthIdentity(providerIdentity.auth_identity_id)
+    } catch (err: any) {
+      const isNotFound =
+        err?.type === MedusaError.Types.NOT_FOUND ||
+        /not[ _-]?found/i.test(err?.message ?? "")
+      if (!isNotFound) throw err
+      logger.warn(
+        `[otp/verify] Orphan provider_identity ${providerIdentity.id} (provider=${providerIdentity.provider}, entity_id=${providerIdentity.entity_id}) points at dead auth_identity ${providerIdentity.auth_identity_id} — hard-deleting and falling through to create path.`,
+      )
+      await pg.raw(`DELETE FROM provider_identity WHERE id = ?`, [providerIdentity.id])
+      providerIdentity = null
+    }
+  }
+
+  if (providerIdentity) {
     const prevMeta = authIdentity.app_metadata || {}
     const nextDevices = device
       ? mergeDevice(
