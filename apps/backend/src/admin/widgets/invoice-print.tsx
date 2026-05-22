@@ -1,6 +1,7 @@
 import { defineWidgetConfig } from "@medusajs/admin-sdk"
 import { Container, Heading, Button, Badge, toast } from "@medusajs/ui"
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { sdk } from "../lib/client"
 
 const INDIA_POST_COD_ID = "52236"
@@ -13,29 +14,43 @@ const InvoicePrintWidget = ({
   const orderId = data?.id
   const displayId = data?.display_id
   const [downloading, setDownloading] = useState(false)
-  const [trackingId, setTrackingId] = useState("")
-  const [paymentMode, setPaymentMode] = useState<"COD" | "PREPAID" | null>(null)
 
-  // Detect payment mode on mount and auto-fill India Post ID for COD.
-  // A COD order whose payment has been captured (e.g. admin marked it paid
-  // after collecting in person) should print as PREPAID — courier doesn't
-  // need to collect money on delivery.
-  useEffect(() => {
-    if (!orderId) return
-    sdk.client.fetch<{ order: any }>(`/admin/orders/${orderId}?fields=payment_status,payment_collections.payment_sessions.*`)
-      .then(({ order }) => {
-        const sessions = order?.payment_collections?.[0]?.payment_sessions ?? []
-        const providerIsOnline = sessions.some((s: any) => s.provider_id?.includes("paytm") || s.provider_id?.includes("razorpay"))
-        const captured = order?.payment_status === "captured"
-        const isCod = !providerIsOnline && !captured
-        const mode = isCod ? "COD" : "PREPAID"
-        setPaymentMode(mode as "COD" | "PREPAID")
-        if (isCod) setTrackingId(INDIA_POST_COD_ID)
-      })
-      .catch((err) => {
-        console.warn(`[invoice-print] Failed to detect payment mode for order=${orderId}:`, err)
-      })
-  }, [orderId])
+  // Why React Query (not useEffect): the Medusa-native "Capture payment" action
+  // lives in a sibling widget we don't control. There's no callback to hook into,
+  // so we keep our payment-mode view fresh via three independent triggers:
+  //   1. refetchOnWindowFocus — picks up changes made in another tab/window
+  //   2. staleTime: 0 — anything that invalidates this query refetches immediately
+  //   3. refetchInterval — light polling while still uncaptured; stops once captured
+  // A COD order whose payment is later captured (admin received cash) should print
+  // as PREPAID so the courier doesn't collect again on delivery.
+  const { data: orderData } = useQuery({
+    queryKey: ["invoice-print-widget", "order", orderId],
+    queryFn: () =>
+      sdk.client.fetch<{ order: any }>(
+        `/admin/orders/${orderId}?fields=payment_status,payment_collections.payment_sessions.*`
+      ),
+    enabled: !!orderId,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchInterval: (q) => {
+      const status = (q.state.data as any)?.order?.payment_status
+      return status === "captured" ? false : 5000
+    },
+  })
+
+  const order = orderData?.order
+  const sessions = order?.payment_collections?.[0]?.payment_sessions ?? []
+  const providerIsOnline = sessions.some(
+    (s: any) =>
+      s.provider_id?.includes("paytm") || s.provider_id?.includes("razorpay")
+  )
+  const captured = order?.payment_status === "captured"
+  const paymentMode: "COD" | "PREPAID" | null = order
+    ? !providerIsOnline && !captured
+      ? "COD"
+      : "PREPAID"
+    : null
+  const trackingId = paymentMode === "COD" ? INDIA_POST_COD_ID : ""
 
   if (!orderId) return null
 

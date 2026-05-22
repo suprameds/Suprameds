@@ -118,6 +118,11 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [uploadError, setUploadError] = useState("")
   const [dragOver, setDragOver] = useState(false)
+  // Covers the full upload flow (file read + S3 POST + metadata mutation + attach),
+  // not just uploadMutation.isPending which only spans the metadata step.
+  const [isUploading, setIsUploading] = useState(false)
+  // Ref guard: blocks re-entry from rapid clicks before React commits isUploading=true.
+  const uploadInFlightRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Sync selectedId when rxStatus loads (must be in useEffect, not during render)
@@ -167,7 +172,9 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
 
   const handleUploadSubmit = useCallback(async () => {
     if (!uploadFile) return
-
+    if (uploadInFlightRef.current) return
+    uploadInFlightRef.current = true
+    setIsUploading(true)
     setUploadError("")
 
     try {
@@ -212,6 +219,9 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
       setUploadError(
         err instanceof Error ? err.message : "Upload failed. Please try again."
       )
+    } finally {
+      uploadInFlightRef.current = false
+      setIsUploading(false)
     }
   }, [uploadFile, uploadMutation, handleAttach])
 
@@ -382,7 +392,8 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
                 setUploadFile(null)
                 setUploadError("")
               }}
-              className="text-xs underline"
+              disabled={isUploading}
+              className="text-xs underline disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ color: "var(--text-secondary)" }}
             >
               Cancel
@@ -391,12 +402,17 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
 
           {/* Drop zone */}
           <div
-            className="px-6 py-6 text-center cursor-pointer transition-colors"
-            style={{ background: dragOver ? "rgba(14,124,134,0.04)" : "transparent" }}
-            onClick={() => fileInputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+            className="px-6 py-6 text-center transition-colors"
+            style={{
+              background: dragOver ? "rgba(14,124,134,0.04)" : "transparent",
+              cursor: isUploading ? "not-allowed" : "pointer",
+              opacity: isUploading ? 0.6 : 1,
+            }}
+            onClick={() => { if (!isUploading) fileInputRef.current?.click() }}
+            onDragOver={(e) => { if (isUploading) return; e.preventDefault(); setDragOver(true) }}
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => {
+              if (isUploading) return
               e.preventDefault()
               setDragOver(false)
               const file = e.dataTransfer.files?.[0]
@@ -407,6 +423,7 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
               ref={fileInputRef}
               type="file"
               accept={ACCEPTED_TYPES.join(",")}
+              disabled={isUploading}
               onChange={(e) => {
                 const file = e.target.files?.[0]
                 if (file) handleFileSelect(file)
@@ -446,7 +463,8 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
                   setUploadFile(null)
                   if (fileInputRef.current) fileInputRef.current.value = ""
                 }}
-                className="text-[10px] underline flex-shrink-0"
+                disabled={isUploading}
+                className="text-[10px] underline flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ color: "var(--brand-red)" }}
               >
                 Remove
@@ -464,17 +482,17 @@ const PrescriptionStep = ({ cart, onNext, onBack }: PrescriptionStepProps) => {
             <div className="px-4 py-3" style={{ borderTop: "1px solid var(--border-primary)" }}>
               <button
                 onClick={handleUploadSubmit}
-                disabled={uploadMutation.isPending}
-                className="w-full py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60"
+                disabled={isUploading}
+                className="w-full py-2.5 rounded text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ background: "var(--brand-teal)", color: "var(--text-inverse)" }}
               >
-                {uploadMutation.isPending ? (
+                {isUploading ? (
                   <span className="flex items-center justify-center gap-2">
                     <span
                       className="w-3.5 h-3.5 border-2 rounded-full animate-spin"
                       style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "var(--text-inverse)" }}
                     />
-                    Uploading...
+                    Uploading… please don't close this page
                   </span>
                 ) : (
                   "Upload & attach to this order"

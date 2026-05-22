@@ -15,10 +15,13 @@ interface AddressStepProps {
   onNext: () => void;
 }
 
-/** Convert a saved customer address to the form shape */
+/** Convert a saved customer address to the form shape.
+ *  preferredPhone (typically customer.phone) wins over addr.phone so the
+ *  account phone is the default contact at checkout — users can still edit. */
 function savedToForm(
   addr: HttpTypes.StoreCustomerAddress,
   fallbackCountry: string,
+  preferredPhone?: string | null,
 ): AddressFormData {
   return {
     first_name: addr.first_name || "",
@@ -30,7 +33,7 @@ function savedToForm(
     postal_code: addr.postal_code || "",
     province: addr.province || "",
     country_code: addr.country_code || fallbackCountry,
-    phone: normalizeIndianPhone(addr.phone || ""),
+    phone: normalizeIndianPhone(preferredPhone || addr.phone || ""),
   }
 }
 
@@ -103,10 +106,10 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
     didAutofillFromSavedAddress.current = true
     setSelectedAddressId(`saved_${first.id}`)
 
-    const mapped = savedToForm(first, storedCountryCode || "")
+    const mapped = savedToForm(first, storedCountryCode || "", customer?.phone)
     setShippingAddress(mapped)
     setBillingAddress(mapped)
-  }, [customerAddresses, storedCountryCode])
+  }, [customerAddresses, storedCountryCode, customer?.phone])
 
   // Fill email from customer when it loads (may arrive after initial render)
   useEffect(() => {
@@ -131,7 +134,7 @@ const AddressStep = ({ cart, onNext }: AddressStepProps) => {
 
   const handleSelectSavedAddress = (addr: HttpTypes.StoreCustomerAddress) => {
     setSelectedAddressId(`saved_${addr.id}`)
-    const mapped = savedToForm(addr, storedCountryCode || "")
+    const mapped = savedToForm(addr, storedCountryCode || "", customer?.phone)
     setShippingAddress(mapped)
     if (sameAsBilling) setBillingAddress(mapped)
     if (!email && customer?.email) setEmail(customer.email)
