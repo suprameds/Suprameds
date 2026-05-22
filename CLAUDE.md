@@ -243,8 +243,14 @@ grep "COPY.*scripts" Dockerfile.backend   # must include all patch scripts
 ```
 
 ### Deployment (Railway)
-- **Branch strategy** (post go-live): only two long-lived branches — `development` (staging) and `main` (production at https://supracyn.in, serving real customers). NEVER push directly to `main`. Flow: commit on `development` → push → verify on staging → `git checkout main && git merge development && git push origin main`. No long-lived feature branches; small commits straight on `development` is the convention. Cleaned up 2026-05-14 — anything other than these two branches is stale.
-- **Auto-deploy**: Railway watches both branches; each push triggers a build
+- **Branch strategy** (as of 2026-05-22): single long-lived branch — `main` (production at https://supracyn.in, serving real customers). The previous `development` staging branch is retired. All work flows through short-lived branches (`hotfix/...`, `feat/...`, `fix/...`) merged via PR into `main`.
+  - GitHub branch protection on `main` blocks direct pushes. CI must pass before merge.
+  - Required status checks: **Backend — Check & Build**, **Storefront — Check & Build**, **Security — Dependency Audit** (3/3 must pass).
+  - Merge method: **squash**, with branch auto-delete on merge.
+  - Typical loop: `git checkout -b fix/<thing>` → commit(s) → `git push -u origin HEAD` → `gh pr create --base main --fill` → `gh pr checks <n> --watch` → `gh pr merge <n> --squash --delete-branch`. After merge, `git checkout main && git pull`.
+  - Auto-merge (`gh pr merge --auto`) is **not** enabled on the repo — wait for CI then merge manually.
+  - Hotfixes that need to ship NOW still go through the same PR loop; CI takes ~2 min.
+- **Auto-deploy**: Railway watches `main`; each push (i.e. each PR squash-merge) triggers a build
 - `SKIP_MIGRATIONS=true` is set on Railway backend — skips db:migrate on deploy (saves ~3 min). Unset when pushing schema changes.
 - **Test Docker builds locally first**: `bash scripts/test-deploy.sh` (requires `.env.storefront` — copy from `.env.storefront.example`)
 - **Build-time env vars**: Storefront `VITE_*` vars must be set as Railway service variables. Railway injects them as Docker build args automatically if matching `ARG` declarations exist in the Dockerfile.
