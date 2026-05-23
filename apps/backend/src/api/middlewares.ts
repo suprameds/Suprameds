@@ -224,6 +224,14 @@ export default defineMiddlewares({
       method: "POST",
       middlewares: [authenticate("customer", ["bearer", "session"])],
     },
+    // Self-test push endpoint — auth required, lives outside /store/push/ subtree
+    // because routes added under /store/push/ stubbornly refused to register in
+    // Medusa's route table on 2026-05-23 (cause never identified — see git log).
+    {
+      matcher: "/store/push-test",
+      method: "POST",
+      middlewares: [authenticate("customer", ["bearer", "session"])],
+    },
     // Shipment tracking — authenticated customers only
     {
       matcher: "/store/shipments",
