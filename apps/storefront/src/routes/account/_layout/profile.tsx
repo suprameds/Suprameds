@@ -19,6 +19,7 @@ import { PharmaFieldsForm } from "@/components/profile/pharma-fields-form"
 import { OtpDigitInput } from "@/components/auth/otp-digit-input"
 import type { PharmaCustomerMetadata } from "@/lib/types/pharma-customer"
 import { formatIndianPhone, toTenDigitIndian } from "@/lib/utils/phone"
+import { sdk } from "@/lib/utils/sdk"
 
 export const Route = createFileRoute("/account/_layout/profile")({
   head: () => ({
@@ -538,6 +539,112 @@ function ProfilePage() {
       </div>
 
       <BiometricToggle />
+
+      <PushTestButton />
+    </div>
+  )
+}
+
+/**
+ * ⚠️ TEMPORARY DEBUG WIDGET — REMOVE WITH `/store/push/test` ROUTE AFTER QA ⚠️
+ *
+ * Self-trigger FCM push to the signed-in customer's topic. Lets the operator
+ * sign in on each device they want to test, tap the button, and watch the
+ * notification arrive — no CLI / Railway shell needed.
+ *
+ * Backend is env-gated (PUSH_TEST_ENABLED=true on Railway), so the button is
+ * still visible on devices but the call 404s when the env flag is off. We
+ * surface that gracefully as "Backend disabled" instead of a generic error.
+ *
+ * TODO(remove): delete this component, the import block above, and the route
+ * at apps/backend/src/api/store/push/test/ once push delivery is verified.
+ */
+function PushTestButton() {
+  const [busy, setBusy] = useState(false)
+  const [status, setStatus] = useState<"idle" | "ok" | "err">("idle")
+  const [message, setMessage] = useState<string>("")
+
+  const handleClick = async () => {
+    setBusy(true)
+    setStatus("idle")
+    setMessage("")
+    try {
+      const res = await sdk.client.fetch<{ ok: boolean; messageId?: string }>(
+        "/store/push/test",
+        { method: "POST" }
+      )
+      if (res?.ok) {
+        setStatus("ok")
+        setMessage(
+          res.messageId
+            ? `Dispatched (id: ${res.messageId}). Check your notification tray.`
+            : "Dispatched. Check your notification tray."
+        )
+      } else {
+        setStatus("err")
+        setMessage("Backend returned ok=false")
+      }
+    } catch (err) {
+      // sdk.client.fetch throws an object with status + body on non-2xx.
+      const e = err as { status?: number; message?: string; body?: { error?: string; hint?: string } }
+      const reason =
+        e.status === 404
+          ? "Disabled. Ask the backend operator to set PUSH_TEST_ENABLED=true."
+          : e.status === 401
+            ? "Not signed in — refresh the page and try again."
+            : e.status === 503
+              ? e.body?.hint || "FCM not configured on the backend."
+              : e.body?.error || e.message || "Push send failed."
+      setStatus("err")
+      setMessage(reason)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div
+      className="mt-8 p-5 rounded-xl border"
+      style={{
+        // Yellow tint so it's visually obvious this is a debug widget.
+        background: "#FFFBEB",
+        borderColor: "#FCD34D",
+      }}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <span
+          className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded"
+          style={{ background: "#F59E0B", color: "white" }}
+        >
+          DEBUG
+        </span>
+        <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+          Push notification self-test
+        </h2>
+      </div>
+      <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
+        Sends a one-shot test push to this account&apos;s FCM topic. Useful for
+        verifying delivery on the device you&apos;re currently signed in on.
+        Background the app or tab to see the system notification.
+      </p>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={busy}
+        className="px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-60"
+        style={{ background: "#0E7C86", color: "white" }}
+      >
+        {busy ? "Sending…" : "Send test push"}
+      </button>
+      {status !== "idle" && (
+        <p
+          className="text-xs mt-3"
+          style={{ color: status === "ok" ? "#1A7A4A" : "#B91C1C" }}
+        >
+          {status === "ok" ? "✓ " : "✗ "}
+          {message}
+        </p>
+      )}
     </div>
   )
 }
