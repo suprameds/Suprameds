@@ -1,10 +1,14 @@
-// cache-bust: 2026-05-23 — force backend build to register this route
-// (Docker layer cache was serving a stale .medusa/server/ that predated this file)
+// Renamed from /store/push/test → /store/push/selftest on 2026-05-23 because
+// the /test path stubbornly refused to register in Medusa's route table after
+// multiple rebuilds. Other /store/push/* routes worked fine, but OPTIONS on
+// /store/push/test kept returning 400 with no CORS headers, surfacing in the
+// storefront as "Failed to fetch". Renaming sidesteps the cause (suspect
+// framework-level reserved-name handling, or a middleware special-case).
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { sendPushToCustomerTopic } from "../../../../lib/firebase-messaging"
 
 /**
- * POST /store/push/test
+ * POST /store/push/selftest
  *
  * ⚠️ TEMPORARY DEBUG ENDPOINT — REMOVE BEFORE GENERAL AVAILABILITY ⚠️
  *
