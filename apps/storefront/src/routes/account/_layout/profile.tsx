@@ -546,7 +546,7 @@ function ProfilePage() {
 }
 
 /**
- * ⚠️ TEMPORARY DEBUG WIDGET — REMOVE WITH `/store/push-test` ROUTE AFTER QA ⚠️
+ * ⚠️ TEMPORARY DEBUG WIDGET — REMOVE WITH `/store/push/diag` ROUTE AFTER QA ⚠️
  *
  * Self-trigger FCM push to the signed-in customer's topic. Lets the operator
  * sign in on each device they want to test, tap the button, and watch the
@@ -557,7 +557,7 @@ function ProfilePage() {
  * surface that gracefully as "Backend disabled" instead of a generic error.
  *
  * TODO(remove): delete this component, the import block above, and the route
- * at apps/backend/src/api/store/push-test/ once push delivery is verified.
+ * at apps/backend/src/api/store/push/diag/ once push delivery is verified.
  */
 function PushTestButton() {
   const [busy, setBusy] = useState(false)
@@ -570,7 +570,7 @@ function PushTestButton() {
     setMessage("")
     try {
       const res = await sdk.client.fetch<{ ok: boolean; messageId?: string }>(
-        "/store/push-test",
+        "/store/push/diag",
         { method: "POST" }
       )
       if (res?.ok) {
