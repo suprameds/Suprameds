@@ -1,3 +1,5 @@
+// cache-bust: 2026-05-23 — force backend build to register this route
+// (Docker layer cache was serving a stale .medusa/server/ that predated this file)
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { sendPushToCustomerTopic } from "../../../../lib/firebase-messaging"
 
