@@ -1,37 +1,38 @@
-// Renamed from /store/push/test → /store/push/selftest on 2026-05-23 because
-// the /test path stubbornly refused to register in Medusa's route table after
-// multiple rebuilds. Other /store/push/* routes worked fine, but OPTIONS on
-// /store/push/test kept returning 400 with no CORS headers, surfacing in the
-// storefront as "Failed to fetch". Renaming sidesteps the cause (suspect
-// framework-level reserved-name handling, or a middleware special-case).
+// Self-test FCM push endpoint - ASCII-only (route file with Unicode chars
+// failed to register in Medusa's routes-loader on 2026-05-23; cause not yet
+// nailed but the workaround is no emoji / no smart-quotes / no arrows
+// anywhere in this file, including comments).
+//
+// Renamed from /store/push/test then /store/push/selftest to /store/push-test
+// before finding the encoding issue.
+//
+// TODO(remove): delete this directory + matching PushTestButton in
+//   apps/storefront/src/routes/account/_layout/profile.tsx
+// once push notification delivery has been QA'd in production.
 import { AuthenticatedMedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { sendPushToCustomerTopic } from "../../../../lib/firebase-messaging"
 
 /**
- * POST /store/push/selftest
+ * POST /store/push-test
  *
- * ⚠️ TEMPORARY DEBUG ENDPOINT — REMOVE BEFORE GENERAL AVAILABILITY ⚠️
+ * TEMPORARY DEBUG ENDPOINT - REMOVE BEFORE GENERAL AVAILABILITY.
  *
  * Sends a one-shot FCM test push to the currently signed-in customer's own
  * topic. Used by the [DEBUG] Send test push button on the storefront profile
  * page to verify end-to-end push delivery from a real device, without needing
  * SSH access or the medusa exec CLI flow.
  *
- * Gated by `PUSH_TEST_ENABLED=true` env var on the backend. Default-off so
+ * Gated by PUSH_TEST_ENABLED=true env var on the backend. Default-off so
  * shipping this route is harmless; we flip the env var on Railway for the
  * QA window, test on devices, then flip it back off (or delete the route).
  *
- * TODO(remove): delete this directory + the matching PushTestButton in
- *   apps/storefront/src/routes/account/_layout/profile.tsx
- * once push notification delivery has been QA'd in production.
- *
- * Mirrors the customer-topic send path in `scripts/test-push.ts`, but
+ * Mirrors the customer-topic send path in scripts/test-push.ts, but
  * triggered by an authenticated customer over HTTP rather than the CLI.
  */
 export async function POST(req: AuthenticatedMedusaRequest, res: MedusaResponse) {
-  // Default-off — operator must explicitly enable on the backend env to use this.
+  // Default-off - operator must explicitly enable on the backend env to use this.
   if (process.env.PUSH_TEST_ENABLED !== "true") {
-    // 404 (not 403) so the route is invisible when disabled — no enumeration.
+    // 404 (not 403) so the route is invisible when disabled - no enumeration.
     return res.status(404).json({ error: "Not found" })
   }
 
