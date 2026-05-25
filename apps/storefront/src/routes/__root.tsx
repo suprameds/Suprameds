@@ -210,8 +210,12 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
-        {showSplash && <SplashScreen onComplete={hideSplash} />}
-        {/* GTM noscript fallback */}
+        {/*
+          GTM noscript MUST be the first child of <body> for Google Merchant
+          Center website verification to pass. Putting anything (SplashScreen,
+          providers, etc.) before it causes "Container ID not associated" type
+          errors at verify time. Keep this at the very top of <body>.
+        */}
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-P53KN295"
@@ -232,6 +236,7 @@ function RootComponent() {
             />
           </noscript>
         )}
+        {showSplash && <SplashScreen onComplete={hideSplash} />}
 
         <QueryClientProvider client={queryClient}>
           <Layout />
