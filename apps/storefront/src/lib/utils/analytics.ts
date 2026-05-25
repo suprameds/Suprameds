@@ -147,6 +147,37 @@ function buildItem(product: ProductLike, variantIndex = 0, quantity = 1) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Pageviews (SPA navigation)                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Fire a virtual page_view for SPA route changes.
+ *
+ * GTM's container fires the initial page_view automatically when it loads on
+ * the SSR'd HTML, but client-side route changes don't trigger that — without
+ * this, Google Tag Coverage marks any page users navigate to in-app (rather
+ * than landing on directly) as "Not tagged" because no hit was ever observed.
+ *
+ * Pushes a `page_view` event onto the GTM dataLayer (which GA4 picks up via
+ * its History Change / Custom Event trigger) and also calls Meta Pixel's
+ * `track('PageView')` so Meta sees the navigation too.
+ *
+ * Safe to call on initial mount too — the root subscriber skips the first
+ * fire to avoid double-counting the landing page.
+ */
+export function trackPageView(opts?: { page_path?: string; page_title?: string }) {
+  if (typeof window === "undefined") return
+  const page_path = opts?.page_path ?? `${window.location.pathname}${window.location.search}`
+  const page_title = opts?.page_title ?? (typeof document !== "undefined" ? document.title : "")
+  pushDataLayer("page_view", {
+    page_path,
+    page_location: window.location.href,
+    page_title,
+  })
+  fbq("track", "PageView")
+}
+
+/* ------------------------------------------------------------------ */
 /*  Ecommerce events                                                  */
 /* ------------------------------------------------------------------ */
 

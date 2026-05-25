@@ -1,10 +1,11 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import NotFound from "@/components/not-found"
 import ErrorFallback from "@/components/error-fallback"
 import Layout from "@/components/layout"
 import { SplashScreen } from "@/components/auth/splash-screen"
 import { listRegions } from "@/lib/data/regions"
 import { captureAdAttribution } from "@/lib/utils/ad-attribution"
+import { trackPageView } from "@/lib/utils/analytics"
 import * as Sentry from "@sentry/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import {
@@ -173,14 +174,35 @@ export const Route = createRootRouteWithContext<{
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext()
+  const router = useRouter()
   const [showSplash, setShowSplash] = useState(true)
   const hideSplash = useCallback(() => setShowSplash(false), [])
+  // Skip the very first onResolved fire so we don't double-count the landing
+  // page — GTM's GA4 Configuration tag already fires page_view on initial
+  // container load via the built-in Initialization trigger.
+  const skipFirstResolveRef = useRef(true)
 
   // Capture ad click IDs (gclid/gbraid/wbraid) and UTM params on first load.
   // Stored 90 days so a conversion later can attribute back to the original ad.
   useEffect(() => {
     captureAdAttribution()
   }, [])
+
+  // Fire a virtual page_view on every SPA route change so Google Tag Coverage
+  // (and GA4 / Meta Pixel) sees hits for pages users navigate to in-app rather
+  // than only those they land on directly. Without this, ~3 of every 4 routes
+  // can appear as "Not tagged" in Tag Assistant even though the script is
+  // installed correctly. See: lib/utils/analytics.ts trackPageView().
+  useEffect(() => {
+    const unsubscribe = router.subscribe("onResolved", () => {
+      if (skipFirstResolveRef.current) {
+        skipFirstResolveRef.current = false
+        return
+      }
+      trackPageView()
+    })
+    return unsubscribe
+  }, [router])
 
   return (
     <html lang="en-IN">
