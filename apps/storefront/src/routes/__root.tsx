@@ -134,6 +134,14 @@ export const Route = createRootRouteWithContext<{
       ...(import.meta.env.VITE_GSC_VERIFICATION
         ? [{ name: "google-site-verification", content: import.meta.env.VITE_GSC_VERIFICATION }]
         : []),
+      // Google Merchant Center website verification (set VITE_MERCHANT_CENTER_VERIFICATION).
+      // Reuses the google-site-verification meta name — Google allows multiple
+      // tags on the same page so MC and Search Console can verify separately.
+      // Required when the MC account can't access GTM / GA4 directly (e.g.
+      // those services are owned by a different Google account).
+      ...(import.meta.env.VITE_MERCHANT_CENTER_VERIFICATION
+        ? [{ name: "google-site-verification", content: import.meta.env.VITE_MERCHANT_CENTER_VERIFICATION }]
+        : []),
     ],
     scripts: [
       // Non-blocking font loader — dynamically appending a link doesn't block the HTML parser
