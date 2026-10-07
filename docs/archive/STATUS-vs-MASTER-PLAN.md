@@ -262,7 +262,7 @@ Updated: **March 22, 2026**
 - [x] NDPS: absolute block
 - [x] Schedule H/H1: prescription required (allows pending_review for "order first, verify later")
 - [x] No Rx promotions (completeCart validate hook)
-- [x] No lifestyle images (AGENTS.md rule)
+- [x] No lifestyle images (Drugs & Magic Remedies Act)
 - [x] Pharmacist sign-off flow (dispense decisions + pre-dispatch)
 - [x] H1 register (transactional entries for H1 dispenses)
 - [x] GST invoice generation (PDF, INR, HSN, CGST/SGST/IGST)

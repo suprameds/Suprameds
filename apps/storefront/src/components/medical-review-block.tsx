@@ -6,7 +6,7 @@
  *
  * Pure display component — no side effects, no data fetching. Pass the
  * reviewer details + dates in; safe defaults match the registered pharmacist
- * on file in CLAUDE.md.
+ * on file with the pharmacy licence.
  */
 
 type MedicalReviewBlockProps = {

@@ -234,7 +234,7 @@
 - 10.8 Custom Domains & DNS
 
 ### Part 11: Common Gotchas & Troubleshooting
-- 11.1 All gotchas from CLAUDE.md (with expanded explanations)
+- 11.1 Known gotchas (with expanded explanations)
 - 11.2 Stale .medusa/ cache
 - 11.3 Redis connection issues in dev
 - 11.4 pnpm lockfile workspace importers

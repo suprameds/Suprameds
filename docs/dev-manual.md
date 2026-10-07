@@ -2453,4 +2453,4 @@ Standard Medusa admin auth with optional MFA (TOTP):
 
 **End of Document**
 
-This manual covers the complete Suprameds codebase as of April 2026. For the most current information, always cross-reference with `CLAUDE.md` at the project root, which serves as the living reference document.
+This manual covers the Suprameds codebase as of April 2026.
